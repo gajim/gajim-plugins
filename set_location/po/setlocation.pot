@@ -1,0 +1,155 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2010-09-05 22:11+0400\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: ../set_location.py:29
+msgid "Set information about the current geographical or physical location."
+msgstr ""
+
+#: ../config_dialog.ui.h:1
+msgid "A URI or URL pointing to information about the location"
+msgstr ""
+
+#: ../config_dialog.ui.h:2
+msgid ""
+"A catch-all element that captures any other information about the location"
+msgstr ""
+
+#: ../config_dialog.ui.h:3
+msgid "A code used for postal delivery"
+msgstr ""
+
+#: ../config_dialog.ui.h:4
+msgid "A locality within the administrative region, such as a town or city"
+msgstr ""
+
+#: ../config_dialog.ui.h:5
+msgid "A named area such as a campus or neighborhood"
+msgstr ""
+
+#: ../config_dialog.ui.h:6
+msgid "A natural-language name for or description of the location"
+msgstr ""
+
+#: ../config_dialog.ui.h:7
+msgid "A particular floor in a building"
+msgstr ""
+
+#: ../config_dialog.ui.h:8
+msgid "A particular room in a building"
+msgstr ""
+
+#: ../config_dialog.ui.h:9
+msgid "A specific building on a street or in an area"
+msgstr ""
+
+#: ../config_dialog.ui.h:10
+msgid "A thoroughfare within the locality, or a crossing of two thoroughfares"
+msgstr ""
+
+#: ../config_dialog.ui.h:11
+msgid "Altitude in meters above or below sea level"
+msgstr ""
+
+#: ../config_dialog.ui.h:12
+msgid "An administrative region of the nation, such as a state or province"
+msgstr ""
+
+#: ../config_dialog.ui.h:13
+msgid "Apply"
+msgstr ""
+
+#: ../config_dialog.ui.h:14
+msgid "Latitude in decimal degrees North"
+msgstr ""
+
+#: ../config_dialog.ui.h:15
+msgid "Longitude in decimal degrees East"
+msgstr ""
+
+#: ../config_dialog.ui.h:16
+msgid "The ISO 3166 two-letter country code"
+msgstr ""
+
+#: ../config_dialog.ui.h:17
+msgid "The nation where the user is located"
+msgstr ""
+
+#: ../config_dialog.ui.h:18
+msgid "alt:"
+msgstr ""
+
+#: ../config_dialog.ui.h:19
+msgid "area:"
+msgstr ""
+
+#: ../config_dialog.ui.h:20
+msgid "building:"
+msgstr ""
+
+#: ../config_dialog.ui.h:21
+msgid "country:"
+msgstr ""
+
+#: ../config_dialog.ui.h:22
+msgid "countrycode:"
+msgstr ""
+
+#: ../config_dialog.ui.h:23
+msgid "description:"
+msgstr ""
+
+#: ../config_dialog.ui.h:24
+msgid "floor:"
+msgstr ""
+
+#: ../config_dialog.ui.h:25
+msgid "lat:"
+msgstr ""
+
+#: ../config_dialog.ui.h:26
+msgid "locality:"
+msgstr ""
+
+#: ../config_dialog.ui.h:27
+msgid "lon:"
+msgstr ""
+
+#: ../config_dialog.ui.h:28
+msgid "postalcode:"
+msgstr ""
+
+#: ../config_dialog.ui.h:29
+msgid "region:"
+msgstr ""
+
+#: ../config_dialog.ui.h:30
+msgid "room:"
+msgstr ""
+
+#: ../config_dialog.ui.h:31
+msgid "street:"
+msgstr ""
+
+#: ../config_dialog.ui.h:32
+msgid "text:"
+msgstr ""
+
+#: ../config_dialog.ui.h:33
+msgid "uri:"
+msgstr ""
