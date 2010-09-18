@@ -10,14 +10,6 @@ from plugins.helpers import log_calls, log
 
 
 class ClickableNicknames(GajimPlugin):
-    name = u'Clickable Nicknames'
-    short_name = u'clickable_nicknames'
-    version = u'0.1'
-    description = _(u'''Clickable nicknames in the conversation textview.''')
-    authors = [u'Denis Fomin <fominde@gmail.com>']
-
-    homepage = u'http://bitbucket.org/dicson12/plugins/src/tip/clickable_nicknames/'
-
     @log_calls('ClickableNicknamesPlugin')
     def init(self):
         self.config_dialog = None#ClickableNicknamesPluginConfigDialog(self)

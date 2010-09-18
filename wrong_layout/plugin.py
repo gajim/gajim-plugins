@@ -18,13 +18,6 @@ except: pass
 
 
 class WrongLayoutPlugin(GajimPlugin):
-    name = u'Wrong Layout'
-    short_name = u'Wrong Layout'
-    version = u'0.1'
-    description = _(u'''Press alt+r to convert chars typed in wrong layout Rus<>Eng''')
-    authors = [u'Denis Fomin <fominde@gmail.com>']
-    homepage = u'http://bitbucket.org/dicson12/plugins/src/tip/wrong_layout/'
-
     @log_calls('WrongLayoutPlugin')
     def init(self):
         self.config_dialog = None

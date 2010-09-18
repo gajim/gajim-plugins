@@ -22,14 +22,6 @@ except:
     pass
 
 class SetLocationPlugin(GajimPlugin):
-    name = u'Set Location'
-    short_name = u'set_location'
-    version = u'0.1'
-    description = _(
-    u'''Set information about the current geographical or physical location.''')
-    authors = [u'Denis Fomin <fominde@gmail.com>']
-    homepage = u'http://bitbucket.org/dicson12/plugins/src/tip/set_location/'
-
     @log_calls('SetLocationPlugin')
     def init(self):
         self.config_dialog = SetLocationPluginConfigDialog(self)

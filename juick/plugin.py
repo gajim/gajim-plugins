@@ -31,15 +31,6 @@ except:
     pass
 
 class JuickPlugin(GajimPlugin):
-    name = u'Juick'
-    short_name = u'Juick'
-    version = u'0.2'
-    description = _(u'''Clickable juick links , juick nics, preview juick picturs.
-The key combination alt + up in the textbox allow insert the number of last message (comment or topic).''')
-    authors = [u'Denis Fomin <fominde@gmail.com>', u'evgen <drujebober@gmail.com>']
-
-    homepage = u'http://bitbucket.org/dicson12/plugins/src/tip/juick/'
-
     @log_calls('JuickPlugin')
     def init(self):
         self.config_dialog = JuickPluginConfigDialog(self)
