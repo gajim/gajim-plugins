@@ -10,6 +10,7 @@ from plugins.helpers import log_calls, log
 
 
 class ClickableNicknames(GajimPlugin):
+
     @log_calls('ClickableNicknamesPlugin')
     def init(self):
         self.config_dialog = None#ClickableNicknamesPluginConfigDialog(self)
@@ -114,6 +115,8 @@ class Base(object):
             buffer_ = self.textview.tv.get_buffer()
             word = buffer_.get_text(begin_iter, end_iter).decode('utf-8')
             nick = word.rstrip().rstrip(gajim.config.get('after_nickname'))
+            if nick.startswith('* '):
+                nick = nick.lstrip('* ').split(' ')[0]
             nick = nick.lstrip(gajim.config.get('before_nickname'))
             nick = nick + gajim.config.get('gc_refer_to_nick_char') + ' '
             message_buffer = self.chat_control.msg_textview.get_buffer()
