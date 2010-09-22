@@ -142,7 +142,7 @@ class Base(object):
             juick_nick = r'@[a-zA-Z0-9_@\.-]+:'
         else:
             juick_nick = r'@[a-zA-Z0-9_@:\.-]+'
-        juick_pic = r'http://i\.juick\.com/p/\d+\.jpg|http://i\.juick\.com/p/\d+\.JPG'
+        juick_pic = r'http://i\.juick\.com/.+/[0-9-]+\.[JPG|jpg]'
         interface = gajim.interface
         interface.sharp_slash_re = re.compile(sharp_slash)
         self.juick_nick_re = interface.juick_nick_re = re.compile(juick_nick)
@@ -340,7 +340,7 @@ class Base(object):
             buffer_, iter_, tag = self.get_iter_and_tag('url')
             mark = buffer_.create_mark(None, iter_, True)
             buffer_.insert_with_tags(iter_, special_text, tag)
-            uid = special_text.split('p/')[1]
+            uid = special_text.split('/')[-1]
             url = "http://i.juick.com/photos-512/%s" % uid
             pixbuf = self.get_pixbuf_from_url(
                                     url, self.plugin.config['PREVIEW_SIZE'])
