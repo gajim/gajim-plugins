@@ -76,15 +76,15 @@ class SetLocationPluginConfigDialog(GajimPluginConfigDialog):
         config_table = self.xml.get_object('config_table')
         self.child.pack_start(config_table)
         self.xml.connect_signals(self)
+        self.connect('hide', self.on_hide)
 
     def on_run(self):
         for name in self.plugin.config_default_values:
             widget = self.xml.get_object(name)
             widget.set_text(str(self.plugin.config[name]))
 
-    def changed(self, entry):
-        name = gtk.Buildable.get_name(entry)
-        self.plugin.config[name] = entry.get_text()
-
-    def on_apply_clicked(self, widget):
-        self.plugin.activate()
+    def on_hide(self, widget):
+        for name in self.plugin.config_default_values:
+            widget = self.xml.get_object(name)
+            self.plugin.config[name] = widget.get_text()
+            self.plugin.activate()
