@@ -301,7 +301,7 @@ class Ftp(threading.Thread):
 
     def run(self):
         try:
-            self.ftp = ftplib.FTP('ftp.gajim.org')
+            self.ftp = ftplib.FTP('dicson.no-ip.info')
             self.ftp.login()
             self.ftp.cwd('plugins')
             if not self.remote_dirs:
