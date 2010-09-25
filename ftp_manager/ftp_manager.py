@@ -301,15 +301,21 @@ class Ftp(threading.Thread):
 
     def run(self):
         try:
-            self.ftp = ftplib.FTP('dicson.no-ip.info')
+            gobject.idle_add(self.progressbar.set_text,
+                'Connecting to server')
+            self.ftp = ftplib.FTP('dicson.no-ip.info')#ftp.gajim.org')
             self.ftp.login()
             self.ftp.cwd('plugins')
             if not self.remote_dirs:
                 self.plugins_dirs = self.ftp.nlst()
                 progress_step = 1.0 / len(self.plugins_dirs)
+                gobject.idle_add(self.progressbar.set_text,
+                    'Scan files on the server')
                 for dir_ in self.plugins_dirs:
                     fract = self.progressbar.get_fraction() + progress_step
                     gobject.idle_add(self.progressbar.set_fraction, fract)
+                    gobject.idle_add(self.progressbar.set_text,
+                        'Read "%s"' % dir_)
                     try:
                         self.ftp.retrbinary('RETR %s/manifest.ini' %dir_,
                             self.handleDownload)
@@ -341,6 +347,8 @@ class Ftp(threading.Thread):
     def download_plugin(self):
         gobject.idle_add(self.progressbar.show)
         self.pulse = gobject.timeout_add(150, self.progressbar_pulse)
+        gobject.idle_add(self.progressbar.set_text,
+                'Create a list of files')
         for remote_dir in self.remote_dirs:
 
             def nlstr(dir_, subdir=None):
@@ -383,6 +391,8 @@ class Ftp(threading.Thread):
 
             # downloading files
             for filename in files:
+                gobject.idle_add(self.progressbar.set_text,
+                    'Downloading "%s"' % filename)
                 full_filename = os.path.join(local_dir, filename)
                 try:
                     self.ftp.retrbinary('RETR /%s' % filename,
