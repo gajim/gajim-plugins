@@ -159,11 +159,13 @@ class FtpManager(GajimPlugin):
 
     def on_plugin_downloaded(self, widget, plugin_dirs):
         for _dir in plugin_dirs:
+            is_active = False
             plugins = None
             plugin_dir = os.path.join(gajim.PLUGINS_DIRS[1], _dir)
             plugin = gajim.plugin_manager.get_plugin_by_path(plugin_dir)
             if plugin:
                 if plugin.active:
+                    is_active = True
                     gajim.plugin_manager.deactivate_plugin(plugin)
                 gajim.plugin_manager.plugins.remove(plugin)
 
@@ -178,12 +180,15 @@ class FtpManager(GajimPlugin):
                 continue
             gajim.plugin_manager.add_plugin(plugins[0])
             plugin = gajim.plugin_manager.plugins[-1]
-            self.installed_plugins_model.append([plugin, plugin.name, False])
             for row in xrange(len(self.available_plugins_model)):
                 if plugin.name == self.available_plugins_model[row][1]:
                     self.available_plugins_model[row][2] = plugin.version
                     self.available_plugins_model[row][4] = False
                     continue
+            if is_active:
+                gajim.plugin_manager.activate_plugin(plugin)
+            self.installed_plugins_model.append([plugin, plugin.name,
+                is_active])
 
     def available_plugins_treeview_selection_changed(self, treeview_selection):
         model, iter = treeview_selection.get_selected()
