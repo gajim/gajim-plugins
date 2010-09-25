@@ -185,10 +185,11 @@ class FtpManager(GajimPlugin):
                     self.available_plugins_model[row][2] = plugin.version
                     self.available_plugins_model[row][4] = False
                     continue
-            if is_active:
+            if is_active and plugin.name != 'Ftp Manager':
                 gajim.plugin_manager.activate_plugin(plugin)
-            self.installed_plugins_model.append([plugin, plugin.name,
-                is_active])
+            if plugin.name != 'Ftp Manager':
+                self.installed_plugins_model.append([plugin, plugin.name,
+                    is_active])
 
     def available_plugins_treeview_selection_changed(self, treeview_selection):
         model, iter = treeview_selection.get_selected()
