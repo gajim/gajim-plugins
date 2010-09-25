@@ -75,7 +75,8 @@ class Base(object):
         self.chat_control.handlers[self.id_] = self.chat_control.msg_textview
 
     def disconnect_from_chat_control(self):
-        self.chat_control.handlers[self.id_].disconnect(self.id_)
+        if self.chat_control.msg_textview.handler_is_connected(self.id_):
+            self.chat_control.msg_textview.disconnect(self.id_)
 
     def mykeypress_event(self, widget, event):
         if event.keyval == gtk.keysyms.r or event.keyval == 1739:
