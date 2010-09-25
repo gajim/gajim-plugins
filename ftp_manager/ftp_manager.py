@@ -141,6 +141,7 @@ class FtpManager(GajimPlugin):
             self.ftp.start()
 
     def on_inslall_upgrade_clicked(self, widget):
+        self.inslall_upgrade_button.set_property('sensitive', False)
         dir_list = []
         for i in xrange(len(self.available_plugins_model)):
             if self.available_plugins_model[i][4]:
@@ -151,6 +152,8 @@ class FtpManager(GajimPlugin):
         ftp.start()
 
     def on_some_ftp_error(self, widget, error_text):
+        for i in xrange(len(self.available_plugins_model)):
+            self.available_plugins_model[i][4] = False
         self.progressbar.hide()
         WarningDialog('Ftp error', error_text, self.window)
 
@@ -179,6 +182,7 @@ class FtpManager(GajimPlugin):
             for row in xrange(len(self.available_plugins_model)):
                 if plugin.name == self.available_plugins_model[row][1]:
                     self.available_plugins_model[row][2] = plugin.version
+                    self.available_plugins_model[row][4] = False
                     continue
 
     def available_plugins_treeview_selection_changed(self, treeview_selection):
@@ -317,6 +321,7 @@ class Ftp(threading.Thread):
                         self.config.get('info', 'authors'),
                         self.config.get('info', 'homepage'),])
                 self.plugins_dirs = None
+                self.ftp.quit()
             gobject.idle_add(self.progressbar.set_fraction, 0)
             if self.remote_dirs:
                 self.download_plugin()
@@ -381,5 +386,6 @@ class Ftp(threading.Thread):
                 except ftplib.error_perm:
                     print 'ERROR: cannot read file "%s"' % filename
                     os.unlink(filename)
+        self.ftp.quit()
         self.window.emit('plugin_downloaded', self.remote_dirs)
         gobject.source_remove(self.pulse)

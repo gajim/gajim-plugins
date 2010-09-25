@@ -199,12 +199,34 @@
                     <property name="layout_style">end</property>
                     <child>
                       <object class="GtkButton" id="inslall_upgrade_button">
-                        <property name="label" translatable="yes">install/upgrade</property>
                         <property name="visible">True</property>
                         <property name="sensitive">False</property>
-                        <property name="can_focus">True</property>
+                        <property name="can_focus">False</property>
                         <property name="receives_default">True</property>
                         <signal name="clicked" handler="on_inslall_upgrade_clicked"/>
+                        <child>
+                          <object class="GtkHBox" id="hbox1">
+                            <property name="visible">True</property>
+                            <child>
+                              <object class="GtkImage" id="image1">
+                                <property name="visible">True</property>
+                                <property name="stock">gtk-refresh</property>
+                              </object>
+                              <packing>
+                                <property name="position">0</property>
+                              </packing>
+                            </child>
+                            <child>
+                              <object class="GtkLabel" id="label1">
+                                <property name="visible">True</property>
+                                <property name="label" translatable="yes">Install/Upgrade</property>
+                              </object>
+                              <packing>
+                                <property name="position">1</property>
+                              </packing>
+                            </child>
+                          </object>
+                        </child>
                       </object>
                       <packing>
                         <property name="expand">False</property>
