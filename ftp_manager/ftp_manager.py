@@ -164,7 +164,7 @@ class FtpManager(GajimPlugin):
             plugin_dir = os.path.join(gajim.PLUGINS_DIRS[1], _dir)
             plugin = gajim.plugin_manager.get_plugin_by_path(plugin_dir)
             if plugin:
-                if plugin.active:
+                if plugin.active and plugin.name != 'Ftp Manager':
                     is_active = True
                     gajim.plugin_manager.deactivate_plugin(plugin)
                 gajim.plugin_manager.plugins.remove(plugin)
