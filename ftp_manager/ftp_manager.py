@@ -15,14 +15,14 @@ from common import gajim
 from plugins import GajimPlugin
 from plugins.helpers import log_calls, log
 from dialogs import WarningDialog, HigDialog
-
+from plugins.gui import GajimPluginConfigDialog
 
 class FtpManager(GajimPlugin):
 
     @log_calls('FtpManagerPlugin')
     def init(self):
-        self.config_dialog = None#FtpManagerPluginConfigDialog(self)
-
+        self.config_dialog = FtpManagerPluginConfigDialog(self)
+        self.config_default_values = {'ftp_server': ('dicson.no-ip.info','')}
 
     @log_calls('FtpManagerPlugin')
     def activate(self):
@@ -164,7 +164,7 @@ class FtpManager(GajimPlugin):
             plugin_dir = os.path.join(gajim.PLUGINS_DIRS[1], _dir)
             plugin = gajim.plugin_manager.get_plugin_by_path(plugin_dir)
             if plugin:
-                if plugin.active and plugin.name != 'Ftp Manager':
+                if plugin.active and plugin.name != self.name:
                     is_active = True
                     gajim.plugin_manager.deactivate_plugin(plugin)
                 gajim.plugin_manager.plugins.remove(plugin)
@@ -185,7 +185,7 @@ class FtpManager(GajimPlugin):
                     self.available_plugins_model[row][2] = plugin.version
                     self.available_plugins_model[row][4] = False
                     continue
-            if is_active and plugin.name != 'Ftp Manager':
+            if is_active and plugin.name != self.name:
                 gajim.plugin_manager.activate_plugin(plugin)
             if plugin.name != 'Ftp Manager':
                 self.installed_plugins_model.append([plugin, plugin.name,
@@ -283,11 +283,12 @@ class FtpManager(GajimPlugin):
 
 
 class Ftp(threading.Thread):
-    def __init__(self, window):
+    def __init__(self, plugin):
         super(Ftp, self).__init__()
-        self.window = window.window
-        self.progressbar = window.progressbar
-        self.model = window.available_plugins_model
+        self.window = plugin.window
+        self.server = plugin.config['ftp_server']
+        self.progressbar = plugin.progressbar
+        self.model = plugin.available_plugins_model
         self.config = ConfigParser.ConfigParser()
         self.buffer_ = io.BytesIO()
         self.remote_dirs = None
@@ -310,7 +311,7 @@ class Ftp(threading.Thread):
         try:
             gobject.idle_add(self.progressbar.set_text,
                 'Connecting to server')
-            self.ftp = ftplib.FTP('dicson.no-ip.info')#ftp.gajim.org')
+            self.ftp = ftplib.FTP(self.server)
             self.ftp.login()
             self.ftp.cwd('plugins')
             if not self.remote_dirs:
@@ -411,3 +412,25 @@ class Ftp(threading.Thread):
         self.ftp.quit()
         self.window.emit('plugin_downloaded', self.remote_dirs)
         gobject.source_remove(self.pulse)
+
+
+class FtpManagerPluginConfigDialog(GajimPluginConfigDialog):
+    def init(self):
+        self.GTK_BUILDER_FILE_PATH = self.plugin.local_file_path(
+                'config_dialog.ui')
+        self.xml = gtk.Builder()
+        self.xml.add_objects_from_file(self.GTK_BUILDER_FILE_PATH,
+                ['hbox111'])
+        hbox = self.xml.get_object('hbox111')
+        self.child.pack_start(hbox)
+
+        self.xml.connect_signals(self)
+        self.connect('hide', self.on_hide)
+
+    def on_run(self):
+        widget = self.xml.get_object('ftp_server')
+        widget.set_text(str(self.plugin.config['ftp_server']))
+
+    def on_hide(self, widget):
+        widget = self.xml.get_object('ftp_server')
+        self.plugin.config['ftp_server'] = widget.get_text()
