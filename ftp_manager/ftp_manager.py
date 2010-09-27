@@ -14,7 +14,7 @@ import sys
 from common import gajim
 from plugins import GajimPlugin
 from plugins.helpers import log_calls, log
-from dialogs import WarningDialog
+from dialogs import WarningDialog, HigDialog
 
 
 class FtpManager(GajimPlugin):
@@ -190,6 +190,11 @@ class FtpManager(GajimPlugin):
             if plugin.name != 'Ftp Manager':
                 self.installed_plugins_model.append([plugin, plugin.name,
                     is_active])
+        dialog = HigDialog(None, gtk.MESSAGE_INFO, gtk.BUTTONS_OK,
+            '', 'All selected plugins downloaded')
+        dialog.set_modal(False)
+        dialog.set_transient_for(self.window)
+        dialog.popup()
 
     def available_plugins_treeview_selection_changed(self, treeview_selection):
         model, iter = treeview_selection.get_selected()
@@ -275,6 +280,7 @@ class FtpManager(GajimPlugin):
                     # all fields are required
                     pass
         return plugins_found
+
 
 class Ftp(threading.Thread):
     def __init__(self, window):
