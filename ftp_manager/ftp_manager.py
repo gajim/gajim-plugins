@@ -251,7 +251,8 @@ class FtpManager(GajimPlugin):
                     pass
                 except ImportError, import_error:
                     pass
-
+                except AttributeError, attribute_error:
+                    pass
             if module is None:
                 continue
 
