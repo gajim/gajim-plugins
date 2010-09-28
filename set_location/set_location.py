@@ -12,6 +12,7 @@ from plugins.gui import GajimPluginConfigDialog
 from plugins import GajimPlugin
 from plugins.helpers import log_calls, log
 from common import gajim
+import gtkgui_helpers
 
 locale_path = os.path.dirname(__file__) + '/locales'
 locale.bindtextdomain('setlocation', locale_path)
@@ -95,7 +96,6 @@ class SetLocationPluginConfigDialog(GajimPluginConfigDialog):
             no_map = True
         if not no_map and not self.is_active:
             from layers import DummyLayer
-            import gtkgui_helpers
 
             vbox = self.xml.get_object('vbox1')
             vbox.set_size_request(400, -1)
@@ -114,9 +114,11 @@ class SetLocationPluginConfigDialog(GajimPluginConfigDialog):
             self.osm.connect('button_release_event', self.map_clicked)
             vbox.pack_start(self.osm, expand=True, fill=True, padding=6)
             label = gtk.Label(
-                'Click the right mouse button to specify the location')
+                'Click the right mouse button to specify the location, \n'\
+                'middle mouse button to show / hide the contacts on the map')
             vbox.pack_start(label, expand=False, fill=False, padding=6)
             self.is_active = True
+            self.images = []
             self.osm_image = self.osm.image_add(lat, lon, self.icon)
             self.xml.get_object('lat').connect('changed', self.on_lon_changed)
             self.xml.get_object('lon').connect('changed', self.on_lon_changed)
@@ -134,6 +136,8 @@ class SetLocationPluginConfigDialog(GajimPluginConfigDialog):
             self.osm_image = self.osm.image_add(lat, lon, self.icon)
             self.xml.get_object('lat').set_text(str(lat))
             self.xml.get_object('lon').set_text(str(lon))
+        if event.button == 2:
+            self.show_contacts()
 
     def on_lon_changed(self, widget):
         try:
@@ -146,3 +150,31 @@ class SetLocationPluginConfigDialog(GajimPluginConfigDialog):
         self.osm.image_remove(self.osm_image)
         self.osm_image = self.osm.image_add(lat, lon, self.icon)
         self.osm.set_center(lat, lon)
+
+    def show_contacts(self):
+        if not self.images:
+            data = {}
+            accounts = gajim.contacts._accounts
+            for account in accounts:
+                if not gajim.account_is_connected(account):
+                    continue
+                for contact in accounts[account].contacts._contacts:
+                    pep = accounts[account].contacts._contacts[contact][0].pep
+                    if 'location' not in pep:
+                        continue
+                    lat = pep['location']._pep_specific_data.get('lat', None)
+                    lon = pep['location']._pep_specific_data.get('lon', None)
+                    if not lat or not lon:
+                        continue
+                    data[contact] = (lat, lon)
+            for jid in data:
+                path = gtkgui_helpers.get_path_to_generic_or_avatar(None,
+                        jid=jid, suffix='')
+                icon = gtk.gdk.pixbuf_new_from_file_at_size(path, 24, 24)
+                image = self.osm.image_add(float(data[jid][0]),
+                    float(data[jid][1]), icon)
+                self.images.append(image)
+        else:
+            for image in self.images:
+                self.osm.image_remove(image)
+            self.images = []
