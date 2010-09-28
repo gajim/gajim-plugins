@@ -78,14 +78,22 @@ class SetLocationPluginConfigDialog(GajimPluginConfigDialog):
         self.child.pack_start(hbox)
         self.xml.connect_signals(self)
         self.connect('hide', self.on_hide)
+        self.is_active = None
 
     def on_run(self):
         no_map = None
+
+        for name in self.plugin.config_default_values:
+            widget = self.xml.get_object(name)
+            widget.set_text(str(self.plugin.config[name]))
+
         try:
             import osmgpsmap
+            if osmgpsmap.__version__ < '0.6':
+                no_map = True
         except:
             no_map = True
-        if not no_map:
+        if not no_map and not self.is_active:
             from layers import DummyLayer
             import gtkgui_helpers
 
@@ -103,13 +111,15 @@ class SetLocationPluginConfigDialog(GajimPluginConfigDialog):
                 'gajim', 16))
             self.icon = gtk.gdk.pixbuf_new_from_file_at_size(
                 self.path_to_image, 16, 16)
-            self.osm_image = self.osm.image_add(lat, lon, self.icon)
             self.osm.connect('button_release_event', self.map_clicked)
-            vbox.pack_start(self.osm)
-
-        for name in self.plugin.config_default_values:
-            widget = self.xml.get_object(name)
-            widget.set_text(str(self.plugin.config[name]))
+            vbox.pack_start(self.osm, expand=True, fill=True, padding=6)
+            label = gtk.Label(
+                'Click the right mouse button to specify the location')
+            vbox.pack_start(label, expand=False, fill=False, padding=6)
+            self.is_active = True
+            self.osm_image = self.osm.image_add(lat, lon, self.icon)
+            self.xml.get_object('lat').connect('changed', self.on_lon_changed)
+            self.xml.get_object('lon').connect('changed', self.on_lon_changed)
 
     def on_hide(self, widget):
         for name in self.plugin.config_default_values:
@@ -124,3 +134,15 @@ class SetLocationPluginConfigDialog(GajimPluginConfigDialog):
             self.osm_image = self.osm.image_add(lat, lon, self.icon)
             self.xml.get_object('lat').set_text(str(lat))
             self.xml.get_object('lon').set_text(str(lon))
+
+    def on_lon_changed(self, widget):
+        try:
+            lat = float(self.xml.get_object('lat').get_text())
+            lon = float(self.xml.get_object('lon').get_text())
+        except ValueError,e:
+            return
+        if not -85 < lat < 85 or not -180 < lon < 180:
+            return
+        self.osm.image_remove(self.osm_image)
+        self.osm_image = self.osm.image_add(lat, lon, self.icon)
+        self.osm.set_center(lat, lon)
