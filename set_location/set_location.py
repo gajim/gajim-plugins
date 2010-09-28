@@ -72,13 +72,41 @@ class SetLocationPluginConfigDialog(GajimPluginConfigDialog):
         self.xml = gtk.Builder()
         self.xml.set_translation_domain('setlocation')
         self.xml.add_objects_from_file(self.GTK_BUILDER_FILE_PATH,
-                ['config_table'])
+                ['hbox1'])
         config_table = self.xml.get_object('config_table')
-        self.child.pack_start(config_table)
+        hbox = self.xml.get_object('hbox1')
+        self.child.pack_start(hbox)
         self.xml.connect_signals(self)
         self.connect('hide', self.on_hide)
 
     def on_run(self):
+        no_map = None
+        try:
+            import osmgpsmap
+        except:
+            no_map = True
+        if not no_map:
+            from layers import DummyLayer
+            import gtkgui_helpers
+
+            vbox = self.xml.get_object('vbox1')
+            vbox.set_size_request(400, -1)
+
+            self.osm = osmgpsmap.GpsMap()
+            self.osm.layer_add(osmgpsmap.GpsMapOsd(show_dpad=True,
+                show_zoom=True))
+            self.osm.layer_add(DummyLayer())
+            lat = float(self.plugin.config['lat'])
+            lon = float(self.plugin.config['lon'])
+            self.osm.set_center_and_zoom(lat, lon, 12)
+            self.path_to_image = os.path.abspath(gtkgui_helpers.get_icon_path(
+                'gajim', 16))
+            self.icon = gtk.gdk.pixbuf_new_from_file_at_size(
+                self.path_to_image, 16, 16)
+            self.osm_image = self.osm.image_add(lat, lon, self.icon)
+            self.osm.connect('button_release_event', self.map_clicked)
+            vbox.pack_start(self.osm)
+
         for name in self.plugin.config_default_values:
             widget = self.xml.get_object(name)
             widget.set_text(str(self.plugin.config[name]))
@@ -88,3 +116,11 @@ class SetLocationPluginConfigDialog(GajimPluginConfigDialog):
             widget = self.xml.get_object(name)
             self.plugin.config[name] = widget.get_text()
             self.plugin.activate()
+
+    def map_clicked(self, osm, event):
+        lat, lon = self.osm.get_event_location(event).get_degrees()
+        if event.button == 3:
+            self.osm.image_remove(self.osm_image)
+            self.osm_image = self.osm.image_add(lat, lon, self.icon)
+            self.xml.get_object('lat').set_text(str(lat))
+            self.xml.get_object('lon').set_text(str(lon))
