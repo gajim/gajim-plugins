@@ -90,12 +90,13 @@ class SetLocationPluginConfigDialog(GajimPluginConfigDialog):
         self.preset_combo.pack_start(cellrenderer, True)
         self.preset_combo.add_attribute(cellrenderer, 'text', 0)
         #self.plugin.config['presets'] = {'default': {}}
-        pres_keys = sorted(self.plugin.config['presets'].keys())
-        for key in pres_keys:
-            self.preset_liststore.append((key,))
 
     def on_run(self):
         no_map = None
+        if not self.is_active:
+            pres_keys = sorted(self.plugin.config['presets'].keys())
+            for key in pres_keys:
+                self.preset_liststore.append((key,))
 
         for name in self.plugin.config_default_values:
             if name == 'presets':
