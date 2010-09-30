@@ -13,6 +13,7 @@ from plugins import GajimPlugin
 from plugins.helpers import log_calls, log
 from common import gajim
 import gtkgui_helpers
+from dialogs import InputDialog
 
 locale_path = os.path.dirname(__file__) + '/locales'
 locale.bindtextdomain('setlocation', locale_path)
@@ -42,7 +43,8 @@ class SetLocationPlugin(GajimPlugin):
             'room' : ('Observatory', ''),
             'street' : ('34th and Broadway', ''),
             'text' : ('Northwest corner of the lobby', ''),
-            'uri' : ('http://beta.plazes.com/plazes/1940:jabber_inc', ''),}
+            'uri' : ('http://beta.plazes.com/plazes/1940:jabber_inc', ''),
+            'presets': ({'default': {}}, ''),}
 
     @log_calls('SetLocationPlugin')
     def activate(self):
@@ -81,10 +83,23 @@ class SetLocationPluginConfigDialog(GajimPluginConfigDialog):
         self.connect('hide', self.on_hide)
         self.is_active = None
 
+        self.preset_combo = self.xml.get_object('preset_combobox')
+        self.preset_liststore = gtk.ListStore(str)
+        self.preset_combo.set_model(self.preset_liststore)
+        cellrenderer = gtk.CellRendererText()
+        self.preset_combo.pack_start(cellrenderer, True)
+        self.preset_combo.add_attribute(cellrenderer, 'text', 0)
+        #self.plugin.config['presets'] = {'default': {}}
+        pres_keys = sorted(self.plugin.config['presets'].keys())
+        for key in pres_keys:
+            self.preset_liststore.append((key,))
+
     def on_run(self):
         no_map = None
 
         for name in self.plugin.config_default_values:
+            if name == 'presets':
+                continue
             widget = self.xml.get_object(name)
             widget.set_text(str(self.plugin.config[name]))
 
@@ -125,6 +140,8 @@ class SetLocationPluginConfigDialog(GajimPluginConfigDialog):
 
     def on_hide(self, widget):
         for name in self.plugin.config_default_values:
+            if name == 'presets':
+                continue
             widget = self.xml.get_object(name)
             self.plugin.config[name] = widget.get_text()
             self.plugin.activate()
@@ -178,3 +195,33 @@ class SetLocationPluginConfigDialog(GajimPluginConfigDialog):
             for image in self.images:
                 self.osm.image_remove(image)
             self.images = []
+
+    def on_preset_button_clicked(self, widget):
+        def on_ok(preset_name):
+            if preset_name == '':
+                return
+            preset = {}
+            for name in self.plugin.config_default_values:
+                if name == 'presets':
+                    continue
+                widget = self.xml.get_object(name)
+                preset[name] = widget.get_text()
+            preset = {preset_name: preset}
+            presets = dict(self.plugin.config['presets'].items() + \
+                preset.items())
+            self.plugin.config['presets'] = presets
+            iter_ = self.preset_liststore.append((preset_name,))
+            self.preset_combo.set_active_iter(iter_)
+        self.set_modal(False)
+        InputDialog(_('Save as Preset'), _('Please type a name for this preset'),
+            is_modal=True, ok_handler=on_ok)
+
+    def on_preset_combobox_changed(self, widget):
+        model = widget.get_model()
+        active = widget.get_active()
+        if active < 0:
+            return
+        pres_name = model[active][0].decode('utf-8')
+        for name in self.plugin.config['presets'][pres_name].keys():
+            widget = self.xml.get_object(name)
+            widget.set_text(str(self.plugin.config['presets'][pres_name][name]))
