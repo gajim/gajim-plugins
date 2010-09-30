@@ -207,12 +207,12 @@ class SetLocationPluginConfigDialog(GajimPluginConfigDialog):
                     continue
                 widget = self.xml.get_object(name)
                 preset[name] = widget.get_text()
-            if preset_name not in self.plugin.config['presets'].keys():
-                iter_ = self.preset_liststore.append((preset_name,))
-                self.preset_combo.set_active_iter(iter_)
             preset = {preset_name: preset}
             presets = dict(self.plugin.config['presets'].items() + \
                 preset.items())
+            if preset_name not in self.plugin.config['presets'].keys():
+                iter_ = self.preset_liststore.append((preset_name,))
+                #self.preset_combo.set_active_iter(iter_)
             self.plugin.config['presets'] = presets
         self.set_modal(False)
         InputDialog(_('Save as Preset'), _('Please type a name for this preset'),
@@ -222,8 +222,20 @@ class SetLocationPluginConfigDialog(GajimPluginConfigDialog):
         model = widget.get_model()
         active = widget.get_active()
         if active < 0:
+            self.xml.get_object('del_preset').set_sensitive(False)
             return
         pres_name = model[active][0].decode('utf-8')
         for name in self.plugin.config['presets'][pres_name].keys():
             widget = self.xml.get_object(name)
             widget.set_text(str(self.plugin.config['presets'][pres_name][name]))
+
+        self.xml.get_object('del_preset').set_sensitive(True)
+
+    def on_del_preset_clicked(self, widget):
+        active = self.preset_combo.get_active()
+        active_iter = self.preset_combo.get_active_iter()
+        name = self.preset_liststore[active][0].decode('utf-8')
+        presets = self.plugin.config['presets']
+        del presets[name]
+        self.plugin.config['presets'] = presets
+        self.preset_liststore.remove(active_iter)
