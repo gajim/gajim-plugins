@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2010-09-05 22:11+0400\n"
+"POT-Creation-Date: 2010-09-30 16:35+0400\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,8 +17,18 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: ../set_location.py:29
-msgid "Set information about the current geographical or physical location."
+#: ../set_location.py:133
+msgid ""
+"Click the right mouse button to specify the location, \n"
+"middle mouse button to show / hide the contacts on the map"
+msgstr ""
+
+#: ../set_location.py:218
+msgid "Save as Preset"
+msgstr ""
+
+#: ../set_location.py:218
+msgid "Please type a name for this preset"
 msgstr ""
 
 #: ../config_dialog.ui.h:1
@@ -71,7 +81,7 @@ msgid "An administrative region of the nation, such as a state or province"
 msgstr ""
 
 #: ../config_dialog.ui.h:13
-msgid "Apply"
+msgid "Delete preset"
 msgstr ""
 
 #: ../config_dialog.ui.h:14
@@ -83,73 +93,81 @@ msgid "Longitude in decimal degrees East"
 msgstr ""
 
 #: ../config_dialog.ui.h:16
-msgid "The ISO 3166 two-letter country code"
+msgid "Preset:"
 msgstr ""
 
 #: ../config_dialog.ui.h:17
-msgid "The nation where the user is located"
+msgid "Save preset"
 msgstr ""
 
 #: ../config_dialog.ui.h:18
-msgid "alt:"
+msgid "The ISO 3166 two-letter country code"
 msgstr ""
 
 #: ../config_dialog.ui.h:19
-msgid "area:"
+msgid "The nation where the user is located"
 msgstr ""
 
 #: ../config_dialog.ui.h:20
-msgid "building:"
+msgid "alt:"
 msgstr ""
 
 #: ../config_dialog.ui.h:21
-msgid "country:"
+msgid "area:"
 msgstr ""
 
 #: ../config_dialog.ui.h:22
-msgid "countrycode:"
+msgid "building:"
 msgstr ""
 
 #: ../config_dialog.ui.h:23
-msgid "description:"
+msgid "country:"
 msgstr ""
 
 #: ../config_dialog.ui.h:24
-msgid "floor:"
+msgid "countrycode:"
 msgstr ""
 
 #: ../config_dialog.ui.h:25
-msgid "lat:"
+msgid "description:"
 msgstr ""
 
 #: ../config_dialog.ui.h:26
-msgid "locality:"
+msgid "floor:"
 msgstr ""
 
 #: ../config_dialog.ui.h:27
-msgid "lon:"
+msgid "lat:"
 msgstr ""
 
 #: ../config_dialog.ui.h:28
-msgid "postalcode:"
+msgid "locality:"
 msgstr ""
 
 #: ../config_dialog.ui.h:29
-msgid "region:"
+msgid "lon:"
 msgstr ""
 
 #: ../config_dialog.ui.h:30
-msgid "room:"
+msgid "postalcode:"
 msgstr ""
 
 #: ../config_dialog.ui.h:31
-msgid "street:"
+msgid "region:"
 msgstr ""
 
 #: ../config_dialog.ui.h:32
-msgid "text:"
+msgid "room:"
 msgstr ""
 
 #: ../config_dialog.ui.h:33
+msgid "street:"
+msgstr ""
+
+#: ../config_dialog.ui.h:34
+msgid "text:"
+msgstr ""
+
+#: ../config_dialog.ui.h:35
 msgid "uri:"
 msgstr ""

@@ -310,6 +310,8 @@
                   <object class="GtkEntry" id="alt">
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
+                    <property name="has_tooltip">True</property>
+                    <property name="tooltip_text" translatable="yes">Altitude in meters above or below sea level</property>
                     <property name="invisible_char">&#x25CF;</property>
                   </object>
                   <packing>
@@ -321,6 +323,8 @@
                   <object class="GtkEntry" id="area">
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
+                    <property name="has_tooltip">True</property>
+                    <property name="tooltip_text" translatable="yes">A named area such as a campus or neighborhood</property>
                     <property name="invisible_char">&#x25CF;</property>
                   </object>
                   <packing>
@@ -334,6 +338,8 @@
                   <object class="GtkEntry" id="building">
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
+                    <property name="has_tooltip">True</property>
+                    <property name="tooltip_text" translatable="yes">A specific building on a street or in an area</property>
                     <property name="invisible_char">&#x25CF;</property>
                   </object>
                   <packing>
@@ -347,6 +353,8 @@
                   <object class="GtkEntry" id="country">
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
+                    <property name="has_tooltip">True</property>
+                    <property name="tooltip_text" translatable="yes">The nation where the user is located</property>
                     <property name="invisible_char">&#x25CF;</property>
                   </object>
                   <packing>
@@ -360,6 +368,8 @@
                   <object class="GtkEntry" id="countrycode">
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
+                    <property name="has_tooltip">True</property>
+                    <property name="tooltip_text" translatable="yes">The ISO 3166 two-letter country code</property>
                     <property name="invisible_char">&#x25CF;</property>
                   </object>
                   <packing>
@@ -373,6 +383,8 @@
                   <object class="GtkEntry" id="description">
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
+                    <property name="has_tooltip">True</property>
+                    <property name="tooltip_text" translatable="yes">A natural-language name for or description of the location</property>
                     <property name="invisible_char">&#x25CF;</property>
                   </object>
                   <packing>
@@ -386,6 +398,8 @@
                   <object class="GtkEntry" id="floor">
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
+                    <property name="has_tooltip">True</property>
+                    <property name="tooltip_text" translatable="yes">A particular floor in a building</property>
                     <property name="invisible_char">&#x25CF;</property>
                   </object>
                   <packing>
@@ -399,6 +413,8 @@
                   <object class="GtkEntry" id="locality">
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
+                    <property name="has_tooltip">True</property>
+                    <property name="tooltip_text" translatable="yes">A locality within the administrative region, such as a town or city</property>
                     <property name="invisible_char">&#x25CF;</property>
                   </object>
                   <packing>
@@ -412,6 +428,8 @@
                   <object class="GtkEntry" id="lat">
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
+                    <property name="has_tooltip">True</property>
+                    <property name="tooltip_text" translatable="yes">Latitude in decimal degrees North</property>
                     <property name="invisible_char">&#x25CF;</property>
                   </object>
                   <packing>
@@ -425,6 +443,8 @@
                   <object class="GtkEntry" id="lon">
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
+                    <property name="has_tooltip">True</property>
+                    <property name="tooltip_text" translatable="yes">Longitude in decimal degrees East</property>
                     <property name="invisible_char">&#x25CF;</property>
                   </object>
                   <packing>
@@ -438,6 +458,8 @@
                   <object class="GtkEntry" id="postalcode">
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
+                    <property name="has_tooltip">True</property>
+                    <property name="tooltip_text" translatable="yes">A code used for postal delivery</property>
                     <property name="invisible_char">&#x25CF;</property>
                   </object>
                   <packing>
@@ -451,6 +473,8 @@
                   <object class="GtkEntry" id="region">
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
+                    <property name="has_tooltip">True</property>
+                    <property name="tooltip_text" translatable="yes">An administrative region of the nation, such as a state or province</property>
                     <property name="invisible_char">&#x25CF;</property>
                   </object>
                   <packing>
@@ -464,6 +488,8 @@
                   <object class="GtkEntry" id="room">
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
+                    <property name="has_tooltip">True</property>
+                    <property name="tooltip_text" translatable="yes">A particular room in a building</property>
                     <property name="invisible_char">&#x25CF;</property>
                   </object>
                   <packing>
@@ -477,6 +503,8 @@
                   <object class="GtkEntry" id="street">
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
+                    <property name="has_tooltip">True</property>
+                    <property name="tooltip_text" translatable="yes">A thoroughfare within the locality, or a crossing of two thoroughfares</property>
                     <property name="invisible_char">&#x25CF;</property>
                   </object>
                   <packing>
@@ -490,6 +518,8 @@
                   <object class="GtkEntry" id="text">
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
+                    <property name="has_tooltip">True</property>
+                    <property name="tooltip_text" translatable="yes">A catch-all element that captures any other information about the location</property>
                     <property name="invisible_char">&#x25CF;</property>
                   </object>
                   <packing>
@@ -503,6 +533,8 @@
                   <object class="GtkEntry" id="uri">
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
+                    <property name="has_tooltip">True</property>
+                    <property name="tooltip_text" translatable="yes">A URI or URL pointing to information about the location</property>
                     <property name="invisible_char">&#x25CF;</property>
                   </object>
                   <packing>

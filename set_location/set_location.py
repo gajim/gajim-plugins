@@ -129,9 +129,9 @@ class SetLocationPluginConfigDialog(GajimPluginConfigDialog):
                 self.path_to_image, 16, 16)
             self.osm.connect('button_release_event', self.map_clicked)
             vbox.pack_start(self.osm, expand=True, fill=True, padding=6)
-            label = gtk.Label(
+            label = gtk.Label(_(
                 'Click the right mouse button to specify the location, \n'\
-                'middle mouse button to show / hide the contacts on the map')
+                'middle mouse button to show / hide the contacts on the map'))
             vbox.pack_start(label, expand=False, fill=False, padding=6)
             self.is_active = True
             self.images = []
