@@ -207,12 +207,13 @@ class SetLocationPluginConfigDialog(GajimPluginConfigDialog):
                     continue
                 widget = self.xml.get_object(name)
                 preset[name] = widget.get_text()
+            if preset_name not in self.plugin.config['presets'].keys():
+                iter_ = self.preset_liststore.append((preset_name,))
+                self.preset_combo.set_active_iter(iter_)
             preset = {preset_name: preset}
             presets = dict(self.plugin.config['presets'].items() + \
                 preset.items())
             self.plugin.config['presets'] = presets
-            iter_ = self.preset_liststore.append((preset_name,))
-            self.preset_combo.set_active_iter(iter_)
         self.set_modal(False)
         InputDialog(_('Save as Preset'), _('Please type a name for this preset'),
             is_modal=True, ok_handler=on_ok)
