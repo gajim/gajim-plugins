@@ -22,10 +22,10 @@ class ChatstatePlugin(GajimPlugin):
         self.events_handlers = {'raw-message-received' :
                                     (ged.POSTCORE, self.raw_pres_received),}
         self.config_default_values = {
-            'active': ('darkblue',''),
+            'active': ('darkred',''),
             'composing': ('darkgreen', ''),
             'inactive': ('#675B5B',''),
-            'paused': ('darkred', ''),}
+            'paused': ('darkblue', ''),}
         self.compose = ('active', 'composing', 'gone', 'inactive', 'paused')
         self.active = None
 
