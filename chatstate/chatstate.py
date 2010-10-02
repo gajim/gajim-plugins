@@ -47,24 +47,22 @@ class ChatstatePlugin(GajimPlugin):
         for child_iter in child_iters:
             name = gobject.markup_escape_text(contact.get_shown_name())
             theme = gajim.config.get('roster_theme')
-            color = None
-            if chatstate == 'composing':
-                color = gajim.config.get_per('themes', theme,
-                                'state_composing_color')
-            elif chatstate == 'inactive':
-                color = gajim.config.get_per('themes', theme,
-                                'state_inactive_color')
-            elif chatstate == 'gone':
-                color = gajim.config.get_per('themes', theme,
-                                'state_gone_color')
-            elif chatstate == 'paused':
-                color = gajim.config.get_per('themes', theme,
-                                'state_paused_color')
-            elif chatstate == 'active':
-                color = gajim.config.get('inmsgcolor')
+            if chatstate != 'gone':
+                color = None
+                if chatstate == 'composing':
+                    color = gajim.config.get_per('themes', theme,
+                                    'state_composing_color')
+                elif chatstate == 'inactive':
+                    color = gajim.config.get_per('themes', theme,
+                                    'state_inactive_color')
+                elif chatstate == 'paused':
+                    color = gajim.config.get_per('themes', theme,
+                                    'state_paused_color')
+                elif chatstate == 'active':
+                    color = gajim.config.get('inmsgcolor')
 
-            name = '<span foreground="%s">%s</span>' % (
-                    color, name)
+                name = '<span foreground="%s">%s</span>' % (
+                        color, name)
             if contact.status and gajim.config.get('show_status_msgs_in_roster'):
                 status = contact.status.strip()
                 if status != '':
