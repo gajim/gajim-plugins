@@ -5,7 +5,6 @@ import gtk
 import gobject
 import pango
 
-from plugins.gui import GajimPluginConfigDialog
 from plugins import GajimPlugin
 from plugins.helpers import log_calls, log
 from common import ged
@@ -18,15 +17,10 @@ class ChatstatePlugin(GajimPlugin):
 
     @log_calls('ChatstatePlugin')
     def init(self):
-        self.config_dialog = ChatstatePluginConfigDialog(self)
+        self.config_dialog = None#ChatstatePluginConfigDialog(self)
         self.events_handlers = {'raw-message-received' :
                                     (ged.POSTCORE, self.raw_pres_received),}
-        self.config_default_values = {
-            'active': ('darkred',''),
-            'composing': ('darkgreen', ''),
-            'inactive': ('#675B5B',''),
-            'paused': ('darkblue', ''),}
-        self.compose = ('active', 'composing', 'gone', 'inactive', 'paused')
+        self.chatstates = ('active', 'composing', 'gone', 'inactive', 'paused')
         self.active = None
 
 
@@ -39,8 +33,8 @@ class ChatstatePlugin(GajimPlugin):
         if not contact:
             return
 
-        for compose in self.compose:
-            state = event_object.xmpp_msg.getTag(compose)
+        for chatstate in self.chatstates:
+            state = event_object.xmpp_msg.getTag(chatstate)
             if state:
                 break
         if not state:
@@ -52,9 +46,25 @@ class ChatstatePlugin(GajimPlugin):
 
         for child_iter in child_iters:
             name = gobject.markup_escape_text(contact.get_shown_name())
-            if compose != 'gone':
-                name = '<span foreground="%s">%s</span>' % (
-                        self.config[compose], name)
+            theme = gajim.config.get('roster_theme')
+            color = None
+            if chatstate == 'composing':
+                color = gajim.config.get_per('themes', theme,
+                                'state_composing_color')
+            elif chatstate == 'inactive':
+                color = gajim.config.get_per('themes', theme,
+                                'state_inactive_color')
+            elif chatstate == 'gone':
+                color = gajim.config.get_per('themes', theme,
+                                'state_gone_color')
+            elif chatstate == 'paused':
+                color = gajim.config.get_per('themes', theme,
+                                'state_paused_color')
+            elif chatstate == 'active':
+                color = gajim.config.get('inmsgcolor')
+
+            name = '<span foreground="%s">%s</span>' % (
+                    color, name)
             if contact.status and gajim.config.get('show_status_msgs_in_roster'):
                 status = contact.status.strip()
                 if status != '':
@@ -78,31 +88,3 @@ class ChatstatePlugin(GajimPlugin):
     def deactivate(self):
         self.active = False
         pass
-
-
-class ChatstatePluginConfigDialog(GajimPluginConfigDialog):
-    def init(self):
-        self.GTK_BUILDER_FILE_PATH = self.plugin.local_file_path(
-                'config_dialog.ui')
-        self.xml = gtk.Builder()
-        self.xml.set_translation_domain('gajim')
-        self.xml.add_objects_from_file(self.GTK_BUILDER_FILE_PATH,
-                ['vbox1'])
-        vbox1 = self.xml.get_object('vbox1')
-        self.child.pack_start(vbox1)
-        self.xml.connect_signals(self)
-        self.connect('hide', self.on_hide)
-
-    def on_run(self):
-        for name in self.plugin.config_default_values:
-            widget = self.xml.get_object(name)
-            widget.set_color(gtk.gdk.color_parse(self.plugin.config[name]))
-
-    def changed(self, entry):
-        name = gtk.Buildable.get_name(entry)
-        self.plugin.config[name] = entry.get_text()
-
-    def on_hide(self, widget):
-        for name in self.plugin.config_default_values:
-            widget = self.xml.get_object(name)
-            self.plugin.config[name] = widget.get_color().to_string()
