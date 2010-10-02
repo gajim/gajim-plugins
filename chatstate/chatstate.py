@@ -23,13 +23,16 @@ class ChatstatePlugin(GajimPlugin):
                                     (ged.POSTCORE, self.raw_pres_received),}
         self.config_default_values = {
             'active': ('darkblue',''),
-            'composing': ('darkred', ''),
+            'composing': ('darkgreen', ''),
             'inactive': ('#675B5B',''),
-            'paused': ('darkgreen', ''),}
+            'paused': ('darkred', ''),}
         self.compose = ('active', 'composing', 'gone', 'inactive', 'paused')
+        self.active = None
 
 
     def raw_pres_received(self, event_object):
+        if not self.active:
+            return
         jid = str(event_object.xmpp_msg.getFrom())
         account = event_object.account
         contact = gajim.contacts.get_contact_from_full_jid(account, jid)
@@ -68,10 +71,12 @@ class ChatstatePlugin(GajimPlugin):
 
     @log_calls('ChatstatePlugin')
     def activate(self):
+        self.active = True
         pass
 
     @log_calls('ChatstatePlugin')
     def deactivate(self):
+        self.active = False
         pass
 
 
