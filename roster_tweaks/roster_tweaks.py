@@ -29,8 +29,11 @@ class RosterTweaksPlugin(GajimPlugin):
             self.accel_group.connect_group(gtk.keysyms.m, gtk.gdk.CONTROL_MASK,
                     gtk.ACCEL_MASK, self.on_ctrl_m)
             menubar = gajim.interface.roster.xml.get_object('menubar')
-            menubar.set_no_show_all(True)
-            menubar.set_property('visible', self.config['menu_visible'])
+            menubar = gajim.interface.roster.xml.get_object('menubar')
+            if self.config['menu_visible']:
+                menubar.set_size_request(1, 1)
+            else:
+                menubar.set_size_request(-1, -1)
 
     @log_calls('RosterTweaksPlugin')
     def deactivate(self):
@@ -38,9 +41,11 @@ class RosterTweaksPlugin(GajimPlugin):
 
     def on_ctrl_m(self, accel_group, acceleratable, keyval, modifier):
         menubar = gajim.interface.roster.xml.get_object('menubar')
-        is_visible = menubar.get_property('visible')
-        menubar.set_property('visible', not is_visible)
-        self.config['menu_visible'] = not is_visible
+        if not self.config['menu_visible']:
+            menubar.set_size_request(1, 1)
+        else:
+            menubar.set_size_request(-1, -1)
+        self.config['menu_visible'] = not self.config['menu_visible']
         return True
 
 class RosterTweaksPluginConfigDialog(GajimPluginConfigDialog):
@@ -77,5 +82,5 @@ class RosterTweaksPluginConfigDialog(GajimPluginConfigDialog):
             self.plugin.accel_group.disconnect_key(gtk.keysyms.m,
                     gtk.gdk.CONTROL_MASK)
             self.plugin.config['menu_visible'] = True
-            gajim.interface.roster.xml.get_object('menubar').set_property(
-                    'visible', True)
+            gajim.interface.roster.xml.get_object('menubar').set_size_request(
+                    -1, -1)
