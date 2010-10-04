@@ -1,0 +1,45 @@
+<?xml version="1.0"?>
+<interface>
+  <requires lib="gtk+" version="2.16"/>
+  <!-- interface-naming-policy toplevel-contextual -->
+  <object class="GtkWindow" id="window1">
+    <child>
+      <object class="GtkVBox" id="roster_tweaks_config_vbox">
+        <property name="visible">True</property>
+        <property name="border_width">9</property>
+        <property name="orientation">vertical</property>
+        <property name="spacing">4</property>
+        <child>
+          <object class="GtkCheckButton" id="hide_combo">
+            <property name="label" translatable="yes">Hide status combobox</property>
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="receives_default">False</property>
+            <property name="tooltip_text" translatable="yes">If checked, status icon will be displayed in chat window banner.</property>
+            <property name="draw_indicator">True</property>
+            <signal name="toggled" handler="on_hide_combo_toggled"/>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="position">0</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkCheckButton" id="use_ctr_m">
+            <property name="label" translatable="yes">Use Ctrl +M to hide/show menu</property>
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="receives_default">False</property>
+            <property name="tooltip_text" translatable="yes">If checked, status message of contact will be displayed in chat window banner.</property>
+            <property name="draw_indicator">True</property>
+            <signal name="toggled" handler="on_use_ctr_m_toggled"/>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="position">1</property>
+          </packing>
+        </child>
+      </object>
+    </child>
+  </object>
+</interface>

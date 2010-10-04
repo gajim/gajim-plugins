@@ -63,6 +63,7 @@ class ChatstatePlugin(GajimPlugin):
 
                 name = '<span foreground="%s">%s</span>' % (
                         color, name)
+
             if contact.status and gajim.config.get('show_status_msgs_in_roster'):
                 status = contact.status.strip()
                 if status != '':
