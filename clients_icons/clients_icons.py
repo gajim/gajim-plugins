@@ -83,7 +83,7 @@ class ClientsIconsPlugin(GajimPlugin):
 
     @log_calls('ClientsIconsPlugin')
     def init(self):
-        self.config_dialog = ClientsIconsPluginConfigDialog(self)
+        self.pos_list = ['after statusicon', 'befor avatar']
         self.events_handlers = {'CAPS_RECEIVED':
                                     (ged.POSTGUI, self.caps_received),
                                 'presence-received':
@@ -96,9 +96,10 @@ class ClientsIconsPlugin(GajimPlugin):
         self.config_default_values = {
                 'show_in_roster': (True,''),
                 'show_in_groupchats': (True,''),
-                'show_unknown_icon': (True,''),}
+                'show_unknown_icon': (True,''),
+                'pos_in_list': (0,''),}
 
-        self.groupchats_tree_is_transformed = False
+        self.config_dialog = ClientsIconsPluginConfigDialog(self)
         theme = gtk.icon_theme_get_default()
         self.default_pixbuf = theme.load_icon('gtk-dialog-question', 16,
             gtk.ICON_LOOKUP_USE_BUILTIN)
@@ -117,9 +118,11 @@ class ClientsIconsPlugin(GajimPlugin):
         # remove old column
         chat_control.list_treeview.remove_column(
             chat_control.list_treeview.get_column(0))
-        # add new renderer in renderers list after location pixbuf renderer
+        # add new renderer in renderers list
+        position_list = ['name', 'avatar']
+        position = position_list[self.config['pos_in_list']]
         for renderer in chat_control.renderers_list:
-            if renderer[0] == 'name':
+            if renderer[0] == position:
                 break
         num = chat_control.renderers_list.index(renderer)
         chat_control.renderers_list.insert(num, client_icon_rend)
@@ -148,9 +151,11 @@ class ClientsIconsPlugin(GajimPlugin):
                 roster._fill_pep_pixbuf_renderer, self.renderer_num)
         # remove old column
         roster.tree.remove_column(roster.tree.get_column(0))
-        # add new renderer in renderers list after location pixbuf renderer
+        # add new renderer in renderers list
+        position_list = ['name', 'avatar']
+        position = position_list[self.config['pos_in_list']]
         for renderer in roster.renderers_list:
-            if renderer[0] == 'name':
+            if renderer[0] == position:
                 break
         num = roster.renderers_list.index(renderer)
         roster.renderers_list.insert(num, client_icon_rend)
@@ -174,8 +179,12 @@ class ClientsIconsPlugin(GajimPlugin):
                 break
         roster.fill_column(col)
         roster.tree.insert_column(col, 0)
-        roster.columns.remove(roster.columns[self.renderer_num])
+        roster.columns = roster.columns[:self.renderer_num] + roster.columns[
+            self.renderer_num+1:]
         roster.setup_and_draw_roster()
+        # TODO remove this
+        import time
+        time.sleep(2)
 
     def caps_received(self, account, data):
         if not self.config['show_in_roster']:
@@ -265,11 +274,20 @@ class ClientsIconsPluginConfigDialog(GajimPluginConfigDialog):
         self.xml = gtk.Builder()
         self.xml.add_objects_from_file(self.GTK_BUILDER_FILE_PATH,
                 ['vbox1'])
-        #config_table = self.xml.get_object('config_table')
         vbox = self.xml.get_object('vbox1')
         self.child.pack_start(vbox)
         self.xml.connect_signals(self)
         self.connect('hide', self.on_hide)
+        self.combo = self.xml.get_object('combobox1')
+        self.liststore = gtk.ListStore(str)
+        self.combo.set_model(self.liststore)
+        cellrenderer = gtk.CellRendererText()
+        self.combo.pack_start(cellrenderer, True)
+        self.combo.add_attribute(cellrenderer, 'text', 0)
+
+        for item in self.plugin.pos_list:
+            self.liststore.append((item,))
+        self.combo.set_active(self.plugin.config['pos_in_list'])
 
     def on_hide(self, widget):
         pass
@@ -290,3 +308,6 @@ class ClientsIconsPluginConfigDialog(GajimPluginConfigDialog):
 
     def on_show_unknown_icon_toggled(self, widget):
         self.plugin.config['show_unknown_icon'] = widget.get_active()
+
+    def on_combobox1_changed(self, widget):
+        self.plugin.config['pos_in_list'] = widget.get_active()
