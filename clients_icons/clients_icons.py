@@ -197,8 +197,9 @@ class ClientsIconsPlugin(GajimPlugin):
                     roster.model[iter_][self.renderer_num] = self.default_pixbuf
                 continue
             client_icon = clients.get(caps.split('#')[0], None)
-            if not client_icon and self.config['show_unknown_icon']:
-                roster.model[iter_][self.renderer_num] = self.default_pixbuf
+            if not client_icon:
+                if self.config['show_unknown_icon']:
+                   roster.model[iter_][self.renderer_num] = self.default_pixbuf
                 continue
             icon_path = os.path.join(self.local_file_path('icons'), client_icon)
             pixbuf = gtk.gdk.pixbuf_new_from_file_at_size(icon_path, 16, 16)
@@ -229,8 +230,9 @@ class ClientsIconsPlugin(GajimPlugin):
                 model[iter_][self.muc_renderer_num] = self.default_pixbuf
             return
         client_icon = clients.get(caps.split('#')[0], None)
-        if not client_icon and self.config['show_unknown_icon']:
-            model[iter_][self.muc_renderer_num] = self.default_pixbuf
+        if not client_icon:
+            if self.config['show_unknown_icon']:
+                model[iter_][self.muc_renderer_num] = self.default_pixbuf
         else:
             icon_path = os.path.join(self.local_file_path('icons'),
                 client_icon)
