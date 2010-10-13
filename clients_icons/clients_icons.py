@@ -61,6 +61,7 @@ clients = {
     'http://fatal-bot.spb.ru/caps': 'bot.png',
     'http://svn.posix.ru/fatal-bot/trunk': 'bot.png',
     'http://storm-bot.googlecode.com/svn/trunk': 'bot.png',
+    'http://talk.google.com/xmpp/bot/caps': 'google.png',
     'http://jabbrik.ru/caps': 'bot.png',
     'http://jabrvista.net.ru': 'bot.png',
     'http://xu-6.jabbrik.ru/caps': 'bot.png',
