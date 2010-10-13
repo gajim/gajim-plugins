@@ -13,6 +13,7 @@ import cell_renderer_image
 
 clients = {
     'http://gajim.org': 'gajim.png',
+    'http://gajim.org/caps': 'gajim.png',
     'http://bombus-im.org/java': 'bombus.png',
     'http://bombusmod.net.ru/caps': 'bombusmod.png',
     'http://psi-dev.googlecode.com/caps': 'psiplus.png',
@@ -26,7 +27,6 @@ clients = {
     'http://voffk.org.ru/bombus': 'bombusplus.png',
     'http://bombusng-qd.googlecode.com': 'bombusqd.png',
     'http://tkabber.jabber.ru/': 'tkabber.png',
-    'http://qip.ru/caps': 'qipinfium.png',
     'http://pidgin.im/': 'pidgin.png',
     'http://qutim.org': 'qutim.png',
     'http://exodus.jabberstudio.org/caps': 'exodus.png',
@@ -61,13 +61,14 @@ clients = {
     'http://fatal-bot.spb.ru/caps': 'bot.png',
     'http://svn.posix.ru/fatal-bot/trunk': 'bot.png',
     'http://storm-bot.googlecode.com/svn/trunk': 'bot.png',
-    'http://jabbrik.ru/caps': 'bot.png',#Utah Jabber Bot
-    'http://jabrvista.net.ru': 'bot.png',#Utah Jabber Bot
-    'http://xu-6.jabbrik.ru/caps': 'bot.png',#XU-6 Bot
+    'http://jabbrik.ru/caps': 'bot.png',
+    'http://jabrvista.net.ru': 'bot.png',
+    'http://xu-6.jabbrik.ru/caps': 'bot.png',
     'http://jabber.pdg.pl/caps': 'bombus-klub.png',
-    'http://klub54.wen.ru': 'bombus-klub.png',#BombusKlub
+    'http://klub54.wen.ru': 'bombus-klub.png',
     'http://aqq.eu/': 'aqq.png',
-    'http://2010.qip.ru/caps': 'qipinfium.png',#QIP 2010
+    'http://2010.qip.ru/caps': 'qipinfium.png',
+    'http://qip.ru/caps': 'qipinfium.png',
     'http://glu.net/': 'glu.png',
     '-Z-r': 'siejc.png',
     'telepathy.': 'telepathy.freedesktop.org.png',
@@ -83,9 +84,51 @@ class ClientsIconsPlugin(GajimPlugin):
     def init(self):
         self.config_dialog = None#ClientsIconsPluginConfigDialog(self)
         self.events_handlers = {'CAPS_RECEIVED':
-                                        (ged.POSTCORE, self.caps_received),
+                                    (ged.POSTGUI, self.caps_received),
                                 'presence-received':
-                                        (ged.POSTCORE, self.presence_received),}
+                                    (ged.POSTGUI, self.presence_received),
+                                'gc-presence-received':
+                                    (ged.POSTGUI, self.gc_presence_received),}
+        self.gui_extension_points = {
+            'groupchat_control' : (self.connect_with_groupchat_control,
+                                    self.disconnect_from_groupchat_control)}
+        self.groupchats_tree_is_transformed = False
+        theme = gtk.icon_theme_get_default()
+        self.default_pixbuf = theme.load_icon('gtk-dialog-question', 16,
+            gtk.ICON_LOOKUP_USE_BUILTIN)
+
+    @log_calls('ClientsIconsPlugin')
+    def connect_with_groupchat_control(self, chat_control):
+        chat_control.nb_ext_renderers += 1
+        chat_control.columns += [gtk.gdk.Pixbuf]
+        self.groupchats_tree_is_transformed = True
+        self.chat_control = chat_control
+        col = gtk.TreeViewColumn()
+        self.muc_renderer_num = 4 + chat_control.nb_ext_renderers
+        client_icon_rend = ('client_icon', gtk.CellRendererPixbuf(), False,
+                'pixbuf', self.muc_renderer_num,
+                self.tree_cell_data_func, chat_control)
+        # remove old column
+        chat_control.list_treeview.remove_column(
+            chat_control.list_treeview.get_column(0))
+        # add new renderer in renderers list after location pixbuf renderer
+        for renderer in chat_control.renderers_list:
+            if renderer[0] == 'name':
+                break
+        num = chat_control.renderers_list.index(renderer)
+        chat_control.renderers_list.insert(num, client_icon_rend)
+        # fill and append column
+        chat_control.fill_column(col)
+        chat_control.list_treeview.insert_column(col, 0)
+        # redraw roster
+        store = gtk.TreeStore(*chat_control.columns)
+        store.set_sort_func(1, chat_control.tree_compare_iters)
+        store.set_sort_column_id(1, gtk.SORT_ASCENDING)
+        chat_control.list_treeview.set_model(store)
+
+    @log_calls('ClientsIconsPlugin')
+    def disconnect_from_groupchat_control(self, chat_control):
+        pass
 
     @log_calls('ClientsIconsPlugin')
     def activate(self):
@@ -93,17 +136,18 @@ class ClientsIconsPlugin(GajimPlugin):
         col = gtk.TreeViewColumn()
         roster.nb_ext_renderers += 1
         self.renderer_num = 10 + roster.nb_ext_renderers
-        client_icon_rend = ('client_icon', gtk.CellRendererPixbuf(), False,
+        self.renderer = gtk.CellRendererPixbuf()
+        client_icon_rend = ('client_icon', self.renderer, False,
                 'pixbuf', self.renderer_num,
                 roster._fill_pep_pixbuf_renderer, self.renderer_num)
         # remove old column
         roster.tree.remove_column(roster.tree.get_column(0))
         # add new renderer in renderers list after location pixbuf renderer
         for renderer in roster.renderers_list:
-            if renderer[0] == 'location':
+            if renderer[0] == 'name':
                 break
         num = roster.renderers_list.index(renderer)
-        roster.renderers_list.insert(num+1, client_icon_rend)
+        roster.renderers_list.insert(num, client_icon_rend)
         # fill and append column
         roster.fill_column(col)
         roster.tree.insert_column(col, 0)
@@ -136,17 +180,66 @@ class ClientsIconsPlugin(GajimPlugin):
             if not contact:
                 continue
             caps = contact.client_caps._node
+            iter_ = roster._get_contact_iter(jid, account, contact,
+                roster.model)[0]
             if not caps:
+                if roster.model[iter_][self.renderer_num] is not None:
+                    continue
+                roster.model[iter_][self.renderer_num] = self.default_pixbuf
                 continue
             client_icon = clients.get(caps.split('#')[0], None)
             if not client_icon:
+                roster.model[iter_][self.renderer_num] = self.default_pixbuf
                 continue
             icon_path = os.path.join(self.local_file_path('icons'), client_icon)
             pixbuf = gtk.gdk.pixbuf_new_from_file_at_size(icon_path, 16, 16)
-            iter_ = roster._get_contact_iter(jid, account, contact,
-                    roster.model)[0]
             roster.model[iter_][self.renderer_num] = pixbuf
 
     def presence_received(self, iq_obj):
         if iq_obj.new_show == 0:
             self.caps_received(iq_obj.conn.name, [iq_obj.fjid])
+            return
+
+    def gc_presence_received(self, iq_obj):
+        contact = gajim.contacts.get_gc_contact(iq_obj.conn.name,
+            iq_obj.presence_obj.jid, iq_obj.nick.decode('utf-8'))
+        if not contact:
+            return
+        caps = None
+        tag = iq_obj.iq_obj.getTags('c')
+        if tag:
+            caps = tag[0].getAttr('node')
+        iter_ = iq_obj.gc_control.get_contact_iter(iq_obj.nick.decode('utf-8'))
+        model = iq_obj.gc_control.list_treeview.get_model()
+        if model[iter_][self.muc_renderer_num] is not None:
+            return
+        if not caps:
+            model[iter_][self.muc_renderer_num] = self.default_pixbuf
+            return
+        client_icon = clients.get(caps.split('#')[0], None)
+        if not client_icon:
+            model[iter_][self.muc_renderer_num] = self.default_pixbuf
+        else:
+            icon_path = os.path.join(self.local_file_path('icons'),
+                client_icon)
+            pixbuf = gtk.gdk.pixbuf_new_from_file_at_size(icon_path, 16, 16)
+            model[iter_][self.muc_renderer_num] = pixbuf
+
+    def tree_cell_data_func(self, column, renderer, model, iter_, control):
+        if not model.iter_parent(iter_):
+            renderer.set_property('visible', False)
+            return
+        renderer.set_property('visible', True)
+
+        contact = gajim.contacts.get_gc_contact(control.account,
+            control.room_jid, model[iter_][1].decode('utf-8'))
+        if not contact:
+            return
+
+        bgcolor = gajim.config.get_per('themes', gajim.config.get(
+            'roster_theme'), 'contactbgcolor')
+        if bgcolor:
+            renderer.set_property('cell-background', bgcolor)
+        else:
+            renderer.set_property('cell-background', None)
+        renderer.set_property('width', 16)
