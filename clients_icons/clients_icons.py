@@ -4,7 +4,7 @@
 import gtk
 import os
 
-#from plugins.gui import GajimPluginConfigDialog
+from plugins.gui import GajimPluginConfigDialog
 from plugins import GajimPlugin
 from plugins.helpers import log_calls, log
 from common import ged
@@ -83,7 +83,7 @@ class ClientsIconsPlugin(GajimPlugin):
 
     @log_calls('ClientsIconsPlugin')
     def init(self):
-        self.config_dialog = None#ClientsIconsPluginConfigDialog(self)
+        self.config_dialog = ClientsIconsPluginConfigDialog(self)
         self.events_handlers = {'CAPS_RECEIVED':
                                     (ged.POSTGUI, self.caps_received),
                                 'presence-received':
@@ -93,6 +93,11 @@ class ClientsIconsPlugin(GajimPlugin):
         self.gui_extension_points = {
             'groupchat_control' : (self.connect_with_groupchat_control,
                                     self.disconnect_from_groupchat_control)}
+        self.config_default_values = {
+                'show_in_roster': (True,''),
+                'show_in_groupchats': (True,''),
+                'show_unknown_icon': (True,''),}
+
         self.groupchats_tree_is_transformed = False
         theme = gtk.icon_theme_get_default()
         self.default_pixbuf = theme.load_icon('gtk-dialog-question', 16,
@@ -173,6 +178,8 @@ class ClientsIconsPlugin(GajimPlugin):
         roster.setup_and_draw_roster()
 
     def caps_received(self, account, data):
+        if not self.config['show_in_roster']:
+            return
         roster = gajim.interface.roster
         jid = data[0].split('/')[0]
         for account in gajim.contacts.get_accounts():
@@ -186,10 +193,11 @@ class ClientsIconsPlugin(GajimPlugin):
             if not caps:
                 if roster.model[iter_][self.renderer_num] is not None:
                     continue
-                roster.model[iter_][self.renderer_num] = self.default_pixbuf
+                if self.config['show_unknown_icon']:
+                    roster.model[iter_][self.renderer_num] = self.default_pixbuf
                 continue
             client_icon = clients.get(caps.split('#')[0], None)
-            if not client_icon:
+            if not client_icon and self.config['show_unknown_icon']:
                 roster.model[iter_][self.renderer_num] = self.default_pixbuf
                 continue
             icon_path = os.path.join(self.local_file_path('icons'), client_icon)
@@ -202,6 +210,8 @@ class ClientsIconsPlugin(GajimPlugin):
             return
 
     def gc_presence_received(self, iq_obj):
+        if not self.config['show_in_groupchats']:
+            return
         contact = gajim.contacts.get_gc_contact(iq_obj.conn.name,
             iq_obj.presence_obj.jid, iq_obj.nick.decode('utf-8'))
         if not contact:
@@ -215,10 +225,11 @@ class ClientsIconsPlugin(GajimPlugin):
         if model[iter_][self.muc_renderer_num] is not None:
             return
         if not caps:
-            model[iter_][self.muc_renderer_num] = self.default_pixbuf
+            if self.config['show_unknown_icon']:
+                model[iter_][self.muc_renderer_num] = self.default_pixbuf
             return
         client_icon = clients.get(caps.split('#')[0], None)
-        if not client_icon:
+        if not client_icon and self.config['show_unknown_icon']:
             model[iter_][self.muc_renderer_num] = self.default_pixbuf
         else:
             icon_path = os.path.join(self.local_file_path('icons'),
@@ -244,3 +255,36 @@ class ClientsIconsPlugin(GajimPlugin):
         else:
             renderer.set_property('cell-background', None)
         renderer.set_property('width', 16)
+
+class ClientsIconsPluginConfigDialog(GajimPluginConfigDialog):
+    def init(self):
+        self.GTK_BUILDER_FILE_PATH = self.plugin.local_file_path(
+                'config_dialog.ui')
+        self.xml = gtk.Builder()
+        self.xml.add_objects_from_file(self.GTK_BUILDER_FILE_PATH,
+                ['vbox1'])
+        #config_table = self.xml.get_object('config_table')
+        vbox = self.xml.get_object('vbox1')
+        self.child.pack_start(vbox)
+        self.xml.connect_signals(self)
+        self.connect('hide', self.on_hide)
+
+    def on_hide(self, widget):
+        pass
+
+    def on_run(self):
+        self.xml.get_object('show_in_roster').set_active(
+            self.plugin.config['show_in_roster'])
+        self.xml.get_object('show_in_groupchats').set_active(
+            self.plugin.config['show_in_groupchats'])
+        self.xml.get_object('show_unknown_icon').set_active(
+            self.plugin.config['show_unknown_icon'])
+
+    def on_show_in_roster_toggled(self, widget):
+        self.plugin.config['show_in_roster'] = widget.get_active()
+
+    def on_show_in_groupchats_toggled(self, widget):
+        self.plugin.config['show_in_groupchats'] = widget.get_active()
+
+    def on_show_unknown_icon_toggled(self, widget):
+        self.plugin.config['show_unknown_icon'] = widget.get_active()
