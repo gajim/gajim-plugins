@@ -18,14 +18,18 @@ clients = {
     'http://bombusmod.net.ru/caps': 'bombusmod.png',
     'http://psi-dev.googlecode.com/caps': 'psiplus.png',
     'http://bombusng-md.googlecode.com': 'bombusng.png',
+    'http://bombus-im.org/ng': 'bombusng.png',
+    'http://voffk.org.ru/bombus': 'bombusplus.png',
+    'http://bombusng-qd.googlecode.com': 'bombusqd.png',
+    'http://bombusmod-qd.wen.ru/caps': 'bombusqd.png',
+    'http://bombusmod.net.ru': 'bombusmod.png',
+    'http://ex-im.name/caps': 'bombusmod.png',
+    'http://bombusmod.eu,http://bombus.pl': 'bombuspl.png',
     'http://mcabber.com/caps': 'mcabber.png',
     'http://miranda-im.org/caps': 'miranda.png',
     'http://www.asterisk.org/xmpp/client/caps': 'asterisk.png',
     'http://www.google.com/xmpp/client/caps': 'talkonaut.png',
     'http://oneteam.im/caps': 'oneteamiphone.png',
-    'http://bombus-im.org/ng': 'bombusng.png',
-    'http://voffk.org.ru/bombus': 'bombusplus.png',
-    'http://bombusng-qd.googlecode.com': 'bombusqd.png',
     'http://tkabber.jabber.ru/': 'tkabber.png',
     'http://pidgin.im/': 'pidgin.png',
     'http://qutim.org': 'qutim.png',
@@ -41,14 +45,10 @@ clients = {
     'http://gaim.sf.net/caps': 'gaim.png',
     'http://mchat.mgslab.com/': 'mchat.png',
     'http://online.yandex.ru/caps': 'yaonline.png',
-    'http://bombusmod-qd.wen.ru/caps': 'bombusqd.png',
-    'http://bombusmod.net.ru': 'bombusmod.png',
-    'http://ex-im.name/caps': 'bombusmod.png',
     'http://psi-im.org/caps': 'psi.png',
     'http://jimm.net.ru/caps': 'jimm-aspro.png',
     'http://bluendo.com/protocol/caps': 'lampiro.png',
     'nimbuzz:caps': 'nimbuzz.png',
-    'http://bombusmod.eu,http://bombus.pl': 'bombuspl.png',
     'http://isida.googlecode.com': 'isida-bot.png',
     'http://isida-bot.com': 'isida-bot.png',
     'http://apps.radio-t.com/caps': 'radio-t.png',
@@ -100,9 +100,9 @@ class ClientsIconsPlugin(GajimPlugin):
                 'pos_in_list': (0,''),}
 
         self.config_dialog = ClientsIconsPluginConfigDialog(self)
-        theme = gtk.icon_theme_get_default()
-        self.default_pixbuf = theme.load_icon('gtk-dialog-question', 16,
-            gtk.ICON_LOOKUP_USE_BUILTIN)
+        icon_path = os.path.join(self.local_file_path('icons'), 'unknown.png')
+        self.default_pixbuf = gtk.gdk.pixbuf_new_from_file_at_size( icon_path,
+            16, 16)
 
     @log_calls('ClientsIconsPlugin')
     def connect_with_groupchat_control(self, chat_control):
