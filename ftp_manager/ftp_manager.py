@@ -37,6 +37,7 @@ class FtpManager(GajimPlugin):
         self.pl_menuitem.disconnect(self.id_)
         if hasattr(self, 'page_num'):
             self.notebook.remove_page(self.page_num)
+            self.notebook.set_current_page(0)
         if hasattr(self, 'ftp'):
             del self.ftp
 

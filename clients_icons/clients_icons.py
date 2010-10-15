@@ -192,6 +192,7 @@ class ClientsIconsPlugin(GajimPlugin):
         iter_ = roster._get_contact_iter(iq_obj.jid, iq_obj.conn.name, contact,
             roster.model)[0]
         if contact != iq_obj.contact:
+            # higest contact changed
             caps = contact.client_caps._node
             self.set_icon(roster.model, iter_, self.renderer_num, caps)
             return
