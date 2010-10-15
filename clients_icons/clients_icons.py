@@ -191,13 +191,14 @@ class ClientsIconsPlugin(GajimPlugin):
             return
         iter_ = roster._get_contact_iter(iq_obj.jid, iq_obj.conn.name, contact,
             roster.model)[0]
-        caps = contact.client_caps._node
-        if not caps:
-            tag = iq_obj.iq_obj.getTags('c')
-            if tag:
-                caps = tag[0].getAttr('node')
+        if contact != iq_obj.contact:
+            caps = contact.client_caps._node
             self.set_icon(roster.model, iter_, self.renderer_num, caps)
             return
+        caps = None
+        tag = iq_obj.iq_obj.getTags('c')
+        if tag:
+            caps = tag[0].getAttr('node')
         self.set_icon(roster.model, iter_, self.renderer_num, caps)
 
     def gc_presence_received(self, iq_obj):
@@ -223,6 +224,7 @@ class ClientsIconsPlugin(GajimPlugin):
                 model[iter_][pos] = self.default_pixbuf
             return
         client_icon = clients.get(caps.split('#')[0], None)
+        print client_icon
         if not client_icon:
             if self.config['show_unknown_icon']:
                 model[iter_][pos] = self.default_pixbuf
