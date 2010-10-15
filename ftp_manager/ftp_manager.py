@@ -166,7 +166,7 @@ class FtpManager(GajimPlugin):
             if plugin:
                 if plugin.active and plugin.name != self.name:
                     is_active = True
-                    gajim.plugin_manager.deactivate_plugin(plugin)
+                    gobject.idle_add(gajim.plugin_manager.deactivate_plugin ,plugin)
                 gajim.plugin_manager.plugins.remove(plugin)
 
                 model = self.installed_plugins_model
@@ -186,7 +186,7 @@ class FtpManager(GajimPlugin):
                     self.available_plugins_model[row][4] = False
                     continue
             if is_active and plugin.name != self.name:
-                gajim.plugin_manager.activate_plugin(plugin)
+                gobject.idle_add(gajim.plugin_manager.activate_plugin ,plugin)
             if plugin.name != 'Ftp Manager':
                 self.installed_plugins_model.append([plugin, plugin.name,
                     is_active])
