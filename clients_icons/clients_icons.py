@@ -180,9 +180,6 @@ class ClientsIconsPlugin(GajimPlugin):
         roster.columns = roster.columns[:self.renderer_num] + roster.columns[
             self.renderer_num+1:]
         roster.setup_and_draw_roster()
-        # TODO remove this
-        import time
-        time.sleep(2)
 
     def presence_received(self, iq_obj):
         if not self.config['show_in_roster']:
