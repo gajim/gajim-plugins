@@ -224,7 +224,6 @@ class ClientsIconsPlugin(GajimPlugin):
                 model[iter_][pos] = self.default_pixbuf
             return
         client_icon = clients.get(caps.split('#')[0], None)
-        print client_icon
         if not client_icon:
             if self.config['show_unknown_icon']:
                 model[iter_][pos] = self.default_pixbuf
