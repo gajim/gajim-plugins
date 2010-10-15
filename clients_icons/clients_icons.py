@@ -84,9 +84,7 @@ class ClientsIconsPlugin(GajimPlugin):
     @log_calls('ClientsIconsPlugin')
     def init(self):
         self.pos_list = ['after statusicon', 'befor avatar']
-        self.events_handlers = {'CAPS_RECEIVED':
-                                    (ged.POSTGUI, self.caps_received),
-                                'presence-received':
+        self.events_handlers = {'presence-received':
                                     (ged.POSTGUI, self.presence_received),
                                 'gc-presence-received':
                                     (ged.POSTGUI, self.gc_presence_received),}
@@ -186,38 +184,24 @@ class ClientsIconsPlugin(GajimPlugin):
         import time
         time.sleep(2)
 
-    def caps_received(self, account, data):
+    def presence_received(self, iq_obj):
         if not self.config['show_in_roster']:
             return
         roster = gajim.interface.roster
-        jid = data[0].split('/')[0]
-        for account in gajim.contacts.get_accounts():
-            contact = gajim.contacts.get_contact_with_highest_priority(
-                    account, jid)
-            if not contact:
-                continue
-            caps = contact.client_caps._node
-            iter_ = roster._get_contact_iter(jid, account, contact,
-                roster.model)[0]
-            if not caps:
-                if roster.model[iter_][self.renderer_num] is not None:
-                    continue
-                if self.config['show_unknown_icon']:
-                    roster.model[iter_][self.renderer_num] = self.default_pixbuf
-                continue
-            client_icon = clients.get(caps.split('#')[0], None)
-            if not client_icon:
-                if self.config['show_unknown_icon']:
-                   roster.model[iter_][self.renderer_num] = self.default_pixbuf
-                continue
-            icon_path = os.path.join(self.local_file_path('icons'), client_icon)
-            pixbuf = gtk.gdk.pixbuf_new_from_file_at_size(icon_path, 16, 16)
-            roster.model[iter_][self.renderer_num] = pixbuf
-
-    def presence_received(self, iq_obj):
-        if iq_obj.new_show == 0:
-            self.caps_received(iq_obj.conn.name, [iq_obj.fjid])
+        contact = gajim.contacts.get_contact_with_highest_priority(
+            iq_obj.conn.name, iq_obj.jid)
+        if not contact:
             return
+        iter_ = roster._get_contact_iter(iq_obj.jid, iq_obj.conn.name, contact,
+            roster.model)[0]
+        caps = contact.client_caps._node
+        if not caps:
+            tag = iq_obj.iq_obj.getTags('c')
+            if tag:
+                caps = tag[0].getAttr('node')
+            self.set_icon(roster.model, iter_, self.renderer_num, caps)
+            return
+        self.set_icon(roster.model, iter_, self.renderer_num, caps)
 
     def gc_presence_received(self, iq_obj):
         if not self.config['show_in_groupchats']:
@@ -234,19 +218,22 @@ class ClientsIconsPlugin(GajimPlugin):
         model = iq_obj.gc_control.list_treeview.get_model()
         if model[iter_][self.muc_renderer_num] is not None:
             return
+        self.set_icon(model, iter_, self.muc_renderer_num, caps)
+
+    def set_icon(self, model, iter_, pos, caps):
         if not caps:
             if self.config['show_unknown_icon']:
-                model[iter_][self.muc_renderer_num] = self.default_pixbuf
+                model[iter_][pos] = self.default_pixbuf
             return
         client_icon = clients.get(caps.split('#')[0], None)
         if not client_icon:
             if self.config['show_unknown_icon']:
-                model[iter_][self.muc_renderer_num] = self.default_pixbuf
+                model[iter_][pos] = self.default_pixbuf
         else:
             icon_path = os.path.join(self.local_file_path('icons'),
                 client_icon)
             pixbuf = gtk.gdk.pixbuf_new_from_file_at_size(icon_path, 16, 16)
-            model[iter_][self.muc_renderer_num] = pixbuf
+            model[iter_][pos] = pixbuf
 
     def tree_cell_data_func(self, column, renderer, model, iter_, control):
         if not model.iter_parent(iter_):
