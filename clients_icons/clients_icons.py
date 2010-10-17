@@ -83,7 +83,7 @@ class ClientsIconsPlugin(GajimPlugin):
 
     @log_calls('ClientsIconsPlugin')
     def init(self):
-        self.pos_list = ['after statusicon', 'befor avatar']
+        self.pos_list = ['after statusicon', 'before avatar']
         self.events_handlers = {'presence-received':
                                     (ged.POSTGUI, self.presence_received),
                                 'gc-presence-received':
