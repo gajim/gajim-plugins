@@ -27,14 +27,14 @@ class ChatstatePlugin(GajimPlugin):
     def raw_pres_received(self, event_object):
         if not self.active:
             return
-        jid = str(event_object.xmpp_msg.getFrom())
+        jid = str(event_object.stanza.getFrom())
         account = event_object.account
         contact = gajim.contacts.get_contact_from_full_jid(account, jid)
         if not contact:
             return
 
         for chatstate in self.chatstates:
-            state = event_object.xmpp_msg.getTag(chatstate)
+            state = event_object.stanza.getTag(chatstate)
             if state:
                 break
         if not state:

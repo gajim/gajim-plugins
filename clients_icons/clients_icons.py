@@ -197,7 +197,7 @@ class ClientsIconsPlugin(GajimPlugin):
             self.set_icon(roster.model, iter_, self.renderer_num, caps)
             return
         caps = None
-        tag = iq_obj.iq_obj.getTags('c')
+        tag = iq_obj.stanza.getTags('c')
         if tag:
             caps = tag[0].getAttr('node')
         self.set_icon(roster.model, iter_, self.renderer_num, caps)
@@ -210,7 +210,7 @@ class ClientsIconsPlugin(GajimPlugin):
         if not contact:
             return
         caps = None
-        tag = iq_obj.iq_obj.getTags('c')
+        tag = iq_obj.stanza.getTags('c')
         if tag:
             caps = tag[0].getAttr('node')
         iter_ = iq_obj.gc_control.get_contact_iter(iq_obj.nick.decode('utf-8'))
