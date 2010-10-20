@@ -71,7 +71,7 @@ clients = {
     'http://2010.qip.ru/caps': 'qipinfium.png',
     'http://qip.ru/caps': 'qipinfium.png',
     'http://glu.net/': 'glu.png',
-    '-Z-r': 'siejc.png',
+    'Siemens': 'siejc.png',# Siemens Native Jabber Client
     'telepathy.': 'telepathy.freedesktop.org.png',
     'http://live.genome.org/empathy/caps': 'telepathy.freedesktop.org.png',
     'http://telepathy.freedesktop.org/caps': 'telepathy.freedesktop.org.png',
@@ -224,7 +224,7 @@ class ClientsIconsPlugin(GajimPlugin):
             if self.config['show_unknown_icon']:
                 model[iter_][pos] = self.default_pixbuf
             return
-        client_icon = clients.get(caps.split('#')[0], None)
+        client_icon = clients.get(caps.split('#')[0].split()[0], None)
         if not client_icon:
             if self.config['show_unknown_icon']:
                 model[iter_][pos] = self.default_pixbuf
