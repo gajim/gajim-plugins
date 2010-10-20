@@ -193,9 +193,10 @@ class ClientsIconsPlugin(GajimPlugin):
             roster.model)[0]
         if contact != iq_obj.contact:
             # higest contact changed
-            caps = contact.client_caps._node
-            self.set_icon(roster.model, iter_, self.renderer_num, caps)
-            return
+            if roster.model[iter_][self.renderer_num] is not None:
+                caps = contact.client_caps._node
+                self.set_icon(roster.model, iter_, self.renderer_num, caps)
+                return
         caps = None
         tag = iq_obj.stanza.getTags('c')
         if tag:
