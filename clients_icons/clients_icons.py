@@ -77,6 +77,7 @@ clients = {
     'http://telepathy.freedesktop.org/caps': 'telepathy.freedesktop.org.png',
     'http://www.adiumx.com/caps': 'adium.png',
     'http://www.adiumx.com': 'adium.png',
+    'http://juick.com/caps': 'juick.png',
 }
 
 class ClientsIconsPlugin(GajimPlugin):
@@ -201,6 +202,8 @@ class ClientsIconsPlugin(GajimPlugin):
         tag = iq_obj.stanza.getTags('c')
         if tag:
             caps = tag[0].getAttr('node')
+        if not caps and iq_obj.jid == 'juick@juick.com':
+            caps = 'http://juick.com/caps'
         self.set_icon(roster.model, iter_, self.renderer_num, caps)
 
     def gc_presence_received(self, iq_obj):
