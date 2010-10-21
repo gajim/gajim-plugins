@@ -164,6 +164,7 @@ class ClientsIconsPlugin(GajimPlugin):
 
     @log_calls('ClientsIconsPlugin')
     def activate(self):
+        self.active = None
         roster = gajim.interface.roster
         col = gtk.TreeViewColumn()
         roster.nb_ext_renderers += 1
@@ -187,10 +188,12 @@ class ClientsIconsPlugin(GajimPlugin):
         roster.tree.insert_column(col, 0)
         # redraw roster
         roster.columns += [gtk.gdk.Pixbuf]
+        self.active = True
         roster.setup_and_draw_roster()
 
     @log_calls('ClientsIconsPlugin')
     def deactivate(self):
+        self.active = None
         roster = gajim.interface.roster
         roster.nb_ext_renderers -= 1
         col = roster.tree.get_column(0)
