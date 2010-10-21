@@ -91,7 +91,10 @@ class ClientsIconsPlugin(GajimPlugin):
                                     (ged.POSTGUI, self.gc_presence_received),}
         self.gui_extension_points = {
             'groupchat_control' : (self.connect_with_groupchat_control,
-                                    self.disconnect_from_groupchat_control)}
+                                    self.disconnect_from_groupchat_control),
+            'roster_draw_contact' : (self.connect_with_roster_draw_contact,
+                                    self.disconnect_from_roster_draw_contact)
+                                    }
         self.config_default_values = {
                 'show_in_roster': (True,''),
                 'show_in_groupchats': (True,''),
@@ -102,6 +105,22 @@ class ClientsIconsPlugin(GajimPlugin):
         icon_path = os.path.join(self.local_file_path('icons'), 'unknown.png')
         self.default_pixbuf = gtk.gdk.pixbuf_new_from_file_at_size( icon_path,
             16, 16)
+
+    @log_calls('ClientsIconsPlugin')
+    def connect_with_roster_draw_contact(self, roster, jid, account, contact):
+        if not self.active:
+            return
+        if not self.config['show_in_roster']:
+            return
+        child_iters = roster._get_contact_iter(jid, account, contact,
+            roster.model)
+        if not child_iters:
+            return
+        if roster.model[child_iters[0]][self.renderer_num] is None:
+            caps = contact.client_caps._node
+            if not caps and jid == 'juick@juick.com':
+                caps = 'http://juick.com/caps'
+            self.set_icon(roster.model, child_iters[0], self.renderer_num, caps)
 
     @log_calls('ClientsIconsPlugin')
     def connect_with_groupchat_control(self, chat_control):
@@ -136,6 +155,11 @@ class ClientsIconsPlugin(GajimPlugin):
 
     @log_calls('ClientsIconsPlugin')
     def disconnect_from_groupchat_control(self, chat_control):
+        pass
+
+    @log_calls('ClientsIconsPlugin')
+    def disconnect_from_roster_draw_contact(self, roster, jid, account,
+        contact):
         pass
 
     @log_calls('ClientsIconsPlugin')
@@ -280,7 +304,8 @@ class ClientsIconsPluginConfigDialog(GajimPluginConfigDialog):
         self.combo.set_active(self.plugin.config['pos_in_list'])
 
     def on_hide(self, widget):
-        pass
+        self.plugin.deactivate()
+        self.plugin.activate()
 
     def on_run(self):
         self.xml.get_object('show_in_roster').set_active(
