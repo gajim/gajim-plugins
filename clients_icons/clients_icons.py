@@ -152,10 +152,41 @@ class ClientsIconsPlugin(GajimPlugin):
         store.set_sort_func(1, chat_control.tree_compare_iters)
         store.set_sort_column_id(1, gtk.SORT_ASCENDING)
         chat_control.list_treeview.set_model(store)
+        # draw roster
+        for nick in gajim.contacts.get_nick_list(chat_control.account,
+            chat_control.room_jid):
+            gc_contact = gajim.contacts.get_gc_contact(chat_control.account,
+                chat_control.room_jid, nick)
+            iter_ = chat_control.add_contact_to_roster(nick, gc_contact.show,
+                gc_contact.role, gc_contact.affiliation, gc_contact.status,
+                gc_contact.jid)
+            if not self.config['show_in_groupchats']:
+                continue
+            caps = gc_contact.client_caps._node
+            self.set_icon(store, iter_, self.muc_renderer_num, caps)
+        chat_control.draw_all_roles()
+        # Recalculate column width for ellipsizin
+        chat_control.list_treeview.columns_autosize()
 
     @log_calls('ClientsIconsPlugin')
-    def disconnect_from_groupchat_control(self, chat_control):
-        pass
+    def disconnect_from_groupchat_control(self, gc_control):
+        gc_control.nb_ext_renderers -= 1
+        col = gc_control.list_treeview.get_column(0)
+        gc_control.list_treeview.remove_column(col)
+        col = gtk.TreeViewColumn()
+        for renderer in gc_control.renderers_list:
+            if renderer[0] == 'client_icon':
+                gc_control.renderers_list.remove(renderer)
+                break
+        gc_control.fill_column(col)
+        gc_control.list_treeview.insert_column(col, 0)
+        gc_control.columns = gc_control.columns[:self.muc_renderer_num] + \
+            gc_control.columns[self.muc_renderer_num+1:]
+        store = gtk.TreeStore(*gc_control.columns)
+        store.set_sort_func(1, gc_control.tree_compare_iters)
+        store.set_sort_column_id(1, gtk.SORT_ASCENDING)
+        gc_control.list_treeview.set_model(store)
+        gc_control.draw_roster()
 
     @log_calls('ClientsIconsPlugin')
     def disconnect_from_roster_draw_contact(self, roster, jid, account,
@@ -270,7 +301,8 @@ class ClientsIconsPlugin(GajimPlugin):
         if not model.iter_parent(iter_):
             renderer.set_property('visible', False)
             return
-        renderer.set_property('visible', True)
+        elif model[iter_][self.muc_renderer_num]:
+            renderer.set_property('visible', True)
 
         contact = gajim.contacts.get_gc_contact(control.account,
             control.room_jid, model[iter_][1].decode('utf-8'))
@@ -294,8 +326,6 @@ class ClientsIconsPluginConfigDialog(GajimPluginConfigDialog):
                 ['vbox1'])
         vbox = self.xml.get_object('vbox1')
         self.child.pack_start(vbox)
-        self.xml.connect_signals(self)
-        self.connect('hide', self.on_hide)
         self.combo = self.xml.get_object('combobox1')
         self.liststore = gtk.ListStore(str)
         self.combo.set_model(self.liststore)
@@ -307,9 +337,15 @@ class ClientsIconsPluginConfigDialog(GajimPluginConfigDialog):
             self.liststore.append((item,))
         self.combo.set_active(self.plugin.config['pos_in_list'])
 
-    def on_hide(self, widget):
+        self.xml.connect_signals(self)
+
+    def redraw_all(self):
         self.plugin.deactivate()
         self.plugin.activate()
+        for gc_control in gajim.interface.msg_win_mgr.get_controls('gc'):
+            self.plugin.disconnect_from_groupchat_control(gc_control)
+        for gc_control in gajim.interface.msg_win_mgr.get_controls('gc'):
+            self.plugin.connect_with_groupchat_control(gc_control)
 
     def on_run(self):
         self.xml.get_object('show_in_roster').set_active(
@@ -321,12 +357,20 @@ class ClientsIconsPluginConfigDialog(GajimPluginConfigDialog):
 
     def on_show_in_roster_toggled(self, widget):
         self.plugin.config['show_in_roster'] = widget.get_active()
+        self.plugin.deactivate()
+        self.plugin.activate()
 
     def on_show_in_groupchats_toggled(self, widget):
         self.plugin.config['show_in_groupchats'] = widget.get_active()
+        for gc_control in gajim.interface.msg_win_mgr.get_controls('gc'):
+            self.plugin.disconnect_from_groupchat_control(gc_control)
+        for gc_control in gajim.interface.msg_win_mgr.get_controls('gc'):
+            self.plugin.connect_with_groupchat_control(gc_control)
 
     def on_show_unknown_icon_toggled(self, widget):
         self.plugin.config['show_unknown_icon'] = widget.get_active()
+        self.redraw_all()
 
     def on_combobox1_changed(self, widget):
         self.plugin.config['pos_in_list'] = widget.get_active()
+        self.redraw_all()
