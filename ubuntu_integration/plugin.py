@@ -49,7 +49,7 @@ class UbuntuIntegrationPlugin(GajimPlugin):
         """
         Does nothing.
         """
-        pass
+        self.config_dialog = None
     
     @log_calls("UbuntuIntegrationPlugin")
     def activate(self):
