@@ -26,6 +26,7 @@ from plugins.plugin import GajimPluginException
 from plugins.helpers import log, log_calls
 from common import ged
 from common import gajim
+import gtkgui_helpers
 # 3rd party
 try:
     import indicate
@@ -143,6 +144,10 @@ class UbuntuIntegrationPlugin(GajimPlugin):
             indicator.set_property("name", contact)
             indicator.set_property_time("time", when)
             indicator.set_property_bool("draw-attention", True);
+            if gajim.config.get("show_avatars_in_roster"):
+                pixbuf = gtkgui_helpers.get_avatar_pixbuf_from_cache(jid)
+                if pixbuf not in (None, "ask"):
+                    indicator.set_property_icon("icon", pixbuf)
             indicator.connect("user-display", self.on_indicator_activate)
             indicator.show()
             indicator.key = key
