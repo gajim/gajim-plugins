@@ -9,7 +9,7 @@ TODO:
 * permanent integration into the messaging menu after quitting gajim
 * show/hide gajim on root menu entry
 * switch workspace on click on events
-* pictures in the menu
+* corrent group chat handling
 * hide gajim if the plugin is disabled
 
 :author: Michael Kainer <kaini@jabber.hot-chilli.net>
@@ -113,6 +113,7 @@ class UbuntuIntegrationPlugin(GajimPlugin):
         jid = event.jid
         when = time.time()
         contact = ""
+        key = (account, jid)
         
         # Check if the event is valid and modify the variables
         if event.type_ == "chat" or \
@@ -138,7 +139,6 @@ class UbuntuIntegrationPlugin(GajimPlugin):
         print account, jid, when, contact
         
         # Add a new indicator if necessary
-        key = (account, jid)
         if not self.events.has_key(key):
             indicator = indicate.Indicator()
             indicator.set_property("name", contact)
