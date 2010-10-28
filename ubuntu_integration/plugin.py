@@ -9,7 +9,7 @@ TODO:
 * permanent integration into the messaging menu after quitting gajim
 * show/hide gajim on root menu entry
 * switch workspace on click on events
-* pictures in the menu
+* corrent group chat handling
 * hide gajim if the plugin is disabled
 
 :author: Michael Kainer <kaini@jabber.hot-chilli.net>
@@ -26,6 +26,7 @@ from plugins.plugin import GajimPluginException
 from plugins.helpers import log, log_calls
 from common import ged
 from common import gajim
+import gtkgui_helpers
 # 3rd party
 try:
     import indicate
@@ -49,7 +50,7 @@ class UbuntuIntegrationPlugin(GajimPlugin):
         """
         Does nothing.
         """
-        pass
+        self.config_dialog = None
     
     @log_calls("UbuntuIntegrationPlugin")
     def activate(self):
@@ -112,6 +113,7 @@ class UbuntuIntegrationPlugin(GajimPlugin):
         jid = event.jid
         when = time.time()
         contact = ""
+        key = (account, jid)
         
         # Check if the event is valid and modify the variables
         if event.type_ == "chat" or \
@@ -137,12 +139,15 @@ class UbuntuIntegrationPlugin(GajimPlugin):
         print account, jid, when, contact
         
         # Add a new indicator if necessary
-        key = (account, jid)
         if not self.events.has_key(key):
             indicator = indicate.Indicator()
             indicator.set_property("name", contact)
             indicator.set_property_time("time", when)
             indicator.set_property_bool("draw-attention", True);
+            if gajim.config.get("show_avatars_in_roster"):
+                pixbuf = gtkgui_helpers.get_avatar_pixbuf_from_cache(jid)
+                if pixbuf not in (None, "ask"):
+                    indicator.set_property_icon("icon", pixbuf)
             indicator.connect("user-display", self.on_indicator_activate)
             indicator.show()
             indicator.key = key
