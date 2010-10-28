@@ -74,6 +74,7 @@ clients = {
     'Siemens': 'siejc.png',# Siemens Native Jabber Client
     'telepathy.': 'telepathy.freedesktop.org.png',
     'http://live.genome.org/empathy/caps': 'telepathy.freedesktop.org.png',
+    'http://live.gnome.org/empathy/caps': 'telepathy.freedesktop.org.png',
     'http://telepathy.freedesktop.org/caps': 'telepathy.freedesktop.org.png',
     'http://www.adiumx.com/caps': 'adium.png',
     'http://www.adiumx.com': 'adium.png',
