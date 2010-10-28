@@ -479,7 +479,7 @@ class Base(object):
         menuitems = ((_('Show last messages from public timeline'), '#+'),
                      (_('Show last messages from your feed'), '#'),
                      (_('Show popular personal blogs'), '@'),
-                     (_('Show popular tags'), '*'),
+                     (_('Show your tags'), '*'),
                      (_('Show your subscriptions'), 'S'),
                      (_('Delete last message'), 'D LAST'),
                      (_('Enable subscriptions delivery'), 'ON'),
