@@ -48,6 +48,7 @@ class RosterTweaksPlugin(GajimPlugin):
     @log_calls('RosterTweaksPlugin')
     def deactivate(self):
         gajim.interface.roster.status_combobox.show()
+        self.status_widget.destroy()
 
     def on_ctrl_m(self, accel_group, acceleratable, keyval, modifier):
         menubar = gajim.interface.roster.xml.get_object('menubar')
