@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 
 import gtk
+import pango
+import gobject
+
 from common import i18n
 from common import gajim
 
@@ -30,6 +33,8 @@ class RosterTweaksPlugin(GajimPlugin):
         self.status_widget = gtk.Entry(max=0)
         self.status_widget.set_property('visible', self.config['quick_status'])
         self.status_widget.connect('key-press-event', self.status_changed)
+        self.font_desc = self.status_widget.get_pango_context(
+            ).get_font_description()
         vbox.pack_start(self.status_widget, False)
 
     def enable_ctrl_m(self):
@@ -69,7 +74,10 @@ class RosterTweaksPlugin(GajimPlugin):
                     gajim.connections[account].connected]
                 gajim.interface.roster.send_status(account, current_show,
                     message)
-            widget.set_text('')
+            self.font_desc.set_weight(pango.WEIGHT_BOLD)
+            widget.modify_font(self.font_desc)
+            self.font_desc.set_weight(pango.WEIGHT_NORMAL)
+            gobject.timeout_add(1000, widget.modify_font, self.font_desc)
 
 class RosterTweaksPluginConfigDialog(GajimPluginConfigDialog):
     def init(self):
