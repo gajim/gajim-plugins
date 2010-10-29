@@ -22,7 +22,7 @@ class FtpManager(GajimPlugin):
     @log_calls('FtpManagerPlugin')
     def init(self):
         self.config_dialog = FtpManagerPluginConfigDialog(self)
-        self.config_default_values = {'ftp_server': ('dicson.no-ip.info','')}
+        self.config_default_values = {'ftp_server': ('ftp.gajim.org','')}
 
     @log_calls('FtpManagerPlugin')
     def activate(self):
