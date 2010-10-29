@@ -32,6 +32,7 @@ class RosterTweaksPlugin(GajimPlugin):
         vbox = gajim.interface.roster.xml.get_object('roster_vbox2')
         self.status_widget = gtk.Entry(max=0)
         self.status_widget.set_property('visible', self.config['quick_status'])
+        self.status_widget.set_property('no-show-all', True)
         self.status_widget.connect('key-press-event', self.status_changed)
         self.font_desc = self.status_widget.get_pango_context(
             ).get_font_description()
