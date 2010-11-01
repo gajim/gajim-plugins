@@ -203,7 +203,9 @@ class FtpManager(GajimPlugin):
             self.plugin_name_label1.set_text(model.get_value(iter, 1))
             self.plugin_authors_label1.set_text(model.get_value(iter, 6))
             self.plugin_homepage_linkbutton1.set_uri(model.get_value(iter, 7))
-            self.plugin_homepage_linkbutton1.set_label('Visit homepage')#model.get_value(iter, 7))
+            self.plugin_homepage_linkbutton1.set_label(model.get_value(iter, 7))
+            label = self.plugin_homepage_linkbutton1.get_children()[0]
+            label.set_ellipsize(pango.ELLIPSIZE_END)
             self.plugin_homepage_linkbutton1.set_property('sensitive', True)
             desc_textbuffer = self.plugin_description_textview1.get_buffer()
             desc_textbuffer.set_text(model.get_value(iter, 5))
