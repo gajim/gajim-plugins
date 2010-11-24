@@ -322,6 +322,8 @@ class Base(object):
                 return
             # insert avatars
             conn = gajim.connections[self.chat_control.account]
+            if not conn.connected:
+                return
             id_ = conn.connection.getAnID()
             to = 'juick@juick.com'
             iq = common.xmpp.Iq('get', to=to)
