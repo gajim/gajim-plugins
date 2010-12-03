@@ -10,11 +10,10 @@ import gettext
 
 from plugins.gui import GajimPluginConfigDialog
 from plugins import GajimPlugin
-from plugins.helpers import log_calls, log
+from plugins.helpers import log, log_calls
 from common import gajim
 import gtkgui_helpers
 from dialogs import InputDialog
-
 locale_path = os.path.dirname(__file__) + '/locales'
 locale.bindtextdomain('setlocation', locale_path)
 try:
@@ -76,7 +75,6 @@ class SetLocationPluginConfigDialog(GajimPluginConfigDialog):
         self.xml.set_translation_domain('setlocation')
         self.xml.add_objects_from_file(self.GTK_BUILDER_FILE_PATH,
                 ['hbox1'])
-        config_table = self.xml.get_object('config_table')
         hbox = self.xml.get_object('hbox1')
         self.child.pack_start(hbox)
         self.xml.connect_signals(self)
@@ -91,6 +89,7 @@ class SetLocationPluginConfigDialog(GajimPluginConfigDialog):
         self.preset_combo.add_attribute(cellrenderer, 'text', 0)
         #self.plugin.config['presets'] = {'default': {}}
 
+    @log_calls('SetLocationPlugin.SetLocationPluginConfigDialog')
     def on_run(self):
         no_map = None
         if not self.is_active:
@@ -108,8 +107,12 @@ class SetLocationPluginConfigDialog(GajimPluginConfigDialog):
             import osmgpsmap
             if osmgpsmap.__version__ < '0.6':
                 no_map = True
+                log.debug('python-osmgpsmap < 0.6 detected')
         except:
             no_map = True
+            log.debug('python-osmgpsmap not detected')
+
+        log.debug('python-osmgpsmap > 0.5 detected')
         if not no_map and not self.is_active:
             from layers import DummyLayer
 
@@ -145,7 +148,8 @@ class SetLocationPluginConfigDialog(GajimPluginConfigDialog):
                 continue
             widget = self.xml.get_object(name)
             self.plugin.config[name] = widget.get_text()
-            self.plugin.activate()
+            if self.plugin.active:
+                self.plugin.activate()
 
     def map_clicked(self, osm, event):
         lat, lon = self.osm.get_event_location(event).get_degrees()
@@ -212,7 +216,6 @@ class SetLocationPluginConfigDialog(GajimPluginConfigDialog):
                 preset.items())
             if preset_name not in self.plugin.config['presets'].keys():
                 iter_ = self.preset_liststore.append((preset_name,))
-                #self.preset_combo.set_active_iter(iter_)
             self.plugin.config['presets'] = presets
         self.set_modal(False)
         InputDialog(_('Save as Preset'), _('Please type a name for this preset'),
