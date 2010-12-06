@@ -13,9 +13,9 @@ class ClickableNicknames(GajimPlugin):
 
     @log_calls('ClickableNicknamesPlugin')
     def init(self):
-        self.config_dialog = None#ClickableNicknamesPluginConfigDialog(self)
+        self.config_dialog = None  # ClickableNicknamesPluginConfigDialog(self)
         self.gui_extension_points = {
-                'chat_control_base' : (self.connect_with_chat_control,
+                'chat_control_base': (self.connect_with_chat_control,
                                        self.disconnect_from_chat_control)}
 
         self.is_active = None
@@ -58,7 +58,9 @@ class ClickableNicknames(GajimPlugin):
     def disconnect_from_chat_control(self, chat_control):
         pass
 
+
 class Base(object):
+
     def __init__(self, plugin, chat_control):
         self.plugin = plugin
         self.chat_control = chat_control

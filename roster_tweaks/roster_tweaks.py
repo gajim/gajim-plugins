@@ -14,15 +14,16 @@ from dialogs import ChangeActivityDialog, ChangeMoodDialog
 from common import pep
 import gtkgui_helpers
 
+
 class RosterTweaksPlugin(GajimPlugin):
 
     @log_calls('RosterTweaksPlugin')
     def init(self):
         self.config_dialog = RosterTweaksPluginConfigDialog(self)
 
-        self.config_default_values = {'hide_status_combo': (False,''),
-                                      'use_ctr_m': (False,''),
-                                      'menu_visible': (True,''),
+        self.config_default_values = {'hide_status_combo': (False, ''),
+                                      'use_ctr_m': (False, ''),
+                                      'menu_visible': (True, ''),
                                       'quick_status': (False, '')}
 
     @log_calls('RosterTweaksPlugin')
@@ -45,7 +46,8 @@ class RosterTweaksPlugin(GajimPlugin):
             ).get_font_description()
         self.activity_button = self.xml.get_object('activity_button')
         self.activity_button.set_property('no-show-all', True)
-        self.activity_button.set_property('visible', self.config['quick_status'])
+        self.activity_button.set_property('visible', self.config[
+            'quick_status'])
         self.mood_button = self.xml.get_object('mood_button')
         self.mood_button.set_property('no-show-all', True)
         self.mood_button.set_property('visible', self.config['quick_status'])
@@ -105,7 +107,7 @@ class RosterTweaksPlugin(GajimPlugin):
             for account in accounts:
                 gajim.interface.roster.send_pep(account, self.pep_dict)
         ChangeActivityDialog(on_response, self.pep_dict.get('activity', None),
-            self.pep_dict.get('subactivity',None),
+            self.pep_dict.get('subactivity', None),
             self.pep_dict.get('activity_text', None))
 
     def on_mood_button_clicked(self, widget):
@@ -147,6 +149,7 @@ class RosterTweaksPlugin(GajimPlugin):
                 self.pep_dict['mood']).get_pixbuf())
         else:
             img.set_from_stock('gtk-stop', gtk.ICON_SIZE_MENU)
+
 
 class RosterTweaksPluginConfigDialog(GajimPluginConfigDialog):
     def init(self):

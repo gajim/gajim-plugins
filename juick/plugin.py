@@ -30,34 +30,35 @@ try:
 except:
     pass
 
+
 class JuickPlugin(GajimPlugin):
     @log_calls('JuickPlugin')
     def init(self):
         self.config_dialog = JuickPluginConfigDialog(self)
         self.gui_extension_points = {
-                'chat_control_base' : (self.connect_with_chat_control,
-                                       self.disconnect_from_chat_control)
-        }
-        self.config_default_values = {'SHOW_AVATARS': (False,''),
+                'chat_control_base': (self.connect_with_chat_control,
+                                       self.disconnect_from_chat_control)}
+        self.config_default_values = {'SHOW_AVATARS': (False, ''),
                     'AVATAR_SIZE': (20, _('Avatar size(10-32)')),
-                    'SHOW_PREVIEW': (False,''),
+                    'SHOW_PREVIEW': (False, ''),
                     'PREVIEW_SIZE': (150, _('Preview size(10-512)')),
-                    'LINK_COLOR' : ('#B8833E', _('Juick link color')),
-                    'SHOW_TAG_BUTTON': (True,''),
-                    'ONLY_AUTHOR_AVATAR':(True,''),
-                    'MENUITEM1': ('tune',''), 'MENUITEM_TEXT1': ('*tune',''),
-                    'MENUITEM2': ('geo',''), 'MENUITEM_TEXT2': ('*geo',''),
-                    'MENUITEM3': ('gajim',''), 'MENUITEM_TEXT3': ('*gajim',''),
-                    'MENUITEM4': ('me',''), 'MENUITEM_TEXT4': ('/me',''),
-                    'MENUITEM5': ('',''), 'MENUITEM_TEXT5': ('',''),
-                    'MENUITEM6': ('',''), 'MENUITEM_TEXT6': ('',''),
-                    'MENUITEM7': ('',''), 'MENUITEM_TEXT7': ('',''),
-                    'MENUITEM8': ('',''), 'MENUITEM_TEXT8': ('',''),
-                    'MENUITEM9': ('',''), 'MENUITEM_TEXT9': ('',''),
-                    'MENUITEM10': ('',''), 'MENUITEM_TEXT10': ('',''),}
+                    'LINK_COLOR': ('#B8833E', _('Juick link color')),
+                    'SHOW_TAG_BUTTON': (True, ''),
+                    'ONLY_AUTHOR_AVATAR': (True, ''),
+                    'MENUITEM1': ('tune', ''), 'MENUITEM_TEXT1': ('*tune', ''),
+                    'MENUITEM2': ('geo', ''), 'MENUITEM_TEXT2': ('*geo', ''),
+                    'MENUITEM3': ('gajim', ''),
+                    'MENUITEM_TEXT3': ('*gajim', ''),
+                    'MENUITEM4': ('me', ''), 'MENUITEM_TEXT4': ('/me', ''),
+                    'MENUITEM5': ('', ''), 'MENUITEM_TEXT5': ('', ''),
+                    'MENUITEM6': ('', ''), 'MENUITEM_TEXT6': ('', ''),
+                    'MENUITEM7': ('', ''), 'MENUITEM_TEXT7': ('', ''),
+                    'MENUITEM8': ('', ''), 'MENUITEM_TEXT8': ('', ''),
+                    'MENUITEM9': ('', ''), 'MENUITEM_TEXT9': ('', ''),
+                    'MENUITEM10': ('', ''), 'MENUITEM_TEXT10': ('', ''), }
         self.chat_control = None
         self.controls = []
-        self.cache_path =  os.path.join(gajim.AVATAR_PATH, 'juick')
+        self.cache_path = os.path.join(gajim.AVATAR_PATH, 'juick')
         if not os.path.isdir(self.cache_path):
             os.makedirs(self.cache_path)
 
@@ -171,7 +172,8 @@ class Base(object):
         img.set_from_stock('juick', gtk.ICON_SIZE_BUTTON)
         self.button.set_image(img)
         send_button = self.chat_control.xml.get_object('send_button')
-        send_button_pos = actions_hbox.child_get_property(send_button, 'position')
+        send_button_pos = actions_hbox.child_get_property(send_button,
+            'position')
         actions_hbox.add_with_properties(self.button, 'position',
                                         send_button_pos - 1, 'expand', False)
         id_ = self.button.connect('clicked', self.on_juick_button_clicked)
@@ -240,7 +242,7 @@ class Base(object):
         Create juick tag button menu
         """
         self.menu = gtk.Menu()
-        for num in xrange(1,11):
+        for num in xrange(1, 11):
             menuitem = self.plugin.config['MENUITEM' + str(num)]
             text = self.plugin.config['MENUITEM_TEXT' + str(num)]
             if menuitem == '' or text == '':
@@ -327,14 +329,14 @@ class Base(object):
             id_ = conn.connection.getAnID()
             to = 'juick@juick.com'
             iq = common.xmpp.Iq('get', to=to)
-            a = iq.addChild(name = 'query',
-                                    namespace = 'http://juick.com/query#users')
+            a = iq.addChild(name='query',
+                namespace='http://juick.com/query#users')
             special_text1 = special_text[1:].rstrip(':')
-            a.addChild(name='user', namespace = 'http://juick.com/user',
-                                                attrs={'uname': special_text1})
+            a.addChild(name='user', namespace='http://juick.com/user',
+                attrs={'uname': special_text1})
             iq.setID(id_)
             conn.connection.SendAndCallForResponse(iq, self._on_response,
-                                    {'mark':mark, 'special_text':special_text})
+                {'mark': mark, 'special_text': special_text})
             return
         if gajim.interface.juick_pic_re.match(special_text) and \
                                         self.plugin.config['SHOW_PREVIEW']:
@@ -363,7 +365,6 @@ class Base(object):
         ttable = buffer_.get_tag_table()
         tag = ttable.lookup(tag_name)
         return buffer_, buffer_.get_end_iter(), tag
-
 
     def _on_response(self, a, resp, **kwargs):
         # insert avatar to text mark
@@ -425,11 +426,11 @@ class Base(object):
 
         if image_width > image_height:
             if image_width > size:
-                image_height = int(size/float(image_width)*image_height)
-                image_width =int(size)
+                image_height = int(size / float(image_width) * image_height)
+                image_width = int(size)
         else:
             if image_height > size:
-                image_width = int(size/float(image_height)*image_width)
+                image_width = int(size / float(image_height) * image_width)
                 image_height = int(size)
 
         crop_pixbuf = pixbuf.scale_simple(image_width, image_height,
@@ -506,7 +507,7 @@ class Base(object):
 
     def send(self, widget, text):
         msg = text.replace('WORD', self.juick_post_uid).replace(
-                                            'NICK',self.juick_nick.rstrip(':'))
+            'NICK', self.juick_nick.rstrip(':'))
         self.chat_control.send_message(msg)
         self.chat_control.msg_textview.grab_focus()
 
@@ -551,9 +552,10 @@ class Base(object):
 
     def mykeypress_event(self, widget, event):
         if event.keyval == gtk.keysyms.Up:
-            if event.state & gtk.gdk.MOD1_MASK: # Alt+UP
+            if event.state & gtk.gdk.MOD1_MASK:  # Alt+UP
                 self.on_insert(widget, self.last_juick_num)
                 return True
+
 
 class JuickPluginConfigDialog(GajimPluginConfigDialog):
     def init(self):
@@ -589,7 +591,7 @@ class JuickPluginConfigDialog(GajimPluginConfigDialog):
                                             self.plugin.config['LINK_COLOR']))
         self.xml.get_object('show_tag_button').set_active(
                                         self.plugin.config['SHOW_TAG_BUTTON'])
-        for num in xrange(1,11):
+        for num in xrange(1, 11):
             self.xml.get_object('menuitem' + str(num)).set_text(
                                     self.plugin.config['MENUITEM' + str(num)])
             self.xml.get_object('menuitem_text' + str(num)).set_text(
@@ -623,6 +625,7 @@ class JuickPluginConfigDialog(GajimPluginConfigDialog):
         for control in self.plugin.controls:
             control.textview.tagSharpSlash.set_property('foreground', color)
             control.textview.tagJuickNick.set_property('foreground', color)
+
     def menuitem_changed(self, widget):
         name = upper(gtk.Buildable.get_name(widget))
         self.plugin.config[name] = widget.get_text()

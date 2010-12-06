@@ -71,7 +71,7 @@ clients = {
     'http://2010.qip.ru/caps': 'qipinfium.png',
     'http://qip.ru/caps': 'qipinfium.png',
     'http://glu.net/': 'glu.png',
-    'Siemens': 'siejc.png',# Siemens Native Jabber Client
+    'Siemens': 'siejc.png',  # Siemens Native Jabber Client
     'telepathy.': 'telepathy.freedesktop.org.png',
     'http://live.genome.org/empathy/caps': 'telepathy.freedesktop.org.png',
     'http://live.gnome.org/empathy/caps': 'telepathy.freedesktop.org.png',
@@ -81,6 +81,7 @@ clients = {
     'http://juick.com/caps': 'juick.png',
 }
 
+
 class ClientsIconsPlugin(GajimPlugin):
 
     @log_calls('ClientsIconsPlugin')
@@ -89,22 +90,21 @@ class ClientsIconsPlugin(GajimPlugin):
         self.events_handlers = {'presence-received':
                                     (ged.POSTGUI, self.presence_received),
                                 'gc-presence-received':
-                                    (ged.POSTGUI, self.gc_presence_received),}
+                                    (ged.POSTGUI, self.gc_presence_received), }
         self.gui_extension_points = {
-            'groupchat_control' : (self.connect_with_groupchat_control,
+            'groupchat_control': (self.connect_with_groupchat_control,
                                     self.disconnect_from_groupchat_control),
-            'roster_draw_contact' : (self.connect_with_roster_draw_contact,
-                                    self.disconnect_from_roster_draw_contact)
-                                    }
+            'roster_draw_contact': (self.connect_with_roster_draw_contact,
+                                    self.disconnect_from_roster_draw_contact)}
         self.config_default_values = {
-                'show_in_roster': (True,''),
-                'show_in_groupchats': (True,''),
-                'show_unknown_icon': (True,''),
-                'pos_in_list': (0,''),}
+                'show_in_roster': (True, ''),
+                'show_in_groupchats': (True, ''),
+                'show_unknown_icon': (True, ''),
+                'pos_in_list': (0, ''), }
 
         self.config_dialog = ClientsIconsPluginConfigDialog(self)
         icon_path = os.path.join(self.local_file_path('icons'), 'unknown.png')
-        self.default_pixbuf = gtk.gdk.pixbuf_new_from_file_at_size( icon_path,
+        self.default_pixbuf = gtk.gdk.pixbuf_new_from_file_at_size(icon_path,
             16, 16)
 
     @log_calls('ClientsIconsPlugin')
@@ -182,7 +182,7 @@ class ClientsIconsPlugin(GajimPlugin):
         gc_control.fill_column(col)
         gc_control.list_treeview.insert_column(col, 0)
         gc_control.columns = gc_control.columns[:self.muc_renderer_num] + \
-            gc_control.columns[self.muc_renderer_num+1:]
+            gc_control.columns[self.muc_renderer_num + 1:]
         store = gtk.TreeStore(*gc_control.columns)
         store.set_sort_func(1, gc_control.tree_compare_iters)
         store.set_sort_column_id(1, gtk.SORT_ASCENDING)
@@ -238,7 +238,7 @@ class ClientsIconsPlugin(GajimPlugin):
         roster.fill_column(col)
         roster.tree.insert_column(col, 0)
         roster.columns = roster.columns[:self.renderer_num] + roster.columns[
-            self.renderer_num+1:]
+            self.renderer_num + 1:]
         roster.setup_and_draw_roster()
 
     def presence_received(self, iq_obj):
@@ -317,6 +317,7 @@ class ClientsIconsPlugin(GajimPlugin):
         else:
             renderer.set_property('cell-background', None)
         renderer.set_property('width', 16)
+
 
 class ClientsIconsPluginConfigDialog(GajimPluginConfigDialog):
     def init(self):

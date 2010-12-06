@@ -22,28 +22,29 @@ try:
 except:
     pass
 
+
 class SetLocationPlugin(GajimPlugin):
     @log_calls('SetLocationPlugin')
     def init(self):
         self.config_dialog = SetLocationPluginConfigDialog(self)
         self.config_default_values = {
-            'alt': (1609,''),
+            'alt': (1609, ''),
             'area': ('Central Park', ''),
-            'building': ('The Empire State Building',''),
+            'building': ('The Empire State Building', ''),
             'country': ('United States', ''),
-            'countrycode' : ('US', ''),
-            'description' : ('Bill\'s house', ''),
-            'floor' : ('102', ''),
-            'lat' : (39.75, ''),
-            'locality' : ('New York City', ''),
-            'lon' : (-104.99, ''),
-            'postalcode' : ('10027', ''),
-            'region' : ('New York', ''),
-            'room' : ('Observatory', ''),
-            'street' : ('34th and Broadway', ''),
-            'text' : ('Northwest corner of the lobby', ''),
-            'uri' : ('http://beta.plazes.com/plazes/1940:jabber_inc', ''),
-            'presets': ({'default': {}}, ''),}
+            'countrycode': ('US', ''),
+            'description': ('Bill\'s house', ''),
+            'floor': ('102', ''),
+            'lat': (39.75, ''),
+            'locality': ('New York City', ''),
+            'lon': (-104.99, ''),
+            'postalcode': ('10027', ''),
+            'region': ('New York', ''),
+            'room': ('Observatory', ''),
+            'street': ('34th and Broadway', ''),
+            'text': ('Northwest corner of the lobby', ''),
+            'uri': ('http://beta.plazes.com/plazes/1940:jabber_inc', ''),
+            'presets': ({'default': {}}, ''), }
 
     @log_calls('SetLocationPlugin')
     def activate(self):
@@ -165,7 +166,7 @@ class SetLocationPluginConfigDialog(GajimPluginConfigDialog):
         try:
             lat = float(self.xml.get_object('lat').get_text())
             lon = float(self.xml.get_object('lon').get_text())
-        except ValueError,e:
+        except ValueError, e:
             return
         if not -85 < lat < 85 or not -180 < lon < 180:
             return

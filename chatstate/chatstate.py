@@ -17,12 +17,11 @@ class ChatstatePlugin(GajimPlugin):
 
     @log_calls('ChatstatePlugin')
     def init(self):
-        self.config_dialog = None#ChatstatePluginConfigDialog(self)
-        self.events_handlers = {'raw-message-received' :
-                                    (ged.POSTCORE, self.raw_pres_received),}
+        self.config_dialog = None  # ChatstatePluginConfigDialog(self)
+        self.events_handlers = {'raw-message-received':
+                                    (ged.POSTCORE, self.raw_pres_received), }
         self.chatstates = ('active', 'composing', 'gone', 'inactive', 'paused')
         self.active = None
-
 
     def raw_pres_received(self, event_object):
         if not self.active:
@@ -64,11 +63,12 @@ class ChatstatePlugin(GajimPlugin):
                 name = '<span foreground="%s">%s</span>' % (
                         color, name)
 
-            if contact.status and gajim.config.get('show_status_msgs_in_roster'):
+            if contact.status and gajim.config.get(
+            'show_status_msgs_in_roster'):
                 status = contact.status.strip()
                 if status != '':
                     status = helpers.reduce_chars_newlines(status,
-                            max_lines = 1)
+                            max_lines=1)
                     color = gtkgui_helpers.get_fade_color(
                             gajim.interface.roster.tree, False, False)
                     colorstring = '#%04x%04x%04x' % (color.red, color.green,

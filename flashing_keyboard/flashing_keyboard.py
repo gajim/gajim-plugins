@@ -15,7 +15,7 @@ class FlashingKeyboard(GajimPlugin):
     def init(self):
         self.config_dialog = FlashingKeyboardPluginConfigDialog(self)
         self.config_default_values = {
-                            'command1': ("xset led named 'Scroll Lock'",''),
+                            'command1': ("xset led named 'Scroll Lock'", ''),
                             'command2': ("xset -led named 'Scroll Lock'", '')}
 
         self.is_active = None
@@ -62,6 +62,7 @@ class FlashingKeyboard(GajimPlugin):
         if self.id_0:
             gobject.source_remove(self.id_0)
 
+
 class FlashingKeyboardPluginConfigDialog(GajimPluginConfigDialog):
     def init(self):
         self.GTK_BUILDER_FILE_PATH = self.plugin.local_file_path(
@@ -69,7 +70,7 @@ class FlashingKeyboardPluginConfigDialog(GajimPluginConfigDialog):
         self.xml = gtk.Builder()
         self.xml.set_translation_domain('flashingkeyboard')
         self.xml.add_objects_from_file(self.GTK_BUILDER_FILE_PATH,
-                ['config_table'])
+            ['config_table'])
         config_table = self.xml.get_object('config_table')
         self.child.pack_start(config_table)
         self.xml.connect_signals(self)

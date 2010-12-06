@@ -14,7 +14,8 @@ locale_path = os.path.dirname(__file__) + '/locale'
 try:
     gett = gettext.Catalog('WrongLayout', locale_path)
     _ = gett.gettext
-except: pass
+except:
+    pass
 
 
 class WrongLayoutPlugin(GajimPlugin):
@@ -22,12 +23,12 @@ class WrongLayoutPlugin(GajimPlugin):
     def init(self):
         self.config_dialog = None
         self.gui_extension_points = {
-                'chat_control_base' : (self.connect_with_chat_control,
-                                       self.disconnect_from_chat_control)
-        }
+                'chat_control_base': (self.connect_with_chat_control,
+                                       self.disconnect_from_chat_control)}
         self.chat_control = None
         self.controls = []
-        self.dict_eng = {'`': 'ё', 'q': 'й', 'w': 'ц', 'e': 'у', 'r': 'к', 't': 'е',
+        self.dict_eng = {'`': 'ё', 'q': 'й', 'w': 'ц', 'e': 'у', 'r': 'к',
+                    't': 'е',
                     'y': 'н', 'u': 'г', 'i': 'ш', 'o': 'щ', 'p': 'з', '[': 'х',
                     ']': 'ъ', 'a': 'ф', 's': 'ы', 'd': 'в', 'f': 'а', 'g': 'п',
                     'h': 'р', 'j': 'о', 'k': 'л', 'l': 'д', ';': 'ж', '\'': 'э',
@@ -64,6 +65,7 @@ class WrongLayoutPlugin(GajimPlugin):
             control.disconnect_from_chat_control()
         self.controls = []
 
+
 class Base(object):
     def __init__(self, plugin, chat_control):
         self.plugin = plugin
@@ -80,7 +82,7 @@ class Base(object):
 
     def mykeypress_event(self, widget, event):
         if event.keyval == gtk.keysyms.r or event.keyval == 1739:
-            if event.state & gtk.gdk.MOD1_MASK: # alt+r
+            if event.state & gtk.gdk.MOD1_MASK:  # alt+r
                 start, end, iter_ = self.get_start_end()
                 count_eng = count_rus = 0
                 c = iter_.get_char().decode('utf-8')
