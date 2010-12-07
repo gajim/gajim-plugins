@@ -12,9 +12,9 @@ TODO:
 * corrent group chat handling
 * hide gajim if the plugin is disabled
 
-:author: Michael Kainer <kaini@jabber.hot-chilli.net>
+:author: Michael Kainer <kaini@linuxlovers.at>
 :since: 21st October 2010
-:copyright: Copyright (2010) Michael Kainer <kaini1123@gmx.at>
+:copyright: Copyright (2010) Michael Kainer <kaini1123@gmail.com>
 :license: GPLv3
 """
 # Python
