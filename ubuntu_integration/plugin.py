@@ -59,7 +59,6 @@ class UbuntuIntegrationPlugin(GajimPlugin):
         """
         # {(account, jid): (indicator, [event, ...]), ...}
         self.events = {}
-        self.server = None
 
         if not HAS_INDICATE:
             raise GajimPluginException("python-indicate is missing!")
