@@ -88,12 +88,14 @@ class UbuntuIntegrationPlugin(GajimPlugin):
         gajim.events.event_added_unsubscribe(self.on_event_added)
         gajim.events.event_removed_unsubscribe(self.on_event_removed)
 
-        for (_, event) in self.events:
-            event[0].hide()
-        self.server.hide()
-
-        del self.server
-        del self.events
+        if hasattr(self, 'server'): 
+            self.server.hide() 
+            del self.server
+           
+        if hasattr(self, 'events'): 
+            for (_, event) in self.events:
+                event[0].hide()
+            del self.events
 
     def on_indicator_activate(self, indicator, _):
         """
