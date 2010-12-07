@@ -19,12 +19,10 @@ TODO:
 """
 # Python
 import time
-import os
 # Gajim
 from plugins import GajimPlugin
 from plugins.plugin import GajimPluginException
-from plugins.helpers import log, log_calls
-from common import ged
+from plugins.helpers import log_calls
 from common import gajim
 import gtkgui_helpers
 # 3rd party
@@ -34,7 +32,6 @@ try:
 except:
     HAS_INDICATE = False
 try:
-    from xdg.DesktopEntry import DesktopEntry
     from xdg.BaseDirectory import load_data_paths
     HAS_PYXDG = True
 except:
