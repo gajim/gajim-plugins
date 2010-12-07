@@ -29,13 +29,14 @@ import gtkgui_helpers
 try:
     import indicate
     HAS_INDICATE = True
-except:
+except ImportError:
     HAS_INDICATE = False
 try:
     from xdg.BaseDirectory import load_data_paths
     HAS_PYXDG = True
-except:
+except ImportError:
     HAS_PYXDG = False
+
 
 class UbuntuIntegrationPlugin(GajimPlugin):
     """
@@ -84,11 +85,11 @@ class UbuntuIntegrationPlugin(GajimPlugin):
         gajim.events.event_added_unsubscribe(self.on_event_added)
         gajim.events.event_removed_unsubscribe(self.on_event_removed)
 
-        if hasattr(self, 'server'): 
-            self.server.hide() 
+        if hasattr(self, 'server'):
+            self.server.hide()
             del self.server
-           
-        if hasattr(self, 'events'): 
+
+        if hasattr(self, 'events'):
             for (_, event) in self.events:
                 event[0].hide()
             del self.events
@@ -127,22 +128,22 @@ class UbuntuIntegrationPlugin(GajimPlugin):
             else:
                 contact = jid
         elif event.type_ == "pm" or event.type_ == "printed_pm":
-            contact = gajim.get_nick_from_jid(gajim.get_room_from_fjid(jid)) + \
+            contact = gajim.get_nick_from_jid(gajim.get_room_from_fjid(jid)) +\
                     "/" + gajim.get_room_and_nick_from_fjid(jid)[1]
         elif event.type_ == "printed_marked_gc_msg":
             contact = gajim.get_nick_from_jid(gajim.get_room_from_fjid(jid))
         else:
-            print "ignored";
+            print "ignored"
             return
 
         print account, jid, when, contact
 
         # Add a new indicator if necessary
-        if not self.events.has_key(key):
+        if key not in self.events:
             indicator = indicate.Indicator()
             indicator.set_property("name", contact)
             indicator.set_property_time("time", when)
-            indicator.set_property_bool("draw-attention", True);
+            indicator.set_property_bool("draw-attention", True)
             if gajim.config.get("show_avatars_in_roster"):
                 pixbuf = gtkgui_helpers.get_avatar_pixbuf_from_cache(jid)
                 if pixbuf not in (None, "ask"):
@@ -154,7 +155,7 @@ class UbuntuIntegrationPlugin(GajimPlugin):
 
         # Prepare the event and save it
         event.time = when
-        self.events[key][1].append(event);
+        self.events[key][1].append(event)
 
     def on_event_removed(self, events):
         """
@@ -166,14 +167,14 @@ class UbuntuIntegrationPlugin(GajimPlugin):
 
             key = (event.account, event.jid)
 
-            if self.events.has_key(key) and \
+            if key not in self.events and \
             event in self.events[key][1]:
                 self.events[key][1].remove(event)
 
-                if len(self.events[key][1]) == 0: # remove indicator
+                if len(self.events[key][1]) == 0:  # remove indicator
                     self.events[key][0].hide()
                     del self.events[key]
-                else: # set the indicator time to the text event
+                else:  # set the indicator time to the text event
                     self.events[key][0].set_property_time("time",
                             self.events[key][1][0].time)
             else:
