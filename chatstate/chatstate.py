@@ -18,7 +18,6 @@ class ChatstatePlugin(GajimPlugin):
         self.config_dialog = None  # ChatstatePluginConfigDialog(self)
         self.events_handlers = {'chatstate-received':
                                     (ged.GUI2, self.chatstate_received), }
-        self.chatstates = ('active', 'composing', 'gone', 'inactive', 'paused')
         self.active = None
 
     def chatstate_received(self, obj):
@@ -31,7 +30,7 @@ class ChatstatePlugin(GajimPlugin):
             return
 
         chatstate = obj.chatstate
-        if chatstate not in self.chatstates:
+        if chatstate not in self.chatstates.keys():
             return
 
         self.model = gajim.interface.roster.model
@@ -40,23 +39,9 @@ class ChatstatePlugin(GajimPlugin):
 
         for child_iter in child_iters:
             name = gobject.markup_escape_text(contact.get_shown_name())
-            theme = gajim.config.get('roster_theme')
             if chatstate != 'gone':
-                color = None
-                if chatstate == 'composing':
-                    color = gajim.config.get_per('themes', theme,
-                                    'state_composing_color')
-                elif chatstate == 'inactive':
-                    color = gajim.config.get_per('themes', theme,
-                                    'state_inactive_color')
-                elif chatstate == 'paused':
-                    color = gajim.config.get_per('themes', theme,
-                                    'state_paused_color')
-                elif chatstate == 'active':
-                    color = gajim.config.get('inmsgcolor')
-
-                name = '<span foreground="%s">%s</span>' % (
-                        color, name)
+                color = self.chatstates[chatstate]
+                name = '<span foreground="%s">%s</span>' % (color, name)
 
             if contact.status and gajim.config.get(
             'show_status_msgs_in_roster'):
@@ -64,21 +49,28 @@ class ChatstatePlugin(GajimPlugin):
                 if status != '':
                     status = helpers.reduce_chars_newlines(status,
                             max_lines=1)
-                    color = gtkgui_helpers.get_fade_color(
-                            gajim.interface.roster.tree, False, False)
-                    colorstring = '#%04x%04x%04x' % (color.red, color.green,
-                            color.blue)
                     name += '\n<span size="small" style="italic" ' \
-                            'foreground="%s">%s</span>' % (colorstring,
+                            'foreground="%s">%s</span>' % (self.status_color,
                             gobject.markup_escape_text(status))
             self.model[child_iter][1] = name
 
     @log_calls('ChatstatePlugin')
     def activate(self):
+        color = gtkgui_helpers.get_fade_color(gajim.interface.roster.tree,
+            False, False)
+        self.status_color = '#%04x%04x%04x' % (color.red, color.green,
+            color.blue)
+        theme = gajim.config.get('roster_theme')
+        self.chatstates = {'active': gajim.config.get('inmsgcolor'),
+                            'composing': gajim.config.get_per('themes', theme,
+                                         'state_composing_color'),
+                            'inactive': gajim.config.get_per('themes', theme,
+                                        'state_inactive_color'),
+                            'paused': gajim.config.get_per('themes', theme,
+                                        'state_paused_color'),
+                            'gone': None, }
         self.active = True
-        pass
 
     @log_calls('ChatstatePlugin')
     def deactivate(self):
         self.active = False
-        pass
