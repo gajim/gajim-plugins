@@ -1,12 +1,10 @@
 # -*- coding: utf-8 -*-
 ##
 
-import gtk
 import gobject
-import pango
 
 from plugins import GajimPlugin
-from plugins.helpers import log_calls, log
+from plugins.helpers import log_calls
 from common import ged
 from common import gajim
 from common import helpers
@@ -18,30 +16,27 @@ class ChatstatePlugin(GajimPlugin):
     @log_calls('ChatstatePlugin')
     def init(self):
         self.config_dialog = None  # ChatstatePluginConfigDialog(self)
-        self.events_handlers = {'raw-message-received':
-                                    (ged.POSTCORE, self.raw_pres_received), }
+        self.events_handlers = {'chatstate-received':
+                                    (ged.GUI2, self.chatstate_received), }
         self.chatstates = ('active', 'composing', 'gone', 'inactive', 'paused')
         self.active = None
 
-    def raw_pres_received(self, event_object):
+    def chatstate_received(self, obj):
         if not self.active:
             return
-        jid = str(event_object.stanza.getFrom())
-        account = event_object.account
-        contact = gajim.contacts.get_contact_from_full_jid(account, jid)
+
+        contact = gajim.contacts.get_contact_from_full_jid(obj.conn.name,
+            obj.fjid)
         if not contact:
             return
 
-        for chatstate in self.chatstates:
-            state = event_object.stanza.getTag(chatstate)
-            if state:
-                break
-        if not state:
+        chatstate = obj.chatstate
+        if chatstate not in self.chatstates:
             return
 
         self.model = gajim.interface.roster.model
-        child_iters = gajim.interface.roster._get_contact_iter(
-                jid.split('/')[0], account, contact, self.model)
+        child_iters = gajim.interface.roster._get_contact_iter(obj.jid,
+            obj.conn.name, contact, self.model)
 
         for child_iter in child_iters:
             name = gobject.markup_escape_text(contact.get_shown_name())
