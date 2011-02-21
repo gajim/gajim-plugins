@@ -34,6 +34,7 @@ clients = {
     'http://tkabber.jabber.ru/': 'tkabber.png',
     'http://pidgin.im/': 'pidgin.png',
     'http://qutim.org': 'qutim.png',
+    'http://qutim.org/': 'qutim.png',
     'http://exodus.jabberstudio.org/caps': 'exodus.png',
     'http://bitlbee.org/xmpp/caps': 'bitlbee.png',
     'http://coccinella.sourceforge.net/protocol/caps': 'coccinella.png',
