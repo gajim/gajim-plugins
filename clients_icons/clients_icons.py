@@ -29,6 +29,7 @@ clients = {
     'http://miranda-im.org/caps': 'miranda.png',
     'http://www.asterisk.org/xmpp/client/caps': 'asterisk.png',
     'http://www.google.com/xmpp/client/caps': 'talkonaut.png',
+    'http://talkgadget.google.com/client/caps': 'google.png',
     'http://oneteam.im/caps': 'oneteamiphone.png',
     'http://tkabber.jabber.ru/': 'tkabber.png',
     'http://pidgin.im/': 'pidgin.png',
