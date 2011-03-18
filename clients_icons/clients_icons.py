@@ -291,13 +291,13 @@ class ClientsIconsPlugin(GajimPlugin):
         tag = iq_obj.stanza.getTags('c')
         if tag:
             caps = tag[0].getAttr('node')
+        if 'facebook.com' in iq_obj.jid:
+            caps = 'facebook.com'
         if not caps:
             if iq_obj.jid == 'juick@juick.com':
                 caps = 'http://juick.com/caps'
             elif '@vk.com' in iq_obj.jid:
                 caps = 'vk.com'
-            elif 'facebook.com' in iq_obj.jid:
-                caps = 'facebook.com'
         self.set_icon(roster.model, iter_, self.renderer_num, caps)
 
     def gc_presence_received(self, iq_obj):
