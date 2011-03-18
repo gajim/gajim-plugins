@@ -83,7 +83,7 @@ clients = {
     'http://www.adiumx.com': 'adium.png',
     'http://juick.com/caps': 'juick.png',
     'vk.com': 'vkontakte.png',
-    'facebook.com':'facebook.png'
+    'facebook.com':'facebook.png',
     'http://snapi-bot.googlecode.com/caps': 'bot.png',
     'http://www.barobin.com/caps': 'bayanicq.png',
     'http://chat.ovi.com/caps': 'ovi-chat.png',
