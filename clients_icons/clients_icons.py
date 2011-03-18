@@ -82,6 +82,8 @@ clients = {
     'http://www.adiumx.com/caps': 'adium.png',
     'http://www.adiumx.com': 'adium.png',
     'http://juick.com/caps': 'juick.png',
+    'vk.com': 'vkontakte.png',
+    'facebook.com':'facebook.png'
     'http://snapi-bot.googlecode.com/caps': 'bot.png',
     'http://www.barobin.com/caps': 'bayanicq.png',
     'http://chat.ovi.com/caps': 'ovi-chat.png',
@@ -289,8 +291,13 @@ class ClientsIconsPlugin(GajimPlugin):
         tag = iq_obj.stanza.getTags('c')
         if tag:
             caps = tag[0].getAttr('node')
-        if not caps and iq_obj.jid == 'juick@juick.com':
-            caps = 'http://juick.com/caps'
+        if not caps:
+            if iq_obj.jid == 'juick@juick.com':
+                caps = 'http://juick.com/caps'
+            elif '@vk.com' in iq_obj.jid:
+                caps = 'vk.com'
+            elif 'facebook.com' in iq_obj.jid:
+                caps = 'facebook.com'
         self.set_icon(roster.model, iter_, self.renderer_num, caps)
 
     def gc_presence_received(self, iq_obj):
