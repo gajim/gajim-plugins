@@ -84,7 +84,7 @@ clients = {
     'http://juick.com/caps': 'juick.png',
     'vk.com': 'vkontakte.png',
     'facebook.com':'facebook.png',
-    'gmail.com':'google.com.png',
+    'http://mail.google.com/xmpp/client/caps':'google.com.png',
     'http://snapi-bot.googlecode.com/caps': 'bot.png',
     'http://www.barobin.com/caps': 'bayanicq.png',
     'http://chat.ovi.com/caps': 'ovi-chat.png',
@@ -299,8 +299,6 @@ class ClientsIconsPlugin(GajimPlugin):
                 caps = 'http://juick.com/caps'
             elif '@vk.com' in iq_obj.jid:
                 caps = 'vk.com'
-            elif '@gmail.com' in iq_obj.jid:
-                caps = 'gmail.com'
         self.set_icon(roster.model, iter_, self.renderer_num, caps)
 
     def gc_presence_received(self, iq_obj):
