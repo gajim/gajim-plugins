@@ -63,14 +63,6 @@ class JuickPlugin(GajimPlugin):
             os.makedirs(self.cache_path)
 
     @log_calls('JuickPlugin')
-    def activate(self):
-        pass
-
-    @log_calls('JuickPlugin')
-    def deactivate(self):
-        pass
-
-    @log_calls('JuickPlugin')
     def connect_with_chat_control(self, chat_control):
         if chat_control.contact.jid != 'juick@juick.com':
             return
