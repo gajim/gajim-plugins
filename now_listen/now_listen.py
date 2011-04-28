@@ -119,9 +119,8 @@ class Base(object):
             '%artist', self.plugin.artist).replace(
             '%title', self.plugin.title).replace('%album',self.plugin.source)
 
-        text = tune_string.rstrip() + ' '
         message_buffer = self.chat_control.msg_textview.get_buffer()
-        message_buffer.insert_at_cursor(text)
+        message_buffer.insert_at_cursor(tune_string)
         self.chat_control.msg_textview.grab_focus()
 
 
