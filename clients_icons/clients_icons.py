@@ -50,7 +50,7 @@ clients = {
     'http://online.yandex.ru/caps': 'yaonline.png',
     'http://psi-im.org/caps': 'psi.png',
     'http://jimm.net.ru/caps': 'jimm-aspro.png',
-    'http://stranger.kiev.ua/caps': 'jimm-aspro.png',
+    'http://stranger.kiev.ua/caps': 'fin.png',
     'http://bluendo.com/protocol/caps': 'lampiro.png',
     'nimbuzz:caps': 'nimbuzz.png',
     'http://nimbuzz.com/caps': 'nimbuzz.png',
@@ -86,8 +86,6 @@ clients = {
     'http://juick.com/caps': 'juick.png',
     'vk.com': 'vkontakte.png',
     'facebook.com':'facebook.png',
-    'bot': 'bot.png',
-    'rss': 'rss.png',
     'http://mail.google.com/xmpp/client/caps':'google.com.png',
     'http://snapi-bot.googlecode.com/caps': 'bot.png',
     'http://www.barobin.com/caps': 'bayanicq.png',
@@ -121,6 +119,11 @@ clients = {
     'http://fin.jabber.ru/caps': 'bot.png',
     'https://www.jappix.com/': 'jappix.png',
     'http://japyt.googlecode.com': 'japyt.png',
+     'http://www.xfire.com/': 'xfire.png',
+     'http://www.xfire.com/caps': 'xfire.png'
+     'http://lytgeygen.ru/caps': 'bot.png'
+     'http://aspro.users.ru/historian-bot/': 'bot.png'
+     'http://pigeon.vpro.ru/caps': 'pigeon.png'
 }
 
 
