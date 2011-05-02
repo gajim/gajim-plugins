@@ -120,10 +120,10 @@ clients = {
     'https://www.jappix.com/': 'jappix.png',
     'http://japyt.googlecode.com': 'japyt.png',
      'http://www.xfire.com/': 'xfire.png',
-     'http://www.xfire.com/caps': 'xfire.png'
-     'http://lytgeygen.ru/caps': 'bot.png'
-     'http://aspro.users.ru/historian-bot/': 'bot.png'
-     'http://pigeon.vpro.ru/caps': 'pigeon.png'
+     'http://www.xfire.com/caps': 'xfire.png',
+     'http://lytgeygen.ru/caps': 'bot.png',
+     'http://aspro.users.ru/historian-bot/': 'bot.png',
+     'http://pigeon.vpro.ru/caps': 'pigeon.png',
 }
 
 
