@@ -170,6 +170,8 @@ class ClientsIconsPlugin(GajimPlugin):
 
     @log_calls('ClientsIconsPlugin')
     def connect_with_groupchat_control(self, chat_control):
+        if not self.config['show_in_groupchats']:
+            return
         chat_control.nb_ext_renderers += 1
         chat_control.columns += [gtk.gdk.Pixbuf]
         self.groupchats_tree_is_transformed = True
