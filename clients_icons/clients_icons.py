@@ -196,10 +196,10 @@ class ClientsIconsPlugin(GajimPlugin):
         chat_control.fill_column(col)
         chat_control.list_treeview.insert_column(col, 0)
         # redraw roster
-        store = gtk.TreeStore(*chat_control.columns)
-        store.set_sort_func(1, chat_control.tree_compare_iters)
-        store.set_sort_column_id(1, gtk.SORT_ASCENDING)
-        chat_control.list_treeview.set_model(store)
+        chat_control.model = gtk.TreeStore(*chat_control.columns)
+        chat_control.model.set_sort_func(1, chat_control.tree_compare_iters)
+        chat_control.model.set_sort_column_id(1, gtk.SORT_ASCENDING)
+        chat_control.list_treeview.set_model(chat_control.model)
         # draw roster
         for nick in gajim.contacts.get_nick_list(chat_control.account,
             chat_control.room_jid):
