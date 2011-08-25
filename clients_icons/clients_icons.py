@@ -170,8 +170,6 @@ class ClientsIconsPlugin(GajimPlugin):
 
     @log_calls('ClientsIconsPlugin')
     def connect_with_groupchat_control(self, chat_control):
-        if not self.config['show_in_groupchats']:
-            return
         chat_control.nb_ext_renderers += 1
         chat_control.columns += [gtk.gdk.Pixbuf]
         self.groupchats_tree_is_transformed = True
@@ -211,7 +209,7 @@ class ClientsIconsPlugin(GajimPlugin):
             if not self.config['show_in_groupchats']:
                 continue
             caps = gc_contact.client_caps._node
-            self.set_icon(store, iter_, self.muc_renderer_num, caps)
+            self.set_icon(chat_control.model, iter_, self.muc_renderer_num, caps)
         chat_control.draw_all_roles()
         # Recalculate column width for ellipsizin
         chat_control.list_treeview.columns_autosize()
@@ -230,10 +228,10 @@ class ClientsIconsPlugin(GajimPlugin):
         gc_control.list_treeview.insert_column(col, 0)
         gc_control.columns = gc_control.columns[:self.muc_renderer_num] + \
             gc_control.columns[self.muc_renderer_num + 1:]
-        store = gtk.TreeStore(*gc_control.columns)
-        store.set_sort_func(1, gc_control.tree_compare_iters)
-        store.set_sort_column_id(1, gtk.SORT_ASCENDING)
-        gc_control.list_treeview.set_model(store)
+        gc_control.model = gtk.TreeStore(*gc_control.columns)
+        gc_control.model.set_sort_func(1, gc_control.tree_compare_iters)
+        gc_control.model.set_sort_column_id(1, gtk.SORT_ASCENDING)
+        gc_control.list_treeview.set_model(gc_control.model)
         gc_control.draw_roster()
 
     @log_calls('ClientsIconsPlugin')
