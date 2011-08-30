@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-08-30 15:59+0400\n"
+"POT-Creation-Date: 2011-08-30 18:24+0400\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -59,122 +59,249 @@ msgstr ""
 msgid "Press alt+r to convert chars typed in wrong layout Rus<>Eng"
 msgstr ""
 
-#: community_plugins/juick/plugin.py:42
+#: community_plugins/juick/plugin.py:31
 msgid "Avatar size(10-32)"
 msgstr ""
 
-#: community_plugins/juick/plugin.py:44
+#: community_plugins/juick/plugin.py:33
 #: community_plugins/juick/config_dialog.ui.h:5
 msgid "Preview size(10-512)"
 msgstr ""
 
-#: community_plugins/juick/plugin.py:45
+#: community_plugins/juick/plugin.py:34
 #: community_plugins/juick/config_dialog.ui.h:2
 msgid "Juick link color"
 msgstr ""
 
-#: community_plugins/juick/plugin.py:202
+#: community_plugins/juick/plugin.py:191
 msgid "Reply to message"
 msgstr ""
 
-#: community_plugins/juick/plugin.py:206
+#: community_plugins/juick/plugin.py:195
 msgid "Unsubscribe from comments"
 msgstr ""
 
-#: community_plugins/juick/plugin.py:207
+#: community_plugins/juick/plugin.py:196
 msgid "Subscribe to message replies"
 msgstr ""
 
-#: community_plugins/juick/plugin.py:208
+#: community_plugins/juick/plugin.py:197
 msgid "Recommend post"
 msgstr ""
 
-#: community_plugins/juick/plugin.py:209
+#: community_plugins/juick/plugin.py:198
 msgid "Show message with replies"
 msgstr ""
 
-#: community_plugins/juick/plugin.py:210
+#: community_plugins/juick/plugin.py:199
 msgid "Delete post"
 msgstr ""
 
-#: community_plugins/juick/plugin.py:216
+#: community_plugins/juick/plugin.py:205
 msgid "Open in browser"
 msgstr ""
 
-#: community_plugins/juick/plugin.py:220
+#: community_plugins/juick/plugin.py:209
 msgid "Show user's info"
 msgstr ""
 
-#: community_plugins/juick/plugin.py:221
+#: community_plugins/juick/plugin.py:210
 msgid "Show user's info and last 10 messages"
 msgstr ""
 
-#: community_plugins/juick/plugin.py:222
+#: community_plugins/juick/plugin.py:211
 msgid "Subscribe to user's blog"
 msgstr ""
 
-#: community_plugins/juick/plugin.py:223
+#: community_plugins/juick/plugin.py:212
 msgid "Unsubscribe from user's blog"
 msgstr ""
 
-#: community_plugins/juick/plugin.py:224
+#: community_plugins/juick/plugin.py:213
 msgid "Add/delete user to/from your blacklist"
 msgstr ""
 
-#: community_plugins/juick/plugin.py:230
+#: community_plugins/juick/plugin.py:219
 msgid "Send personal message"
 msgstr ""
 
-#: community_plugins/juick/plugin.py:476
+#: community_plugins/juick/plugin.py:465
 msgid "Show last messages from public timeline"
 msgstr ""
 
-#: community_plugins/juick/plugin.py:477
+#: community_plugins/juick/plugin.py:466
 msgid "Show last messages from your feed"
 msgstr ""
 
-#: community_plugins/juick/plugin.py:478
+#: community_plugins/juick/plugin.py:467
 msgid "Show popular personal blogs"
 msgstr ""
 
-#: community_plugins/juick/plugin.py:479
+#: community_plugins/juick/plugin.py:468
 msgid "Show your tags"
 msgstr ""
 
-#: community_plugins/juick/plugin.py:480
+#: community_plugins/juick/plugin.py:469
 msgid "Show your subscriptions"
 msgstr ""
 
-#: community_plugins/juick/plugin.py:481
+#: community_plugins/juick/plugin.py:470
 msgid "Delete last message"
 msgstr ""
 
-#: community_plugins/juick/plugin.py:482
+#: community_plugins/juick/plugin.py:471
 msgid "Enable subscriptions delivery"
 msgstr ""
 
-#: community_plugins/juick/plugin.py:483
+#: community_plugins/juick/plugin.py:472
 msgid "Disable subscriptions delivery"
 msgstr ""
 
-#: community_plugins/juick/plugin.py:484
+#: community_plugins/juick/plugin.py:473
 msgid "Show your blacklist"
 msgstr ""
 
-#: community_plugins/juick/plugin.py:485
+#: community_plugins/juick/plugin.py:474
 msgid "Update \"About\" info from Jabber vCard"
 msgstr ""
 
-#: community_plugins/juick/plugin.py:486
+#: community_plugins/juick/plugin.py:475
 msgid "Ping"
 msgstr ""
 
-#: community_plugins/juick/plugin.py:487
+#: community_plugins/juick/plugin.py:476
 msgid "Login"
 msgstr ""
 
-#: community_plugins/juick/plugin.py:488
+#: community_plugins/juick/plugin.py:477
 msgid "HELP"
+msgstr ""
+
+#: community_plugins/gotr/otrmodule.py:100
+#, python-format
+msgid "Private conversation with %s refreshed."
+msgstr ""
+
+#: community_plugins/gotr/otrmodule.py:104
+#, python-format
+msgid ""
+"%s has ended his/her private conversation with you. You should do the same."
+msgstr ""
+
+#: community_plugins/gotr/otrmodule.py:113
+#, python-format
+msgid "New fingerprint for %s: %s"
+msgstr ""
+
+#: community_plugins/gotr/otrmodule.py:118
+#, python-format
+msgid "%s secured OTR conversation with %s started"
+msgstr ""
+
+#: community_plugins/gotr/otrmodule.py:125
+#, python-format
+msgid "Private conversation with %s lost."
+msgstr ""
+
+#: community_plugins/gotr/otrmodule.py:449
+#, python-format
+msgid "The following message received from %s was *not encrypted*: [%s]"
+msgstr ""
+
+#: community_plugins/gotr/otrmodule.py:452
+#, python-format
+msgid ""
+"The encrypted message received from %s is unreadable, as you are not "
+"currently communicating privately"
+msgstr ""
+
+#: community_plugins/gotr/otrmodule.py:457
+#, python-format
+msgid "We received the following OTR error message from %s: [%s]"
+msgstr ""
+
+#: community_plugins/gotr/otrmodule.py:462
+#, python-format
+msgid ""
+"The following error occurred when trying to decrypt a message from %s: [%s]"
+msgstr ""
+
+#: community_plugins/gotr/otrmodule.py:505
+msgid ""
+"Your message was not send. Either end your private conversation, or restart "
+"it"
+msgstr ""
+
+#: community_plugins/gotr/ui.py:190
+#, python-format
+msgid ""
+"Your fingerprint:\n"
+"<span weight=\"bold\" face=\"monospace\">%s</span>"
+msgstr ""
+
+#: community_plugins/gotr/ui.py:192
+#, python-format
+msgid ""
+"Purported fingerprint for %s:\n"
+"<span weight=\"bold\" face=\"monospace\">%s</span>"
+msgstr ""
+
+#: community_plugins/gotr/ui.py:195
+msgid ""
+"You may want to authenticate your buddy as well by askingyour own question."
+msgstr ""
+
+#: community_plugins/gotr/ui.py:197
+#, python-format
+msgid ""
+"<b>%s is trying to authenticate you using a secret only known to him/her and "
+"you.</b>"
+msgstr ""
+
+#: community_plugins/gotr/ui.py:199
+#, python-format
+msgid ""
+"<b>%s has chosen a question for you to answer to authenticate yourself:</b>"
+msgstr ""
+
+#: community_plugins/gotr/ui.py:201
+msgid "Please enter your secret below."
+msgstr ""
+
+#: community_plugins/gotr/ui.py:203
+#, python-format
+msgid ""
+"<b>You are trying to authenticate %s using a secret only known to him/her "
+"and yourself.</b>"
+msgstr ""
+
+#: community_plugins/gotr/ui.py:205
+msgid "You can choose a question as a hint for your buddy below."
+msgstr ""
+
+#: community_plugins/gotr/ui.py:225 community_plugins/gotr/ui.py:399
+#, python-format
+msgid "OTR settings for %s"
+msgstr ""
+
+#: community_plugins/gotr/ui.py:333
+msgid "SMP verifying aborted"
+msgstr ""
+
+#: community_plugins/gotr/ui.py:354 community_plugins/gotr/ui.py:364
+msgid "SMP verifying succeeded"
+msgstr ""
+
+#: community_plugins/gotr/ui.py:359 community_plugins/gotr/ui.py:369
+msgid "SMP verifying failed"
+msgstr ""
+
+#: community_plugins/gotr/ui.py:373
+msgid "user aborted SMP authentication"
+msgstr ""
+
+#: community_plugins/gotr/ui.py:439
+msgid "unknown"
 msgstr ""
 
 #: triggers/triggers.py:268
@@ -190,26 +317,22 @@ msgid "when I am "
 msgstr ""
 
 #: plugin_installer/plugin_installer.py:102
-#: ftp_manager/plugin_installer.py:103
 msgid "Plugin"
 msgstr ""
 
 #: plugin_installer/plugin_installer.py:107
-#: ftp_manager/plugin_installer.py:108
 msgid ""
 "Installed\n"
 "version"
 msgstr ""
 
 #: plugin_installer/plugin_installer.py:109
-#: ftp_manager/plugin_installer.py:110
 msgid ""
 "Available\n"
 "version"
 msgstr ""
 
 #: plugin_installer/plugin_installer.py:116
-#: ftp_manager/plugin_installer.py:117
 msgid ""
 "Install /\n"
 "Upgrade"
@@ -566,6 +689,139 @@ msgstr ""
 msgid "text will be inserted:"
 msgstr ""
 
+#: community_plugins/gotr/config_dialog.ui.h:1
+msgid "(Re-)generate"
+msgstr ""
+
+#: community_plugins/gotr/config_dialog.ui.h:2
+msgid "<b>Default OTR Settings</b>"
+msgstr ""
+
+#: community_plugins/gotr/config_dialog.ui.h:3
+msgid "<b>Off-the-Record settings for:</b>"
+msgstr ""
+
+#: community_plugins/gotr/config_dialog.ui.h:4
+msgid "<tt>-------- -------- -------- -------- --------\t</tt>"
+msgstr ""
+
+#: community_plugins/gotr/config_dialog.ui.h:5
+msgid "Advertise Off-the-Record messaging support"
+msgstr ""
+
+#: community_plugins/gotr/config_dialog.ui.h:6
+msgid "Automatically start private messaging"
+msgstr ""
+
+#: community_plugins/gotr/config_dialog.ui.h:7
+msgid "Enable private (Off-the-Record) messaging"
+msgstr ""
+
+#: community_plugins/gotr/config_dialog.ui.h:8
+msgid "Fingerprint:"
+msgstr ""
+
+#: community_plugins/gotr/config_dialog.ui.h:9
+msgid "Forget Fingerprint"
+msgstr ""
+
+#: community_plugins/gotr/config_dialog.ui.h:10
+msgid "Known Fingerprints"
+msgstr ""
+
+#: community_plugins/gotr/config_dialog.ui.h:11
+#: community_plugins/gotr/contact_otr_window.ui.h:8
+msgid "OTR Settings"
+msgstr ""
+
+#: community_plugins/gotr/config_dialog.ui.h:12
+msgid "Require private messaging"
+msgstr ""
+
+#: community_plugins/gotr/config_dialog.ui.h:13
+msgid "Verify Fingerprint"
+msgstr ""
+
+#: community_plugins/gotr/contact_otr_window.ui.h:1
+msgid "Authenticate contact"
+msgstr ""
+
+#: community_plugins/gotr/contact_otr_window.ui.h:2
+msgid "Authentication"
+msgstr ""
+
+#: community_plugins/gotr/contact_otr_window.ui.h:3
+msgid "Automatically initiate encryption if partner understands OTR"
+msgstr ""
+
+#: community_plugins/gotr/contact_otr_window.ui.h:4
+msgid "Encryption required"
+msgstr ""
+
+#: community_plugins/gotr/contact_otr_window.ui.h:5
+msgid "End OTR "
+msgstr ""
+
+#: community_plugins/gotr/contact_otr_window.ui.h:6
+msgid "I have"
+msgstr ""
+
+#: community_plugins/gotr/contact_otr_window.ui.h:7
+msgid "I have NOT"
+msgstr ""
+
+#: community_plugins/gotr/contact_otr_window.ui.h:9
+msgid "OTR settings / fingerprint"
+msgstr ""
+
+#: community_plugins/gotr/contact_otr_window.ui.h:10
+msgid "OTR version 2 allowed"
+msgstr ""
+
+#: community_plugins/gotr/contact_otr_window.ui.h:11
+msgid "Off-the-Record Encryption"
+msgstr ""
+
+#: community_plugins/gotr/contact_otr_window.ui.h:12
+msgid ""
+"Purported fingerprint for asdfasdf@xyzxyzxyz.de:\n"
+"<span weight=\"bold\" face=\"monospace\">01234567 89ABCDEF 01234567 89ABCDEF "
+"01234567</span>"
+msgstr ""
+
+#: community_plugins/gotr/contact_otr_window.ui.h:14
+msgid "Show others we understand OTR"
+msgstr ""
+
+#: community_plugins/gotr/contact_otr_window.ui.h:15
+msgid "Start / Refresh OTR"
+msgstr ""
+
+#: community_plugins/gotr/contact_otr_window.ui.h:16
+msgid "Use question: "
+msgstr ""
+
+#: community_plugins/gotr/contact_otr_window.ui.h:17
+msgid "Use the default settings"
+msgstr ""
+
+#: community_plugins/gotr/contact_otr_window.ui.h:18
+msgid ""
+"Your fingerprint:\n"
+"<span weight=\"bold\" face=\"monospace\">01234567 89ABCDEF 01234567 89ABCDEF "
+"01234567</span>"
+msgstr ""
+
+#: community_plugins/gotr/contact_otr_window.ui.h:20
+msgid "label"
+msgstr ""
+
+#: community_plugins/gotr/contact_otr_window.ui.h:21
+msgid ""
+"verified that the purported fingerprint is in fact the correct fingerprint "
+"for that contact."
+msgstr ""
+
 #: community_plugins/flashing_keyboard/config_dialog.ui.h:1
 msgid "command 1:"
 msgstr ""
@@ -736,37 +992,23 @@ msgid "when I'm in"
 msgstr ""
 
 #: plugin_installer/config_dialog.ui.h:1
-msgid "<empty>"
-msgstr ""
-
-#: plugin_installer/config_dialog.ui.h:2 ftp_manager/config_dialog.ui.h:1
 msgid "Authors:"
 msgstr ""
 
-#: plugin_installer/config_dialog.ui.h:3 ftp_manager/config_dialog.ui.h:2
+#: plugin_installer/config_dialog.ui.h:2
 msgid "Description:"
 msgstr ""
 
-#: plugin_installer/config_dialog.ui.h:4 ftp_manager/config_dialog.ui.h:3
+#: plugin_installer/config_dialog.ui.h:3
 msgid "Ftp server:"
 msgstr ""
 
-#: plugin_installer/config_dialog.ui.h:5 ftp_manager/config_dialog.ui.h:4
+#: plugin_installer/config_dialog.ui.h:4
 msgid "Homepage:"
 msgstr ""
 
-#: plugin_installer/config_dialog.ui.h:6 ftp_manager/config_dialog.ui.h:5
+#: plugin_installer/config_dialog.ui.h:5
 msgid "Install/Upgrade"
-msgstr ""
-
-#: plugin_installer/config_dialog.ui.h:7
-msgid ""
-"Plug-in decription should be displayed here. This text will be erased during "
-"PluginsWindow initialization."
-msgstr ""
-
-#: plugin_installer/config_dialog.ui.h:8
-msgid "button"
 msgstr ""
 
 #: banner_tweaks/config_dialog.ui.h:1
