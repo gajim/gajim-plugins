@@ -179,7 +179,7 @@ class OtrPluginConfigDialog(GajimPluginConfigDialog):
         if active > -1:
             account = self.otr_account_store[active][0]
             button.set_sensitive(False)
-            self.plugin.us[account].privkey = None
+            self.plugin.us[account].dropPrivkey()
             self.account_combobox_changed_cb(box, *args)
             button.set_sensitive(True)
 

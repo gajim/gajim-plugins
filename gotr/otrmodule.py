@@ -145,13 +145,23 @@ class GajimOtrAccount(potr.context.Account):
         super(GajimOtrAccount, self).__init__(name, PROTOCOL, MMS)
         self.keyFilePath = os.path.join(gajim.gajimpaths.data_root, accountname)
 
+    def dropPrivkey(self):
+        try:
+            os.remove(self.keyFilePath + '.key2')
+        except IOError, e:
+            if e.errno != 2:
+                log.exception('IOError occurred when removing key file for %s',
+                        self.name)
+        self.privkey = None
+
     def loadPrivkey(self):
         try:
             with open(self.keyFilePath + '.key2', 'r') as keyFile:
                 return pickle.load(keyFile)
         except IOError, e:
-            log.exception('IOError occurred when loading key file for %s',
-                    self.name)
+            if e.errno != 2:
+                log.exception('IOError occurred when loading key file for %s',
+                        self.name)
         return None
 
     def savePrivkey(self):
@@ -176,8 +186,9 @@ class GajimOtrAccount(potr.context.Account):
 
                     self.getContext(ctx, newCtxCb).setTrust(fpr, trust)
         except IOError, e:
-            log.exception('IOError occurred when loading fpr file for %s',
-                    self.name)
+            if e.errno != 2:
+                log.exception('IOError occurred when loading fpr file for %s',
+                        self.name)
 
     def saveTrusts(self):
         try:
