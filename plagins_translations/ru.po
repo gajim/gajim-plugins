@@ -1,22 +1,21 @@
-# Russian translations for PACKAGE package.
-# Copyright (C) 2011 THE PACKAGE'S COPYRIGHT HOLDER
+# Language WrongLayout translations for PACKAGE package.
+# Copyright (C) 2010 THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
-# test <fominde@gmail.com>, 2011.
+# test <fominde@gmail.com>, 2010.
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: PACKAGE VERSION\n"
+"Project-Id-Version: WrongLayout\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2011-08-30 15:59+0400\n"
-"PO-Revision-Date: 2011-08-30 14:31+0400\n"
-"Last-Translator: test <fominde@gmail.com>\n"
-"Language-Team: Russian\n"
-"Language: ru\n"
+"PO-Revision-Date: 2011-08-30 14:50+0300\n"
+"Last-Translator: Fomin Denis <fominde@mail.ru>\n"
+"Language-Team: \n"
+"Language: WrongLayout\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
-"%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+"X-Poedit-Language: Russian\n"
 
 #: community_plugins/image/image.py:45
 msgid "This contact does not support XHTML_IM"
@@ -47,136 +46,144 @@ msgid ""
 "Click the right mouse button to specify the location, \n"
 "middle mouse button to show / hide the contacts on the map"
 msgstr ""
+"Щелкните правой клавишей мыши на карте для установки вашего "
+"местоположения, \n"
+"средней клавишей мыши для показа/скрытия контактов"
 
 #: community_plugins/set_location/set_location.py:222
 msgid "Save as Preset"
-msgstr ""
+msgstr "Сохранить закладку"
 
 #: community_plugins/set_location/set_location.py:222
 msgid "Please type a name for this preset"
-msgstr ""
+msgstr "Введите имя для новой закладки"
 
 #: community_plugins/wrong_layout/plugin.py:22
 msgid "Press alt+r to convert chars typed in wrong layout Rus<>Eng"
 msgstr ""
+"При нажатии сочетания клавиш Alt+R в поле ввода текста, весь набранный текст "
+"(или выделенный, если таковой имеется) переводится из английской раскладки в "
+"русскую или наоборот, в зависимости от того, что написано."
 
 #: community_plugins/juick/plugin.py:42
 msgid "Avatar size(10-32)"
-msgstr ""
+msgstr "Размер аватара(10-32)"
 
 #: community_plugins/juick/plugin.py:44
 #: community_plugins/juick/config_dialog.ui.h:5
 msgid "Preview size(10-512)"
-msgstr ""
+msgstr "Размер картинок(10-512)"
 
 #: community_plugins/juick/plugin.py:45
 #: community_plugins/juick/config_dialog.ui.h:2
 msgid "Juick link color"
-msgstr ""
+msgstr "Цвет Juick ссылок"
 
 #: community_plugins/juick/plugin.py:202
 msgid "Reply to message"
-msgstr ""
+msgstr "Ответить на сообщение"
 
 #: community_plugins/juick/plugin.py:206
 msgid "Unsubscribe from comments"
-msgstr ""
+msgstr "Отписаться от поста"
 
 #: community_plugins/juick/plugin.py:207
 msgid "Subscribe to message replies"
-msgstr ""
+msgstr "Подписаться на пост"
 
 #: community_plugins/juick/plugin.py:208
 msgid "Recommend post"
-msgstr ""
+msgstr "Рекомендовать пост"
 
 #: community_plugins/juick/plugin.py:209
 msgid "Show message with replies"
-msgstr ""
+msgstr "Показать пост и ответы"
 
 #: community_plugins/juick/plugin.py:210
+#, fuzzy
 msgid "Delete post"
-msgstr ""
+msgstr "Удалить"
 
 #: community_plugins/juick/plugin.py:216
 msgid "Open in browser"
-msgstr ""
+msgstr "Открыть в браузере"
 
 #: community_plugins/juick/plugin.py:220
 msgid "Show user's info"
-msgstr ""
+msgstr "Показать информацию о пользователе"
 
 #: community_plugins/juick/plugin.py:221
 msgid "Show user's info and last 10 messages"
-msgstr ""
+msgstr "Показать информацию о пользователе и последние 10 сообщений"
 
 #: community_plugins/juick/plugin.py:222
 msgid "Subscribe to user's blog"
-msgstr ""
+msgstr "Подписаться"
 
 #: community_plugins/juick/plugin.py:223
 msgid "Unsubscribe from user's blog"
-msgstr ""
+msgstr "Отписаться"
 
 #: community_plugins/juick/plugin.py:224
 msgid "Add/delete user to/from your blacklist"
-msgstr ""
+msgstr "Добавить/Удалить пользователя в/из «Черный список» "
 
 #: community_plugins/juick/plugin.py:230
 msgid "Send personal message"
-msgstr ""
+msgstr "Отослать пользователю личное сообщение"
 
 #: community_plugins/juick/plugin.py:476
 msgid "Show last messages from public timeline"
-msgstr ""
+msgstr "Показать последние сообщения из общей ленты"
 
 #: community_plugins/juick/plugin.py:477
 msgid "Show last messages from your feed"
-msgstr ""
+msgstr "Показать последние сообщения из вашей ленты"
 
 #: community_plugins/juick/plugin.py:478
 msgid "Show popular personal blogs"
-msgstr ""
+msgstr "Показать популярные блоги"
 
 #: community_plugins/juick/plugin.py:479
 msgid "Show your tags"
-msgstr ""
+msgstr "Показать ваши теги"
 
 #: community_plugins/juick/plugin.py:480
 msgid "Show your subscriptions"
-msgstr ""
+msgstr "Показать список всех блогов, на которые вы подписаны"
 
 #: community_plugins/juick/plugin.py:481
+#, fuzzy
 msgid "Delete last message"
-msgstr ""
+msgstr "Удалить"
 
 #: community_plugins/juick/plugin.py:482
 msgid "Enable subscriptions delivery"
-msgstr ""
+msgstr "Включить доставку сообщений"
 
 #: community_plugins/juick/plugin.py:483
 msgid "Disable subscriptions delivery"
-msgstr ""
+msgstr "Отключить доставку сообщений"
 
 #: community_plugins/juick/plugin.py:484
 msgid "Show your blacklist"
-msgstr ""
+msgstr "Показать «Черный список»"
 
 #: community_plugins/juick/plugin.py:485
 msgid "Update \"About\" info from Jabber vCard"
-msgstr ""
+msgstr "Обновить \"About\" из vCard"
 
 #: community_plugins/juick/plugin.py:486
 msgid "Ping"
-msgstr ""
+msgstr "Пинг"
 
 #: community_plugins/juick/plugin.py:487
 msgid "Login"
-msgstr ""
+msgstr "Получить уникальную ссылку для авторизации на сайте"
 
 #: community_plugins/juick/plugin.py:488
 msgid "HELP"
-msgstr ""
+msgstr "Показать краткую справку по командам"
 
 #: triggers/triggers.py:268
 msgid "#"
@@ -363,149 +370,154 @@ msgstr ""
 
 #: community_plugins/chatstate/config_dialog.ui.h:4
 #: community_plugins/plagins_translations/config_dialog.ui.h:4
+#, fuzzy
 msgid "paused composing a message"
-msgstr ""
+msgstr "Отослать пользователю личное сообщение"
 
 #: community_plugins/set_location/config_dialog.ui.h:1
 msgid "A URI or URL pointing to information about the location"
-msgstr ""
+msgstr "URI или URL, указывающих на информации о местонахождении"
 
 #: community_plugins/set_location/config_dialog.ui.h:2
 msgid ""
 "A catch-all element that captures any other information about the location"
 msgstr ""
+"Всеобъемлющий элемент, который фиксирует любую другую информацию о "
+"местонахождении"
 
 #: community_plugins/set_location/config_dialog.ui.h:3
 msgid "A code used for postal delivery"
-msgstr ""
+msgstr "Код, используемый для почтовых отправлений"
 
 #: community_plugins/set_location/config_dialog.ui.h:4
 msgid "A locality within the administrative region, such as a town or city"
 msgstr ""
+"Населенный пункт в пределах административного района, например, деревни или "
+"города"
 
 #: community_plugins/set_location/config_dialog.ui.h:5
 msgid "A named area such as a campus or neighborhood"
-msgstr ""
+msgstr "Именованый участок как студенческий городок или окресности"
 
 #: community_plugins/set_location/config_dialog.ui.h:6
 msgid "A natural-language name for or description of the location"
-msgstr ""
+msgstr "Описание местоположения на родном языке"
 
 #: community_plugins/set_location/config_dialog.ui.h:7
 msgid "A particular floor in a building"
-msgstr ""
+msgstr "Этаж в здании"
 
 #: community_plugins/set_location/config_dialog.ui.h:8
 msgid "A particular room in a building"
-msgstr ""
+msgstr "Номер комнаты в здании"
 
 #: community_plugins/set_location/config_dialog.ui.h:9
 msgid "A specific building on a street or in an area"
-msgstr ""
+msgstr "Конкретные здания на улице или в районе"
 
 #: community_plugins/set_location/config_dialog.ui.h:10
 msgid "A thoroughfare within the locality, or a crossing of two thoroughfares"
-msgstr ""
+msgstr "Проезд в пределах местности, или пересечение двух улиц"
 
 #: community_plugins/set_location/config_dialog.ui.h:11
 msgid "Altitude in meters above or below sea level"
-msgstr ""
+msgstr "Высота в метрах выше или ниже уровня моря"
 
 #: community_plugins/set_location/config_dialog.ui.h:12
 msgid "An administrative region of the nation, such as a state or province"
-msgstr ""
+msgstr "Административный район страны, такой, как штат или область"
 
 #: community_plugins/set_location/config_dialog.ui.h:13
 msgid "Delete preset"
-msgstr ""
+msgstr "Удалить"
 
 #: community_plugins/set_location/config_dialog.ui.h:14
 msgid "Latitude in decimal degrees North"
-msgstr ""
+msgstr "Широта в десятичных градусах"
 
 #: community_plugins/set_location/config_dialog.ui.h:15
 msgid "Longitude in decimal degrees East"
-msgstr ""
+msgstr "Долгота в десятичных градусах"
 
 #: community_plugins/set_location/config_dialog.ui.h:16
 msgid "Preset:"
-msgstr ""
+msgstr "Закладка:"
 
 #: community_plugins/set_location/config_dialog.ui.h:17
 msgid "Save preset"
-msgstr ""
+msgstr "Сохранить"
 
 #: community_plugins/set_location/config_dialog.ui.h:18
 msgid "The ISO 3166 two-letter country code"
-msgstr ""
+msgstr "ISO 3166 2-буквенный код страны"
 
 #: community_plugins/set_location/config_dialog.ui.h:19
 msgid "The nation where the user is located"
-msgstr ""
+msgstr "Страна, в которой находится пользователь"
 
 #: community_plugins/set_location/config_dialog.ui.h:20
 msgid "alt:"
-msgstr ""
+msgstr "высота:"
 
 #: community_plugins/set_location/config_dialog.ui.h:21
 msgid "area:"
-msgstr ""
+msgstr "район:"
 
 #: community_plugins/set_location/config_dialog.ui.h:22
 msgid "building:"
-msgstr ""
+msgstr "строение:"
 
 #: community_plugins/set_location/config_dialog.ui.h:23
 msgid "country:"
-msgstr ""
+msgstr "страна:"
 
 #: community_plugins/set_location/config_dialog.ui.h:24
 msgid "countrycode:"
-msgstr ""
+msgstr "код страны:"
 
 #: community_plugins/set_location/config_dialog.ui.h:25
 msgid "description:"
-msgstr ""
+msgstr "описание:"
 
 #: community_plugins/set_location/config_dialog.ui.h:26
 msgid "floor:"
-msgstr ""
+msgstr "этаж:"
 
 #: community_plugins/set_location/config_dialog.ui.h:27
 msgid "lat:"
-msgstr ""
+msgstr "широта:"
 
 #: community_plugins/set_location/config_dialog.ui.h:28
 msgid "locality:"
-msgstr ""
+msgstr "населенный пункт:"
 
 #: community_plugins/set_location/config_dialog.ui.h:29
 msgid "lon:"
-msgstr ""
+msgstr "долгота:"
 
 #: community_plugins/set_location/config_dialog.ui.h:30
 msgid "postalcode:"
-msgstr ""
+msgstr "индекс:"
 
 #: community_plugins/set_location/config_dialog.ui.h:31
 msgid "region:"
-msgstr ""
+msgstr "область:"
 
 #: community_plugins/set_location/config_dialog.ui.h:32
 msgid "room:"
-msgstr ""
+msgstr "комната(номер квартиры):"
 
 #: community_plugins/set_location/config_dialog.ui.h:33
 msgid "street:"
-msgstr ""
+msgstr "улица:"
 
 #: community_plugins/set_location/config_dialog.ui.h:34
 msgid "text:"
-msgstr ""
+msgstr "текст:"
 
 #: community_plugins/set_location/config_dialog.ui.h:35
 msgid "uri:"
-msgstr ""
+msgstr "uri:"
 
 #: community_plugins/roster_tweaks/config_dialog.ui.h:1
 msgid "Hide status combobox"
@@ -533,39 +545,39 @@ msgstr ""
 
 #: community_plugins/juick/config_dialog.ui.h:1
 msgid "Avatar size"
-msgstr ""
+msgstr "Размер аватара"
 
 #: community_plugins/juick/config_dialog.ui.h:3
 msgid "Juick tag button menu options:"
-msgstr ""
+msgstr "Опции кнопки для ввода тегов:"
 
 #: community_plugins/juick/config_dialog.ui.h:4
 msgid "Preview size"
-msgstr ""
+msgstr "Размер картинок"
 
 #: community_plugins/juick/config_dialog.ui.h:6
 msgid "Show avatar of post author only"
-msgstr ""
+msgstr "Показывать аватар только автора поста"
 
 #: community_plugins/juick/config_dialog.ui.h:7
 msgid "Show avatars in messages"
-msgstr ""
+msgstr "Показывать аватары в сообщениях"
 
 #: community_plugins/juick/config_dialog.ui.h:8
 msgid "Show juick picture preview"
-msgstr ""
+msgstr "Показывать картики в сообщениях"
 
 #: community_plugins/juick/config_dialog.ui.h:9
 msgid "Show juick tag button"
-msgstr ""
+msgstr "Отображать кнопку для ввода тегов"
 
 #: community_plugins/juick/config_dialog.ui.h:10
 msgid "menuitem name:"
-msgstr ""
+msgstr "название пункта меню:"
 
 #: community_plugins/juick/config_dialog.ui.h:11
 msgid "text will be inserted:"
-msgstr ""
+msgstr "текст для вставки:"
 
 #: community_plugins/flashing_keyboard/config_dialog.ui.h:1
 msgid "command 1:"
@@ -656,8 +668,9 @@ msgid "Play a sound"
 msgstr ""
 
 #: triggers/config_dialog.ui.h:21
+#, fuzzy
 msgid "Receive a Message"
-msgstr ""
+msgstr "Удалить вашу последнюю запись"
 
 #: triggers/config_dialog.ui.h:22
 msgid "When "
@@ -705,8 +718,9 @@ msgid "_Show event in notification area"
 msgstr ""
 
 #: triggers/config_dialog.ui.h:33
+#, fuzzy
 msgid "_Show event in roster"
-msgstr ""
+msgstr "Открыть в браузере"
 
 #: triggers/config_dialog.ui.h:34
 msgid "and I "
@@ -745,8 +759,9 @@ msgid "Authors:"
 msgstr ""
 
 #: plugin_installer/config_dialog.ui.h:3 ftp_manager/config_dialog.ui.h:2
+#, fuzzy
 msgid "Description:"
-msgstr ""
+msgstr "описание:"
 
 #: plugin_installer/config_dialog.ui.h:4 ftp_manager/config_dialog.ui.h:3
 msgid "Ftp server:"
@@ -879,3 +894,9 @@ msgstr ""
 
 #~ msgid "Clickable juick links , juick nics, preview juick picturs"
 #~ msgstr "Кликабельные Juick ссылки, ники, аватары и картинки"
+
+#~ msgid "Set information about the current geographical or physical location."
+#~ msgstr "Позволяет установить текущее местоположение."
+
+#~ msgid "Apply"
+#~ msgstr "Применить"
