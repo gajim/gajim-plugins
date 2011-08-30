@@ -329,7 +329,7 @@ class ClientsIconsPlugin(GajimPlugin):
         if tag:
             caps = tag[0].getAttr('node')
         iter_ = iq_obj.gc_control.get_contact_iter(iq_obj.nick.decode('utf-8'))
-        model = iq_obj.gc_control.list_treeview.get_model()
+        model = iq_obj.gc_control.model
         if model[iter_][self.muc_renderer_num] is not None:
             return
         self.set_icon(model, iter_, self.muc_renderer_num, caps)
@@ -375,6 +375,7 @@ class ClientsIconsPluginConfigDialog(GajimPluginConfigDialog):
         self.GTK_BUILDER_FILE_PATH = self.plugin.local_file_path(
                 'config_dialog.ui')
         self.xml = gtk.Builder()
+        self.xml.set_translation_domain('gajim_plugins')
         self.xml.add_objects_from_file(self.GTK_BUILDER_FILE_PATH,
                 ['vbox1'])
         vbox = self.xml.get_object('vbox1')

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-08-30 18:24+0400\n"
+"POT-Creation-Date: 2011-08-30 20:22+0400\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -468,26 +468,6 @@ msgstr ""
 msgid "Show icons in roster"
 msgstr ""
 
-#: community_plugins/chatstate/config_dialog.ui.h:1
-#: community_plugins/plagins_translations/config_dialog.ui.h:1
-msgid "is composing a message..."
-msgstr ""
-
-#: community_plugins/chatstate/config_dialog.ui.h:2
-#: community_plugins/plagins_translations/config_dialog.ui.h:2
-msgid "is doing something else"
-msgstr ""
-
-#: community_plugins/chatstate/config_dialog.ui.h:3
-#: community_plugins/plagins_translations/config_dialog.ui.h:3
-msgid "is paying attention to the conversation"
-msgstr ""
-
-#: community_plugins/chatstate/config_dialog.ui.h:4
-#: community_plugins/plagins_translations/config_dialog.ui.h:4
-msgid "paused composing a message"
-msgstr ""
-
 #: community_plugins/set_location/config_dialog.ui.h:1
 msgid "A URI or URL pointing to information about the location"
 msgstr ""
@@ -634,22 +614,10 @@ msgid "Hide status combobox"
 msgstr ""
 
 #: community_plugins/roster_tweaks/config_dialog.ui.h:2
-#: banner_tweaks/config_dialog.ui.h:6
-msgid "If checked, status icon will be displayed in chat window banner."
-msgstr ""
-
-#: community_plugins/roster_tweaks/config_dialog.ui.h:3
-#: banner_tweaks/config_dialog.ui.h:7
-msgid ""
-"If checked, status message of contact will be displayed in chat window "
-"banner."
-msgstr ""
-
-#: community_plugins/roster_tweaks/config_dialog.ui.h:4
 msgid "Show quick-change status field"
 msgstr ""
 
-#: community_plugins/roster_tweaks/config_dialog.ui.h:5
+#: community_plugins/roster_tweaks/config_dialog.ui.h:3
 msgid "Use Ctrl +M to hide/show menu"
 msgstr ""
 
@@ -1032,6 +1000,16 @@ msgstr ""
 msgid ""
 "If checked, smaller font will be used to display resource name and contact "
 "name in chat window banner."
+msgstr ""
+
+#: banner_tweaks/config_dialog.ui.h:6
+msgid "If checked, status icon will be displayed in chat window banner."
+msgstr ""
+
+#: banner_tweaks/config_dialog.ui.h:7
+msgid ""
+"If checked, status message of contact will be displayed in chat window "
+"banner."
 msgstr ""
 
 #: banner_tweaks/config_dialog.ui.h:8
