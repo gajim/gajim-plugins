@@ -1,0 +1,881 @@
+# Russian translations for PACKAGE package.
+# Copyright (C) 2011 THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# test <fominde@gmail.com>, 2011.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2011-08-30 15:59+0400\n"
+"PO-Revision-Date: 2011-08-30 14:31+0400\n"
+"Last-Translator: test <fominde@gmail.com>\n"
+"Language-Team: Russian\n"
+"Language: ru\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
+"%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+
+#: community_plugins/image/image.py:45
+msgid "This contact does not support XHTML_IM"
+msgstr ""
+
+#: community_plugins/image/image.py:47
+msgid "Send image"
+msgstr ""
+
+#: community_plugins/image/image.py:81
+msgid "File is empty"
+msgstr ""
+
+#: community_plugins/image/image.py:84
+msgid "File does not exist"
+msgstr ""
+
+#: community_plugins/image/image.py:90 community_plugins/image/image.py:93
+msgid "File too big"
+msgstr ""
+
+#: community_plugins/image/image.py:95
+msgid "Could not load image"
+msgstr ""
+
+#: community_plugins/set_location/set_location.py:137
+msgid ""
+"Click the right mouse button to specify the location, \n"
+"middle mouse button to show / hide the contacts on the map"
+msgstr ""
+
+#: community_plugins/set_location/set_location.py:222
+msgid "Save as Preset"
+msgstr ""
+
+#: community_plugins/set_location/set_location.py:222
+msgid "Please type a name for this preset"
+msgstr ""
+
+#: community_plugins/wrong_layout/plugin.py:22
+msgid "Press alt+r to convert chars typed in wrong layout Rus<>Eng"
+msgstr ""
+
+#: community_plugins/juick/plugin.py:42
+msgid "Avatar size(10-32)"
+msgstr ""
+
+#: community_plugins/juick/plugin.py:44
+#: community_plugins/juick/config_dialog.ui.h:5
+msgid "Preview size(10-512)"
+msgstr ""
+
+#: community_plugins/juick/plugin.py:45
+#: community_plugins/juick/config_dialog.ui.h:2
+msgid "Juick link color"
+msgstr ""
+
+#: community_plugins/juick/plugin.py:202
+msgid "Reply to message"
+msgstr ""
+
+#: community_plugins/juick/plugin.py:206
+msgid "Unsubscribe from comments"
+msgstr ""
+
+#: community_plugins/juick/plugin.py:207
+msgid "Subscribe to message replies"
+msgstr ""
+
+#: community_plugins/juick/plugin.py:208
+msgid "Recommend post"
+msgstr ""
+
+#: community_plugins/juick/plugin.py:209
+msgid "Show message with replies"
+msgstr ""
+
+#: community_plugins/juick/plugin.py:210
+msgid "Delete post"
+msgstr ""
+
+#: community_plugins/juick/plugin.py:216
+msgid "Open in browser"
+msgstr ""
+
+#: community_plugins/juick/plugin.py:220
+msgid "Show user's info"
+msgstr ""
+
+#: community_plugins/juick/plugin.py:221
+msgid "Show user's info and last 10 messages"
+msgstr ""
+
+#: community_plugins/juick/plugin.py:222
+msgid "Subscribe to user's blog"
+msgstr ""
+
+#: community_plugins/juick/plugin.py:223
+msgid "Unsubscribe from user's blog"
+msgstr ""
+
+#: community_plugins/juick/plugin.py:224
+msgid "Add/delete user to/from your blacklist"
+msgstr ""
+
+#: community_plugins/juick/plugin.py:230
+msgid "Send personal message"
+msgstr ""
+
+#: community_plugins/juick/plugin.py:476
+msgid "Show last messages from public timeline"
+msgstr ""
+
+#: community_plugins/juick/plugin.py:477
+msgid "Show last messages from your feed"
+msgstr ""
+
+#: community_plugins/juick/plugin.py:478
+msgid "Show popular personal blogs"
+msgstr ""
+
+#: community_plugins/juick/plugin.py:479
+msgid "Show your tags"
+msgstr ""
+
+#: community_plugins/juick/plugin.py:480
+msgid "Show your subscriptions"
+msgstr ""
+
+#: community_plugins/juick/plugin.py:481
+msgid "Delete last message"
+msgstr ""
+
+#: community_plugins/juick/plugin.py:482
+msgid "Enable subscriptions delivery"
+msgstr ""
+
+#: community_plugins/juick/plugin.py:483
+msgid "Disable subscriptions delivery"
+msgstr ""
+
+#: community_plugins/juick/plugin.py:484
+msgid "Show your blacklist"
+msgstr ""
+
+#: community_plugins/juick/plugin.py:485
+msgid "Update \"About\" info from Jabber vCard"
+msgstr ""
+
+#: community_plugins/juick/plugin.py:486
+msgid "Ping"
+msgstr ""
+
+#: community_plugins/juick/plugin.py:487
+msgid "Login"
+msgstr ""
+
+#: community_plugins/juick/plugin.py:488
+msgid "HELP"
+msgstr ""
+
+#: triggers/triggers.py:268
+msgid "#"
+msgstr ""
+
+#: triggers/triggers.py:274
+msgid "Condition"
+msgstr ""
+
+#: triggers/triggers.py:387
+msgid "when I am "
+msgstr ""
+
+#: plugin_installer/plugin_installer.py:102
+#: ftp_manager/plugin_installer.py:103
+msgid "Plugin"
+msgstr ""
+
+#: plugin_installer/plugin_installer.py:107
+#: ftp_manager/plugin_installer.py:108
+msgid ""
+"Installed\n"
+"version"
+msgstr ""
+
+#: plugin_installer/plugin_installer.py:109
+#: ftp_manager/plugin_installer.py:110
+msgid ""
+"Available\n"
+"version"
+msgstr ""
+
+#: plugin_installer/plugin_installer.py:116
+#: ftp_manager/plugin_installer.py:117
+msgid ""
+"Install /\n"
+"Upgrade"
+msgstr ""
+
+#: banner_tweaks/plugin.py:57
+msgid ""
+"If True, Gajim will display a status icon in the banner of chat windows."
+msgstr ""
+
+#: banner_tweaks/plugin.py:58
+msgid ""
+"If True, Gajim will display the status message of the contact in the banner "
+"of chat windows."
+msgstr ""
+
+#: banner_tweaks/plugin.py:59
+msgid ""
+"If True, Gajim will display the resource name of the contact in the banner "
+"of chat windows."
+msgstr ""
+
+#: banner_tweaks/plugin.py:60
+msgid ""
+"If True, Gajim will use small fonts for contact name and resource name in "
+"the banner of chat windows."
+msgstr ""
+
+#: banner_tweaks/plugin.py:61
+msgid "chat_avatar_height value before plugin was activated"
+msgstr ""
+
+#: banner_tweaks/plugin.py:108
+#, python-format
+msgid "%(nickname)s from group chat %(room_name)s"
+msgstr ""
+
+#: google_translation/plugin.py:51
+msgid "Language of text to be translated"
+msgstr ""
+
+#: google_translation/plugin.py:53
+msgid "Language to which translation will be made"
+msgstr ""
+
+#: google_translation/plugin.py:57
+msgid ""
+"User Agent data to be used with urllib2 when connecting to Google Translate "
+"service"
+msgstr ""
+
+#: length_notifier/length_notifier.py:47 length_notifier/config_dialog.ui.h:4
+msgid "Message length at which notification is invoked."
+msgstr ""
+
+#: length_notifier/length_notifier.py:48 length_notifier/config_dialog.ui.h:1
+msgid ""
+"Background color of text entry field in chat window when notification is "
+"invoked."
+msgstr ""
+
+#: length_notifier/length_notifier.py:49
+msgid ""
+"JabberIDs that plugin should be used with (eg. restrict only to one "
+"microblogging bot). If empty plugin is used with every JID. [not implemented]"
+msgstr ""
+
+#: whiteboard/plugin.py:153
+msgid "Incoming Whiteboard"
+msgstr ""
+
+#: whiteboard/plugin.py:154
+#, python-format
+msgid ""
+"%(name)s (%(jid)s) wants to start a whiteboard with you. Do you want to "
+"accept?"
+msgstr ""
+
+#: whiteboard/plugin.py:204
+msgid "Invalid Jabber ID"
+msgstr ""
+
+#: whiteboard/plugin.py:205
+msgid "A message from a non-valid JID arrived, it has been ignored."
+msgstr ""
+
+#: whiteboard/plugin.py:344
+#, python-format
+msgid "Whiteboard stopped: %(reason)s"
+msgstr ""
+
+#: whiteboard/whiteboard_widget.py:264
+msgid "Save Image as..."
+msgstr ""
+
+#: whiteboard/whiteboard_widget.py:274
+msgid "All files"
+msgstr ""
+
+#: whiteboard/whiteboard_widget.py:279
+msgid "SVG Files"
+msgstr ""
+
+#: community_plugins/now_listen/config_dialog.ui.h:2
+#, no-c-format
+msgid ""
+"%title - song name\n"
+"%artist - artist\n"
+"%album - album"
+msgstr ""
+
+#: community_plugins/now_listen/config_dialog.ui.h:5
+msgid "<b>Legend:</b>"
+msgstr ""
+
+#: community_plugins/now_listen/config_dialog.ui.h:6
+msgid "Format string:"
+msgstr ""
+
+#: community_plugins/clients_icons/config_dialog.ui.h:1
+msgid "Show icon for an unknown client"
+msgstr ""
+
+#: community_plugins/clients_icons/config_dialog.ui.h:2
+msgid "Show icon:"
+msgstr ""
+
+#: community_plugins/clients_icons/config_dialog.ui.h:3
+msgid "Show icons in groupchats"
+msgstr ""
+
+#: community_plugins/clients_icons/config_dialog.ui.h:4
+msgid "Show icons in roster"
+msgstr ""
+
+#: community_plugins/chatstate/config_dialog.ui.h:1
+#: community_plugins/plagins_translations/config_dialog.ui.h:1
+msgid "is composing a message..."
+msgstr ""
+
+#: community_plugins/chatstate/config_dialog.ui.h:2
+#: community_plugins/plagins_translations/config_dialog.ui.h:2
+msgid "is doing something else"
+msgstr ""
+
+#: community_plugins/chatstate/config_dialog.ui.h:3
+#: community_plugins/plagins_translations/config_dialog.ui.h:3
+msgid "is paying attention to the conversation"
+msgstr ""
+
+#: community_plugins/chatstate/config_dialog.ui.h:4
+#: community_plugins/plagins_translations/config_dialog.ui.h:4
+msgid "paused composing a message"
+msgstr ""
+
+#: community_plugins/set_location/config_dialog.ui.h:1
+msgid "A URI or URL pointing to information about the location"
+msgstr ""
+
+#: community_plugins/set_location/config_dialog.ui.h:2
+msgid ""
+"A catch-all element that captures any other information about the location"
+msgstr ""
+
+#: community_plugins/set_location/config_dialog.ui.h:3
+msgid "A code used for postal delivery"
+msgstr ""
+
+#: community_plugins/set_location/config_dialog.ui.h:4
+msgid "A locality within the administrative region, such as a town or city"
+msgstr ""
+
+#: community_plugins/set_location/config_dialog.ui.h:5
+msgid "A named area such as a campus or neighborhood"
+msgstr ""
+
+#: community_plugins/set_location/config_dialog.ui.h:6
+msgid "A natural-language name for or description of the location"
+msgstr ""
+
+#: community_plugins/set_location/config_dialog.ui.h:7
+msgid "A particular floor in a building"
+msgstr ""
+
+#: community_plugins/set_location/config_dialog.ui.h:8
+msgid "A particular room in a building"
+msgstr ""
+
+#: community_plugins/set_location/config_dialog.ui.h:9
+msgid "A specific building on a street or in an area"
+msgstr ""
+
+#: community_plugins/set_location/config_dialog.ui.h:10
+msgid "A thoroughfare within the locality, or a crossing of two thoroughfares"
+msgstr ""
+
+#: community_plugins/set_location/config_dialog.ui.h:11
+msgid "Altitude in meters above or below sea level"
+msgstr ""
+
+#: community_plugins/set_location/config_dialog.ui.h:12
+msgid "An administrative region of the nation, such as a state or province"
+msgstr ""
+
+#: community_plugins/set_location/config_dialog.ui.h:13
+msgid "Delete preset"
+msgstr ""
+
+#: community_plugins/set_location/config_dialog.ui.h:14
+msgid "Latitude in decimal degrees North"
+msgstr ""
+
+#: community_plugins/set_location/config_dialog.ui.h:15
+msgid "Longitude in decimal degrees East"
+msgstr ""
+
+#: community_plugins/set_location/config_dialog.ui.h:16
+msgid "Preset:"
+msgstr ""
+
+#: community_plugins/set_location/config_dialog.ui.h:17
+msgid "Save preset"
+msgstr ""
+
+#: community_plugins/set_location/config_dialog.ui.h:18
+msgid "The ISO 3166 two-letter country code"
+msgstr ""
+
+#: community_plugins/set_location/config_dialog.ui.h:19
+msgid "The nation where the user is located"
+msgstr ""
+
+#: community_plugins/set_location/config_dialog.ui.h:20
+msgid "alt:"
+msgstr ""
+
+#: community_plugins/set_location/config_dialog.ui.h:21
+msgid "area:"
+msgstr ""
+
+#: community_plugins/set_location/config_dialog.ui.h:22
+msgid "building:"
+msgstr ""
+
+#: community_plugins/set_location/config_dialog.ui.h:23
+msgid "country:"
+msgstr ""
+
+#: community_plugins/set_location/config_dialog.ui.h:24
+msgid "countrycode:"
+msgstr ""
+
+#: community_plugins/set_location/config_dialog.ui.h:25
+msgid "description:"
+msgstr ""
+
+#: community_plugins/set_location/config_dialog.ui.h:26
+msgid "floor:"
+msgstr ""
+
+#: community_plugins/set_location/config_dialog.ui.h:27
+msgid "lat:"
+msgstr ""
+
+#: community_plugins/set_location/config_dialog.ui.h:28
+msgid "locality:"
+msgstr ""
+
+#: community_plugins/set_location/config_dialog.ui.h:29
+msgid "lon:"
+msgstr ""
+
+#: community_plugins/set_location/config_dialog.ui.h:30
+msgid "postalcode:"
+msgstr ""
+
+#: community_plugins/set_location/config_dialog.ui.h:31
+msgid "region:"
+msgstr ""
+
+#: community_plugins/set_location/config_dialog.ui.h:32
+msgid "room:"
+msgstr ""
+
+#: community_plugins/set_location/config_dialog.ui.h:33
+msgid "street:"
+msgstr ""
+
+#: community_plugins/set_location/config_dialog.ui.h:34
+msgid "text:"
+msgstr ""
+
+#: community_plugins/set_location/config_dialog.ui.h:35
+msgid "uri:"
+msgstr ""
+
+#: community_plugins/roster_tweaks/config_dialog.ui.h:1
+msgid "Hide status combobox"
+msgstr ""
+
+#: community_plugins/roster_tweaks/config_dialog.ui.h:2
+#: banner_tweaks/config_dialog.ui.h:6
+msgid "If checked, status icon will be displayed in chat window banner."
+msgstr ""
+
+#: community_plugins/roster_tweaks/config_dialog.ui.h:3
+#: banner_tweaks/config_dialog.ui.h:7
+msgid ""
+"If checked, status message of contact will be displayed in chat window "
+"banner."
+msgstr ""
+
+#: community_plugins/roster_tweaks/config_dialog.ui.h:4
+msgid "Show quick-change status field"
+msgstr ""
+
+#: community_plugins/roster_tweaks/config_dialog.ui.h:5
+msgid "Use Ctrl +M to hide/show menu"
+msgstr ""
+
+#: community_plugins/juick/config_dialog.ui.h:1
+msgid "Avatar size"
+msgstr ""
+
+#: community_plugins/juick/config_dialog.ui.h:3
+msgid "Juick tag button menu options:"
+msgstr ""
+
+#: community_plugins/juick/config_dialog.ui.h:4
+msgid "Preview size"
+msgstr ""
+
+#: community_plugins/juick/config_dialog.ui.h:6
+msgid "Show avatar of post author only"
+msgstr ""
+
+#: community_plugins/juick/config_dialog.ui.h:7
+msgid "Show avatars in messages"
+msgstr ""
+
+#: community_plugins/juick/config_dialog.ui.h:8
+msgid "Show juick picture preview"
+msgstr ""
+
+#: community_plugins/juick/config_dialog.ui.h:9
+msgid "Show juick tag button"
+msgstr ""
+
+#: community_plugins/juick/config_dialog.ui.h:10
+msgid "menuitem name:"
+msgstr ""
+
+#: community_plugins/juick/config_dialog.ui.h:11
+msgid "text will be inserted:"
+msgstr ""
+
+#: community_plugins/flashing_keyboard/config_dialog.ui.h:1
+msgid "command 1:"
+msgstr ""
+
+#: community_plugins/flashing_keyboard/config_dialog.ui.h:2
+msgid "command 2:"
+msgstr ""
+
+#: triggers/config_dialog.ui.h:1
+msgid " a window/tab opened with that contact "
+msgstr ""
+
+#: triggers/config_dialog.ui.h:2
+msgid "<b>Actions</b>"
+msgstr ""
+
+#: triggers/config_dialog.ui.h:3
+msgid "<b>Conditions</b>"
+msgstr ""
+
+#: triggers/config_dialog.ui.h:4
+msgid "<b>Sounds</b>"
+msgstr ""
+
+#: triggers/config_dialog.ui.h:5
+msgid "Advanced Actions"
+msgstr ""
+
+#: triggers/config_dialog.ui.h:6
+msgid "Advanced Notifications Control"
+msgstr ""
+
+#: triggers/config_dialog.ui.h:7
+msgid "All statuses"
+msgstr ""
+
+#: triggers/config_dialog.ui.h:8
+msgid "Away"
+msgstr ""
+
+#: triggers/config_dialog.ui.h:9
+msgid "Busy "
+msgstr ""
+
+#: triggers/config_dialog.ui.h:10
+msgid "Contact Changes Status"
+msgstr ""
+
+#: triggers/config_dialog.ui.h:11
+msgid "Contact Connects"
+msgstr ""
+
+#: triggers/config_dialog.ui.h:12
+msgid "Contact Disconnects"
+msgstr ""
+
+#: triggers/config_dialog.ui.h:13
+msgid "Don't have "
+msgstr ""
+
+#: triggers/config_dialog.ui.h:14
+msgid "Have "
+msgstr ""
+
+#: triggers/config_dialog.ui.h:15
+msgid "Invisible"
+msgstr ""
+
+#: triggers/config_dialog.ui.h:16
+msgid "Launch a command"
+msgstr ""
+
+#: triggers/config_dialog.ui.h:17
+msgid "Not Available"
+msgstr ""
+
+#: triggers/config_dialog.ui.h:18
+msgid "One or more special statuses..."
+msgstr ""
+
+#: triggers/config_dialog.ui.h:19
+msgid "Online / Free For Chat"
+msgstr ""
+
+#: triggers/config_dialog.ui.h:20
+msgid "Play a sound"
+msgstr ""
+
+#: triggers/config_dialog.ui.h:21
+msgid "Receive a Message"
+msgstr ""
+
+#: triggers/config_dialog.ui.h:22
+msgid "When "
+msgstr ""
+
+#: triggers/config_dialog.ui.h:23
+msgid ""
+"_Activate window manager's UrgencyHint to make chat window in taskbar flash"
+msgstr ""
+
+#: triggers/config_dialog.ui.h:24
+msgid "_Deactivate window manager's UrgencyHint"
+msgstr ""
+
+#: triggers/config_dialog.ui.h:25
+msgid "_Disable auto opening chat window"
+msgstr ""
+
+#: triggers/config_dialog.ui.h:26
+msgid "_Disable existing popup window"
+msgstr ""
+
+#: triggers/config_dialog.ui.h:27
+msgid "_Disable existing sound for this event"
+msgstr ""
+
+#: triggers/config_dialog.ui.h:28
+msgid "_Disable showing event in notification area"
+msgstr ""
+
+#: triggers/config_dialog.ui.h:29
+msgid "_Disable showing event in roster"
+msgstr ""
+
+#: triggers/config_dialog.ui.h:30
+msgid "_Inform me with a popup window"
+msgstr ""
+
+#: triggers/config_dialog.ui.h:31
+msgid "_Open chat window with user"
+msgstr ""
+
+#: triggers/config_dialog.ui.h:32
+msgid "_Show event in notification area"
+msgstr ""
+
+#: triggers/config_dialog.ui.h:33
+msgid "_Show event in roster"
+msgstr ""
+
+#: triggers/config_dialog.ui.h:34
+msgid "and I "
+msgstr ""
+
+#: triggers/config_dialog.ui.h:35
+msgid "comma separated list"
+msgstr ""
+
+#: triggers/config_dialog.ui.h:36
+msgid "contact(s)"
+msgstr ""
+
+#: triggers/config_dialog.ui.h:37
+msgid "everybody"
+msgstr ""
+
+#: triggers/config_dialog.ui.h:38
+msgid "for "
+msgstr ""
+
+#: triggers/config_dialog.ui.h:39
+msgid "group(s)"
+msgstr ""
+
+#: triggers/config_dialog.ui.h:40
+msgid "when I'm in"
+msgstr ""
+
+#: plugin_installer/config_dialog.ui.h:1
+msgid "<empty>"
+msgstr ""
+
+#: plugin_installer/config_dialog.ui.h:2 ftp_manager/config_dialog.ui.h:1
+msgid "Authors:"
+msgstr ""
+
+#: plugin_installer/config_dialog.ui.h:3 ftp_manager/config_dialog.ui.h:2
+msgid "Description:"
+msgstr ""
+
+#: plugin_installer/config_dialog.ui.h:4 ftp_manager/config_dialog.ui.h:3
+msgid "Ftp server:"
+msgstr ""
+
+#: plugin_installer/config_dialog.ui.h:5 ftp_manager/config_dialog.ui.h:4
+msgid "Homepage:"
+msgstr ""
+
+#: plugin_installer/config_dialog.ui.h:6 ftp_manager/config_dialog.ui.h:5
+msgid "Install/Upgrade"
+msgstr ""
+
+#: plugin_installer/config_dialog.ui.h:7
+msgid ""
+"Plug-in decription should be displayed here. This text will be erased during "
+"PluginsWindow initialization."
+msgstr ""
+
+#: plugin_installer/config_dialog.ui.h:8
+msgid "button"
+msgstr ""
+
+#: banner_tweaks/config_dialog.ui.h:1
+msgid "Display resource name of contact"
+msgstr ""
+
+#: banner_tweaks/config_dialog.ui.h:2
+msgid "Display status icon"
+msgstr ""
+
+#: banner_tweaks/config_dialog.ui.h:3
+msgid "Display status message of contact"
+msgstr ""
+
+#: banner_tweaks/config_dialog.ui.h:4
+msgid ""
+"If checked, resource name of contact will be displayed in chat window banner."
+msgstr ""
+
+#: banner_tweaks/config_dialog.ui.h:5
+msgid ""
+"If checked, smaller font will be used to display resource name and contact "
+"name in chat window banner."
+msgstr ""
+
+#: banner_tweaks/config_dialog.ui.h:8
+msgid "Use small fonts for contact name and resource name"
+msgstr ""
+
+#: length_notifier/config_dialog.ui.h:2
+msgid ""
+"JabberIDs that plugin should be used with (eg. restrict only to one "
+"microblogging bot). Use comma (without space) as separator. If empty plugin "
+"is used with every JID. "
+msgstr ""
+
+#: length_notifier/config_dialog.ui.h:3
+msgid "JabberIDs to include:"
+msgstr ""
+
+#: length_notifier/config_dialog.ui.h:5
+msgid "Message length:"
+msgstr ""
+
+#: length_notifier/config_dialog.ui.h:6
+msgid "Notification color:"
+msgstr ""
+
+#: length_notifier/config_dialog.ui.h:7
+msgid "Pick a color for notification"
+msgstr ""
+
+#: roster_buttons/roster_buttons.ui.h:1
+msgid "1"
+msgstr ""
+
+#: roster_buttons/roster_buttons.ui.h:2
+msgid "2"
+msgstr ""
+
+#: roster_buttons/roster_buttons.ui.h:3
+msgid "3"
+msgstr ""
+
+#: roster_buttons/roster_buttons.ui.h:4
+msgid "4"
+msgstr ""
+
+#: whiteboard/whiteboard_widget.ui.h:1
+msgid "Brush Tool: Draw freehand lines"
+msgstr ""
+
+#: whiteboard/whiteboard_widget.ui.h:2
+msgid "Clear Canvas: Cleanup canvas"
+msgstr ""
+
+#: whiteboard/whiteboard_widget.ui.h:3
+msgid "Delete Tool: Remove individual figures"
+msgstr ""
+
+#: whiteboard/whiteboard_widget.ui.h:4
+msgid "Export Image: Save image to svg file"
+msgstr ""
+
+#: whiteboard/whiteboard_widget.ui.h:5
+msgid "Foreground color"
+msgstr ""
+
+#: whiteboard/whiteboard_widget.ui.h:6
+msgid "Line Tool: Draw straight lines"
+msgstr ""
+
+#: whiteboard/whiteboard_widget.ui.h:7
+msgid "Line width"
+msgstr ""
+
+#: whiteboard/whiteboard_widget.ui.h:8
+msgid "Oval Tool: Draw circles and ellipses"
+msgstr ""
+
+#~ msgid ""
+#~ "Clickable juick links , juick nics, preview juick picturs.\n"
+#~ "The key combination alt + up in the textbox allow insert the number of "
+#~ "last message (comment or topic)."
+#~ msgstr ""
+#~ "Кликабельные Juick ссылки, ники, аватары и картинки.\n"
+#~ "Комбинация клавиш alt+up позволяет в поле ввода вставить номер последнего "
+#~ "сообщения(комментария или топика)."
+
+#~ msgid "Clickable juick links , juick nics, preview juick picturs"
+#~ msgstr "Кликабельные Juick ссылки, ники, аватары и картинки"
