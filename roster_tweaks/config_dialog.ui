@@ -15,7 +15,6 @@
             <property name="visible">True</property>
             <property name="can_focus">False</property>
             <property name="receives_default">False</property>
-            <property name="tooltip_text" translatable="yes">If checked, status icon will be displayed in chat window banner.</property>
             <property name="draw_indicator">True</property>
             <signal name="toggled" handler="on_hide_combo_toggled"/>
           </object>
@@ -30,7 +29,6 @@
             <property name="visible">True</property>
             <property name="can_focus">False</property>
             <property name="receives_default">False</property>
-            <property name="tooltip_text" translatable="yes">If checked, status message of contact will be displayed in chat window banner.</property>
             <property name="draw_indicator">True</property>
             <signal name="toggled" handler="on_use_ctr_m_toggled"/>
           </object>
