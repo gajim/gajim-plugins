@@ -85,8 +85,8 @@ clients = {
     'http://www.adiumx.com': 'adium.png',
     'http://juick.com/caps': 'juick.png',
     'vk.com': 'vkontakte.png',
-    'facebook.com':'facebook.png',
-    'http://mail.google.com/xmpp/client/caps':'google.com.png',
+    'facebook.com': 'facebook.png',
+    'http://mail.google.com/xmpp/client/caps': 'google.com.png',
     'http://snapi-bot.googlecode.com/caps': 'bot.png',
     'http://www.barobin.com/caps': 'bayanicq.png',
     'http://chat.ovi.com/caps': 'ovi-chat.png',
@@ -109,7 +109,8 @@ clients = {
     'http://witcher-team.ucoz.ru/': 'bot.png',
     'http://home.gna.org/': 'omnipresence.png',
     'http://ayttm.souceforge.net/caps': 'ayttm.png',
-    'http://www.process-one.net/en/solutions/oneteam_iphone/': 'oneteamiphone.png',
+    'http://www.process-one.net/en/solutions/oneteam_iphone/': \
+        'oneteamiphone.png',
     'http://qq-im.com/caps': 'qq.png',
     'http://qq.com/caps': 'qq.png',
     'http://www.lonelycatgames.com/slick/caps': 'slick.png',
@@ -129,6 +130,7 @@ clients = {
 
 
 class ClientsIconsPlugin(GajimPlugin):
+    description = _('Shows the client icons in the roster')
 
     @log_calls('ClientsIconsPlugin')
     def init(self):
@@ -167,7 +169,8 @@ class ClientsIconsPlugin(GajimPlugin):
             caps = contact.client_caps._node
             if not caps and jid == 'juick@juick.com':
                 caps = 'http://juick.com/caps'
-            self.set_icon(roster.model, child_iters[0], self.renderer_num, caps)
+            self.set_icon(roster.model, child_iters[0], self.renderer_num,
+                caps)
 
     @log_calls('ClientsIconsPlugin')
     def connect_with_groupchat_control(self, chat_control):
@@ -210,7 +213,8 @@ class ClientsIconsPlugin(GajimPlugin):
             if not self.config['show_in_groupchats']:
                 continue
             caps = gc_contact.client_caps._node
-            self.set_icon(chat_control.model, iter_, self.muc_renderer_num, caps)
+            self.set_icon(chat_control.model, iter_, self.muc_renderer_num,
+                caps)
         chat_control.draw_all_roles()
         # Recalculate column width for ellipsizin
         chat_control.list_treeview.columns_autosize()
