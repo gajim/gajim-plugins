@@ -19,6 +19,7 @@ except:
 
 
 class WrongLayoutPlugin(GajimPlugin):
+    description = _('Press alt+r to convert chars typed in wrong layout Rus<>Eng')
     @log_calls('WrongLayoutPlugin')
     def init(self):
         self.config_dialog = None

@@ -5,7 +5,6 @@ import pango
 import re
 import os
 import time
-import gettext
 import locale
 import urllib
 from string import upper
@@ -19,16 +18,6 @@ from plugins.gui import GajimPluginConfigDialog
 from conversation_textview import TextViewImage
 import gtkgui_helpers
 import common.xmpp
-
-locale_path = os.path.join(os.path.dirname(__file__), 'locales')
-if os.name != 'nt':
-    locale.bindtextdomain('JuickPlugin', locale_path)
-
-try:
-    gett = gettext.Catalog('JuickPlugin', locale_path)
-    _ = gett.gettext
-except:
-    pass
 
 
 class JuickPlugin(GajimPlugin):
@@ -556,7 +545,7 @@ class JuickPluginConfigDialog(GajimPluginConfigDialog):
         self.GTK_BUILDER_FILE_PATH = self.plugin.local_file_path(
                 'config_dialog.ui')
         self.xml = gtk.Builder()
-        self.xml.set_translation_domain('JuickPlugin')
+        self.xml.set_translation_domain('gajim_plugins')
         self.xml.add_objects_from_file(self.GTK_BUILDER_FILE_PATH,
                 ['vbox1'])
         self.checkbutton = self.xml.get_object('checkbutton')
