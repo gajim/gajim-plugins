@@ -39,6 +39,8 @@ class PlaginsTranslationsPlugin(GajimPlugin):
             os.makedirs(os.path.split(dst)[0])
             shutil.copy2(os.path.join(self.__path__, '%s.mo' % locale), dst)
 
+        self.config['last_version'] = self.version
+
     def remove_translations(self):
         if os.path.isdir(self.locale_dir):
             import shutil
