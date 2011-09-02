@@ -126,6 +126,7 @@ clients = {
     'http://aspro.users.ru/historian-bot/': 'bot.png',
     'http://pigeon.vpro.ru/caps': 'pigeon.png',
     'http://jtalk.ustyugov.net/caps': 'jtalk.png',
+    'psto@psto.net': 'psto.png',
 }
 
 
@@ -319,6 +320,8 @@ class ClientsIconsPlugin(GajimPlugin):
                 caps = 'http://juick.com/caps'
             elif '@vk.com' in iq_obj.jid:
                 caps = 'vk.com'
+            elif 'psto@psto.net' in iq_obj.jid:
+                caps = 'psto@psto.net'
         self.set_icon(roster.model, iter_, self.renderer_num, caps)
 
     def gc_presence_received(self, iq_obj):
