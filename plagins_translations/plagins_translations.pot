@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-08-30 22:32+0400\n"
+"POT-Creation-Date: 2011-09-02 22:48+0400\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,11 +17,15 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: community_plugins/clients_icons/clients_icons.py:135
+#: community_plugins/clients_icons/clients_icons.py:134
+msgid "Shows the client icons in the roster"
+msgstr ""
+
+#: community_plugins/clients_icons/clients_icons.py:138
 msgid "after statusicon"
 msgstr ""
 
-#: community_plugins/clients_icons/clients_icons.py:135
+#: community_plugins/clients_icons/clients_icons.py:138
 msgid "before avatar"
 msgstr ""
 
@@ -211,104 +215,104 @@ msgstr ""
 msgid "Private conversation with %s lost."
 msgstr ""
 
-#: community_plugins/gotr/otrmodule.py:449
+#: community_plugins/gotr/otrmodule.py:460
 #, python-format
 msgid "The following message received from %s was *not encrypted*: [%s]"
 msgstr ""
 
-#: community_plugins/gotr/otrmodule.py:452
+#: community_plugins/gotr/otrmodule.py:463
 #, python-format
 msgid ""
 "The encrypted message received from %s is unreadable, as you are not "
 "currently communicating privately"
 msgstr ""
 
-#: community_plugins/gotr/otrmodule.py:457
+#: community_plugins/gotr/otrmodule.py:468
 #, python-format
 msgid "We received the following OTR error message from %s: [%s]"
 msgstr ""
 
-#: community_plugins/gotr/otrmodule.py:462
+#: community_plugins/gotr/otrmodule.py:473
 #, python-format
 msgid ""
 "The following error occurred when trying to decrypt a message from %s: [%s]"
 msgstr ""
 
-#: community_plugins/gotr/otrmodule.py:505
+#: community_plugins/gotr/otrmodule.py:516
 msgid ""
 "Your message was not send. Either end your private conversation, or restart "
 "it"
 msgstr ""
 
-#: community_plugins/gotr/ui.py:190
+#: community_plugins/gotr/ui.py:189
 #, python-format
 msgid ""
 "Your fingerprint:\n"
 "<span weight=\"bold\" face=\"monospace\">%s</span>"
 msgstr ""
 
-#: community_plugins/gotr/ui.py:192
+#: community_plugins/gotr/ui.py:191
 #, python-format
 msgid ""
 "Purported fingerprint for %s:\n"
 "<span weight=\"bold\" face=\"monospace\">%s</span>"
 msgstr ""
 
-#: community_plugins/gotr/ui.py:195
+#: community_plugins/gotr/ui.py:194
 msgid ""
 "You may want to authenticate your buddy as well by askingyour own question."
 msgstr ""
 
-#: community_plugins/gotr/ui.py:197
+#: community_plugins/gotr/ui.py:196
 #, python-format
 msgid ""
 "<b>%s is trying to authenticate you using a secret only known to him/her and "
 "you.</b>"
 msgstr ""
 
-#: community_plugins/gotr/ui.py:199
+#: community_plugins/gotr/ui.py:198
 #, python-format
 msgid ""
 "<b>%s has chosen a question for you to answer to authenticate yourself:</b>"
 msgstr ""
 
-#: community_plugins/gotr/ui.py:201
+#: community_plugins/gotr/ui.py:200
 msgid "Please enter your secret below."
 msgstr ""
 
-#: community_plugins/gotr/ui.py:203
+#: community_plugins/gotr/ui.py:202
 #, python-format
 msgid ""
 "<b>You are trying to authenticate %s using a secret only known to him/her "
 "and yourself.</b>"
 msgstr ""
 
-#: community_plugins/gotr/ui.py:205
+#: community_plugins/gotr/ui.py:204
 msgid "You can choose a question as a hint for your buddy below."
 msgstr ""
 
-#: community_plugins/gotr/ui.py:225 community_plugins/gotr/ui.py:399
+#: community_plugins/gotr/ui.py:224 community_plugins/gotr/ui.py:398
 #, python-format
 msgid "OTR settings for %s"
 msgstr ""
 
-#: community_plugins/gotr/ui.py:333
+#: community_plugins/gotr/ui.py:332
 msgid "SMP verifying aborted"
 msgstr ""
 
-#: community_plugins/gotr/ui.py:354 community_plugins/gotr/ui.py:364
+#: community_plugins/gotr/ui.py:353 community_plugins/gotr/ui.py:363
 msgid "SMP verifying succeeded"
 msgstr ""
 
-#: community_plugins/gotr/ui.py:359 community_plugins/gotr/ui.py:369
+#: community_plugins/gotr/ui.py:358 community_plugins/gotr/ui.py:368
 msgid "SMP verifying failed"
 msgstr ""
 
-#: community_plugins/gotr/ui.py:373
+#: community_plugins/gotr/ui.py:372
 msgid "user aborted SMP authentication"
 msgstr ""
 
-#: community_plugins/gotr/ui.py:439
+#: community_plugins/gotr/ui.py:438
 msgid "unknown"
 msgstr ""
 
@@ -346,66 +350,9 @@ msgid ""
 "Upgrade"
 msgstr ""
 
-#: banner_tweaks/plugin.py:57
-msgid ""
-"If True, Gajim will display a status icon in the banner of chat windows."
-msgstr ""
-
-#: banner_tweaks/plugin.py:58
-msgid ""
-"If True, Gajim will display the status message of the contact in the banner "
-"of chat windows."
-msgstr ""
-
-#: banner_tweaks/plugin.py:59
-msgid ""
-"If True, Gajim will display the resource name of the contact in the banner "
-"of chat windows."
-msgstr ""
-
-#: banner_tweaks/plugin.py:60
-msgid ""
-"If True, Gajim will use small fonts for contact name and resource name in "
-"the banner of chat windows."
-msgstr ""
-
-#: banner_tweaks/plugin.py:61
-msgid "chat_avatar_height value before plugin was activated"
-msgstr ""
-
-#: banner_tweaks/plugin.py:108
+#: banner_tweaks/plugin.py:107
 #, python-format
 msgid "%(nickname)s from group chat %(room_name)s"
-msgstr ""
-
-#: google_translation/plugin.py:51
-msgid "Language of text to be translated"
-msgstr ""
-
-#: google_translation/plugin.py:53
-msgid "Language to which translation will be made"
-msgstr ""
-
-#: google_translation/plugin.py:57
-msgid ""
-"User Agent data to be used with urllib2 when connecting to Google Translate "
-"service"
-msgstr ""
-
-#: length_notifier/length_notifier.py:47 length_notifier/config_dialog.ui.h:4
-msgid "Message length at which notification is invoked."
-msgstr ""
-
-#: length_notifier/length_notifier.py:48 length_notifier/config_dialog.ui.h:1
-msgid ""
-"Background color of text entry field in chat window when notification is "
-"invoked."
-msgstr ""
-
-#: length_notifier/length_notifier.py:49
-msgid ""
-"JabberIDs that plugin should be used with (eg. restrict only to one "
-"microblogging bot). If empty plugin is used with every JID. [not implemented]"
 msgstr ""
 
 #: whiteboard/plugin.py:153
@@ -432,15 +379,15 @@ msgstr ""
 msgid "Whiteboard stopped: %(reason)s"
 msgstr ""
 
-#: whiteboard/whiteboard_widget.py:264
+#: whiteboard/whiteboard_widget.py:263
 msgid "Save Image as..."
 msgstr ""
 
-#: whiteboard/whiteboard_widget.py:274
+#: whiteboard/whiteboard_widget.py:273
 msgid "All files"
 msgstr ""
 
-#: whiteboard/whiteboard_widget.py:279
+#: whiteboard/whiteboard_widget.py:278
 msgid "SVG Files"
 msgstr ""
 
@@ -1024,6 +971,12 @@ msgstr ""
 msgid "Use small fonts for contact name and resource name"
 msgstr ""
 
+#: length_notifier/config_dialog.ui.h:1
+msgid ""
+"Background color of text entry field in chat window when notification is "
+"invoked."
+msgstr ""
+
 #: length_notifier/config_dialog.ui.h:2
 msgid ""
 "JabberIDs that plugin should be used with (eg. restrict only to one "
@@ -1033,6 +986,10 @@ msgstr ""
 
 #: length_notifier/config_dialog.ui.h:3
 msgid "JabberIDs to include:"
+msgstr ""
+
+#: length_notifier/config_dialog.ui.h:4
+msgid "Message length at which notification is invoked."
 msgstr ""
 
 #: length_notifier/config_dialog.ui.h:5
