@@ -20,7 +20,6 @@
 ##
 import gobject
 import gtk
-from common import i18n
 from common import gajim
 from plugins.gui import GajimPluginConfigDialog
 
@@ -33,7 +32,7 @@ class OtrPluginConfigDialog(GajimPluginConfigDialog):
         self.GTK_BUILDER_FILE_PATH = \
                 self.plugin.local_file_path('config_dialog.ui')
         self.B = gtk.Builder()
-        self.B.set_translation_domain(i18n.APP)
+        self.B.set_translation_domain('gajim_plugins')
         self.B.add_from_file(self.GTK_BUILDER_FILE_PATH)
 
         self.fpr_model = gtk.ListStore(gobject.TYPE_STRING, gobject.TYPE_STRING,
@@ -218,7 +217,7 @@ class ContactOtrSmpWindow:
         self.GTK_BUILDER_FILE_PATH = \
                 self.plugin.local_file_path('contact_otr_window.ui')
         self.xml = gtk.Builder()
-        self.xml.set_translation_domain(i18n.APP)
+        self.xml.set_translation_domain('gajim_plugins')
         self.xml.add_from_file(self.GTK_BUILDER_FILE_PATH)
 
         self.window = self.gw('otr_smp_window')
@@ -417,7 +416,7 @@ class ContactOtrWindow(gtk.Dialog):
         self.GTK_BUILDER_FILE_PATH = \
                 self.plugin.local_file_path('contact_otr_window.ui')
         self.xml = gtk.Builder()
-        self.xml.set_translation_domain(i18n.APP)
+        self.xml.set_translation_domain('gajim_plugins')
         self.xml.add_from_file(self.GTK_BUILDER_FILE_PATH)
         self.notebook = self.gw('otr_settings_notebook')
         self.child.pack_start(self.notebook)
@@ -523,7 +522,7 @@ def get_otr_submenu(plugin, control):
     GTK_BUILDER_FILE_PATH = \
             plugin.local_file_path('contact_otr_window.ui')
     xml = gtk.Builder()
-    xml.set_translation_domain(i18n.APP)
+    xml.set_translation_domain('gajim_plugins')
     xml.add_from_file(GTK_BUILDER_FILE_PATH)
 
     otr_submenu = xml.get_object('otr_submenu')

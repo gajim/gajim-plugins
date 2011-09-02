@@ -4,7 +4,6 @@ import gtk
 import pango
 import gobject
 
-from common import i18n
 from common import gajim
 
 from plugins import GajimPlugin
