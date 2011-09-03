@@ -471,7 +471,7 @@ class OtrPlugin(GajimPlugin):
         except potr.context.ErrorReceived, e:
             self.gajim_log(_('We received the following OTR error '
                     'message from %(jid)s: [%(error)s]') % {'jid': event.fjid,
-                    'error': e.args[0].error}
+                    'error': e.args[0].error})
             return IGNORE
         except RuntimeError, e:
             self.gajim_log(_('The following error occurred when trying to '
