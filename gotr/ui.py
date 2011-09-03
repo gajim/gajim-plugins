@@ -188,8 +188,8 @@ from common import gajim
 
 our_fp_text = _('Your fingerprint:\n' \
     '<span weight="bold" face="monospace">%s</span>')
-their_fp_text = _('Purported fingerprint for %s:\n' \
-    '<span weight="bold" face="monospace">%s</span>')
+their_fp_text = _('Purported fingerprint for %(jid)s:\n' \
+    '<span weight="bold" face="monospace">%(fp)s</span>')
 
 another_q = _('You may want to authenticate your buddy as well by asking'\
         'your own question.')
@@ -434,8 +434,8 @@ class ContactOtrWindow(gtk.Dialog):
             for widget in self.gw('otr_fp_vbox').get_children():
                 widget.set_sensitive(False)
             # show that the fingerprint is unknown
-            self.gw('their_fp_label').set_markup(their_fp_text % (self.fjid,
-                    _('unknown')))
+            self.gw('their_fp_label').set_markup(their_fp_text % {
+                    'jid': self.fjid, 'fp': _('unknown')})
             self.gw('verified_combobox').set_active(-1)
         else:
             # make the fingerprint widgets sensitive when encrypted
@@ -443,7 +443,8 @@ class ContactOtrWindow(gtk.Dialog):
                 widget.set_sensitive(True)
             # show their fingerprint
             fp = potr.human_hash(self.fpr)
-            self.gw('their_fp_label').set_markup(their_fp_text%(self.fjid, fp))
+            self.gw('their_fp_label').set_markup(their_fp_text % {
+                    'jid': self.fjid, 'fp': fp})
             # set the trust combobox
             if ctx.getCurrentTrust():
                 self.gw('verified_combobox').set_active(1)

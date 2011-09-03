@@ -110,13 +110,15 @@ class GajimContext(potr.context.Context):
                 trust = self.getCurrentTrust()
                 if trust is None:
                     fpr = str(self.getCurrentKey())
-                    OtrPlugin.gajim_log(_('New fingerprint for %s: %s')
-                            % (self.peer, fpr), self.user.accountname, self.peer)
+                    OtrPlugin.gajim_log(_('New fingerprint for %(peer)s: %(fpr)s')
+                            % {'peer': self.peer, 'fpr': fpr},
+                            self.user.accountname, self.peer)
                     self.setCurrentTrust('')
                 trustStr = 'authenticated' if bool(trust) else '*unauthenticated*'
                 OtrPlugin.gajim_log(
-                        _('%s secured OTR conversation with %s started')
-                            % (trustStr, self.peer), self.user.accountname, self.peer)
+                    _('%(trustStr)s secured OTR conversation with %(peer)s started')
+                    % {'trustStr': trustStr, 'peer': self.peer},
+                    self.user.accountname, self.peer)
 
         if self.state != potr.context.STATE_PLAINTEXT and \
                 newstate == potr.context.STATE_PLAINTEXT:
@@ -458,8 +460,9 @@ class OtrPlugin(GajimPlugin):
                             appdata={'session':event.session})
         except potr.context.UnencryptedMessage, e:
             tlvs = []
-            msgtxt = _('The following message received from %s was '
-                    '*not encrypted*: [%s]') % (event.fjid, e.args[0])
+            msgtxt = _('The following message received from %(jid)s was '
+                    '*not encrypted*: [%(error)s]') % {'jid': event.fjid,
+                    'error': e.args[0]}
         except potr.context.NotEncryptedError, e:
             self.gajim_log(_('The encrypted message received from %s is '
                     'unreadable, as you are not currently communicating '
@@ -467,12 +470,13 @@ class OtrPlugin(GajimPlugin):
             return IGNORE
         except potr.context.ErrorReceived, e:
             self.gajim_log(_('We received the following OTR error '
-                    'message from %s: [%s]') % (event.fjid, e.args[0].error),
-                    account, event.fjid)
+                    'message from %(jid)s: [%(error)s]') % {'jid': event.fjid,
+                    'error': e.args[0].error}
             return IGNORE
         except RuntimeError, e:
             self.gajim_log(_('The following error occurred when trying to '
-                    'decrypt a message from %s: [%s]') % (event.fjid, e),
+                    'decrypt a message from %(jid)s: [%(error)s]') % {
+                    'jid': event.fjid, 'error': e},
                     account, event.fjid)
             return IGNORE
         event.msgtxt = unicode(msgtxt)
