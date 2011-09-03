@@ -10,9 +10,9 @@ from plugins.helpers import log_calls
 from plugins.plugins_i18n import _
 
 
-class PlaginsTranslationsPlugin(GajimPlugin):
+class PluginsTranslationsPlugin(GajimPlugin):
 
-    @log_calls('PlaginsTranslationsPlugin')
+    @log_calls('PluginsTranslationsPlugin')
     def init(self):
         self.description = _('This plugin contains translations files '
             'for Gajim plugins')
@@ -20,7 +20,7 @@ class PlaginsTranslationsPlugin(GajimPlugin):
         self.config_default_values = {'last_version': '0'}
         self.locale_dir = os.path.join(gajim.PLUGINS_DIRS[1], 'locale')
 
-    @log_calls('PlaginsTranslationsPlugin')
+    @log_calls('PluginsTranslationsPlugin')
     def activate(self):
         if self.config['last_version'] == self.version:
             return
@@ -48,6 +48,6 @@ class PlaginsTranslationsPlugin(GajimPlugin):
             import shutil
             shutil.rmtree(self.locale_dir)
 
-    @log_calls('PlaginsTranslationsPlugin')
+    @log_calls('PluginsTranslationsPlugin')
     def deactivate(self):
         self.remove_translations()

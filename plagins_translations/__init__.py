@@ -1,1 +1,0 @@
-from plagins_translations import PlaginsTranslationsPlugin
