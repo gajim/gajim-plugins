@@ -5,7 +5,6 @@ import pango
 import re
 import os
 import time
-import locale
 import urllib
 from string import upper
 from string import rstrip

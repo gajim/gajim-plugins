@@ -5,7 +5,6 @@ from datetime import datetime
 import time
 import gtk
 import os
-import locale
 
 from plugins.gui import GajimPluginConfigDialog
 from plugins import GajimPlugin
