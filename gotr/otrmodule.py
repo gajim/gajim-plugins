@@ -40,7 +40,7 @@ DEFAULTFLAGS = {
             'SEND_TAG':True,
             'WHITESPACE_START_AKE':True,
             'ERROR_START_AKE':True,
-        } 
+        }
 
 MMS = 1024
 PROTOCOL = 'xmpp'
@@ -174,7 +174,7 @@ class GajimOtrAccount(potr.context.Account):
 
     def loadTrusts(self, newCtxCb=None):
         ''' load the fingerprint trustdb '''
-        # it has the same format as libotr, therefore the 
+        # it has the same format as libotr, therefore the
         # redundant account / proto field
         try:
             with open(self.keyFilePath + '.fpr', 'r') as fprFile:
@@ -210,6 +210,7 @@ class OtrPlugin(GajimPlugin):
     otr = None
     def init(self):
 
+        self.description = _('See http://www.cypherpunks.ca/otr/')
         self.us = {}
         self.config_dialog = ui.OtrPluginConfigDialog(self)
         self.events_handlers = {}

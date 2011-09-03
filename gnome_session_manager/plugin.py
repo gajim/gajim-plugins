@@ -32,6 +32,7 @@ class GnomeSessionManagerPlugin(GajimPlugin):
 
     @log_calls('GnomeSessionManagerPlugin')
     def init(self):
+        self.description = _('Set and react on GNOME Session presence settings')
         self.config_dialog = None
         self.events_handlers = {}
 

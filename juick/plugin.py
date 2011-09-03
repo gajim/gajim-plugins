@@ -23,6 +23,10 @@ import common.xmpp
 class JuickPlugin(GajimPlugin):
     @log_calls('JuickPlugin')
     def init(self):
+        self.description = _('Clickable juick links , juick nics, '
+            'preview juick picturs.\nThe key combination alt + up in the '
+            'textbox allow insert the number of last message '
+            '(comment or topic).')
         self.config_dialog = JuickPluginConfigDialog(self)
         self.gui_extension_points = {
                 'chat_control_base': (self.connect_with_chat_control,

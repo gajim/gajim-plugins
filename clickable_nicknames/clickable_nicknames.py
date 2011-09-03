@@ -13,6 +13,8 @@ class ClickableNicknames(GajimPlugin):
 
     @log_calls('ClickableNicknamesPlugin')
     def init(self):
+        self.description = _('Clickable nicknames '
+            'in the conversation textview.')
         self.config_dialog = None  # ClickableNicknamesPluginConfigDialog(self)
         self.gui_extension_points = {
                 'chat_control_base': (self.connect_with_chat_control,

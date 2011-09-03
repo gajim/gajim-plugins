@@ -131,10 +131,11 @@ clients = {
 
 
 class ClientsIconsPlugin(GajimPlugin):
-    description = _('Shows the client icons in the roster')
 
     @log_calls('ClientsIconsPlugin')
     def init(self):
+        self.description = _('Shows the client icons in the roster'
+            ' and in groupchats.\nDepends: Gajim > r12506')
         self.pos_list = [_('after statusicon'), _('before avatar')]
         self.events_handlers = {'presence-received':
                                     (ged.POSTGUI, self.presence_received),
@@ -168,8 +169,10 @@ class ClientsIconsPlugin(GajimPlugin):
             return
         if roster.model[child_iters[0]][self.renderer_num] is None:
             caps = contact.client_caps._node
-            if not caps and jid == 'juick@juick.com':
+            if jid == 'juick@juick.com':
                 caps = 'http://juick.com/caps'
+            elif jid == 'psto@psto.net':
+                caps = 'psto@psto.net'
             self.set_icon(roster.model, child_iters[0], self.renderer_num,
                 caps)
 

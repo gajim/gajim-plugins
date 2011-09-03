@@ -2,7 +2,6 @@
 
 import gtk
 import os
-import gettext
 from common import helpers
 from common import gajim
 
@@ -10,18 +9,11 @@ from plugins import GajimPlugin
 from plugins.helpers import log_calls, log
 
 
-locale_path = os.path.dirname(__file__) + '/locale'
-try:
-    gett = gettext.Catalog('WrongLayout', locale_path)
-    _ = gett.gettext
-except:
-    pass
-
-
 class WrongLayoutPlugin(GajimPlugin):
-    description = _('Press alt+r to convert chars typed in wrong layout Rus<>Eng')
     @log_calls('WrongLayoutPlugin')
     def init(self):
+        self.description = _('Press alt+r to convert chars typed in '
+            'wrong layout Rus<>Eng')
         self.config_dialog = None
         self.gui_extension_points = {
                 'chat_control_base': (self.connect_with_chat_control,
@@ -29,19 +21,19 @@ class WrongLayoutPlugin(GajimPlugin):
         self.chat_control = None
         self.controls = []
         self.dict_eng = {'`': 'ё', 'q': 'й', 'w': 'ц', 'e': 'у', 'r': 'к',
-                    't': 'е',
-                    'y': 'н', 'u': 'г', 'i': 'ш', 'o': 'щ', 'p': 'з', '[': 'х',
-                    ']': 'ъ', 'a': 'ф', 's': 'ы', 'd': 'в', 'f': 'а', 'g': 'п',
-                    'h': 'р', 'j': 'о', 'k': 'л', 'l': 'д', ';': 'ж', '\'': 'э',
-                    'z': 'я', 'x': 'ч', 'c': 'с', 'v': 'м', 'b': 'и', 'n': 'т',
-                    'm': 'ь', ',': 'б', '.': 'ю', '/': '.',
-                    '\\': '\\', '~': 'Ё', '@': '"', '$': ';', '^': ':', '&': '?',
-                    'Q': 'Й', 'W': 'Ц', 'E': 'У', 'R': 'К', 'T': 'Е', 'Y': 'Н',
-                    'U': 'Г', 'I': 'Ш', 'O': 'Щ', 'P': 'З', '{': 'Х', '}': 'Ъ',
-                    '|': '/', 'A': 'Ф', 'S': 'Ы', 'D': 'В', 'F': 'А', 'G': 'П',
-                    'H': 'Р', 'J': 'О', 'K': 'Л', 'L': 'Д', '"': 'Э', 'Z': 'Я',
-                    'X': 'Ч', 'C': 'С', 'V': 'М', 'B': 'И', 'N': 'Т', 'M': 'Ь',
-                    '<': 'Б', '>': 'Ю', '?': ',', ':': 'Ж'}
+                't': 'е',
+                'y': 'н', 'u': 'г', 'i': 'ш', 'o': 'щ', 'p': 'з', '[': 'х',
+                ']': 'ъ', 'a': 'ф', 's': 'ы', 'd': 'в', 'f': 'а', 'g': 'п',
+                'h': 'р', 'j': 'о', 'k': 'л', 'l': 'д', ';': 'ж', '\'': 'э',
+                'z': 'я', 'x': 'ч', 'c': 'с', 'v': 'м', 'b': 'и', 'n': 'т',
+                'm': 'ь', ',': 'б', '.': 'ю', '/': '.',
+                '\\': '\\', '~': 'Ё', '@': '"', '$': ';', '^': ':', '&': '?',
+                'Q': 'Й', 'W': 'Ц', 'E': 'У', 'R': 'К', 'T': 'Е', 'Y': 'Н',
+                'U': 'Г', 'I': 'Ш', 'O': 'Щ', 'P': 'З', '{': 'Х', '}': 'Ъ',
+                '|': '/', 'A': 'Ф', 'S': 'Ы', 'D': 'В', 'F': 'А', 'G': 'П',
+                'H': 'Р', 'J': 'О', 'K': 'Л', 'L': 'Д', '"': 'Э', 'Z': 'Я',
+                'X': 'Ч', 'C': 'С', 'V': 'М', 'B': 'И', 'N': 'Т', 'M': 'Ь',
+                '<': 'Б', '>': 'Ю', '?': ',', ':': 'Ж'}
         self.dict_ru = {}
         for key in self.dict_eng.keys():
             self.dict_ru[self.dict_eng[key]] = key

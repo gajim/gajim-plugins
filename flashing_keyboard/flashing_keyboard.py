@@ -13,6 +13,7 @@ from plugins.gui import GajimPluginConfigDialog
 class FlashingKeyboard(GajimPlugin):
     @log_calls('FlashingKeyboard')
     def init(self):
+        self.description = _('Flashing keyboard led if there is unread messages')
         self.config_dialog = FlashingKeyboardPluginConfigDialog(self)
         self.config_default_values = {
                             'command1': ("xset led named 'Scroll Lock'", ''),

@@ -14,6 +14,11 @@ from dialogs import ImageChooserDialog, ErrorDialog
 class ImagePlugin(GajimPlugin):
     @log_calls('ImagePlugin')
     def init(self):
+        self.description = _('This plugin is designed to send '
+            'a small(0 - 40 kb) graphic image to your contact.\n'
+            'Client on the other side must support XEP-0071: XHTML-IM'
+            ' and maintain the scheme data: URI.\n'
+            'Psi+ and Jabbim supported this.')
         self.config_dialog = None  # ImagePluginConfigDialog(self)
         self.controls = []
         self.gui_extension_points = {

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-09-02 22:48+0400\n"
+"POT-Creation-Date: 2011-09-03 10:08+0400\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,175 +17,243 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: community_plugins/clients_icons/clients_icons.py:134
-msgid "Shows the client icons in the roster"
+#: community_plugins/now_listen/now_listen.py:20
+msgid ""
+"Copy tune info to conversation input box (alt + n),\n"
+"at cursor position"
 msgstr ""
 
-#: community_plugins/clients_icons/clients_icons.py:138
+#: community_plugins/clients_icons/clients_icons.py:137
+msgid ""
+"Shows the client icons in the roster and in groupchats.\n"
+"Depends: Gajim > r12506"
+msgstr ""
+
+#: community_plugins/clients_icons/clients_icons.py:139
 msgid "after statusicon"
 msgstr ""
 
-#: community_plugins/clients_icons/clients_icons.py:138
+#: community_plugins/clients_icons/clients_icons.py:139
 msgid "before avatar"
 msgstr ""
 
-#: community_plugins/image/image.py:45
+#: community_plugins/image/image.py:17
+msgid ""
+"This plugin is designed to send a small(0 - 40 kb) graphic image to your "
+"contact.\n"
+"Client on the other side must support XEP-0071: XHTML-IM and maintain the "
+"scheme data: URI.\n"
+"Psi+ and Jabbim supported this."
+msgstr ""
+
+#: community_plugins/image/image.py:50
 msgid "This contact does not support XHTML_IM"
 msgstr ""
 
-#: community_plugins/image/image.py:47
+#: community_plugins/image/image.py:52
 msgid "Send image"
 msgstr ""
 
-#: community_plugins/image/image.py:81
+#: community_plugins/image/image.py:86
 msgid "File is empty"
 msgstr ""
 
-#: community_plugins/image/image.py:84
+#: community_plugins/image/image.py:89
 msgid "File does not exist"
 msgstr ""
 
-#: community_plugins/image/image.py:90 community_plugins/image/image.py:93
+#: community_plugins/image/image.py:95 community_plugins/image/image.py:98
 msgid "File too big"
 msgstr ""
 
-#: community_plugins/image/image.py:95
+#: community_plugins/image/image.py:100
 msgid "Could not load image"
 msgstr ""
 
-#: community_plugins/set_location/set_location.py:137
+#: community_plugins/chatstate/chatstate.py:18
+msgid ""
+"Chat State Notifications in roster.Font color of the contact varies "
+"depending on the chat state.\n"
+"The plugin does not work if you use custom font color for contacts in "
+"roster.\n"
+"http://trac.gajim.org/ticket/3628.\n"
+"http://xmpp.org/extensions/xep-0085.html"
+msgstr ""
+
+#: community_plugins/ubuntu_integration/plugin.py:51
+msgid ""
+"This plugin integrates Gajim with the Ubuntu Messaging Menu.\n"
+"\n"
+"You must have python-indicate and python-xdg (and Gajim obviously) installed "
+"to enable this plugin.\n"
+"\n"
+"Many thanks to the guys from gajim@conference.gajim.org for answering my "
+"questions :)"
+msgstr ""
+
+#: community_plugins/plagins_translations/plagins_translations.py:17
+msgid "This plugin contains translations files for Gajim plugins"
+msgstr ""
+
+#: community_plugins/set_location/set_location.py:29
+msgid ""
+"Set information about the current geographical or physical location.\n"
+"To be able to specify a location on the built-in card, you must install "
+"python-osmgpsmap > 0.5"
+msgstr ""
+
+#: community_plugins/set_location/set_location.py:141
 msgid ""
 "Click the right mouse button to specify the location, \n"
 "middle mouse button to show / hide the contacts on the map"
 msgstr ""
 
-#: community_plugins/set_location/set_location.py:222
+#: community_plugins/set_location/set_location.py:226
 msgid "Save as Preset"
 msgstr ""
 
-#: community_plugins/set_location/set_location.py:222
+#: community_plugins/set_location/set_location.py:226
 msgid "Please type a name for this preset"
 msgstr ""
 
-#: community_plugins/wrong_layout/plugin.py:22
+#: community_plugins/roster_tweaks/roster_tweaks.py:21
+msgid ""
+"Allows user to tweak roster window appearance (eg. make it compact).\n"
+"Based on ticket #3340:\n"
+"http://trac.gajim.org/ticket/3340.\n"
+"Added ability to quickly change the status message to all connected accounts."
+msgstr ""
+
+#: community_plugins/wrong_layout/plugin.py:15
 msgid "Press alt+r to convert chars typed in wrong layout Rus<>Eng"
 msgstr ""
 
-#: community_plugins/juick/plugin.py:31
+#: community_plugins/clickable_nicknames/clickable_nicknames.py:16
+msgid "Clickable nicknames in the conversation textview."
+msgstr ""
+
+#: community_plugins/juick/plugin.py:26
+msgid ""
+"Clickable juick links , juick nics, preview juick picturs.\n"
+"The key combination alt + up in the textbox allow insert the number of last "
+"message (comment or topic)."
+msgstr ""
+
+#: community_plugins/juick/plugin.py:35
 msgid "Avatar size(10-32)"
 msgstr ""
 
-#: community_plugins/juick/plugin.py:33
+#: community_plugins/juick/plugin.py:37
 #: community_plugins/juick/config_dialog.ui.h:5
 msgid "Preview size(10-512)"
 msgstr ""
 
-#: community_plugins/juick/plugin.py:34
+#: community_plugins/juick/plugin.py:38
 #: community_plugins/juick/config_dialog.ui.h:2
 msgid "Juick link color"
 msgstr ""
 
-#: community_plugins/juick/plugin.py:191
+#: community_plugins/juick/plugin.py:195
 msgid "Reply to message"
 msgstr ""
 
-#: community_plugins/juick/plugin.py:195
+#: community_plugins/juick/plugin.py:199
 msgid "Unsubscribe from comments"
 msgstr ""
 
-#: community_plugins/juick/plugin.py:196
+#: community_plugins/juick/plugin.py:200
 msgid "Subscribe to message replies"
 msgstr ""
 
-#: community_plugins/juick/plugin.py:197
+#: community_plugins/juick/plugin.py:201
 msgid "Recommend post"
 msgstr ""
 
-#: community_plugins/juick/plugin.py:198
+#: community_plugins/juick/plugin.py:202
 msgid "Show message with replies"
 msgstr ""
 
-#: community_plugins/juick/plugin.py:199
+#: community_plugins/juick/plugin.py:203
 msgid "Delete post"
 msgstr ""
 
-#: community_plugins/juick/plugin.py:205
+#: community_plugins/juick/plugin.py:209
 msgid "Open in browser"
 msgstr ""
 
-#: community_plugins/juick/plugin.py:209
+#: community_plugins/juick/plugin.py:213
 msgid "Show user's info"
 msgstr ""
 
-#: community_plugins/juick/plugin.py:210
+#: community_plugins/juick/plugin.py:214
 msgid "Show user's info and last 10 messages"
 msgstr ""
 
-#: community_plugins/juick/plugin.py:211
+#: community_plugins/juick/plugin.py:215
 msgid "Subscribe to user's blog"
 msgstr ""
 
-#: community_plugins/juick/plugin.py:212
+#: community_plugins/juick/plugin.py:216
 msgid "Unsubscribe from user's blog"
 msgstr ""
 
-#: community_plugins/juick/plugin.py:213
+#: community_plugins/juick/plugin.py:217
 msgid "Add/delete user to/from your blacklist"
 msgstr ""
 
-#: community_plugins/juick/plugin.py:219
+#: community_plugins/juick/plugin.py:223
 msgid "Send personal message"
 msgstr ""
 
-#: community_plugins/juick/plugin.py:465
+#: community_plugins/juick/plugin.py:469
 msgid "Show last messages from public timeline"
 msgstr ""
 
-#: community_plugins/juick/plugin.py:466
+#: community_plugins/juick/plugin.py:470
 msgid "Show last messages from your feed"
 msgstr ""
 
-#: community_plugins/juick/plugin.py:467
+#: community_plugins/juick/plugin.py:471
 msgid "Show popular personal blogs"
 msgstr ""
 
-#: community_plugins/juick/plugin.py:468
+#: community_plugins/juick/plugin.py:472
 msgid "Show your tags"
 msgstr ""
 
-#: community_plugins/juick/plugin.py:469
+#: community_plugins/juick/plugin.py:473
 msgid "Show your subscriptions"
 msgstr ""
 
-#: community_plugins/juick/plugin.py:470
+#: community_plugins/juick/plugin.py:474
 msgid "Delete last message"
 msgstr ""
 
-#: community_plugins/juick/plugin.py:471
+#: community_plugins/juick/plugin.py:475
 msgid "Enable subscriptions delivery"
 msgstr ""
 
-#: community_plugins/juick/plugin.py:472
+#: community_plugins/juick/plugin.py:476
 msgid "Disable subscriptions delivery"
 msgstr ""
 
-#: community_plugins/juick/plugin.py:473
+#: community_plugins/juick/plugin.py:477
 msgid "Show your blacklist"
 msgstr ""
 
-#: community_plugins/juick/plugin.py:474
+#: community_plugins/juick/plugin.py:478
 msgid "Update \"About\" info from Jabber vCard"
 msgstr ""
 
-#: community_plugins/juick/plugin.py:475
+#: community_plugins/juick/plugin.py:479
 msgid "Ping"
 msgstr ""
 
-#: community_plugins/juick/plugin.py:476
+#: community_plugins/juick/plugin.py:480
 msgid "Login"
 msgstr ""
 
-#: community_plugins/juick/plugin.py:477
+#: community_plugins/juick/plugin.py:481
 msgid "HELP"
 msgstr ""
 
@@ -215,30 +283,34 @@ msgstr ""
 msgid "Private conversation with %s lost."
 msgstr ""
 
-#: community_plugins/gotr/otrmodule.py:460
+#: community_plugins/gotr/otrmodule.py:213
+msgid "See http://www.cypherpunks.ca/otr/"
+msgstr ""
+
+#: community_plugins/gotr/otrmodule.py:461
 #, python-format
 msgid "The following message received from %s was *not encrypted*: [%s]"
 msgstr ""
 
-#: community_plugins/gotr/otrmodule.py:463
+#: community_plugins/gotr/otrmodule.py:464
 #, python-format
 msgid ""
 "The encrypted message received from %s is unreadable, as you are not "
 "currently communicating privately"
 msgstr ""
 
-#: community_plugins/gotr/otrmodule.py:468
+#: community_plugins/gotr/otrmodule.py:469
 #, python-format
 msgid "We received the following OTR error message from %s: [%s]"
 msgstr ""
 
-#: community_plugins/gotr/otrmodule.py:473
+#: community_plugins/gotr/otrmodule.py:474
 #, python-format
 msgid ""
 "The following error occurred when trying to decrypt a message from %s: [%s]"
 msgstr ""
 
-#: community_plugins/gotr/otrmodule.py:516
+#: community_plugins/gotr/otrmodule.py:517
 msgid ""
 "Your message was not send. Either end your private conversation, or restart "
 "it"
@@ -316,65 +388,133 @@ msgstr ""
 msgid "unknown"
 msgstr ""
 
-#: triggers/triggers.py:268
+#: community_plugins/flashing_keyboard/flashing_keyboard.py:16
+msgid "Flashing keyboard led if there is unread messages"
+msgstr ""
+
+#: community_plugins/gnome_session_manager/plugin.py:35
+msgid "Set and react on GNOME Session presence settings"
+msgstr ""
+
+#: events_dump/plugin.py:39
+msgid "Dumps info about selected events to console."
+msgstr ""
+
+#: acronyms_expander/acronyms_expander.py:39
+msgid "Replaces acronyms (or other strings) with given expansions/substitutes."
+msgstr ""
+
+#: triggers/triggers.py:37
+msgid "Configure Gajim's behaviour for each contact"
+msgstr ""
+
+#: triggers/triggers.py:269
 msgid "#"
 msgstr ""
 
-#: triggers/triggers.py:274
+#: triggers/triggers.py:275
 msgid "Condition"
 msgstr ""
 
-#: triggers/triggers.py:387
+#: triggers/triggers.py:388
 msgid "when I am "
 msgstr ""
 
-#: plugin_installer/plugin_installer.py:102
+#: plugin_installer/plugin_installer.py:44
+msgid "Install and upgrade plugins from ftp"
+msgstr ""
+
+#: plugin_installer/plugin_installer.py:103
 msgid "Plugin"
 msgstr ""
 
-#: plugin_installer/plugin_installer.py:107
+#: plugin_installer/plugin_installer.py:108
 msgid ""
 "Installed\n"
 "version"
 msgstr ""
 
-#: plugin_installer/plugin_installer.py:109
+#: plugin_installer/plugin_installer.py:110
 msgid ""
 "Available\n"
 "version"
 msgstr ""
 
-#: plugin_installer/plugin_installer.py:116
+#: plugin_installer/plugin_installer.py:117
 msgid ""
 "Install /\n"
 "Upgrade"
 msgstr ""
 
-#: banner_tweaks/plugin.py:107
+#: dbus_plugin/plugin.py:691
+msgid ""
+"D-Bus support. Based on remote_control module from\n"
+"Gajim core but uses new events handling system."
+msgstr ""
+
+#: new_events_example/plugin.py:44
+msgid ""
+"Shows how to generate new network events based on existing one using Network "
+"Events Controller."
+msgstr ""
+
+#: banner_tweaks/plugin.py:48
+msgid ""
+"Allows user to tweak chat window banner appearance (eg. make it compact).\n"
+"Based on patch by pb in ticket #4133:\n"
+"http://trac.gajim.org/attachment/ticket/4133."
+msgstr ""
+
+#: banner_tweaks/plugin.py:111
 #, python-format
 msgid "%(nickname)s from group chat %(room_name)s"
 msgstr ""
 
-#: whiteboard/plugin.py:153
+#: snarl_notifications/plugin.py:44
+msgid ""
+"Shows events notification using Snarl (http://www.fullphat.net/) under "
+"Windows. Snarl needs to be installed in system.\n"
+"PySnarl bindings are used (http://code.google.com/p/pysnarl/)."
+msgstr ""
+
+#: google_translation/plugin.py:47
+msgid "Translates (currently only incoming)messages using Google Translate."
+msgstr ""
+
+#: length_notifier/length_notifier.py:39
+msgid ""
+"Highlights message entry field in chat window when given length of message "
+"is exceeded."
+msgstr ""
+
+#: roster_buttons/plugin.py:39
+msgid "Adds quick action buttons to roster window."
+msgstr ""
+
+#: whiteboard/plugin.py:55
+msgid "Shows a whiteboard in chat. python-pygoocanvas is required."
+msgstr ""
+
+#: whiteboard/plugin.py:155
 msgid "Incoming Whiteboard"
 msgstr ""
 
-#: whiteboard/plugin.py:154
+#: whiteboard/plugin.py:156
 #, python-format
 msgid ""
 "%(name)s (%(jid)s) wants to start a whiteboard with you. Do you want to "
 "accept?"
 msgstr ""
 
-#: whiteboard/plugin.py:204
+#: whiteboard/plugin.py:206
 msgid "Invalid Jabber ID"
 msgstr ""
 
-#: whiteboard/plugin.py:205
+#: whiteboard/plugin.py:207
 msgid "A message from a non-valid JID arrived, it has been ignored."
 msgstr ""
 
-#: whiteboard/plugin.py:344
+#: whiteboard/plugin.py:346
 #, python-format
 msgid "Whiteboard stopped: %(reason)s"
 msgstr ""
