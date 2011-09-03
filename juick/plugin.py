@@ -32,10 +32,10 @@ class JuickPlugin(GajimPlugin):
                 'chat_control_base': (self.connect_with_chat_control,
                                        self.disconnect_from_chat_control)}
         self.config_default_values = {'SHOW_AVATARS': (False, ''),
-                    'AVATAR_SIZE': (20, _('Avatar size(10-32)')),
+                    'AVATAR_SIZE': (20, 'Avatar size(10-32)'),
                     'SHOW_PREVIEW': (False, ''),
-                    'PREVIEW_SIZE': (150, _('Preview size(10-512)')),
-                    'LINK_COLOR': ('#B8833E', _('Juick link color')),
+                    'PREVIEW_SIZE': (150, 'Preview size(10-512)'),
+                    'LINK_COLOR': ('#B8833E', 'Juick link color'),
                     'SHOW_TAG_BUTTON': (True, ''),
                     'ONLY_AUTHOR_AVATAR': (True, ''),
                     'MENUITEM1': ('tune', ''), 'MENUITEM_TEXT1': ('*tune', ''),

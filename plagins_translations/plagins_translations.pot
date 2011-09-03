@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-09-03 10:08+0400\n"
+"POT-Creation-Date: 2011-09-03 13:07+0400\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,9 +18,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 
 #: community_plugins/now_listen/now_listen.py:20
-msgid ""
-"Copy tune info to conversation input box (alt + n),\n"
-"at cursor position"
+msgid "Copy tune info to conversation input box (alt + n) at cursor position"
 msgstr ""
 
 #: community_plugins/clients_icons/clients_icons.py:137
@@ -139,18 +137,12 @@ msgid ""
 "message (comment or topic)."
 msgstr ""
 
-#: community_plugins/juick/plugin.py:35
-msgid "Avatar size(10-32)"
+#: community_plugins/juick/plugin.py:159
+msgid "Juick commands"
 msgstr ""
 
-#: community_plugins/juick/plugin.py:37
-#: community_plugins/juick/config_dialog.ui.h:5
-msgid "Preview size(10-512)"
-msgstr ""
-
-#: community_plugins/juick/plugin.py:38
-#: community_plugins/juick/config_dialog.ui.h:2
-msgid "Juick link color"
+#: community_plugins/juick/plugin.py:185
+msgid "Juick tags"
 msgstr ""
 
 #: community_plugins/juick/plugin.py:195
@@ -270,47 +262,49 @@ msgstr ""
 
 #: community_plugins/gotr/otrmodule.py:113
 #, python-format
-msgid "New fingerprint for %s: %s"
+msgid "New fingerprint for %(peer)s: %(fpr)s"
 msgstr ""
 
-#: community_plugins/gotr/otrmodule.py:118
+#: community_plugins/gotr/otrmodule.py:119
 #, python-format
-msgid "%s secured OTR conversation with %s started"
+msgid "%(trustStr)s secured OTR conversation with %(peer)s started"
 msgstr ""
 
-#: community_plugins/gotr/otrmodule.py:125
+#: community_plugins/gotr/otrmodule.py:127
 #, python-format
 msgid "Private conversation with %s lost."
 msgstr ""
 
-#: community_plugins/gotr/otrmodule.py:213
+#: community_plugins/gotr/otrmodule.py:215
 msgid "See http://www.cypherpunks.ca/otr/"
 msgstr ""
 
-#: community_plugins/gotr/otrmodule.py:461
+#: community_plugins/gotr/otrmodule.py:463
 #, python-format
-msgid "The following message received from %s was *not encrypted*: [%s]"
+msgid ""
+"The following message received from %(jid)s was *not encrypted*: [%(error)s]"
 msgstr ""
 
-#: community_plugins/gotr/otrmodule.py:464
+#: community_plugins/gotr/otrmodule.py:467
 #, python-format
 msgid ""
 "The encrypted message received from %s is unreadable, as you are not "
 "currently communicating privately"
 msgstr ""
 
-#: community_plugins/gotr/otrmodule.py:469
+#: community_plugins/gotr/otrmodule.py:472
 #, python-format
-msgid "We received the following OTR error message from %s: [%s]"
+msgid "We received the following OTR error message from %(jid)s: [%(error)s]"
 msgstr ""
 
-#: community_plugins/gotr/otrmodule.py:474
+#: community_plugins/gotr/otrmodule.py:477
 #, python-format
 msgid ""
-"The following error occurred when trying to decrypt a message from %s: [%s]"
+"The following error occurred when trying to decrypt a message from %(jid)s: "
+"[%(error)s]"
 msgstr ""
 
-#: community_plugins/gotr/otrmodule.py:517
+#: community_plugins/gotr/otrmodule.py:521
 msgid ""
 "Your message was not send. Either end your private conversation, or restart "
 "it"
@@ -326,8 +320,8 @@ msgstr ""
 #: community_plugins/gotr/ui.py:191
 #, python-format
 msgid ""
-"Purported fingerprint for %s:\n"
-"<span weight=\"bold\" face=\"monospace\">%s</span>"
+"Purported fingerprint for %(jid)s:\n"
+"<span weight=\"bold\" face=\"monospace\">%(fp)s</span>"
 msgstr ""
 
 #: community_plugins/gotr/ui.py:194
@@ -495,26 +489,34 @@ msgstr ""
 msgid "Shows a whiteboard in chat. python-pygoocanvas is required."
 msgstr ""
 
-#: whiteboard/plugin.py:155
+#: whiteboard/plugin.py:123
+msgid "Show whiteboard"
+msgstr ""
+
+#: whiteboard/plugin.py:126
+msgid "Client on the other side does not support the whiteboard"
+msgstr ""
+
+#: whiteboard/plugin.py:158
 msgid "Incoming Whiteboard"
 msgstr ""
 
-#: whiteboard/plugin.py:156
+#: whiteboard/plugin.py:159
 #, python-format
 msgid ""
 "%(name)s (%(jid)s) wants to start a whiteboard with you. Do you want to "
 "accept?"
 msgstr ""
 
-#: whiteboard/plugin.py:206
+#: whiteboard/plugin.py:209
 msgid "Invalid Jabber ID"
 msgstr ""
 
-#: whiteboard/plugin.py:207
+#: whiteboard/plugin.py:210
 msgid "A message from a non-valid JID arrived, it has been ignored."
 msgstr ""
 
-#: whiteboard/plugin.py:346
+#: whiteboard/plugin.py:349
 #, python-format
 msgid "Whiteboard stopped: %(reason)s"
 msgstr ""
@@ -720,35 +722,47 @@ msgstr ""
 msgid "Avatar size"
 msgstr ""
 
+#: community_plugins/juick/config_dialog.ui.h:2
+msgid "Avatar size(10-32)"
+msgstr ""
+
 #: community_plugins/juick/config_dialog.ui.h:3
-msgid "Juick tag button menu options:"
+msgid "Juick link color"
 msgstr ""
 
 #: community_plugins/juick/config_dialog.ui.h:4
+msgid "Juick tag button menu options:"
+msgstr ""
+
+#: community_plugins/juick/config_dialog.ui.h:5
 msgid "Preview size"
 msgstr ""
 
 #: community_plugins/juick/config_dialog.ui.h:6
-msgid "Show avatar of post author only"
+msgid "Preview size(10-512)"
 msgstr ""
 
 #: community_plugins/juick/config_dialog.ui.h:7
-msgid "Show avatars in messages"
+msgid "Show avatar of post author only"
 msgstr ""
 
 #: community_plugins/juick/config_dialog.ui.h:8
-msgid "Show juick picture preview"
+msgid "Show avatars in messages"
 msgstr ""
 
 #: community_plugins/juick/config_dialog.ui.h:9
-msgid "Show juick tag button"
+msgid "Show juick picture preview"
 msgstr ""
 
 #: community_plugins/juick/config_dialog.ui.h:10
-msgid "menuitem name:"
+msgid "Show juick tag button"
 msgstr ""
 
 #: community_plugins/juick/config_dialog.ui.h:11
+msgid "menuitem name:"
+msgstr ""
+
+#: community_plugins/juick/config_dialog.ui.h:12
 msgid "text will be inserted:"
 msgstr ""
 
