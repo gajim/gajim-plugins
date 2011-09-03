@@ -156,7 +156,7 @@ class Base(object):
         factory.add_default()
         img.set_from_stock('juick', gtk.ICON_SIZE_BUTTON)
         self.button.set_image(img)
-        self.button.set_tooltip_text('Juick commands')
+        self.button.set_tooltip_text(_('Juick commands'))
         send_button = self.chat_control.xml.get_object('send_button')
         send_button_pos = actions_hbox.child_get_property(send_button,
             'position')
@@ -182,7 +182,7 @@ class Base(object):
         id_ = self.tag_button.connect('clicked', self.on_juick_tag_button_clicked)
         self.chat_control.handlers[id_] = self.tag_button
         self.tag_button.set_no_show_all(True)
-        self.tag_button.set_tooltip_text('Juick tags')
+        self.tag_button.set_tooltip_text(_('Juick tags'))
         self.tag_button.set_property('visible',
                                         self.plugin.config['SHOW_TAG_BUTTON'])
 
