@@ -6,7 +6,6 @@ import time
 import gtk
 import os
 import locale
-import gettext
 
 from plugins.gui import GajimPluginConfigDialog
 from plugins import GajimPlugin
@@ -14,13 +13,6 @@ from plugins.helpers import log, log_calls
 from common import gajim
 import gtkgui_helpers
 from dialogs import InputDialog
-locale_path = os.path.dirname(__file__) + '/locales'
-locale.bindtextdomain('setlocation', locale_path)
-try:
-    gett = gettext.Catalog('setlocation', locale_path)
-    _ = gett.gettext
-except:
-    pass
 
 
 class SetLocationPlugin(GajimPlugin):
