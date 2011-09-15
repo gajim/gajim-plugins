@@ -108,7 +108,6 @@ class RosterTweaksPlugin(GajimPlugin):
             self.pep_dict['subactivity'] = subactivity or ''
             self.pep_dict['activity_text'] = text
             self.draw_activity()
-            accounts = gajim.connections.keys()
             self.send_pep()
         ChangeActivityDialog(on_response, self.pep_dict.get('activity', None),
             self.pep_dict.get('subactivity', None),
@@ -119,7 +118,6 @@ class RosterTweaksPlugin(GajimPlugin):
             self.pep_dict['mood'] = mood or ''
             self.pep_dict['mood_text'] = text
             self.draw_mood()
-            accounts = gajim.connections.keys()
             self.send_pep()
         ChangeMoodDialog(on_response, self.pep_dict.get('mood', None),
             self.pep_dict.get('mood_text', None))
