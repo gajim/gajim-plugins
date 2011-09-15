@@ -65,6 +65,7 @@ class RosterTweaksPlugin(GajimPlugin):
             self.accel_group = gtk.accel_groups_from_object(window)[0]
             self.accel_group.connect_group(gtk.keysyms.m, gtk.gdk.CONTROL_MASK,
                     gtk.ACCEL_MASK, self.on_ctrl_m)
+            self.config['menu_visible'] = not self.config['menu_visible']
             self.on_ctrl_m(None, None, None, None)
 
     @log_calls('RosterTweaksPlugin')
@@ -181,7 +182,7 @@ class RosterTweaksPluginConfigDialog(GajimPluginConfigDialog):
 
     def on_hide_combo_toggled(self, button):
         self.plugin.config['hide_status_combo'] = button.get_active()
-        self.roster.status_combobox.set_property('visible', not \
+        self.plugin.roster.status_combobox.set_property('visible', not \
             self.plugin.config['hide_status_combo'])
 
     def on_quick_status_toggled(self, button):
@@ -199,4 +200,4 @@ class RosterTweaksPluginConfigDialog(GajimPluginConfigDialog):
             self.plugin.accel_group.disconnect_key(gtk.keysyms.m,
                     gtk.gdk.CONTROL_MASK)
             self.plugin.config['menu_visible'] = True
-            self.roster.xml.get_object('menubar').set_size_request(-1, -1)
+            self.plugin.roster.xml.get_object('menubar').set_size_request(-1, -1)
