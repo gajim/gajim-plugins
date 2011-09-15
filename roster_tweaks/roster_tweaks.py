@@ -5,9 +5,8 @@ import pango
 import gobject
 
 from common import gajim
-
 from plugins import GajimPlugin
-from plugins.helpers import log, log_calls
+from plugins.helpers import log_calls
 from plugins.gui import GajimPluginConfigDialog
 from dialogs import ChangeActivityDialog, ChangeMoodDialog
 from common import pep
