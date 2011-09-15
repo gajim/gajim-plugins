@@ -28,16 +28,17 @@ class RosterTweaksPlugin(GajimPlugin):
                                       'use_ctr_m': (False, ''),
                                       'menu_visible': (True, ''),
                                       'quick_status': (False, '')}
+        self.roster = gajim.interface.roster
 
     @log_calls('RosterTweaksPlugin')
     def activate(self):
         self.pep_dict = {}
-        gajim.interface.roster.status_combobox.set_property('visible',
-                not self.config['hide_status_combo'])
-        gajim.interface.roster.status_combobox.set_no_show_all(True)
+        self.roster.status_combobox.set_property('visible', not self.config[
+            'hide_status_combo'])
+        self.roster.status_combobox.set_no_show_all(True)
         self.enable_ctrl_m()
 
-        vbox = gajim.interface.roster.xml.get_object('roster_vbox2')
+        vbox = self.roster.xml.get_object('roster_vbox2')
         self.GTK_BUILDER_FILE_PATH = self.local_file_path(
             'config_dialog.ui')
         self.xml = gtk.Builder()
@@ -60,26 +61,22 @@ class RosterTweaksPlugin(GajimPlugin):
 
     def enable_ctrl_m(self):
         if self.config['use_ctr_m']:
-            window = gajim.interface.roster.window
+            window = self.roster.window
             self.accel_group = gtk.accel_groups_from_object(window)[0]
             self.accel_group.connect_group(gtk.keysyms.m, gtk.gdk.CONTROL_MASK,
                     gtk.ACCEL_MASK, self.on_ctrl_m)
-            menubar = gajim.interface.roster.xml.get_object('menubar')
-            menubar = gajim.interface.roster.xml.get_object('menubar')
-            if self.config['menu_visible']:
-                menubar.set_size_request(1, 1)
-            else:
-                menubar.set_size_request(-1, -1)
+            self.on_ctrl_m(None, None, None, None)
 
     @log_calls('RosterTweaksPlugin')
     def deactivate(self):
-        gajim.interface.roster.status_combobox.show()
+        self.roster.status_combobox.show()
         self.status_widget.destroy()
         self.activity_button.destroy()
         self.mood_button.destroy()
+        self.roster.xml.get_object('menubar').set_size_request(-1, -1)
 
     def on_ctrl_m(self, accel_group, acceleratable, keyval, modifier):
-        menubar = gajim.interface.roster.xml.get_object('menubar')
+        menubar = self.roster.xml.get_object('menubar')
         if not self.config['menu_visible']:
             menubar.set_size_request(1, 1)
         else:
@@ -97,8 +94,7 @@ class RosterTweaksPlugin(GajimPlugin):
                     continue
                 current_show = gajim.SHOW_LIST[
                     gajim.connections[account].connected]
-                gajim.interface.roster.send_status(account, current_show,
-                    message)
+                self.roster.send_status(account, current_show, message)
             self.font_desc.set_weight(pango.WEIGHT_BOLD)
             widget.modify_font(self.font_desc)
             self.font_desc.set_weight(pango.WEIGHT_NORMAL)
@@ -128,7 +124,7 @@ class RosterTweaksPlugin(GajimPlugin):
         accounts = gajim.connections.keys()
         for account in accounts:
             if gajim.account_is_connected(account):
-                gajim.interface.roster.send_pep(account, self.pep_dict)
+                self.roster.send_pep(account, self.pep_dict)
 
     def draw_activity(self):
         """
@@ -185,8 +181,8 @@ class RosterTweaksPluginConfigDialog(GajimPluginConfigDialog):
 
     def on_hide_combo_toggled(self, button):
         self.plugin.config['hide_status_combo'] = button.get_active()
-        gajim.interface.roster.status_combobox.set_property('visible',
-                not self.plugin.config['hide_status_combo'])
+        self.roster.status_combobox.set_property('visible', not \
+            self.plugin.config['hide_status_combo'])
 
     def on_quick_status_toggled(self, button):
         self.plugin.config['quick_status'] = button.get_active()
@@ -203,5 +199,4 @@ class RosterTweaksPluginConfigDialog(GajimPluginConfigDialog):
             self.plugin.accel_group.disconnect_key(gtk.keysyms.m,
                     gtk.gdk.CONTROL_MASK)
             self.plugin.config['menu_visible'] = True
-            gajim.interface.roster.xml.get_object('menubar').set_size_request(
-                    -1, -1)
+            self.roster.xml.get_object('menubar').set_size_request(-1, -1)
