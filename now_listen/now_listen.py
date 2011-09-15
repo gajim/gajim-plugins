@@ -53,7 +53,7 @@ class NowListenPlugin(GajimPlugin):
     @log_calls('NowListenPlugin')
     def activate(self):
         if not dbus_support.supported:
-            raise GajimPluginException("python-dbus is missing!")
+            raise GajimPluginException(_('python-dbus is missing!'))
         listener = MusicTrackListener.get()
         if not self.music_track_changed_signal:
             self.music_track_changed_signal = listener.connect(
