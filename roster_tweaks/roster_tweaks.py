@@ -92,6 +92,8 @@ class RosterTweaksPlugin(GajimPlugin):
             accounts = gajim.connections.keys()
             message = widget.get_text()
             for account in accounts:
+                if not gajim.account_is_connected(account):
+                    continue
                 current_show = gajim.SHOW_LIST[
                     gajim.connections[account].connected]
                 gajim.interface.roster.send_status(account, current_show,
@@ -109,7 +111,8 @@ class RosterTweaksPlugin(GajimPlugin):
             self.draw_activity()
             accounts = gajim.connections.keys()
             for account in accounts:
-                gajim.interface.roster.send_pep(account, self.pep_dict)
+                if gajim.account_is_connected(account):
+                    gajim.interface.roster.send_pep(account, self.pep_dict)
         ChangeActivityDialog(on_response, self.pep_dict.get('activity', None),
             self.pep_dict.get('subactivity', None),
             self.pep_dict.get('activity_text', None))
@@ -121,7 +124,8 @@ class RosterTweaksPlugin(GajimPlugin):
             self.draw_mood()
             accounts = gajim.connections.keys()
             for account in accounts:
-                gajim.interface.roster.send_pep(account, self.pep_dict)
+                if gajim.account_is_connected(account):
+                    gajim.interface.roster.send_pep(account, self.pep_dict)
         ChangeMoodDialog(on_response, self.pep_dict.get('mood', None),
             self.pep_dict.get('mood_text', None))
 
