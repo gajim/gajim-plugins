@@ -8,6 +8,7 @@ import time
 import urllib
 from string import upper
 from string import rstrip
+import locale
 
 from common import helpers
 from common import gajim
