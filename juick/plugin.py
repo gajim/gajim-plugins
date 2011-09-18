@@ -33,6 +33,8 @@ class JuickPlugin(GajimPlugin):
                                        self.disconnect_from_chat_control)}
         self.config_default_values = {'SHOW_AVATARS': (False, ''),
                     'AVATAR_SIZE': (20, 'Avatar size(10-32)'),
+                    'avatars_old': (2419200, 'Update avatars '
+                        'who are older 28 days'),
                     'SHOW_PREVIEW': (False, ''),
                     'PREVIEW_SIZE': (150, 'Preview size(10-512)'),
                     'LINK_COLOR': ('#B8833E', 'Juick link color'),
@@ -380,11 +382,12 @@ class Base(object):
         pic_path = pic_path.decode(locale.getpreferredencoding())
         if os.path.isfile(pic_path):
             pixbuf = gtk.gdk.pixbuf_new_from_file(pic_path)
-            if (time.time() - os.stat(pic_path).st_mtime) < 2419200:
+            max_old = self.plugin.config['avatars_old']
+            if (time.time() - os.stat(pic_path).st_mtime) < max_old:
                 return pixbuf
         url = 'http://i.juick.com/as/%s.png' % uid
-        pixbuf = self.get_pixbuf_from_url(
-                                        url, self.plugin.config['AVATAR_SIZE'])
+        pixbuf = self.get_pixbuf_from_url(url,self.plugin.config[
+            'AVATAR_SIZE'])
         if pixbuf:
             # save to cache
             pixbuf.save(pic_path, 'png')
@@ -554,12 +557,14 @@ class JuickPluginConfigDialog(GajimPluginConfigDialog):
                 ['vbox1'])
         self.checkbutton = self.xml.get_object('checkbutton')
         self.avatar_size_spinbutton = self.xml.get_object('avatar_size')
-        self.avatar_size_spinbutton.get_adjustment().set_all(
-                                                        20, 10, 32, 1, 10, 0)
+        self.avatar_size_spinbutton.get_adjustment().set_all(20, 10, 32, 1,
+            10, 0)
+        self.avatars_old = self.xml.get_object('avatars_old')
+        self.avatars_old.get_adjustment().set_all(20, 1, 3650, 1, 10, 0)
         self.show_pic = self.xml.get_object('show_pic')
         self.preview_size_spinbutton = self.xml.get_object('preview_size')
-        self.preview_size_spinbutton.get_adjustment().set_all(
-                                                        20, 10, 512, 1, 10, 0)
+        self.preview_size_spinbutton.get_adjustment().set_all(20, 10, 512, 1,
+            10, 0)
         self.link_colorbutton = self.xml.get_object('link_colorbutton')
         vbox = self.xml.get_object('vbox1')
         self.child.pack_start(vbox)
@@ -571,6 +576,7 @@ class JuickPluginConfigDialog(GajimPluginConfigDialog):
         self.xml.get_object('only_author_avatar').set_active(
                                     self.plugin.config['ONLY_AUTHOR_AVATAR'])
         self.avatar_size_spinbutton.set_value(self.plugin.config['AVATAR_SIZE'])
+        self.avatars_old.set_value(self.plugin.config['avatars_old'] / 86400)
         self.show_pic.set_active(self.plugin.config['SHOW_PREVIEW'])
         self.preview_size_spinbutton.set_value(
                                             self.plugin.config['PREVIEW_SIZE'])
@@ -594,6 +600,9 @@ class JuickPluginConfigDialog(GajimPluginConfigDialog):
 
     def avatar_size_value_changed(self, spinbutton):
         self.plugin.config['AVATAR_SIZE'] = spinbutton.get_value()
+
+    def on_avatars_old_value_changed(self, spinbutton):
+        self.plugin.config['avatars_old'] = spinbutton.get_value() * 86400
 
     def on_show_pic_toggled(self, checkbutton):
         self.plugin.config['SHOW_PREVIEW'] = checkbutton.get_active()
