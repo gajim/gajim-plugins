@@ -69,7 +69,6 @@ class JuickPlugin(GajimPlugin):
         self.conn = sqlite3.connect(os.path.join(self.cache_path, 'juick_db'))
         self.conn.execute('create table if not exists person'
             '(nick, id, last_modified)')
-        self.conn.commit()
         self.cursor = self.conn.cursor()
 
     @log_calls('JuickPlugin')
@@ -77,6 +76,7 @@ class JuickPlugin(GajimPlugin):
         for control in self.controls:
             control.disconnect_from_chat_control()
         self.controls = []
+        self.conn.close()
 
 
 class Base(object):
