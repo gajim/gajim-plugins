@@ -337,6 +337,7 @@ class Base(object):
                 img.set_from_pixbuf(pixbuf)
                 img.show()
                 self.textview.tv.add_child_at_anchor(img, anchor)
+                return
             else:
                 # nick not in the db
                 id_ = conn.connection.getAnID()
@@ -408,12 +409,6 @@ class Base(object):
         url = 'http://i.juick.com/as/%s.png' % uid
         if need_check and os.path.isfile(pic_path):
             max_old = self.plugin.config['avatars_old']
-            #req = urllib2.Request(url)
-            #url_handle = urllib2.urlopen(req)
-            #headers = url_handle.info()
-            #etag = headers.getheader("ETag")
-            #last_modified = headers.getheader("Last-Modified")
-            #return gtk.gdk.pixbuf_new_from_file(pic_path)
             if (time.time() - os.stat(pic_path).st_mtime) < max_old:
                 return gtk.gdk.pixbuf_new_from_file(pic_path)
 
