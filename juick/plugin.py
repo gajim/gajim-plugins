@@ -9,6 +9,7 @@ import urllib
 from string import upper
 from string import rstrip
 import locale
+import sqlite3
 
 from common import helpers
 from common import gajim
@@ -65,6 +66,11 @@ class JuickPlugin(GajimPlugin):
         self.chat_control = chat_control
         control = Base(self, self.chat_control)
         self.controls.append(control)
+        self.conn = sqlite3.connect(os.path.join(self.cache_path, 'juick_db'))
+        self.conn.execute('create table if not exists person'
+            '(nick, id, last_modified)')
+        self.conn.commit()
+        self.cursor = self.conn.cursor()
 
     @log_calls('JuickPlugin')
     def disconnect_from_chat_control(self, chat_control):
@@ -82,15 +88,15 @@ class Base(object):
         self.change_cursor = False
 
         id_ = self.textview.tv.connect('button_press_event',
-                            self.on_textview_button_press_event, self.textview)
+            self.on_textview_button_press_event, self.textview)
         chat_control.handlers[id_] = self.textview.tv
 
         id_ = self.chat_control.msg_textview.connect('key_press_event',
-                                                        self.mykeypress_event)
+            self.mykeypress_event)
         chat_control.handlers[id_] = self.chat_control.msg_textview
 
         self.id_ = self.textview.tv.connect('motion_notify_event',
-                                        self.on_textview_motion_notify_event)
+            self.on_textview_motion_notify_event)
         self.chat_control.handlers[self.id_] = self.textview.tv
 
         # new buffer tags
@@ -99,17 +105,17 @@ class Base(object):
         self.textview.tagSharpSlash = buffer_.create_tag('sharp_slash')
         self.textview.tagSharpSlash.set_property('foreground', color)
         self.textview.tagSharpSlash.set_property('underline',
-                                                    pango.UNDERLINE_SINGLE)
+            pango.UNDERLINE_SINGLE)
         id_ = self.textview.tagSharpSlash.connect('event',
-                                self.juick_hyperlink_handler, 'sharp_slash')
+            self.juick_hyperlink_handler, 'sharp_slash')
         chat_control.handlers[id_] = self.textview.tagSharpSlash
 
         self.textview.tagJuickNick = buffer_.create_tag('juick_nick')
         self.textview.tagJuickNick.set_property('foreground', color)
         self.textview.tagJuickNick.set_property('underline',
-                                                        pango.UNDERLINE_SINGLE)
+            pango.UNDERLINE_SINGLE)
         id_ = self.textview.tagJuickNick.connect('event',
-                                    self.juick_hyperlink_handler, 'juick_nick')
+            self.juick_hyperlink_handler, 'juick_nick')
         chat_control.handlers[id_] = self.textview.tagJuickNick
         self.textview.tagJuickPic = buffer_.create_tag('juick_pic')
 
@@ -163,7 +169,7 @@ class Base(object):
         send_button_pos = actions_hbox.child_get_property(send_button,
             'position')
         actions_hbox.add_with_properties(self.button, 'position',
-                                        send_button_pos - 1, 'expand', False)
+            send_button_pos - 1, 'expand', False)
         id_ = self.button.connect('clicked', self.on_juick_button_clicked)
         self.chat_control.handlers[id_] = self.button
         self.button.show()
@@ -180,13 +186,13 @@ class Base(object):
         img.set_from_stock('juick_tag', gtk.ICON_SIZE_BUTTON)
         self.tag_button.set_image(img)
         actions_hbox.add_with_properties(self.tag_button, 'position',
-                                        send_button_pos - 1, 'expand', False)
+            send_button_pos - 1, 'expand', False)
         id_ = self.tag_button.connect('clicked', self.on_juick_tag_button_clicked)
         self.chat_control.handlers[id_] = self.tag_button
         self.tag_button.set_no_show_all(True)
         self.tag_button.set_tooltip_text(_('Juick tags'))
-        self.tag_button.set_property('visible',
-                                        self.plugin.config['SHOW_TAG_BUTTON'])
+        self.tag_button.set_property('visible', self.plugin.config[
+            'SHOW_TAG_BUTTON'])
 
     def create_link_menu(self):
         """
@@ -234,7 +240,7 @@ class Base(object):
         for num in xrange(1, 11):
             menuitem = self.plugin.config['MENUITEM' + str(num)]
             text = self.plugin.config['MENUITEM_TEXT' + str(num)]
-            if menuitem == '' or text == '':
+            if not menuitem or not text:
                 continue
             item = gtk.MenuItem(menuitem)
             item.connect('activate', self.on_insert, text)
@@ -305,38 +311,55 @@ class Base(object):
             return
         if gajim.interface.juick_nick_re.match(special_text):
             # insert juick nick @nickname////
-            buffer_, iter_, tag = self.get_iter_and_tag('juick_nick')
-            mark = buffer_.create_mark(None, iter_, True)
-            # insert juick nick
-            buffer_.insert_with_tags(iter_, special_text, tag)
             if not self.plugin.config['SHOW_AVATARS']:
                 return
+            buffer_, iter_, tag = self.get_iter_and_tag('juick_nick')
+            mark = buffer_.create_mark(None, iter_, True)
+            nick = special_text[1:].rstrip(':')
+            # insert juick nick
+            buffer_.insert_with_tags(iter_, special_text, tag)
             # insert avatars
             conn = gajim.connections[self.chat_control.account]
             if not conn.connected:
                 return
-            id_ = conn.connection.getAnID()
-            to = 'juick@juick.com'
-            iq = common.xmpp.Iq('get', to=to)
-            a = iq.addChild(name='query',
-                namespace='http://juick.com/query#users')
-            special_text1 = special_text[1:].rstrip(':')
-            a.addChild(name='user', namespace='http://juick.com/user',
-                attrs={'uname': special_text1})
-            iq.setID(id_)
-            conn.connection.SendAndCallForResponse(iq, self._on_response,
-                {'mark': mark, 'special_text': special_text})
-            return
+            # search id in the db
+            query = "select nick, id from person where nick = :nick"
+            self.plugin.cursor.execute(query, {'nick':nick})
+            db_item = self.plugin.cursor.fetchone()
+            if db_item:
+                # nick in the db
+                pixbuf = self.get_avatar(db_item[1], nick, True)
+                if not pixbuf:
+                    return
+                end_iter = buffer_.get_iter_at_mark(mark)
+                anchor = buffer_.create_child_anchor(end_iter)
+                img = TextViewImage(anchor, nick)
+                img.set_from_pixbuf(pixbuf)
+                img.show()
+                self.textview.tv.add_child_at_anchor(img, anchor)
+            else:
+                # nick not in the db
+                id_ = conn.connection.getAnID()
+                to = 'juick@juick.com'
+                iq = common.xmpp.Iq('get', to=to)
+                a = iq.addChild(name='query',
+                    namespace='http://juick.com/query#users')
+                a.addChild(name='user', namespace='http://juick.com/user',
+                    attrs={'uname': nick})
+                iq.setID(id_)
+                conn.connection.SendAndCallForResponse(iq, self._on_response,
+                    {'mark': mark, 'special_text': special_text})
+                return
         if gajim.interface.juick_pic_re.match(special_text) and \
-                                        self.plugin.config['SHOW_PREVIEW']:
+            self.plugin.config['SHOW_PREVIEW']:
             # show pics preview
             buffer_, iter_, tag = self.get_iter_and_tag('url')
             mark = buffer_.create_mark(None, iter_, True)
             buffer_.insert_with_tags(iter_, special_text, tag)
             uid = special_text.split('/')[-1]
             url = "http://i.juick.com/photos-512/%s" % uid
-            pixbuf = self.get_pixbuf_from_url(
-                                    url, self.plugin.config['PREVIEW_SIZE'])
+            pixbuf = self.get_pixbuf_from_url( url, self.plugin.config[
+                'PREVIEW_SIZE'])
             if pixbuf:
                 # insert image
                 buffer_ = mark.get_buffer()
@@ -361,36 +384,54 @@ class Base(object):
         buffer_ = mark.get_buffer()
         end_iter = buffer_.get_iter_at_mark(mark)
         tags = resp.getTag('query')
+        nick = kwargs['special_text'][1:].rstrip(':')
         if tags:
             user = tags.getTag('user')
             if not user:
                 return
             uid = user.getAttr('uid')
-            pixbuf = self.get_avatar(uid)
+            pixbuf = self.get_avatar(uid, nick)
             if pixbuf:
                 anchor = buffer_.create_child_anchor(end_iter)
-                tooltype_text = kwargs['special_text'][1:].rstrip(':')
-                img = TextViewImage(anchor, tooltype_text)
+                img = TextViewImage(anchor, nick)
                 img.set_from_pixbuf(pixbuf)
                 img.show()
                 self.textview.tv.add_child_at_anchor(img, anchor)
 
-    def get_avatar(self, uid):
+
+
+    def get_avatar(self, uid, nick, need_check=None):
         # search avatar in cache or download from juick.com
         pic = uid + '.png'
         pic_path = os.path.join(self.plugin.cache_path, pic)
         pic_path = pic_path.decode(locale.getpreferredencoding())
-        if os.path.isfile(pic_path):
-            pixbuf = gtk.gdk.pixbuf_new_from_file(pic_path)
-            max_old = self.plugin.config['avatars_old']
-            if (time.time() - os.stat(pic_path).st_mtime) < max_old:
-                return pixbuf
         url = 'http://i.juick.com/as/%s.png' % uid
+        if need_check and os.path.isfile(pic_path):
+            max_old = self.plugin.config['avatars_old']
+            #req = urllib2.Request(url)
+            #url_handle = urllib2.urlopen(req)
+            #headers = url_handle.info()
+            #etag = headers.getheader("ETag")
+            #last_modified = headers.getheader("Last-Modified")
+            #return gtk.gdk.pixbuf_new_from_file(pic_path)
+            if (time.time() - os.stat(pic_path).st_mtime) < max_old:
+                return gtk.gdk.pixbuf_new_from_file(pic_path)
+
         pixbuf = self.get_pixbuf_from_url(url,self.plugin.config[
             'AVATAR_SIZE'])
         if pixbuf:
             # save to cache
             pixbuf.save(pic_path, 'png')
+            if need_check:
+                return pixbuf
+            query = "select nick, id from person where nick = :nick"
+            self.plugin.cursor.execute(query, {'nick':nick})
+            db_item = self.plugin.cursor.fetchone()
+            if not db_item:
+                data = (nick.decode('utf-8'), uid.decode('utf-8'))
+                self.plugin.cursor.execute('insert into person(nick, id)'
+                    ' values (?, ?)', data)
+                self.plugin.conn.commit()
             return pixbuf
 
     def get_pixbuf_from_url(self, url, size):
@@ -424,7 +465,7 @@ class Base(object):
                 image_height = int(size)
 
         crop_pixbuf = pixbuf.scale_simple(image_width, image_height,
-                                                    gtk.gdk.INTERP_BILINEAR)
+            gtk.gdk.INTERP_BILINEAR)
         return (crop_pixbuf, image_width, image_height)
 
     def on_textview_button_press_event(self, widget, event, obj):
@@ -434,7 +475,7 @@ class Base(object):
             return False
 
         x, y = obj.tv.window_to_buffer_coords(gtk.TEXT_WINDOW_TEXT,
-                int(event.x), int(event.y))
+            int(event.x), int(event.y))
         iter_ = obj.tv.get_iter_at_location(x, y)
         tags = iter_.get_tags()
 
@@ -550,11 +591,10 @@ class Base(object):
 class JuickPluginConfigDialog(GajimPluginConfigDialog):
     def init(self):
         self.GTK_BUILDER_FILE_PATH = self.plugin.local_file_path(
-                'config_dialog.ui')
+            'config_dialog.ui')
         self.xml = gtk.Builder()
         self.xml.set_translation_domain('gajim_plugins')
-        self.xml.add_objects_from_file(self.GTK_BUILDER_FILE_PATH,
-                ['vbox1'])
+        self.xml.add_objects_from_file(self.GTK_BUILDER_FILE_PATH, ['vbox1'])
         self.checkbutton = self.xml.get_object('checkbutton')
         self.avatar_size_spinbutton = self.xml.get_object('avatar_size')
         self.avatar_size_spinbutton.get_adjustment().set_all(20, 10, 32, 1,
@@ -578,17 +618,17 @@ class JuickPluginConfigDialog(GajimPluginConfigDialog):
         self.avatar_size_spinbutton.set_value(self.plugin.config['AVATAR_SIZE'])
         self.avatars_old.set_value(self.plugin.config['avatars_old'] / 86400)
         self.show_pic.set_active(self.plugin.config['SHOW_PREVIEW'])
-        self.preview_size_spinbutton.set_value(
-                                            self.plugin.config['PREVIEW_SIZE'])
+        self.preview_size_spinbutton.set_value(self.plugin.config[
+            'PREVIEW_SIZE'])
         self.link_colorbutton.set_color(gtk.gdk.color_parse(
-                                            self.plugin.config['LINK_COLOR']))
-        self.xml.get_object('show_tag_button').set_active(
-                                        self.plugin.config['SHOW_TAG_BUTTON'])
+            self.plugin.config['LINK_COLOR']))
+        self.xml.get_object('show_tag_button').set_active(self.plugin.config[
+            'SHOW_TAG_BUTTON'])
         for num in xrange(1, 11):
             self.xml.get_object('menuitem' + str(num)).set_text(
-                                    self.plugin.config['MENUITEM' + str(num)])
+                self.plugin.config['MENUITEM' + str(num)])
             self.xml.get_object('menuitem_text' + str(num)).set_text(
-                                self.plugin.config['MENUITEM_TEXT' + str(num)])
+                self.plugin.config['MENUITEM_TEXT' + str(num)])
 
     def on_checkbutton_toggled(self, checkbutton):
         self.plugin.config['SHOW_AVATARS'] = checkbutton.get_active()
