@@ -10,6 +10,7 @@ from string import upper
 from string import rstrip
 import locale
 import sqlite3
+import gobject
 
 from common import helpers
 from common import gajim
@@ -31,7 +32,9 @@ class JuickPlugin(GajimPlugin):
         self.config_dialog = JuickPluginConfigDialog(self)
         self.gui_extension_points = {
                 'chat_control_base': (self.connect_with_chat_control,
-                                       self.disconnect_from_chat_control)}
+                                       self.disconnect_from_chat_control),
+                'print_special_text': (self.print_special_text,
+                                       self.print_special_text1),}
         self.config_default_values = {'SHOW_AVATARS': (False, ''),
                     'AVATAR_SIZE': (20, 'Avatar size(10-32)'),
                     'avatars_old': (2419200, 'Update avatars '
@@ -78,6 +81,18 @@ class JuickPlugin(GajimPlugin):
         self.controls = []
         self.conn.close()
 
+    def print_special_text(self, tv, special_text, other_tags, graphics=True):
+        for control in self.controls:
+            if control.chat_control.conv_textview != tv:
+                continue
+            control.print_special_text(special_text, other_tags, graphics=True)
+
+    def print_special_text1(self, chat_control, special_text, other_tags=None,
+        graphics=True):
+        for control in self.controls:
+            if control.chat_control == chat_control:
+                control.disconnect_from_chat_control()
+                self.controls.remove(control)
 
 class Base(object):
     def __init__(self, plugin, chat_control):
@@ -123,9 +138,6 @@ class Base(object):
         self.create_link_menu()
         self.create_tag_menu()
         self.create_buttons()
-
-        self.old_print_special_text = self.textview.print_special_text
-        self.textview.print_special_text = self.print_special_text
 
     def create_patterns(self):
         self.juick_post_uid = self.juick_nick = ''
@@ -308,19 +320,21 @@ class Base(object):
             buffer_, iter_, tag = self.get_iter_and_tag('sharp_slash')
             buffer_.insert_with_tags(iter_, special_text, tag)
             self.last_juick_num = special_text
+            self.textview.plugin_modified = True
             return
         if gajim.interface.juick_nick_re.match(special_text):
             # insert juick nick @nickname////
             if not self.plugin.config['SHOW_AVATARS']:
+                self.textview.plugin_modified = True
                 return
             buffer_, iter_, tag = self.get_iter_and_tag('juick_nick')
             mark = buffer_.create_mark(None, iter_, True)
             nick = special_text[1:].rstrip(':')
-            # insert juick nick
             buffer_.insert_with_tags(iter_, special_text, tag)
             # insert avatars
             conn = gajim.connections[self.chat_control.account]
             if not conn.connected:
+                self.textview.plugin_modified = True
                 return
             # search id in the db
             query = "select nick, id from person where nick = :nick"
@@ -330,6 +344,7 @@ class Base(object):
                 # nick in the db
                 pixbuf = self.get_avatar(db_item[1], nick, True)
                 if not pixbuf:
+                    self.textview.plugin_modified = True
                     return
                 end_iter = buffer_.get_iter_at_mark(mark)
                 anchor = buffer_.create_child_anchor(end_iter)
@@ -337,6 +352,7 @@ class Base(object):
                 img.set_from_pixbuf(pixbuf)
                 img.show()
                 self.textview.tv.add_child_at_anchor(img, anchor)
+                self.textview.plugin_modified = True
                 return
             else:
                 # nick not in the db
@@ -350,6 +366,7 @@ class Base(object):
                 iq.setID(id_)
                 conn.connection.SendAndCallForResponse(iq, self._on_response,
                     {'mark': mark, 'special_text': special_text})
+                self.textview.plugin_modified = True
                 return
         if gajim.interface.juick_pic_re.match(special_text) and \
             self.plugin.config['SHOW_PREVIEW']:
@@ -359,19 +376,20 @@ class Base(object):
             buffer_.insert_with_tags(iter_, special_text, tag)
             uid = special_text.split('/')[-1]
             url = "http://i.juick.com/photos-512/%s" % uid
-            pixbuf = self.get_pixbuf_from_url( url, self.plugin.config[
-                'PREVIEW_SIZE'])
-            if pixbuf:
-                # insert image
-                buffer_ = mark.get_buffer()
-                end_iter = buffer_.get_iter_at_mark(mark)
-                anchor = buffer_.create_child_anchor(end_iter)
-                img = TextViewImage(anchor, special_text)
-                img.set_from_pixbuf(pixbuf)
-                img.show()
-                self.textview.tv.add_child_at_anchor(img, anchor)
-        else:
-            self.old_print_special_text(special_text, other_tags, graphics)
+            gobject.idle_add(self.insert_pic_preview, mark, special_text, url)
+
+    def insert_pic_preview(self, mark, special_text, url):
+        pixbuf = self.get_pixbuf_from_url( url, self.plugin.config[
+            'PREVIEW_SIZE'])
+        if pixbuf:
+            # insert image
+            buffer_ = mark.get_buffer()
+            end_iter = buffer_.get_iter_at_mark(mark)
+            anchor = buffer_.create_child_anchor(end_iter)
+            img = TextViewImage(anchor, special_text)
+            img.set_from_pixbuf(pixbuf)
+            img.show()
+            self.textview.tv.add_child_at_anchor(img, anchor)
 
     def get_iter_and_tag(self, tag_name):
         buffer_ = self.textview.tv.get_buffer()
@@ -565,7 +583,6 @@ class Base(object):
             helpers.launch_browser_mailer('url', url)
 
     def disconnect_from_chat_control(self):
-        self.textview.print_special_text = self.old_print_special_text
         buffer_ = self.textview.tv.get_buffer()
         tag_table = buffer_.get_tag_table()
         if tag_table.lookup('sharp_slash'):
