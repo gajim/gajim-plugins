@@ -10,7 +10,6 @@ from string import upper
 from string import rstrip
 import locale
 import sqlite3
-import gobject
 
 from common import helpers
 from common import gajim
@@ -376,7 +375,8 @@ class Base(object):
             buffer_.insert_with_tags(iter_, special_text, tag)
             uid = special_text.split('/')[-1]
             url = "http://i.juick.com/photos-512/%s" % uid
-            gobject.idle_add(self.insert_pic_preview, mark, special_text, url)
+            gajim.thread_interface(self.insert_pic_preview, [mark, special_text,
+                url])
 
     def insert_pic_preview(self, mark, special_text, url):
         pixbuf = self.get_pixbuf_from_url( url, self.plugin.config[

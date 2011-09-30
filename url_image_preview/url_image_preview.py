@@ -3,9 +3,7 @@
 import gtk
 import re
 import os
-
 import urllib
-import gobject
 
 from common import gajim
 from plugins import GajimPlugin
@@ -84,7 +82,8 @@ class Base(object):
         buffer_ = self.textview.tv.get_buffer()
         iter_ = buffer_.get_end_iter()
         mark = buffer_.create_mark(None, iter_, True)
-        gobject.idle_add(self.insert_pic_preview, mark, special_text, special_text)
+        gajim.thread_interface(self.insert_pic_preview, [mark, special_text,
+            special_text])
 
     def insert_pic_preview(self, mark, special_text, url):
         pixbuf = self.get_pixbuf_from_url( url, self.plugin.config[
