@@ -43,6 +43,7 @@ class JuickPlugin(GajimPlugin):
                     'LINK_COLOR': ('#B8833E', 'Juick link color'),
                     'SHOW_TAG_BUTTON': (True, ''),
                     'ONLY_AUTHOR_AVATAR': (True, ''),
+                    'ONLY_FIRST_AVATAR': (False, ''),
                     'MENUITEM1': ('tune', ''), 'MENUITEM_TEXT1': ('*tune', ''),
                     'MENUITEM2': ('geo', ''), 'MENUITEM_TEXT2': ('*geo', ''),
                     'MENUITEM3': ('gajim', ''),
@@ -143,10 +144,7 @@ class Base(object):
         self.juick_post_re = re.compile(r'#(\d+)')
         self.juick_post_comment_re = re.compile(r'#(\d+)/(\d+)')
         sharp_slash = r'#\d+(\/\d+)?'
-        if self.plugin.config['ONLY_AUTHOR_AVATAR']:
-            juick_nick = r'@[a-zA-Z0-9_@\.-]+:'
-        else:
-            juick_nick = r'@[a-zA-Z0-9_@:\.-]+'
+        juick_nick = r'@[a-zA-Z0-9_@:\.-]+'
         juick_pic = r'http://i\.juick\.com/.+/[0-9-]+\.[JPG|jpg]'
         interface = gajim.interface
         interface.sharp_slash_re = re.compile(sharp_slash)
@@ -323,14 +321,30 @@ class Base(object):
             return
         if gajim.interface.juick_nick_re.match(special_text):
             # insert juick nick @nickname////
-            if not self.plugin.config['SHOW_AVATARS']:
-                self.textview.plugin_modified = True
-                return
             buffer_, iter_, tag = self.get_iter_and_tag('juick_nick')
             mark = buffer_.create_mark(None, iter_, True)
             nick = special_text[1:].rstrip(':')
             buffer_.insert_with_tags(iter_, special_text, tag)
             # insert avatars
+            if not self.plugin.config['SHOW_AVATARS']:
+                self.textview.plugin_modified = True
+                return
+            b_nick = buffer_.get_text(buffer_.get_start_iter(),
+                buffer_.get_iter_at_mark(mark),False)
+            if self.plugin.config['ONLY_AUTHOR_AVATAR'] and not \
+            special_text.endswith(':') and b_nick[-9:] not in ('Subscribed to '
+            ):
+                self.textview.plugin_modified = True
+                return
+            if self.plugin.config['ONLY_FIRST_AVATAR']:
+                if b_nick[-9:] not in ('Reply by ', 'message from ', 'ended by ',
+                'Subscribed to '):
+                    if b_nick[-2] != gajim.config.get('after_nickname'):
+                        self.textview.plugin_modified = True
+                        return
+                    elif b_nick[-1] == '\n':
+                        self.textview.plugin_modified = True
+                        return
             conn = gajim.connections[self.chat_control.account]
             if not conn.connected:
                 self.textview.plugin_modified = True
@@ -608,6 +622,7 @@ class JuickPluginConfigDialog(GajimPluginConfigDialog):
         self.xml.set_translation_domain('gajim_plugins')
         self.xml.add_objects_from_file(self.GTK_BUILDER_FILE_PATH, ['vbox1'])
         self.checkbutton = self.xml.get_object('checkbutton')
+        self.only_first_avatar = self.xml.get_object('only_first_avatar')
         self.avatar_size_spinbutton = self.xml.get_object('avatar_size')
         self.avatar_size_spinbutton.get_adjustment().set_all(20, 10, 32, 1,
             10, 0)
@@ -625,6 +640,8 @@ class JuickPluginConfigDialog(GajimPluginConfigDialog):
 
     def on_run(self):
         self.checkbutton.set_active(self.plugin.config['SHOW_AVATARS'])
+        self.only_first_avatar.set_active(self.plugin.config[
+            'ONLY_FIRST_AVATAR'])
         self.xml.get_object('only_author_avatar').set_active(
                                     self.plugin.config['ONLY_AUTHOR_AVATAR'])
         self.avatar_size_spinbutton.set_value(self.plugin.config['AVATAR_SIZE'])
@@ -647,8 +664,9 @@ class JuickPluginConfigDialog(GajimPluginConfigDialog):
 
     def on_only_author_ava_toggled(self, checkbutton):
         self.plugin.config['ONLY_AUTHOR_AVATAR'] = checkbutton.get_active()
-        for control in self.plugin.controls:
-            control.create_patterns()
+
+    def on_only_first_avatar_toggled(self, checkbutton):
+        self.plugin.config['ONLY_FIRST_AVATAR'] = checkbutton.get_active()
 
     def avatar_size_value_changed(self, spinbutton):
         self.plugin.config['AVATAR_SIZE'] = spinbutton.get_value()
