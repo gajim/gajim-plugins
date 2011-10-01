@@ -43,7 +43,6 @@ class UrlImagePreviewPlugin(GajimPlugin):
         for control in self.controls:
             control.disconnect_from_chat_control()
         self.controls = []
-        self.conn.close()
 
     def print_special_text(self, tv, special_text, other_tags, graphics=True):
         for control in self.controls:
