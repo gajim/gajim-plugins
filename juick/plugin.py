@@ -391,6 +391,8 @@ class Base(object):
             url = "http://i.juick.com/photos-512/%s" % uid
             gajim.thread_interface(self.insert_pic_preview, [mark, special_text,
                 url])
+            self.textview.plugin_modified = True
+            return
 
     def insert_pic_preview(self, mark, special_text, url):
         pixbuf = self.get_pixbuf_from_url( url, self.plugin.config[
