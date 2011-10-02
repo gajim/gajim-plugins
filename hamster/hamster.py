@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
 import dbus
-import gobject
 import datetime as dt
+import gobject
 from common import gajim
 from common import ged
 from common import dbus_support
@@ -43,21 +43,20 @@ class HamsterIntegrationPlugin(GajimPlugin):
             gajim.log.debug('Hamster D-Bus service not found')
             return
 
-        self.active = True
         self.bus.add_signal_receiver(self.hamster_facts_changed, 'FactsChanged',
             HAMSTAER_INTERFACE)
-        gajim.ged.register_event_handler('our-show', ged.POSTGUI,
-            self.on_our_status)
-        self.pep_dict ={}
+        gajim.ged.register_event_handler('signed-in', ged.POSTGUI,
+            self.on_signed_in)
 
     @log_calls('HamsterIntegrationPlugin')
     def deactivate(self):
         if not dbus_support.supported or not self.active:
             return
 
-        self.active = False
-        self.bus.remove_signal_receiver(self.hamster_facts_changed, "FactsChanged",
-                                        dbus_interface=HAMSTAER_INTERFACE)
+        self.bus.remove_signal_receiver(self.hamster_facts_changed,
+            "FactsChanged", dbus_interface=HAMSTAER_INTERFACE)
+        gajim.ged.remove_event_handler('signed-in', ged.POSTGUI,
+            self.on_signed_in)
 
     def hamster_facts_changed(self, *args, **kw):
         # get hamster tags
@@ -86,8 +85,7 @@ class HamsterIntegrationPlugin(GajimPlugin):
             subactivity=list(subactivity_candidates)[0]
 
         # send activity
-        accounts = gajim.connections.keys()
-        for account in accounts:
+        for account in gajim.connections:
             if gajim.account_is_connected(account):
                 connection = gajim.connections[account]
                 connection.send_activity(activity, subactivity,
@@ -107,7 +105,5 @@ class HamsterIntegrationPlugin(GajimPlugin):
             seconds = fact[9] % (24 * 60 * 60)),
             id = fact[0])
 
-    def on_our_status(self, network_event):
-        gajim.ged.remove_event_handler('our-show', ged.POSTGUI,
-            self.on_our_status)
-        gobject.timeout_add(10000, self.hamster_facts_changed)
+    def on_signed_in(self, network_event):
+        gobject.timeout_add(5000,self.hamster_facts_changed)
