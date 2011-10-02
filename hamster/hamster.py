@@ -63,7 +63,8 @@ class HamsterIntegrationPlugin(GajimPlugin):
         # get hamster tags
         facts = self.session_presence.GetTodaysFacts(
             dbus_interface=HAMSTAER_INTERFACE)
-
+        if not facts:
+            return
         if self.from_dbus_fact(facts[-1])['end_time']:
             accounts = gajim.connections.keys()
             for account in accounts:
