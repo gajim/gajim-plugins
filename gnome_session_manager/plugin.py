@@ -63,7 +63,7 @@ class GnomeSessionManagerPlugin(GajimPlugin):
         self.active = False
         self.bus.remove_signal_receiver(self.gnome_presence_changed, "StatusChanged",
                                         dbus_interface=PRESENCE_INTERFACE)
-        ged.remove_event_handler('our-show', ged.POSTGUI, self.on_our_status)
+        gajim.ged.remove_event_handler('our-show', ged.POSTGUI, self.on_our_status)
 
 
     def gnome_presence_changed(self, status, *args, **kw):
