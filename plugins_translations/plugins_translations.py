@@ -51,3 +51,4 @@ class PluginsTranslationsPlugin(GajimPlugin):
     @log_calls('PluginsTranslationsPlugin')
     def deactivate(self):
         self.remove_translations()
+        self.config['last_version'] = '0'
