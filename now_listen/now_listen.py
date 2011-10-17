@@ -95,6 +95,8 @@ class Base(object):
         self.chat_control.handlers[self.id_] = self.chat_control.msg_textview
 
     def disconnect_from_chat_control(self):
+        if self.id_ not in self.chat_control.handlers:
+            return
         if self.chat_control.handlers[self.id_].handler_is_connected(self.id_):
             self.chat_control.handlers[self.id_].disconnect(self.id_)
             del self.chat_control.handlers[self.id_]
