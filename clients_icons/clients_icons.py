@@ -401,6 +401,13 @@ class ClientsIconsPluginConfigDialog(GajimPluginConfigDialog):
             self.liststore.append((item,))
         self.combo.set_active(self.plugin.config['pos_in_list'])
 
+        self.xml.get_object('show_in_roster').set_active(
+            self.plugin.config['show_in_roster'])
+        self.xml.get_object('show_in_groupchats').set_active(
+            self.plugin.config['show_in_groupchats'])
+        self.xml.get_object('show_unknown_icon').set_active(
+            self.plugin.config['show_unknown_icon'])
+
         self.xml.connect_signals(self)
 
     def redraw_all(self):
@@ -410,14 +417,6 @@ class ClientsIconsPluginConfigDialog(GajimPluginConfigDialog):
             self.plugin.disconnect_from_groupchat_control(gc_control)
         for gc_control in gajim.interface.msg_win_mgr.get_controls('gc'):
             self.plugin.connect_with_groupchat_control(gc_control)
-
-    def on_run(self):
-        self.xml.get_object('show_in_roster').set_active(
-            self.plugin.config['show_in_roster'])
-        self.xml.get_object('show_in_groupchats').set_active(
-            self.plugin.config['show_in_groupchats'])
-        self.xml.get_object('show_unknown_icon').set_active(
-            self.plugin.config['show_unknown_icon'])
 
     def on_show_in_roster_toggled(self, widget):
         self.plugin.config['show_in_roster'] = widget.get_active()
