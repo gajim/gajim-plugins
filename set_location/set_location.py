@@ -46,7 +46,7 @@ class SetLocationPlugin(GajimPlugin):
         self._data = {}
         timestamp = time.time()
         timestamp = datetime.utcfromtimestamp(timestamp)
-        timestamp = timestamp.strftime('%Y-%m-%dT%H:%MZ')
+        timestamp = timestamp.strftime('%Y-%m-%dT%H:%M:%SZ')
         self._data['timestamp'] = timestamp
         for name in self.config_default_values:
             self._data[name] = self.config[name]
