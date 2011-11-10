@@ -62,7 +62,7 @@ class Base(object):
         self.button.set_property('relief', gtk.RELIEF_NONE)
         self.button.set_property('can-focus', False)
         img = gtk.Image()
-        img.set_from_stock('gtk-orientation-portrait', gtk.ICON_SIZE_BUTTON)
+        img.set_from_stock('gtk-orientation-portrait', gtk.ICON_SIZE_MENU)
         self.button.set_image(img)
         self.button.set_tooltip_text('Send image')
         send_button = chat_control.xml.get_object('send_button')

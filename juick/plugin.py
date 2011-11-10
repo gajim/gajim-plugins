@@ -171,7 +171,7 @@ class Base(object):
         factory = gtk.IconFactory()
         factory.add('juick', iconset)
         factory.add_default()
-        img.set_from_stock('juick', gtk.ICON_SIZE_BUTTON)
+        img.set_from_stock('juick', gtk.ICON_SIZE_MENU)
         self.button.set_image(img)
         self.button.set_tooltip_text(_('Juick commands'))
         send_button = self.chat_control.xml.get_object('send_button')
@@ -192,7 +192,7 @@ class Base(object):
         iconset = gtk.IconSet(pixbuf=pixbuf)
         factory.add('juick_tag', iconset)
         factory.add_default()
-        img.set_from_stock('juick_tag', gtk.ICON_SIZE_BUTTON)
+        img.set_from_stock('juick_tag', gtk.ICON_SIZE_MENU)
         self.tag_button.set_image(img)
         actions_hbox.add_with_properties(self.tag_button, 'position',
             send_button_pos - 1, 'expand', False)
