@@ -84,7 +84,7 @@ class Base(object):
         mark = buffer_.create_mark(None, iter_, True)
         # start downloading image
         gajim.thread_interface(helpers.download_image, [
-            self.textview.account, {'src': url}], self._update_img, [mark])
+            self.textview.account, {'src': special_text}], self._update_img, [mark])
 
     def _update_img(self, (mem, alt), mark):
         if mem:
