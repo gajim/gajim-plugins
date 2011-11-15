@@ -6,6 +6,7 @@ import os
 import urllib
 
 from common import gajim
+from common import helpers
 from plugins import GajimPlugin
 from plugins.helpers import log_calls
 from plugins.gui import GajimPluginConfigDialog
@@ -81,36 +82,29 @@ class Base(object):
         buffer_ = self.textview.tv.get_buffer()
         iter_ = buffer_.get_end_iter()
         mark = buffer_.create_mark(None, iter_, True)
-        gajim.thread_interface(self.insert_pic_preview, [mark, special_text,
-            special_text])
+        # start downloading image
+        gajim.thread_interface(helpers.download_image, [
+            self.textview.account, {'src': url}], self._update_img, [mark])
 
-    def insert_pic_preview(self, mark, special_text, url):
-        pixbuf = self.get_pixbuf_from_url( url, self.plugin.config[
-            'PREVIEW_SIZE'])
-        if pixbuf:
-            # insert image
-            buffer_ = mark.get_buffer()
-            end_iter = buffer_.get_iter_at_mark(mark)
-            anchor = buffer_.create_child_anchor(end_iter)
-            img = TextViewImage(anchor, special_text)
-            img.set_from_pixbuf(pixbuf)
-            img.show()
-            self.textview.tv.add_child_at_anchor(img, anchor)
-
-
-    def get_pixbuf_from_url(self, url, size):
-        # download image and resize
-        # Returns pixbuf or False if broken image or not connected
-        try:
-            data = urllib.urlopen(url).read()
-            pix = gtk.gdk.PixbufLoader()
-            pix.write(data)
-            pix.close()
-            pixbuf = pix.get_pixbuf()
-            pixbuf, w, h = self.get_pixbuf_of_size(pixbuf, size)
-        except:
-            return False
-        return pixbuf
+    def _update_img(self, (mem, alt), mark):
+        if mem:
+            try:
+                loader = gtk.gdk.PixbufLoader()
+                loader.write(mem)
+                loader.close()
+                pixbuf = loader.get_pixbuf()
+                pixbuf.save('qwe.jpg', 'jpeg', {"quality":"100"})
+                pixbuf, w, h = self.get_pixbuf_of_size(pixbuf,
+                    self.plugin.config['PREVIEW_SIZE'])
+                buffer_ = mark.get_buffer()
+                end_iter = buffer_.get_iter_at_mark(mark)
+                anchor = buffer_.create_child_anchor(end_iter)
+                img = TextViewImage(anchor, alt)
+                img.set_from_pixbuf(pixbuf)
+                img.show()
+                self.textview.tv.add_child_at_anchor(img, anchor)
+            except Exception:
+                pass
 
     def get_pixbuf_of_size(self, pixbuf, size):
         # Creates a pixbuf that fits in the specified square of sizexsize
