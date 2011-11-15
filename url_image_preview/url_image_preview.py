@@ -3,7 +3,6 @@
 import gtk
 import re
 import os
-import urllib
 
 from common import gajim
 from common import helpers
