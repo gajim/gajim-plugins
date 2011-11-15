@@ -93,7 +93,6 @@ class Base(object):
                 loader.write(mem)
                 loader.close()
                 pixbuf = loader.get_pixbuf()
-                pixbuf.save('qwe.jpg', 'jpeg', {"quality":"100"})
                 pixbuf, w, h = self.get_pixbuf_of_size(pixbuf,
                     self.plugin.config['PREVIEW_SIZE'])
                 buffer_ = mark.get_buffer()
