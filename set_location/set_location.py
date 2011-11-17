@@ -11,7 +11,7 @@ from plugins import GajimPlugin
 from plugins.helpers import log, log_calls
 from common import gajim
 import gtkgui_helpers
-from dialogs import InputDialog
+from dialogs import InputDialog, WarningDialog
 
 
 class SetLocationPlugin(GajimPlugin):
@@ -119,9 +119,13 @@ class SetLocationPluginConfigDialog(GajimPluginConfigDialog):
             self.osm.layer_add(osmgpsmap.GpsMapOsd(show_dpad=True,
                 show_zoom=True))
             self.osm.layer_add(DummyLayer())
-            lat = float(self.plugin.config['lat'])
-            lon = float(self.plugin.config['lon'])
-            self.osm.set_center_and_zoom(lat, lon, 12)
+            lat = self.plugin.config['lat']
+            lon = self.plugin.config['lon']
+            if not self.is_valid_coord(lat, lon):
+                self.lat = self.lon = 0.0
+                self.xml.get_object('lat').set_text('0.0')
+                self.xml.get_object('lon').set_text('0.0')
+            self.osm.set_center_and_zoom(self.lat, self.lon, 12)
             self.path_to_image = os.path.abspath(gtkgui_helpers.get_icon_path(
                 'gajim', 16))
             self.icon = gtk.gdk.pixbuf_new_from_file_at_size(
@@ -134,18 +138,28 @@ class SetLocationPluginConfigDialog(GajimPluginConfigDialog):
             vbox.pack_start(label, expand=False, fill=False, padding=6)
             self.is_active = True
             self.images = []
-            self.osm_image = self.osm.image_add(lat, lon, self.icon)
+            self.osm_image = self.osm.image_add(self.lat, self.lon, self.icon)
             self.xml.get_object('lat').connect('changed', self.on_lon_changed)
             self.xml.get_object('lon').connect('changed', self.on_lon_changed)
 
     def on_hide(self, widget):
         for name in self.plugin.config_default_values:
-            if name == 'presets':
+            if name in ['presets', 'lat', 'lon']:
                 continue
             widget = self.xml.get_object(name)
             self.plugin.config[name] = widget.get_text()
+        lat = self.xml.get_object('lat').get_text()
+        lon = self.xml.get_object('lon').get_text()
+        if self.is_valid_coord(lat, lon):
+            self.plugin.config['lat'] = lat
+            self.plugin.config['lon'] = lon
             if self.plugin.active:
                 self.plugin.activate()
+        else:
+            self.plugin.config['lat'] = '0.0'
+            self.plugin.config['lon'] = '0.0'
+            error_text = 'lat or lon field contains wrong value.'
+            WarningDialog(_('Wrong coordinates'), error_text, self)
 
     def map_clicked(self, osm, event):
         lat, lon = self.osm.get_event_location(event).get_degrees()
@@ -157,17 +171,23 @@ class SetLocationPluginConfigDialog(GajimPluginConfigDialog):
         if event.button == 2:
             self.show_contacts()
 
-    def on_lon_changed(self, widget):
+    def is_valid_coord(self, lat, lon):
         try:
-            lat = float(self.xml.get_object('lat').get_text())
-            lon = float(self.xml.get_object('lon').get_text())
+            self.lat = float(lat)
+            self.lon = float(lon)
         except ValueError, e:
             return
-        if not -85 < lat < 85 or not -180 < lon < 180:
+        if not -85 < self.lat < 85 or not -180 < self.lon < 180:
             return
-        self.osm.image_remove(self.osm_image)
-        self.osm_image = self.osm.image_add(lat, lon, self.icon)
-        self.osm.set_center(lat, lon)
+        return True
+
+    def on_lon_changed(self, widget):
+        lat = self.xml.get_object('lat').get_text()
+        lon = self.xml.get_object('lon').get_text()
+        if self.is_valid_coord(lat, lon):
+            self.osm.image_remove(self.osm_image)
+            self.osm_image = self.osm.image_add(self.lat, self.lon, self.icon)
+            self.osm.set_center(self.lat, self.lon)
 
     def show_contacts(self):
         if not self.images:
