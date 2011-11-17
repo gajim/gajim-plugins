@@ -394,9 +394,9 @@ class Base(object):
             return
 
     def insert_pic_preview(self, mark, special_text, url):
-        pixbuf, is_unknown = self.get_pixbuf_from_url( url, self.plugin.config[
+        pixbuf = self.get_pixbuf_from_url( url, self.plugin.config[
             'PREVIEW_SIZE'])
-        if not is_unknown:
+        if pixbuf:
             # insert image
             buffer_ = mark.get_buffer()
             end_iter = buffer_.get_iter_at_mark(mark)
@@ -425,12 +425,11 @@ class Base(object):
                 return
             uid = user.getAttr('uid')
             pixbuf = self.get_avatar(uid, nick)
-            if pixbuf:
-                anchor = buffer_.create_child_anchor(end_iter)
-                img = TextViewImage(anchor, nick)
-                img.set_from_pixbuf(pixbuf)
-                img.show()
-                self.textview.tv.add_child_at_anchor(img, anchor)
+            anchor = buffer_.create_child_anchor(end_iter)
+            img = TextViewImage(anchor, nick)
+            img.set_from_pixbuf(pixbuf)
+            img.show()
+            self.textview.tv.add_child_at_anchor(img, anchor)
 
 
 
@@ -445,26 +444,29 @@ class Base(object):
             if (time.time() - os.stat(pic_path).st_mtime) < max_old:
                 return gtk.gdk.pixbuf_new_from_file(pic_path)
 
-        pixbuf,is_unknown = self.get_pixbuf_from_url(url,self.plugin.config[
-            'AVATAR_SIZE'])
-        # save to cache
-        if not is_unknown:
+        avatar_size = self.plugin.config['AVATAR_SIZE']
+        pixbuf = self.get_pixbuf_from_url(url, avatar_size)
+        if pixbuf:
+             # save to cache
             pixbuf.save(pic_path, 'png')
-        if need_check:
-            return pixbuf
-        query = "select nick, id from person where nick = :nick"
-        self.plugin.cursor.execute(query, {'nick':nick})
-        db_item = self.plugin.cursor.fetchone()
-        if not db_item:
-            data = (nick.decode('utf-8'), uid.decode('utf-8'))
-            self.plugin.cursor.execute('insert into person(nick, id)'
-                ' values (?, ?)', data)
-            self.plugin.conn.commit()
+            if need_check:
+                return pixbuf
+            query = "select nick, id from person where nick = :nick"
+            self.plugin.cursor.execute(query, {'nick':nick})
+            db_item = self.plugin.cursor.fetchone()
+            if not db_item:
+                data = (nick.decode('utf-8'), uid.decode('utf-8'))
+                self.plugin.cursor.execute('insert into person(nick, id)'
+                    ' values (?, ?)', data)
+                self.plugin.conn.commit()
+        else:
+            img_path = self.plugin.local_file_path('unknown.png')
+            pixbuf = gtk.gdk.pixbuf_new_from_file(img_path)
+            pixbuf, w, h = self.get_pixbuf_of_size(pixbuf, avatar_size)
         return pixbuf
 
     def get_pixbuf_from_url(self, url, size):
         # download avatar and resize him
-        is_unknown = False
         try:
             data, alt = helpers.download_image(self.textview.account,
                 {'src': url})
@@ -472,12 +474,10 @@ class Base(object):
             pix.write(data)
             pix.close()
             pixbuf = pix.get_pixbuf()
+            pixbuf, w, h = self.get_pixbuf_of_size(pixbuf, size)
         except Exception,e:
-            img_path = self.plugin.local_file_path('unknown.png')
-            is_unknown = True
-            pixbuf = gtk.gdk.pixbuf_new_from_file(img_path)
-        pixbuf, w, h = self.get_pixbuf_of_size(pixbuf, size)
-        return pixbuf,is_unknown
+            return
+        return pixbuf
 
     def get_pixbuf_of_size(self, pixbuf, size):
         # Creates a pixbuf that fits in the specified square of sizexsize
