@@ -394,9 +394,9 @@ class Base(object):
             return
 
     def insert_pic_preview(self, mark, special_text, url):
-        pixbuf = self.get_pixbuf_from_url( url, self.plugin.config[
+        pixbuf, is_unknown = self.get_pixbuf_from_url( url, self.plugin.config[
             'PREVIEW_SIZE'])
-        if pixbuf:
+        if not is_unknown:
             # insert image
             buffer_ = mark.get_buffer()
             end_iter = buffer_.get_iter_at_mark(mark)
@@ -445,10 +445,11 @@ class Base(object):
             if (time.time() - os.stat(pic_path).st_mtime) < max_old:
                 return gtk.gdk.pixbuf_new_from_file(pic_path)
 
-        pixbuf = self.get_pixbuf_from_url(url,self.plugin.config[
+        pixbuf,is_unknown = self.get_pixbuf_from_url(url,self.plugin.config[
             'AVATAR_SIZE'])
         # save to cache
-        pixbuf.save(pic_path, 'png')
+        if not is_unknown:
+            pixbuf.save(pic_path, 'png')
         if need_check:
             return pixbuf
         query = "select nick, id from person where nick = :nick"
@@ -463,6 +464,7 @@ class Base(object):
 
     def get_pixbuf_from_url(self, url, size):
         # download avatar and resize him
+        is_unknown = False
         try:
             data, alt = helpers.download_image(self.textview.account,
                 {'src': url})
@@ -472,9 +474,10 @@ class Base(object):
             pixbuf = pix.get_pixbuf()
         except Exception,e:
             img_path = self.plugin.local_file_path('unknown.png')
+            is_unknown = True
             pixbuf = gtk.gdk.pixbuf_new_from_file(img_path)
         pixbuf, w, h = self.get_pixbuf_of_size(pixbuf, size)
-        return pixbuf
+        return pixbuf,is_unknown
 
     def get_pixbuf_of_size(self, pixbuf, size):
         # Creates a pixbuf that fits in the specified square of sizexsize
