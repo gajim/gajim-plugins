@@ -5,7 +5,6 @@ import pango
 import re
 import os
 import time
-import urllib
 from string import upper
 from string import rstrip
 import locale
@@ -448,33 +447,33 @@ class Base(object):
 
         pixbuf = self.get_pixbuf_from_url(url,self.plugin.config[
             'AVATAR_SIZE'])
-        if pixbuf:
-            # save to cache
-            pixbuf.save(pic_path, 'png')
-            if need_check:
-                return pixbuf
-            query = "select nick, id from person where nick = :nick"
-            self.plugin.cursor.execute(query, {'nick':nick})
-            db_item = self.plugin.cursor.fetchone()
-            if not db_item:
-                data = (nick.decode('utf-8'), uid.decode('utf-8'))
-                self.plugin.cursor.execute('insert into person(nick, id)'
-                    ' values (?, ?)', data)
-                self.plugin.conn.commit()
+        # save to cache
+        pixbuf.save(pic_path, 'png')
+        if need_check:
             return pixbuf
+        query = "select nick, id from person where nick = :nick"
+        self.plugin.cursor.execute(query, {'nick':nick})
+        db_item = self.plugin.cursor.fetchone()
+        if not db_item:
+            data = (nick.decode('utf-8'), uid.decode('utf-8'))
+            self.plugin.cursor.execute('insert into person(nick, id)'
+                ' values (?, ?)', data)
+            self.plugin.conn.commit()
+        return pixbuf
 
     def get_pixbuf_from_url(self, url, size):
         # download avatar and resize him
-        # Returns pixbuf or False if broken image or not connected
         try:
-            data = urllib.urlopen(url).read()
+            data, alt = helpers.download_image(self.textview.account,
+                {'src': url})
             pix = gtk.gdk.PixbufLoader()
             pix.write(data)
             pix.close()
             pixbuf = pix.get_pixbuf()
-            pixbuf, w, h = self.get_pixbuf_of_size(pixbuf, size)
-        except:
-            return False
+        except Exception,e:
+            img_path = self.plugin.local_file_path('unknown.png')
+            pixbuf = gtk.gdk.pixbuf_new_from_file(img_path)
+        pixbuf, w, h = self.get_pixbuf_of_size(pixbuf, size)
         return pixbuf
 
     def get_pixbuf_of_size(self, pixbuf, size):
