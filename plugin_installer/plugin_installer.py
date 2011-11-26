@@ -156,6 +156,7 @@ class PluginInstaller(GajimPlugin):
             gobject.TYPE_BOOLEAN, gobject.TYPE_PYOBJECT, gobject.TYPE_PYOBJECT,
             gobject.TYPE_PYOBJECT)
         self.available_treeview.set_model(self.available_plugins_model)
+        self.available_treeview.set_rules_hint(True)
 
         self.progressbar.set_property('no-show-all', True)
         renderer = gtk.CellRendererText()
