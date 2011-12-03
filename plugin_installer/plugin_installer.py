@@ -36,8 +36,6 @@ from plugins.helpers import log_calls, log
 from dialogs import WarningDialog, HigDialog, YesNoDialog
 from plugins.gui import GajimPluginConfigDialog
 
-python_version = sys.version_info
-
 def convert_version_to_list(version_str):
     version_list = version_str.split('.')
     l = []
@@ -80,7 +78,7 @@ class PluginInstaller(GajimPlugin):
                 '\n%s') % plugins_str, on_response_yes=open_update)
 
     def ftp_connect(self):
-        if python_version[:2] > (2, 6):
+        if sys.version_info[:2] > (2, 6):
             con = ftplib.FTP_TLS(self.config['ftp_server'])
             con.login()
             con.prot_p()
