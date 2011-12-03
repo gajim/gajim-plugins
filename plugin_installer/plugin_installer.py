@@ -36,6 +36,7 @@ from plugins.helpers import log_calls, log
 from dialogs import WarningDialog, HigDialog, YesNoDialog
 from plugins.gui import GajimPluginConfigDialog
 
+python_version = sys.version_info
 
 def convert_version_to_list(version_str):
     version_list = version_str.split('.')
@@ -78,15 +79,22 @@ class PluginInstaller(GajimPlugin):
                 ' your installer plugins. Do you want to update those plugins:'
                 '\n%s') % plugins_str, on_response_yes=open_update)
 
+    def ftp_connect(self):
+        if python_version[:2] > (2, 6):
+            con = ftplib.FTP_TLS(self.config['ftp_server'])
+            con.login()
+            con.prot_p()
+        else:
+            con = ftplib.FTP(self.config['ftp_server'])
+            con.login()
+        return con
+
     @log_calls('PluginInstallerPlugin')
     def check_update(self):
         def _run():
             try:
                 to_update = []
-                con = ftplib.FTP_TLS(ftp.server)
-                con.login()
-                con.prot_p()
-                con.cwd('plugins')
+                con = self.ftp_connect()
                 plugins_dirs = con.nlst()
                 for dir_ in plugins_dirs:
                     try:
@@ -372,7 +380,6 @@ class Ftp(threading.Thread):
         super(Ftp, self).__init__()
         self.plugin = plugin
         self.window = plugin.window
-        self.server = plugin.config['ftp_server']
         self.progressbar = plugin.progressbar
         self.model = plugin.available_plugins_model
         self.config = ConfigParser.ConfigParser()
@@ -398,9 +405,7 @@ class Ftp(threading.Thread):
         try:
             gobject.idle_add(self.progressbar.set_text,
                 _('Connecting to server'))
-            self.ftp = ftplib.FTP_TLS(self.server)
-            self.ftp.login()
-            self.ftp.prot_p()
+            self.ftp = self.plugin.ftp_connect()
             self.ftp.cwd('plugins')
             if not self.remote_dirs:
                 self.plugins_dirs = self.ftp.nlst()
