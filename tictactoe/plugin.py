@@ -32,6 +32,7 @@ from common import gajim
 from plugins import GajimPlugin
 from plugins.plugin import GajimPluginException
 from plugins.helpers import log_calls, log
+from plugins.gui import GajimPluginConfigDialog
 import common.xmpp
 import gtk
 from gtk import gdk
@@ -51,7 +52,7 @@ class TictactoePlugin(GajimPlugin):
     @log_calls('TictactoePlugin')
     def init(self):
         self.description = _('Play Tictactoe.')
-        self.config_dialog = None
+        self.config_dialog = TictactoePluginConfigDialog(self)
         self.events_handlers = {
             'decrypted-message-received': (ged.GUI1,
                 self._nec_decrypted_message_received),
@@ -61,6 +62,9 @@ class TictactoePlugin(GajimPlugin):
                 self.disconnect_from_chat_control),
             'chat_control_base_update_toolbar': (self.update_button_state,
                 None),
+        }
+        self.config_default_values = {
+            'board_size': (5, ''),
         }
         self.controls = []
 
@@ -212,7 +216,8 @@ class Base(object):
 
     def stop_tictactoe(self, reason=None):
         self.tictactoe.end_game(reason)
-        self.tictactoe.board.win.destroy()
+        if hasattr(self.tictactoe, 'board'):
+            self.tictactoe.board.win.destroy()
         self.tictactoe = None
 
     def disconnect_from_chat_control(self):
@@ -229,15 +234,16 @@ class TicTacToeSession(stanza_session.StanzaSession):
             gajim.get_jid_without_resource(str(jid)))
         self.name = contact.get_shown_name()
         self.base = None
+        self.control = None
 
     # initiate a session
-    def begin(self, rows=3, cols=3, role_s='x'):
-        self.rows = rows
-        self.cols = cols
+    def begin(self, role_s='x'):
+        self.rows = self.base.plugin.config['board_size']
+        self.cols = self.base.plugin.config['board_size']
 
         self.role_s = role_s
 
-        self.strike = 3
+        self.strike = self.base.plugin.config['board_size']
 
         if self.role_s == 'x':
             self.role_o = 'o'
@@ -265,13 +271,13 @@ class TicTacToeSession(stanza_session.StanzaSession):
         f.setValue('x')
         f = x.setField('rows')
         f.setType('text-single')
-        f.setValue('3')
+        f.setValue(str(self.base.plugin.config['board_size']))
         f = x.setField('cols')
         f.setType('text-single')
-        f.setValue('3')
+        f.setValue(str(self.base.plugin.config['board_size']))
         f = x.setField('strike')
         f.setType('text-single')
-        f.setValue('3')
+        f.setValue(str(self.base.plugin.config['board_size']))
 
         game.addChild(node=x)
 
@@ -715,3 +721,24 @@ class TicTacToeBoard:
     def cheated(self):
         self.state == 'cheated'
         self.win.queue_draw()
+
+
+class TictactoePluginConfigDialog(GajimPluginConfigDialog):
+    def init(self):
+        self.GTK_BUILDER_FILE_PATH = self.plugin.local_file_path(
+            'config_dialog.ui')
+        self.xml = gtk.Builder()
+        self.xml.set_translation_domain('gajim_plugins')
+        self.xml.add_objects_from_file(self.GTK_BUILDER_FILE_PATH, ['vbox1'])
+        self.board_size_spinbutton = self.xml.get_object('board_size')
+        self.board_size_spinbutton.get_adjustment().set_all(3, 3, 10, 1, 1, 0)
+        vbox = self.xml.get_object('vbox1')
+        self.child.pack_start(vbox)
+
+        self.xml.connect_signals(self)
+
+    def on_run(self):
+        self.board_size_spinbutton.set_value(self.plugin.config['board_size'])
+
+    def board_size_value_changed(self, spinbutton):
+        self.plugin.config['board_size'] = int(spinbutton.get_value())
