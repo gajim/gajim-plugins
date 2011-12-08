@@ -37,37 +37,24 @@ class MsgBoxSizePlugin(GajimPlugin):
 
 class Base(object):
     def __init__(self, plugin, chat_control):
-        if plugin.config['Do_not_resize']:
-            chat_control.msg_textview.set_property('height-request',
-                plugin.config['Message_box_size'])
+        chat_control.msg_textview.set_property('height-request',
+            plugin.config['Message_box_size'])
 
         id_ = chat_control.msg_textview.connect('size-request',
             self.size_request)
         chat_control.handlers[id_] = chat_control.msg_textview
         self.chat_control = chat_control
         self.plugin = plugin
-        self.scrolledwindow = chat_control.conv_scrolledwindow
 
     def size_request(self, msg_textview, requisition):
-        if msg_textview.window is None:
-            return
-
         if self.plugin.config['Do_not_resize']:
-            self.chat_control.conv_scrolledwindow.set_property('height-request',
-                self.chat_control.conv_scrolledwindow.allocation.height)
             self.chat_control.msg_scrolledwindow.set_property(
                 'vscrollbar-policy', gtk.POLICY_AUTOMATIC)
+        elif requisition.height > self.plugin.config['Message_box_size']:
+            msg_textview.set_property('height-request', requisition.height)
         else:
-            if requisition.height < self.plugin.config['Message_box_size']:
-                allc = self.chat_control.msg_textview.allocation
-                allc.height = self.plugin.config['Message_box_size']
-                msg_textview.set_size_request(allc.width, allc.height)
-            else:
-                new_req = self.scrolledwindow.allocation.height - (
-                    requisition.height - self.plugin.config['Message_box_size'])
-                if new_req > 1:
-                    self.scrolledwindow.set_property('height-request', new_req)
-                self.chat_control.msg_textview.set_property('height-request', -1)
+            msg_textview.set_property('height-request',
+                self.plugin.config['Message_box_size'])
 
     def disconnect_from_chat_control(self):
         pass
@@ -82,7 +69,7 @@ class MsgBoxSizePluginConfigDialog(GajimPluginConfigDialog):
         self.xml.add_objects_from_file(self.GTK_BUILDER_FILE_PATH, ['vbox1'])
         self.checkbutton = self.xml.get_object('checkbutton')
         self.spinbutton = self.xml.get_object('message_box_size')
-        self.spinbutton.get_adjustment().set_all(20, 15, 320, 1, 10, 0)
+        self.spinbutton.get_adjustment().set_all(20, 16, 200, 1, 10, 0)
         vbox = self.xml.get_object('vbox1')
         self.child.pack_start(vbox)
 
