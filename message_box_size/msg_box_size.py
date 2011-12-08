@@ -40,9 +40,9 @@ class Base(object):
         chat_control.msg_textview.set_property('height-request',
             plugin.config['Message_box_size'])
 
-        id_ = chat_control.msg_textview.connect('size-request',
+        self.id_ = chat_control.msg_textview.connect('size-request',
             self.size_request)
-        chat_control.handlers[id_] = chat_control.msg_textview
+        chat_control.handlers[self.id_] = chat_control.msg_textview
         self.chat_control = chat_control
         self.plugin = plugin
 
@@ -57,7 +57,13 @@ class Base(object):
                 self.plugin.config['Message_box_size'])
 
     def disconnect_from_chat_control(self):
-        pass
+        if self.id_ not in self.chat_control.handlers:
+            return
+        if self.chat_control.handlers[self.id_].handler_is_connected(self.id_):
+            self.chat_control.handlers[self.id_].disconnect(self.id_)
+            del self.chat_control.handlers[self.id_]
+        self.chat_control.msg_textview.set_property('height-request', -1)
+        self.chat_control.msg_textview.queue_draw()
 
 
 class MsgBoxSizePluginConfigDialog(GajimPluginConfigDialog):
