@@ -18,7 +18,7 @@
                   <object class="GtkLabel" id="message_box_size_label">
                     <property name="visible">True</property>
                     <property name="xalign">0.029999999329447746</property>
-                    <property name="label" translatable="yes">Message box size</property>
+                    <property name="label" translatable="yes">Minimum lines</property>
                     <property name="ellipsize">start</property>
                     <property name="track_visited_links">False</property>
                   </object>
@@ -27,14 +27,14 @@
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkSpinButton" id="message_box_size">
+                  <object class="GtkSpinButton" id="minimum_lines">
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="invisible_char">&#x25CF;</property>
                     <property name="width_chars">6</property>
                     <property name="snap_to_ticks">True</property>
                     <property name="numeric">True</property>
-                    <signal name="value_changed" handler="on_message_box_size_value_changed"/>
+                    <signal name="value_changed" handler="on_minimum_lines_value_changed"/>
                   </object>
                   <packing>
                     <property name="expand">False</property>
@@ -58,7 +58,7 @@
         </child>
         <child>
           <object class="GtkCheckButton" id="checkbutton">
-            <property name="label" translatable="yes">Do not resize message box</property>
+            <property name="label" translatable="yes">Do not resize input message field</property>
             <property name="visible">True</property>
             <property name="can_focus">False</property>
             <property name="receives_default">False</property>

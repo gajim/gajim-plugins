@@ -18,7 +18,7 @@ class MsgBoxSizePlugin(GajimPlugin):
                 'chat_control_base': (self.connect_with_chat_control,
                                        self.disconnect_from_chat_control)}
         self.config_default_values = {'Do_not_resize': (False, ''),
-                                      'Message_box_size': (40, ''),}
+                                      'Minimum_lines': (2, ''),}
         self.chat_control = None
         self.controls = []
 
@@ -37,8 +37,12 @@ class MsgBoxSizePlugin(GajimPlugin):
 
 class Base(object):
     def __init__(self, plugin, chat_control):
-        chat_control.msg_textview.set_property('height-request',
-            plugin.config['Message_box_size'])
+        tbuffer = chat_control.msg_textview.get_buffer()
+        min_size = chat_control.msg_textview.get_line_yrange(
+            tbuffer.get_start_iter())[1] * plugin.config['Minimum_lines'] + 2
+
+        chat_control.msg_textview.set_property('height-request', min_size)
+          #  plugin.config['Minimum_lines'])
 
         self.id_ = chat_control.msg_textview.connect('size-request',
             self.size_request)
@@ -47,14 +51,17 @@ class Base(object):
         self.plugin = plugin
 
     def size_request(self, msg_textview, requisition):
+        tbuffer = msg_textview.get_buffer()
+        min_size = msg_textview.get_line_yrange(tbuffer.get_start_iter())[1] * \
+            self.plugin.config['Minimum_lines'] + 2
+
         if self.plugin.config['Do_not_resize']:
             self.chat_control.msg_scrolledwindow.set_property(
                 'vscrollbar-policy', gtk.POLICY_AUTOMATIC)
-        elif requisition.height > self.plugin.config['Message_box_size']:
+        elif requisition.height > min_size:
             msg_textview.set_property('height-request', requisition.height)
         else:
-            msg_textview.set_property('height-request',
-                self.plugin.config['Message_box_size'])
+            msg_textview.set_property('height-request', min_size)
 
     def disconnect_from_chat_control(self):
         if self.id_ not in self.chat_control.handlers:
@@ -74,8 +81,8 @@ class MsgBoxSizePluginConfigDialog(GajimPluginConfigDialog):
         self.xml.set_translation_domain('gajim_plugins')
         self.xml.add_objects_from_file(self.GTK_BUILDER_FILE_PATH, ['vbox1'])
         self.checkbutton = self.xml.get_object('checkbutton')
-        self.spinbutton = self.xml.get_object('message_box_size')
-        self.spinbutton.get_adjustment().set_all(20, 16, 200, 1, 10, 0)
+        self.spinbutton = self.xml.get_object('minimum_lines')
+        self.spinbutton.get_adjustment().set_all(20, 1, 10, 1, 10, 0)
         vbox = self.xml.get_object('vbox1')
         self.child.pack_start(vbox)
 
@@ -83,10 +90,10 @@ class MsgBoxSizePluginConfigDialog(GajimPluginConfigDialog):
 
     def on_run(self):
         self.checkbutton.set_active(self.plugin.config['Do_not_resize'])
-        self.spinbutton.set_value(self.plugin.config['Message_box_size'])
+        self.spinbutton.set_value(self.plugin.config['Minimum_lines'])
 
     def on_checkbutton_toggled(self, checkbutton):
         self.plugin.config['Do_not_resize'] = checkbutton.get_active()
 
-    def on_message_box_size_value_changed(self, spinbutton):
-        self.plugin.config['Message_box_size'] = spinbutton.get_value()
+    def on_minimum_lines_value_changed(self, spinbutton):
+        self.plugin.config['Minimum_lines'] = spinbutton.get_value()
