@@ -64,10 +64,10 @@ class OtrPluginConfigDialog(GajimPluginConfigDialog):
             self.flags[flagName] = self.B.get_object(checkBoxName)
 
         self.B.connect_signals(self)
-        self.account_combobox_changed_cb(self.B.get_object('account_combobox'))
 
     def on_run(self):
         self.plugin.update_context_list()
+        self.account_combobox_changed_cb(self.B.get_object('account_combobox'))
 
     def flags_toggled_cb(self, button):
         if button == self.B.get_object('enable_check'):
@@ -106,7 +106,7 @@ class OtrPluginConfigDialog(GajimPluginConfigDialog):
                 for key, box in self.flags.iteritems():
                     box.set_active(otr_flags[key])
 
-                fpr = str(self.plugin.us[account].getPrivkey())
+                fpr = str(self.plugin.us[account].getPrivkey(autogen=False))
                 regen_button.set_label('Regenerate')
             else:
                 regen_button.set_sensitive(False)
@@ -178,7 +178,12 @@ class OtrPluginConfigDialog(GajimPluginConfigDialog):
         if active > -1:
             account = self.otr_account_store[active][0]
             button.set_sensitive(False)
-            self.plugin.us[account].dropPrivkey()
+            try:
+                self.plugin.us[account].getPrivkey(autogen=False)
+                self.plugin.us[account].dropPrivkey()
+            except LookupError:
+                pass
+            self.plugin.us[account].getPrivkey(autogen=True)
             self.account_combobox_changed_cb(box, *args)
             button.set_sensitive(True)
 
@@ -317,7 +322,6 @@ class ContactOtrSmpWindow:
         self.plugin.update_context_list()
 
     def get_tlv(self, tlvs, check):
-        print (tlvs, check)
         for tlv in tlvs:
             if isinstance(tlv, check):
                 return tlv
@@ -500,7 +504,6 @@ class ContactOtrWindow(gtk.Dialog):
             # settings if available
             self.plugin.set_flags(None, self.account, self.jid)
         else:
-            print "got per-contact settings"
             # build the flags using the checkboxes
             flags = {}
             flags['ALLOW_V2'] = \
@@ -512,7 +515,6 @@ class ContactOtrWindow(gtk.Dialog):
             flags['WHITESPACE_START_AKE'] = \
                     self.gw('otr_policy_start_on_tag_checkbutton').get_active()
 
-            print "per-contact settings: ", flags
             self.plugin.set_flags(flags, self.account, self.jid)
 
     def _otr_default_checkbutton_toggled(self, widget):
