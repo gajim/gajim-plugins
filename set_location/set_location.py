@@ -10,6 +10,7 @@ from plugins.gui import GajimPluginConfigDialog
 from plugins import GajimPlugin
 from plugins.helpers import log, log_calls
 from common import gajim
+from common import ged
 import gtkgui_helpers
 from dialogs import InputDialog, WarningDialog
 
@@ -43,6 +44,22 @@ class SetLocationPlugin(GajimPlugin):
 
     @log_calls('SetLocationPlugin')
     def activate(self):
+        gajim.ged.register_event_handler('signed-in', ged.POSTGUI,
+            self.on_signed_in)
+        self.send_locations()
+
+    @log_calls('SetLocationPlugin')
+    def deactivate(self):
+        self._data = {}
+        for acct in gajim.connections:
+            gajim.connections[acct].send_location(self._data)
+        gajim.ged.remove_event_handler('signed-in', ged.POSTGUI,
+            self.on_signed_in)
+
+    def on_signed_in(self, network_event):
+        self.send_locations(network_event.conn.name)
+
+    def send_locations(self, acct=False):
         self._data = {}
         timestamp = time.time()
         timestamp = datetime.utcfromtimestamp(timestamp)
@@ -50,16 +67,13 @@ class SetLocationPlugin(GajimPlugin):
         self._data['timestamp'] = timestamp
         for name in self.config_default_values:
             self._data[name] = self.config[name]
-        for acct in gajim.connections:
-            if gajim.connections[acct].connected == 0:
-                gajim.connections[acct].to_be_sent_location = self._data
-            else:
-                gajim.connections[acct].send_location(self._data)
 
-    @log_calls('SetLocationPlugin')
-    def deactivate(self):
-        self._data = {}
-        for acct in gajim.connections:
+        if not acct:
+            #set geo for all accounts
+            for acct in gajim.connections:
+                if gajim.config.get_per('accounts', acct, 'publish_location'):
+                    gajim.connections[acct].send_location(self._data)
+        elif gajim.config.get_per('accounts', acct, 'publish_location'):
             gajim.connections[acct].send_location(self._data)
 
 
