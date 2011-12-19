@@ -63,14 +63,17 @@ from common.connection_handlers_events import MessageOutgoingEvent
 from plugins import GajimPlugin
 from message_control import TYPE_CHAT, MessageControl
 from plugins.helpers import log_calls, log
+from plugins.plugin import GajimPluginException
 
 import ui
 
 
 import pickle
-import potr
-if not hasattr(potr, 'VERSION') or potr.VERSION < MINVERSION:
-    raise ImportError('old / unsupported python-otr version')
+HAS_POTR = True
+try:
+    import potr
+except ImportError:
+    HAS_POTR = False
 
 class GajimContext(potr.context.Context):
     __slots__ = ['smpWindow']
@@ -232,6 +235,13 @@ class OtrPlugin(GajimPlugin):
             acc = str(acc)
             if acc not in self.config or None not in self.config[acc]:
                 self.config[acc] = {None:DEFAULTFLAGS.copy()}
+
+    @log_calls('OtrPlugin')
+    def activate(self):
+        if not HAS_POTR:
+            raise GajimPluginException('python-otr is missing!')
+        if not hasattr(potr, 'VERSION') or potr.VERSION < MINVERSION:
+            raise GajimPluginException('old / unsupported python-otr version')
 
     def get_otr_status(self, account, contact):
         ctx = self.us[account].getContext(contact.get_full_jid())
