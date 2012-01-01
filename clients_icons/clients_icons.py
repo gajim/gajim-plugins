@@ -131,9 +131,9 @@ clients = {
     'http://pigeon.vpro.ru/caps': 'pigeon.png',
     'http://jtalk.ustyugov.net/caps': 'jtalk.png',
     'psto@psto.net': 'psto.png',
-     'http://jasmineicq.ru/caps': 'jasmine.png',
-     'http://tomclaw.com/mandarin_im/caps': 'mandarin.png',
-     'http://gabber.sourceforge.net': 'gabber.png',
+    'http://jasmineicq.ru/caps': 'jasmine.png',
+    'http://tomclaw.com/mandarin_im/caps': 'mandarin.png',
+    'http://gabber.sourceforge.net': 'gabber.png',
 }
 
 
