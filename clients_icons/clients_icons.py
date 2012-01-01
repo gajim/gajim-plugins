@@ -62,6 +62,7 @@ clients = {
     'http://www.apple.com/ichat/caps': 'ichat.png',
     'http://pjc.googlecode.com/caps': 'jubo.png',
     'talk.google.com': 'talk.google.com.png',
+    'http://www.android.com/gtalk/client/caps': 'talk.google.com.png',
     'http://swift.im': 'swift.png',
     'http://fatal-bot.spb.ru/caps': 'bot.png',
     'http://svn.posix.ru/fatal-bot/trunk': 'bot.png',
@@ -97,6 +98,9 @@ clients = {
     'http://digsby.com/caps': 'digsby.png',
     'http://jabber-net.ru/caps/talisman-bot': 'bot.png',
     'http://jabber-net.ru/talisman-bot/caps': 'bot.png',
+    'http://j-tmb.ru/caps': 'bot.png',
+    'http://simpleapps.ru/caps#blacksmith': 'bot.png',
+    'http://blacksmith-2.googlecode.com/svn/': 'bot.png',
     'http://qabber.ru/jame-bot': 'bot.png',
     'http://chat.freize.org/caps': 'freize.png',
     'http://pyvk-t.googlecode.com/caps': 'vkontakte.png',
@@ -127,6 +131,9 @@ clients = {
     'http://pigeon.vpro.ru/caps': 'pigeon.png',
     'http://jtalk.ustyugov.net/caps': 'jtalk.png',
     'psto@psto.net': 'psto.png',
+     'http://jasmineicq.ru/caps': 'jasmine.png',
+     'http://tomclaw.com/mandarin_im/caps': 'mandarin.png',
+     'http://gabber.sourceforge.net': 'gabber.png',
 }
 
 
