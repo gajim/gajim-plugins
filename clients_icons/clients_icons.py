@@ -179,8 +179,12 @@ class ClientsIconsPlugin(GajimPlugin):
             return
         if roster.model[child_iters[0]][self.renderer_num] is None:
             caps = contact.client_caps._node
-            if jid == 'juick@juick.com':
+            if 'facebook.com' in jid:
+                caps = 'facebook.com'
+            elif jid == 'juick@juick.com':
                 caps = 'http://juick.com/caps'
+            elif '@vk.com' in jid:
+                caps = 'vk.com'
             elif jid == 'psto@psto.net':
                 caps = 'psto@psto.net'
             elif jid == 'rss@isida-bot.com':
