@@ -134,6 +134,9 @@ clients = {
     'http://jasmineicq.ru/caps': 'jasmine.png',
     'http://tomclaw.com/mandarin_im/caps': 'mandarin.png',
     'http://gabber.sourceforge.net': 'gabber.png',
+    'http://www.igniterealtime.org/projects/smack/': 'xabber.png',
+    'http://megafonvolga.ru/': 'megafon.png',
+    'rss@isida-bot.com': 'osiris.png',
 }
 
 
@@ -180,6 +183,8 @@ class ClientsIconsPlugin(GajimPlugin):
                 caps = 'http://juick.com/caps'
             elif jid == 'psto@psto.net':
                 caps = 'psto@psto.net'
+            elif jid == 'rss@isida-bot.com':
+                caps = 'rss@isida-bot.com'
             self.set_icon(roster.model, child_iters[0], self.renderer_num,
                 caps)
 
