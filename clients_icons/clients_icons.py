@@ -160,7 +160,8 @@ class ClientsIconsPlugin(GajimPlugin):
                 'show_in_roster': (True, ''),
                 'show_in_groupchats': (True, ''),
                 'show_unknown_icon': (True, ''),
-                'pos_in_list': (0, ''), }
+                'pos_in_list': (0, ''),
+                'show_facebook': (True, '') }
 
         self.config_dialog = ClientsIconsPluginConfigDialog(self)
         icon_path = os.path.join(self.local_file_path('icons'), 'unknown.png')
@@ -179,12 +180,12 @@ class ClientsIconsPlugin(GajimPlugin):
             return
         if roster.model[child_iters[0]][self.renderer_num] is None:
             caps = contact.client_caps._node
-            if 'facebook.com' in jid:
+            if 'facebook.com' in jid and self.config['show_facebook']:
                 caps = 'facebook.com'
+            elif '@vk.com' in jid and self.config['show_facebook']:
+                caps = 'vk.com'
             elif jid == 'juick@juick.com':
                 caps = 'http://juick.com/caps'
-            elif '@vk.com' in jid:
-                caps = 'vk.com'
             elif jid == 'psto@psto.net':
                 caps = 'psto@psto.net'
             elif jid == 'rss@isida-bot.com':
@@ -429,6 +430,8 @@ class ClientsIconsPluginConfigDialog(GajimPluginConfigDialog):
             self.plugin.config['show_in_groupchats'])
         self.xml.get_object('show_unknown_icon').set_active(
             self.plugin.config['show_unknown_icon'])
+        self.xml.get_object('show_facebook').set_active(
+            self.plugin.config['show_facebook'])
 
         self.xml.connect_signals(self)
 
@@ -454,6 +457,10 @@ class ClientsIconsPluginConfigDialog(GajimPluginConfigDialog):
 
     def on_show_unknown_icon_toggled(self, widget):
         self.plugin.config['show_unknown_icon'] = widget.get_active()
+        self.redraw_all()
+
+    def on_show_facebook_toggled(self, widget):
+        self.plugin.config['show_facebook'] = widget.get_active()
         self.redraw_all()
 
     def on_combobox1_changed(self, widget):
