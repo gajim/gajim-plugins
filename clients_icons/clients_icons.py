@@ -333,12 +333,12 @@ class ClientsIconsPlugin(GajimPlugin):
         tag = iq_obj.stanza.getTags('c')
         if tag:
             caps = tag[0].getAttr('node')
-        if 'facebook.com' in iq_obj.jid:
+        if 'facebook.com' in iq_obj.jid and self.config['show_facebook']:
             caps = 'facebook.com'
         if not caps:
             if iq_obj.jid == 'juick@juick.com':
                 caps = 'http://juick.com/caps'
-            elif '@vk.com' in iq_obj.jid:
+            elif '@vk.com' in iq_obj.jid and self.config['show_facebook']:
                 caps = 'vk.com'
             elif 'psto@psto.net' in iq_obj.jid:
                 caps = 'psto@psto.net'
