@@ -167,6 +167,7 @@ class ClientsIconsPlugin(GajimPlugin):
         icon_path = os.path.join(self.local_file_path('icons'), 'unknown.png')
         self.default_pixbuf = gtk.gdk.pixbuf_new_from_file_at_size(icon_path,
             16, 16)
+        self.icon_cache = {}
 
     @log_calls('ClientsIconsPlugin')
     def connect_with_roster_draw_contact(self, roster, jid, account, contact):
@@ -379,8 +380,12 @@ class ClientsIconsPlugin(GajimPlugin):
         else:
             icon_path = os.path.join(self.local_file_path('icons'),
                 client_icon)
-            pixbuf = gtk.gdk.pixbuf_new_from_file_at_size(icon_path, 16, 16)
-            model[iter_][pos] = pixbuf
+            if icon_path in self.icon_cache:
+                model[iter_][pos] = self.icon_cache[icon_path]
+            else:
+                pixbuf = gtk.gdk.pixbuf_new_from_file_at_size(icon_path, 16, 16)
+                model[iter_][pos] = pixbuf
+                self.icon_cache[icon_path] = pixbuf
 
     def tree_cell_data_func(self, column, renderer, model, iter_, control):
         if not model.iter_parent(iter_):
