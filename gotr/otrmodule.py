@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 ##    otrmodule.py
 ##
-## Copyright (C) 2008-2010 Kjell Braden <fnord@pentabarf.de>
+## Copyright 2008-2012 Kjell Braden <afflux@pentabarf.de>
 ##
 ## This file is part of Gajim.
 ##
@@ -29,7 +29,7 @@ Off-The-Record encryption plugin.
 :license: GPL
 '''
 
-MINVERSION = (1,0,0,'beta3')
+MINVERSION = (1,0,0,'beta4')
 IGNORE = True
 PASS = False
 
@@ -72,6 +72,8 @@ import pickle
 HAS_POTR = True
 try:
     import potr
+    if not hasattr(potr, 'VERSION') or potr.VERSION < MINVERSION:
+        raise ImportError('old / unsupported python-otr version')
 except ImportError:
     HAS_POTR = False
 
@@ -152,7 +154,7 @@ class GajimOtrAccount(potr.context.Account):
 
     def dropPrivkey(self):
         try:
-            os.remove(self.keyFilePath + '.key2')
+            os.remove(self.keyFilePath + '.key3')
         except IOError, e:
             if e.errno != 2:
                 log.exception('IOError occurred when removing key file for %s',
@@ -161,8 +163,8 @@ class GajimOtrAccount(potr.context.Account):
 
     def loadPrivkey(self):
         try:
-            with open(self.keyFilePath + '.key2', 'r') as keyFile:
-                return pickle.load(keyFile)
+            with open(self.keyFilePath + '.key3', 'rb') as keyFile:
+                return potr.crypt.PK.parsePrivateKey(keyFile.read())[0]
         except IOError, e:
             if e.errno != 2:
                 log.exception('IOError occurred when loading key file for %s',
@@ -171,8 +173,8 @@ class GajimOtrAccount(potr.context.Account):
 
     def savePrivkey(self):
         try:
-            with open(self.keyFilePath + '.key2', 'w') as keyFile:
-                pickle.dump(self.getPrivkey(), keyFile)
+            with open(self.keyFilePath + '.key3', 'wb') as keyFile:
+                keyFile.write(self.getPrivkey().serializePrivateKey())
         except IOError, e:
             log.exception('IOError occurred when loading key file for %s',
                     self.name)
@@ -489,18 +491,18 @@ class OtrPlugin(GajimPlugin):
                     'jid': event.fjid, 'error': e},
                     account, event.fjid)
             return IGNORE
+
+        if ctx is not None:
+            ctx.smpWindow.handle_tlv(tlvs)
+        if not msgtxt:
+            return IGNORE
+
         event.msgtxt = unicode(msgtxt)
         event.stanza.setBody(event.msgtxt)
 
         html_node = event.stanza.getTag('html')
         if html_node:
             event.stanza.delChild(html_node)
-
-        if ctx is not None:
-            ctx.smpWindow.handle_tlv(tlvs)
-
-        if not msgtxt:
-            return IGNORE
 
         return PASS
 
