@@ -4,12 +4,11 @@ import gtk
 import pango
 import gobject
 
-from common import gajim
+from common import gajim, ged, helpers, pep
 from plugins import GajimPlugin
 from plugins.helpers import log_calls
 from plugins.gui import GajimPluginConfigDialog
 from dialogs import ChangeActivityDialog, ChangeMoodDialog
-from common import pep
 import gtkgui_helpers
 
 
@@ -21,14 +20,23 @@ class RosterTweaksPlugin(GajimPlugin):
             '(eg. make it compact).\nBased on ticket #3340:\n'
             'http://trac.gajim.org/ticket/3340.\n'
             'Added ability to quickly change the status message '
-            'to all connected accounts.')
+            'to all connected accounts.\n'
+            'Based on ticket #5085:\n'
+            'http://trac.gajim.org/ticket/5085.')
         self.config_dialog = RosterTweaksPluginConfigDialog(self)
-
         self.config_default_values = {'hide_status_combo': (False, ''),
                                       'use_ctr_m': (False, ''),
                                       'menu_visible': (True, ''),
                                       'quick_status': (False, '')}
+        self.events_handlers = {'our-show': (ged.GUI2, self.our_show)}
         self.roster = gajim.interface.roster
+
+    def our_show(self, obj):
+        if self.active:
+            if helpers.get_global_show() != gajim.SHOW_LIST[0]:
+                self.status_widget.set_text(helpers.get_global_status())
+            else:
+                self.status_widget.set_text('')
 
     @log_calls('RosterTweaksPlugin')
     def activate(self):
@@ -192,6 +200,7 @@ class RosterTweaksPluginConfigDialog(GajimPluginConfigDialog):
         self.plugin.status_widget.set_property('visible', button.get_active())
         self.plugin.mood_button.set_property('visible', button.get_active())
         self.plugin.activity_button.set_property('visible', button.get_active())
+        self.plugin.status_widget.set_text(helpers.get_global_status())
 
     def on_use_ctr_m_toggled(self, button):
         is_ctr_m_enabled = button.get_active()
