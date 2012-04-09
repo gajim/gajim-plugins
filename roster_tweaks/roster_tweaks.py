@@ -28,8 +28,28 @@ class RosterTweaksPlugin(GajimPlugin):
                                       'use_ctr_m': (False, ''),
                                       'menu_visible': (True, ''),
                                       'quick_status': (False, '')}
-        self.events_handlers = {'our-show': (ged.GUI2, self.our_show)}
+        self.events_handlers = {'our-show': (ged.GUI2, self.our_show),
+                                'pep-received': (ged.GUI2, self.pep_received)}
         self.roster = gajim.interface.roster
+
+
+    def pep_received(self, obj):
+        if obj.jid != gajim.get_jid_from_account(obj.conn.name):
+            return
+
+        pep_dict = gajim.connections[obj.conn.name].pep
+        if  obj.pep_type == 'mood':
+            img = self.xml.get_object('mood_image')
+            if 'mood' in pep_dict:
+                img.set_from_pixbuf(pep_dict['mood'].asPixbufIcon())
+            else:
+                img.set_from_stock('gtk-stop', gtk.ICON_SIZE_MENU)
+        if  obj.pep_type == 'activity':
+            img = self.xml.get_object('activity_image')
+            if 'activity' in pep_dict:
+                img.set_from_pixbuf(pep_dict['activity'].asPixbufIcon())
+            else:
+                img.set_from_stock('gtk-stop', gtk.ICON_SIZE_MENU)
 
     def our_show(self, obj):
         if self.active:
@@ -114,7 +134,6 @@ class RosterTweaksPlugin(GajimPlugin):
             self.pep_dict['activity'] = activity or ''
             self.pep_dict['subactivity'] = subactivity or ''
             self.pep_dict['activity_text'] = text
-            self.draw_activity()
             self.send_pep()
         ChangeActivityDialog(on_response, self.pep_dict.get('activity', None),
             self.pep_dict.get('subactivity', None),
@@ -124,7 +143,6 @@ class RosterTweaksPlugin(GajimPlugin):
         def on_response(mood, text):
             self.pep_dict['mood'] = mood or ''
             self.pep_dict['mood_text'] = text
-            self.draw_mood()
             self.send_pep()
         ChangeMoodDialog(on_response, self.pep_dict.get('mood', None),
             self.pep_dict.get('mood_text', None))
@@ -134,35 +152,6 @@ class RosterTweaksPlugin(GajimPlugin):
         for account in accounts:
             if gajim.account_is_connected(account):
                 self.roster.send_pep(account, self.pep_dict)
-
-    def draw_activity(self):
-        """
-        Set activity button
-        """
-        img = self.xml.get_object('activity_image')
-        if 'activity' in self.pep_dict and self.pep_dict['activity'] in \
-           pep.ACTIVITIES:
-            if 'subactivity' in self.pep_dict and self.pep_dict['subactivity'] \
-            in pep.ACTIVITIES[self.pep_dict['activity']]:
-                img.set_from_pixbuf(gtkgui_helpers.load_activity_icon(
-                    self.pep_dict['activity'], self.pep_dict['subactivity']).\
-                        get_pixbuf())
-            else:
-                img.set_from_pixbuf(gtkgui_helpers.load_activity_icon(
-                    self.pep_dict['activity']).get_pixbuf())
-        else:
-            img.set_from_stock('gtk-stop', gtk.ICON_SIZE_MENU)
-
-    def draw_mood(self):
-        """
-        Set mood button
-        """
-        img = self.xml.get_object('mood_image')
-        if 'mood' in self.pep_dict and self.pep_dict['mood'] in pep.MOODS:
-            img.set_from_pixbuf(gtkgui_helpers.load_mood_icon(
-                self.pep_dict['mood']).get_pixbuf())
-        else:
-            img.set_from_stock('gtk-stop', gtk.ICON_SIZE_MENU)
 
 
 class RosterTweaksPluginConfigDialog(GajimPluginConfigDialog):
