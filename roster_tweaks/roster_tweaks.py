@@ -187,6 +187,8 @@ class RosterTweaksPluginConfigDialog(GajimPluginConfigDialog):
 
     def on_quick_status_toggled(self, button):
         self.plugin.config['quick_status'] = button.get_active()
+        if not self.plugin.active:
+            return
         self.plugin.status_widget.set_property('visible', button.get_active())
         self.plugin.mood_button.set_property('visible', button.get_active())
         self.plugin.activity_button.set_property('visible', button.get_active())
