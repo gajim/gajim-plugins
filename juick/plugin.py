@@ -56,6 +56,7 @@ class JuickPlugin(GajimPlugin):
                     'MENUITEM10': ('', ''), 'MENUITEM_TEXT10': ('', ''), }
         self.chat_control = None
         self.controls = []
+        self.conn = None
         self.cache_path = os.path.join(gajim.AVATAR_PATH, 'juick')
         if not os.path.isdir(self.cache_path):
             os.makedirs(self.cache_path)
@@ -78,7 +79,8 @@ class JuickPlugin(GajimPlugin):
         for control in self.controls:
             control.disconnect_from_chat_control()
         self.controls = []
-        self.conn.close()
+        if self.conn:
+            self.conn.close()
 
     def print_special_text(self, tv, special_text, other_tags, graphics=True):
         for control in self.controls:
