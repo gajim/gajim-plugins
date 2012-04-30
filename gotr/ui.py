@@ -24,7 +24,11 @@ from common import gajim
 from plugins.gui import GajimPluginConfigDialog
 
 import otrmodule
-import potr
+HAS_PORT = True
+try:
+    import potr
+except:
+    HAS_POTR = False
 
 
 class OtrPluginConfigDialog(GajimPluginConfigDialog):
