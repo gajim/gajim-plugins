@@ -174,9 +174,9 @@ class LatexRenderer(Thread):
         if exitcode == 0:
             # convert dvi to png
             log.debug('DVI OK')
-            exitcode = try_run(['dvipng'] + fg_str('tex') + ['-T', 'tight',
-                '-D', self.png_dpi, tmpfile + '.dvi', '-o', tmpfile + '.png'],
-                tmpdir)
+            exitcode = try_run(['dvipng', '-bg', 'Transparent'] + fg_str('tex')\
+                + ['-T', 'tight', '-D', self.png_dpi, tmpfile + '.dvi', '-o',
+                tmpfile + '.png'], tmpdir)
 
             if exitcode:
                 # dvipng failed, try convert
