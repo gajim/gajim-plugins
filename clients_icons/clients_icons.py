@@ -355,7 +355,7 @@ class ClientsIconsPlugin(GajimPlugin):
             if 'pidgin.im' in caps:
                 caps = 'libpurple'
                 for client in libpurple_clients:
-                    if client in contact.resouce.lower():
+                    if client in contact.resource.lower():
                         caps = libpurple_clients[client]
         if 'facebook.com' in iq_obj.jid and self.config['show_facebook']:
             caps = 'facebook.com'
