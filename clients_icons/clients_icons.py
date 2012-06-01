@@ -32,7 +32,7 @@ clients = {
     'http://talkgadget.google.com/client/caps': 'google.png',
     'http://oneteam.im/caps': 'oneteamiphone.png',
     'http://tkabber.jabber.ru/': 'tkabber.png',
-    'http://pidgin.im/': 'pidgin.png',
+    'http://pidgin.im/': 'libpurple.png',
     'http://pidgin.im/caps': 'pidgin.png',
     'http://qutim.org': 'qutim.png',
     'http://qutim.org/': 'qutim.png',
