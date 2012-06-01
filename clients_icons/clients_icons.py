@@ -32,7 +32,7 @@ clients = {
     'http://talkgadget.google.com/client/caps': 'google.png',
     'http://oneteam.im/caps': 'oneteamiphone.png',
     'http://tkabber.jabber.ru/': 'tkabber.png',
-    'http://pidgin.im/': 'libpurple.png',
+    'http://pidgin.im/': 'pidgin.png',
     'http://pidgin.im/caps': 'pidgin.png',
     'http://qutim.org': 'qutim.png',
     'http://qutim.org/': 'qutim.png',
@@ -137,8 +137,25 @@ clients = {
     'http://www.igniterealtime.org/projects/smack/': 'xabber.png',
     'http://megafonvolga.ru/': 'megafon.png',
     'rss@isida-bot.com': 'osiris.png',
+    'libpurple': 'libpurple.png',
+    'http://www.adium.im/': 'adium.png',
+    'http://eqo.com/': 'libpurple.png',
+    'http://instantbird.com/': 'instantbird.png',
+    'https://www.meebo.com/': 'meebo.png',
+    'http://opensource.palm.com/packages.html': 'palm.png',
+    'http://spectrum.im/': 'spectrum.png'
 }
-
+libpurple_clients ={
+    'adium': 'http://www.adium.im/',
+    'eqo': 'http://eqo.com/',
+    'finch': 'http://pidgin.im/',
+    'instantbird': 'http://instantbird.com/',
+    'meebo': 'https://www.meebo.com/',
+    'palm': 'http://opensource.palm.com/packages.html',
+    'pidgin': 'http://pidgin.im/',
+    'spectrum': 'http://spectrum.im/',
+    'telepathy-haze': 'http://pidgin.im/'
+}
 
 class ClientsIconsPlugin(GajimPlugin):
 
@@ -321,6 +338,7 @@ class ClientsIconsPlugin(GajimPlugin):
             iq_obj.conn.name, iq_obj.jid)
         if not contact:
             return
+
         iter_ = roster._get_contact_iter(iq_obj.jid, iq_obj.conn.name, contact,
             roster.model)[0]
         if contact != iq_obj.contact:
@@ -334,6 +352,11 @@ class ClientsIconsPlugin(GajimPlugin):
         tag = iq_obj.stanza.getTags('c')
         if tag:
             caps = tag[0].getAttr('node')
+            if 'pidgin.im' in caps:
+                caps = 'libpurple'
+                for client in libpurple_clients:
+                    if client in contact.resouce.lower():
+                        caps = libpurple_clients[client]
         if 'facebook.com' in iq_obj.jid and self.config['show_facebook']:
             caps = 'facebook.com'
         if not caps:
@@ -356,6 +379,8 @@ class ClientsIconsPlugin(GajimPlugin):
         tag = iq_obj.stanza.getTags('c')
         if tag:
             caps = tag[0].getAttr('node')
+            if 'pidgin.im' in caps:
+                caps = 'libpurple'
         iter_ = iq_obj.gc_control.get_contact_iter(iq_obj.nick.decode('utf-8'))
         model = iq_obj.gc_control.model
         if model[iter_][self.muc_renderer_num] is not None:
