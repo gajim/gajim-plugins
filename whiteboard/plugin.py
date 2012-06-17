@@ -471,8 +471,11 @@ def get_content(desc):
 common.jingle_content.contents[NS_JINGLE_XHTML] = get_content
 
 class JingleTransportSXE(JingleTransport):
-    def __init__(self):
-        JingleTransport.__init__(self, TransportType.streaming)
+    def __init__(self, node=None):
+        if gajim.config.get('version') == '0.15':
+            JingleTransport.__init__(self, TransportType.streaming)
+        else:
+            JingleTransport.__init__(self, TransportType.SOCKS5)
 
     def make_transport(self, candidates=None):
         transport = JingleTransport.make_transport(self, candidates)
