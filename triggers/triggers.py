@@ -138,7 +138,7 @@ class Triggers(GajimPlugin):
             obj.sound_event = ''
             obj.sound_file = rule['sound_file']
 
-        if rule['popup'] == 'no':
+        if rule['popup'] == 'no' or obj.control_focused:
             obj.do_popup = False
         elif rule['popup'] == 'yes':
             obj.do_popup = True
