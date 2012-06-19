@@ -122,6 +122,10 @@ class Base(object):
             if nick.startswith('* '):
                 nick = nick.lstrip('* ').split(' ')[0]
             nick = nick.lstrip(gajim.config.get('before_nickname'))
+            nicks = gajim.contacts.get_nick_list(self.chat_control.account,
+                self.chat_control.room_jid)
+            if nick not in nicks:
+                return
             nick = nick + gajim.config.get('gc_refer_to_nick_char') + ' '
             message_buffer = self.chat_control.msg_textview.get_buffer()
             message_buffer.insert_at_cursor(nick)
