@@ -66,6 +66,8 @@ class Base(object):
     def print_special_text(self, special_text, other_tags, graphics=True):
         if not gajim.interface.basic_pattern_re.match(special_text):
             return
+        # remove qip bbcode
+        special_text = special_text.rsplit('[/img]')[0]
 
         name, extension = os.path.splitext(special_text)
         if extension.lower() not in EXTENSIONS:
@@ -83,7 +85,7 @@ class Base(object):
         mark = buffer_.create_mark(None, iter_, True)
         # start downloading image
         gajim.thread_interface(helpers.download_image, [
-            self.textview.account, {'src': special_text}], self._update_img, [mark])
+            self.textview.account, {'src': special_text}],self._update_img, [mark])
 
     def _update_img(self, (mem, alt), mark):
         if mem:
