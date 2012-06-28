@@ -372,6 +372,10 @@ class PluginInstaller(GajimPlugin):
                     pass
         return plugins_found
 
+    def select_root_iter(self):
+        selection = self.available_treeview.get_selection()
+        selection.select_iter(self.available_plugins_model.get_iter_root())
+
 
 class Ftp(threading.Thread):
     def __init__(self, plugin):
@@ -446,6 +450,7 @@ class Ftp(threading.Thread):
             if self.remote_dirs:
                 self.download_plugin()
             gobject.idle_add(self.progressbar.hide)
+            gobject.idle_add(self.plugin.select_root_iter)
         except Exception, e:
             self.window.emit('error_signal', str(e))
 
