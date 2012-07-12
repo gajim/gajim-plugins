@@ -339,6 +339,10 @@ class ClientsIconsPlugin(GajimPlugin):
         if not contact:
             return
 
+        if iq_obj.resource == 'local':
+            # zeroconf
+            return
+
         iter_ = roster._get_contact_iter(iq_obj.jid, iq_obj.conn.name, contact,
             roster.model)[0]
         if contact != iq_obj.contact:
