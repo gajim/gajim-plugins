@@ -374,7 +374,8 @@ class PluginInstaller(GajimPlugin):
 
     def select_root_iter(self):
         selection = self.available_treeview.get_selection()
-        selection.select_iter(self.available_plugins_model.get_iter_root())
+        if selection.count_selected_rows() == 0:
+            selection.select_iter(self.available_plugins_model.get_iter_root())
 
 
 class Ftp(threading.Thread):
