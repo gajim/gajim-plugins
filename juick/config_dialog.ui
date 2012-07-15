@@ -143,7 +143,7 @@
         </child>
         <child>
           <object class="GtkCheckButton" id="show_pic">
-            <property name="label" translatable="yes">Show juick picture preview</property>
+            <property name="label" translatable="yes">Show Juick picture preview</property>
             <property name="visible">True</property>
             <property name="can_focus">True</property>
             <property name="receives_default">False</property>
@@ -254,7 +254,7 @@
             </child>
             <child>
               <object class="GtkCheckButton" id="show_tag_button">
-                <property name="label" translatable="yes">Show juick tag button</property>
+                <property name="label" translatable="yes">Show Juick tag button</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">False</property>
