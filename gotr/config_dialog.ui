@@ -249,7 +249,7 @@
                 <child>
                   <object class="GtkTreeViewColumn" id="name_column">
                     <property name="resizable">True</property>
-                    <property name="title">Name</property>
+                    <property name="title" translatable="yes">Name</property>
                     <child>
                       <object class="GtkCellRendererText" id="cellrenderertext2"/>
                       <attributes>
@@ -261,7 +261,7 @@
                 <child>
                   <object class="GtkTreeViewColumn" id="status_column">
                     <property name="resizable">True</property>
-                    <property name="title">Status</property>
+                    <property name="title" translatable="yes">Status</property>
                     <child>
                       <object class="GtkCellRendererText" id="cellrenderertext3"/>
                       <attributes>
@@ -273,7 +273,7 @@
                 <child>
                   <object class="GtkTreeViewColumn" id="validated_column">
                     <property name="resizable">True</property>
-                    <property name="title">Validated</property>
+                    <property name="title" translatable="yes">Validated</property>
                     <child>
                       <object class="GtkCellRendererToggle" id="cellrenderertoggle1"/>
                       <attributes>
@@ -285,7 +285,7 @@
                 <child>
                   <object class="GtkTreeViewColumn" id="fingerprint_column">
                     <property name="resizable">True</property>
-                    <property name="title">Fingerprint</property>
+                    <property name="title" translatable="yes">Fingerprint</property>
                     <child>
                       <object class="GtkCellRendererText" id="cellrenderertext4"/>
                       <attributes>
@@ -297,7 +297,7 @@
                 <child>
                   <object class="GtkTreeViewColumn" id="account_column">
                     <property name="resizable">True</property>
-                    <property name="title">Account</property>
+                    <property name="title" translatable="yes">Account</property>
                     <child>
                       <object class="GtkCellRendererText" id="cellrenderertext5"/>
                       <attributes>
