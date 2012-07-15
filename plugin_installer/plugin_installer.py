@@ -419,7 +419,7 @@ class Ftp(threading.Thread):
                     fract = self.progressbar.get_fraction() + progress_step
                     gobject.idle_add(self.progressbar.set_fraction, fract)
                     gobject.idle_add(self.progressbar.set_text,
-                        _('Read "%s"') % dir_)
+                        _('Reading "%s"') % dir_)
                     try:
                         self.ftp.retrbinary('RETR %s/manifest.ini' % dir_,
                             self.handleDownload)
