@@ -262,7 +262,7 @@ class SvgChooserDialog(FileChooserDialog):
         FileChooserDialog.__init__(self,
             title_text=_('Save Image as...'),
             action=gtk.FILE_CHOOSER_ACTION_SAVE,
-            buttons=(gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL, gtk.STOCK_OPEN,
+            buttons=(gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL, gtk.STOCK_SAVE,
                 gtk.RESPONSE_OK),
             current_folder='',
             default_response=gtk.RESPONSE_OK,
