@@ -461,7 +461,7 @@ class Ftp(threading.Thread):
     def download_plugin(self):
         gobject.idle_add(self.progressbar.show)
         self.pulse = gobject.timeout_add(150, self.progressbar_pulse)
-        gobject.idle_add(self.progressbar.set_text, _('Create a list of files'))
+        gobject.idle_add(self.progressbar.set_text, _('Creating a list of files'))
         for remote_dir in self.remote_dirs:
 
             def nlstr(dir_, subdir=None):
