@@ -252,9 +252,9 @@ class OtrPlugin(GajimPlugin):
     @log_calls('OtrPlugin')
     def activate(self):
         if not HAS_POTR:
-            raise GajimPluginException('python-otr is missing!')
+            raise GajimPluginException(_('python-otr is missing!'))
         if not hasattr(potr, 'VERSION') or potr.VERSION < MINVERSION:
-            raise GajimPluginException('old / unsupported python-otr version')
+            raise GajimPluginException(_('old / unsupported python-otr version'))
 
     def get_otr_status(self, account, contact):
         ctx = self.us[account].getContext(contact.get_full_jid())
