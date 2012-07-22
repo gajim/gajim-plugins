@@ -47,7 +47,6 @@ class RegexFilterPlugin(GajimPlugin):
             'gc-message-received': (ged.PREGUI1, self._nec_gc_message_received),
         }
 
-        self.rules = {}
         self.create_rules()
 
     @log_calls('RegexFilterPlugin')
@@ -60,6 +59,7 @@ class RegexFilterPlugin(GajimPlugin):
 
     @log_calls('RegexFilterPlugin')
     def create_rules(self):
+        self.rules = {}
         for num, c in self.config.items():
             self.rules[int(num)] = [re.compile(c[0], re.MULTILINE), c[1]]
 
