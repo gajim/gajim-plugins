@@ -142,8 +142,9 @@ class PluginInstaller(GajimPlugin):
         self.xml.set_translation_domain('gajim_plugins')
         self.xml.add_objects_from_file(self.GTK_BUILDER_FILE_PATH, ['hpaned2'])
         hpaned = self.xml.get_object('hpaned2')
-        self.page_num = self.notebook.append_page(hpaned,
-            gtk.Label(_('Available')))
+        if not hasattr(self, 'page_num'):
+            self.page_num = self.notebook.append_page(hpaned,
+                gtk.Label(_('Available')))
 
         widgets_to_extract = ('plugin_name_label1',
         'available_treeview', 'progressbar', 'inslall_upgrade_button',
@@ -205,6 +206,8 @@ class PluginInstaller(GajimPlugin):
     def on_win_destroy(self, widget):
         if hasattr(self, 'ftp'):
             del self.ftp
+        if hasattr(self, 'page_num'):
+            del self.page_num
 
     def available_plugins_toggled_cb(self, cell, path):
         is_active = self.available_plugins_model[path][4]
@@ -373,9 +376,12 @@ class PluginInstaller(GajimPlugin):
         return plugins_found
 
     def select_root_iter(self):
-        selection = self.available_treeview.get_selection()
-        if selection.count_selected_rows() == 0:
-            selection.select_iter(self.available_plugins_model.get_iter_root())
+        try:
+            selection = self.available_treeview.get_selection()
+            if selection.count_selected_rows() == 0:
+                selection.select_iter(self.available_plugins_model.get_iter_root())
+        except Exception, error:
+                pass
 
 
 class Ftp(threading.Thread):
