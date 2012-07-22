@@ -376,12 +376,11 @@ class PluginInstaller(GajimPlugin):
         return plugins_found
 
     def select_root_iter(self):
-        try:
+        if hasattr(self, 'page_num'):
             selection = self.available_treeview.get_selection()
             if selection.count_selected_rows() == 0:
-                selection.select_iter(self.available_plugins_model.get_iter_root())
-        except Exception, error:
-                pass
+                root_iter = self.available_plugins_model.get_iter_root()
+                selection.select_iter(root_iter)
 
 
 class Ftp(threading.Thread):
