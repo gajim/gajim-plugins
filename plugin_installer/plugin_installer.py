@@ -124,11 +124,15 @@ class PluginInstaller(GajimPlugin):
         if hasattr(self, 'page_num'):
             self.notebook.remove_page(self.page_num)
             self.notebook.set_current_page(0)
+            del self.page_num
         if hasattr(self, 'ftp'):
             del self.ftp
 
     def on_activate(self, widget):
         if 'plugins' not in gajim.interface.instances:
+            return
+        if hasattr(self, 'page_num'):
+            # 'Available' tab exists
             return
         self.installed_plugins_model = gajim.interface.instances[
             'plugins'].installed_plugins_model
@@ -142,9 +146,8 @@ class PluginInstaller(GajimPlugin):
         self.xml.set_translation_domain('gajim_plugins')
         self.xml.add_objects_from_file(self.GTK_BUILDER_FILE_PATH, ['hpaned2'])
         hpaned = self.xml.get_object('hpaned2')
-        if not hasattr(self, 'page_num'):
-            self.page_num = self.notebook.append_page(hpaned,
-                gtk.Label(_('Available')))
+        self.page_num = self.notebook.append_page(hpaned,
+            gtk.Label(_('Available')))
 
         widgets_to_extract = ('plugin_name_label1',
         'available_treeview', 'progressbar', 'inslall_upgrade_button',
