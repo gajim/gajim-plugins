@@ -93,6 +93,7 @@ class PluginInstaller(GajimPlugin):
             try:
                 to_update = []
                 con = self.ftp_connect()
+                con.cwd('plugins')
                 plugins_dirs = con.nlst()
                 for dir_ in plugins_dirs:
                     try:
