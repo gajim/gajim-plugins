@@ -27,6 +27,7 @@ import otrmodule
 HAS_PORT = True
 try:
     import potr
+    import potr.proto
 except:
     HAS_POTR = False
 

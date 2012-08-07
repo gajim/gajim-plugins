@@ -30,6 +30,7 @@ Off-The-Record encryption plugin.
 '''
 
 MINVERSION = (1,0,0,'beta5')
+MINCRYPTOVERSION = (2,1,0,'final',0)
 IGNORE = True
 PASS = False
 
@@ -54,7 +55,9 @@ inactive_tip = 'Communication to this contact is currently ' \
         '<i>unencrypted</i>'
 
 import os
+import pickle
 import time
+import sys
 
 import common.xmpp
 from common import gajim
@@ -67,11 +70,22 @@ from plugins.plugin import GajimPluginException
 
 import ui
 
+sys.path.insert(0, os.path.dirname(ui.__file__))
 
-import pickle
+HAS_CRYPTO = True
+try:
+    import Crypto
+    if not hasattr(Crypto, 'version_info') \
+    or Crypto.version_info < MINCRYPTOVERSION:
+        raise ImportError('PyCrypto not found or too old')
+except ImportError:
+    HAS_CRYPTO = False
+
 HAS_POTR = True
 try:
     import potr
+    import potr.crypt
+    import potr.context
     if not hasattr(potr, 'VERSION') or potr.VERSION < MINVERSION:
         raise ImportError('old / unsupported python-otr version')
 
@@ -225,6 +239,20 @@ class OtrPlugin(GajimPlugin):
 
         self.description = _('See http://www.cypherpunks.ca/otr/')
         self.us = {}
+
+
+        if not HAS_POTR:
+            self.activatable = False
+            self.available_text = _('Can\'t find potr. Verify this ' \
+                    'plugin\'s integrity.')
+            return
+
+        if not HAS_CRYPTO:
+            self.activatable = False
+            self.available_text = _('PyCrypto not installed or too old.')
+            return
+
+
         self.config_dialog = ui.OtrPluginConfigDialog(self)
         self.events_handlers = {}
         self.events_handlers['message-received'] = (ged.PRECORE,
@@ -235,26 +263,21 @@ class OtrPlugin(GajimPlugin):
         self.gui_extension_points = {
                     'chat_control' : (self.cc_connect, self.cc_disconnect)
                 }
-        if not HAS_POTR:
-            self.activatable = False
-            self.available_text = 'potr is not installed. Get it from %s' % \
-                'https://github.com/afflux/pure-python-otr'
-        else:
-            for acc in gajim.contacts.get_accounts():
-                self.us[acc] = GajimOtrAccount(self, acc)
-                self.us[acc].loadTrusts()
 
-                acc = str(acc)
-                if acc not in self.config or None not in self.config[acc]:
-                    self.config[acc] = {None:DEFAULTFLAGS.copy()}
-            self.update_context_list()
+        for acc in gajim.contacts.get_accounts():
+            self.us[acc] = GajimOtrAccount(self, acc)
+            self.us[acc].loadTrusts()
+
+            acc = str(acc)
+            if acc not in self.config or None not in self.config[acc]:
+                self.config[acc] = {None:DEFAULTFLAGS.copy()}
+        self.update_context_list()
 
     @log_calls('OtrPlugin')
     def activate(self):
-        if not HAS_POTR:
-            raise GajimPluginException(_('python-otr is missing!'))
-        if not hasattr(potr, 'VERSION') or potr.VERSION < MINVERSION:
-            raise GajimPluginException(_('old / unsupported python-otr version'))
+        if not HAS_CRYPTO or not HAS_POTR or not hasattr(potr, 'VERSION') \
+        or potr.VERSION < MINVERSION:
+            raise GajimPluginException(self.available_text)
 
     def get_otr_status(self, account, contact):
         ctx = self.us[account].getContext(contact.get_full_jid())
