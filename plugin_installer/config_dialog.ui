@@ -264,7 +264,7 @@
   </object>
   <object class="GtkWindow" id="window2">
     <child>
-      <object class="GtkVBox" id="vbox11">
+      <object class="GtkVBox" id="hbox111">
         <property name="visible">True</property>
         <property name="orientation">vertical</property>
         <child>
