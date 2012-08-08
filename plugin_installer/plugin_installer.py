@@ -49,7 +49,8 @@ class PluginInstaller(GajimPlugin):
     def init(self):
         self.description = _('Install and upgrade plugins from ftp')
         self.config_dialog = PluginInstallerPluginConfigDialog(self)
-        self.config_default_values = {'ftp_server': ('ftp.gajim.org', '')}
+        self.config_default_values = {'ftp_server': ('ftp.gajim.org', ''),
+                                      'check_update': (True, ''),}
         self.window = None
         self.progressbar = None
         self.available_plugins_model = None
@@ -62,7 +63,8 @@ class PluginInstaller(GajimPlugin):
         self.id_ = self.pl_menuitem.connect_after('activate', self.on_activate)
         if 'plugins' in gajim.interface.instances:
             self.on_activate(None)
-        gobject.timeout_add_seconds(30, self.check_update)
+        if self.config['check_update']:
+            gobject.timeout_add_seconds(30, self.check_update)
 
     @log_calls('PluginInstallerPlugin')
     def warn_update(self, plugins):
@@ -535,8 +537,8 @@ class PluginInstallerPluginConfigDialog(GajimPluginConfigDialog):
             'config_dialog.ui')
         self.xml = gtk.Builder()
         self.xml.set_translation_domain('gajim_plugins')
-        self.xml.add_objects_from_file(self.GTK_BUILDER_FILE_PATH, ['hbox111'])
-        hbox = self.xml.get_object('hbox111')
+        self.xml.add_objects_from_file(self.GTK_BUILDER_FILE_PATH, ['vbox11'])
+        hbox = self.xml.get_object('vbox11')
         self.child.pack_start(hbox)
 
         self.xml.connect_signals(self)
@@ -545,7 +547,12 @@ class PluginInstallerPluginConfigDialog(GajimPluginConfigDialog):
     def on_run(self):
         widget = self.xml.get_object('ftp_server')
         widget.set_text(str(self.plugin.config['ftp_server']))
+        self.xml.get_object('check_update').set_active(
+            self.plugin.config['check_update'])
 
     def on_hide(self, widget):
         widget = self.xml.get_object('ftp_server')
         self.plugin.config['ftp_server'] = widget.get_text()
+
+    def on_check_update_toggled(self, widget):
+        self.plugin.config['check_update'] = widget.get_active()
