@@ -6,7 +6,7 @@ from string import lstrip
 
 from common import gajim
 from plugins import GajimPlugin
-from plugins.helpers import log_calls, log
+from plugins.helpers import log_calls
 
 
 class ClickableNicknames(GajimPlugin):
