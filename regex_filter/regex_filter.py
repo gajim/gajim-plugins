@@ -107,14 +107,16 @@ class FilterCommands(CommandContainer):
     HOSTS = ChatCommands, PrivateChatCommands, GroupChatCommands
 
     @command("add_filter", raw=True)
-    @doc(_("Add an incoming filter. First argument is the search regex, second argument is the replace regex."))
+    @doc(_("Add an incoming filter. First argument is the search regex, "
+    "second argument is the replace regex."))
     def add_filter(self, search, replace):
         plugin = gajim.plugin_manager.get_active_plugin('regex_filter')
         plugin.add_rule(search, replace)
         return _('Added rule to replace %s by %s' % (search, replace))
 
     @command("remove_filter", raw=True)
-    @doc(_("Remove an incoming filter. Argument is the rule number. See /list_rules command."))
+    @doc(_("Remove an incoming filter. Argument is the rule number. "
+    "See /list_rules command."))
     def remove_filter(self, num):
         plugin = gajim.plugin_manager.get_active_plugin('regex_filter')
         if plugin.remove_rule(num):
