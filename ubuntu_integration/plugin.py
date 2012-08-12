@@ -27,7 +27,7 @@ from common import gajim
 import gtkgui_helpers
 # 3rd party
 try:
-    import indicate
+    __import__('indicate')
     HAS_INDICATE = True
 except ImportError:
     HAS_INDICATE = False
