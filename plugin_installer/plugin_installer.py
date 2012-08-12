@@ -497,12 +497,13 @@ class Ftp(threading.Thread):
             dirs, files = [], []
             nlstr('/plugins/' + remote_dir)
 
-            if not os.path.isdir(gajim.PLUGINS_DIRS[1]):
-                os.mkdir(gajim.PLUGINS_DIRS[1])
-            local_dir = ld = os.path.join(gajim.PLUGINS_DIRS[1], remote_dir)
+            base_dir, user_dir = gajim.PLUGINS_DIRS
+            if not os.path.isdir(user_dir):
+                os.mkdir(user_dir)
+            local_dir = ld = os.path.join(user_dir, remote_dir)
             if not os.path.isdir(local_dir):
                 os.mkdir(local_dir)
-            local_dir = os.path.split(gajim.PLUGINS_DIRS[1])[0]
+            local_dir = os.path.split(user_dir)[0]
 
             # creating dirs
             for dir_ in dirs:
