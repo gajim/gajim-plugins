@@ -31,11 +31,6 @@ try:
     HAS_INDICATE = True
 except ImportError:
     HAS_INDICATE = False
-try:
-    from xdg.BaseDirectory import load_data_paths
-    HAS_PYXDG = True
-except ImportError:
-    HAS_PYXDG = False
 
 
 class UbuntuIntegrationPlugin(GajimPlugin):
@@ -64,10 +59,13 @@ class UbuntuIntegrationPlugin(GajimPlugin):
         # {(account, jid): (indicator, [event, ...]), ...}
         self.events = {}
 
+        try:
+            from xdg.BaseDirectory import load_data_paths
+        except ImportError:
+            raise GajimPluginException("python-xdg is missing!")
+
         if not HAS_INDICATE:
             raise GajimPluginException("python-indicate is missing!")
-        if not HAS_PYXDG:
-            raise GajimPluginException("python-xdg is missing!")
 
         self.server = indicate.indicate_server_ref_default()
         self.server.set_type("message.im")
