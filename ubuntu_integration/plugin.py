@@ -25,12 +25,6 @@ from plugins.plugin import GajimPluginException
 from plugins.helpers import log_calls
 from common import gajim
 import gtkgui_helpers
-# 3rd party
-try:
-    __import__('indicate')
-    HAS_INDICATE = True
-except ImportError:
-    HAS_INDICATE = False
 
 
 class UbuntuIntegrationPlugin(GajimPlugin):
@@ -50,6 +44,22 @@ class UbuntuIntegrationPlugin(GajimPlugin):
             'Many thanks to the guys from gajim@conference.gajim.org for '
             'answering my questions :)')
         self.config_dialog = None
+        self.test_activatable()
+
+    def test_activatable(self):
+        self.available_text = ''
+        try:
+            from xdg.BaseDirectory import load_data_paths
+        except ImportError:
+            self.activatable = False
+            self.available_text += _('python-xdg is missing! '
+                'Install python-xdg.\n')
+        try:
+            import indicate
+        except ImportError:
+            self.activatable = False
+            self.available_text += _('python-indicate is missing! '
+                'Install python-indicate.')
 
     @log_calls("UbuntuIntegrationPlugin")
     def activate(self):
@@ -59,13 +69,9 @@ class UbuntuIntegrationPlugin(GajimPlugin):
         # {(account, jid): (indicator, [event, ...]), ...}
         self.events = {}
 
-        try:
-            from xdg.BaseDirectory import load_data_paths
-        except ImportError:
-            raise GajimPluginException("python-xdg is missing!")
-
-        if not HAS_INDICATE:
-            raise GajimPluginException("python-indicate is missing!")
+        version = gajim.version.split('-')[0]
+        if version == '0.15' and self.available_text:
+            raise GajimPluginException(self.available_text)
 
         self.server = indicate.indicate_server_ref_default()
         self.server.set_type("message.im")

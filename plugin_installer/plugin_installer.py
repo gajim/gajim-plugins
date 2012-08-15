@@ -285,8 +285,13 @@ class PluginInstaller(GajimPlugin):
             if is_active and plugin.name != self.name:
                 gobject.idle_add(gajim.plugin_manager.activate_plugin, plugin)
             if plugin.name != 'Plugin Installer':
-                self.installed_plugins_model.append([plugin, plugin.name,
-                    is_active, plugin.activatable])
+                version = gajim.version.split('-')[0]
+                if version == '0.15':
+                    self.installed_plugins_model.append([plugin, plugin.name,
+                        is_active])
+                else:
+                    self.installed_plugins_model.append([plugin, plugin.name,
+                        is_active, plugin.activatable])
         dialog = HigDialog(None, gtk.MESSAGE_INFO, gtk.BUTTONS_OK,
             '', _('All selected plugins downloaded'))
         dialog.set_modal(False)
