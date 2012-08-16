@@ -311,7 +311,9 @@ class PluginInstaller(GajimPlugin):
                 if os.path.isfile(icon_file):
                     icon = gtk.gdk.pixbuf_new_from_file_at_size(icon_file, 16,
                         16)
-
+                if not hasattr(plugin, 'activatable'):
+                    # version 0.15
+                    plugin.activatable = False
                 max_row = [plugin, plugin.name, is_active, plugin.activatable,
                     icon]
                 # support old plugin system
