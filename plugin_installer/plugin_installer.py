@@ -68,6 +68,8 @@ class PluginInstaller(GajimPlugin):
         self.progressbar = None
         self.available_plugins_model = None
         self.upgrading = False # True when opened from upgrade popup dialog
+        self.timeout_id = 0
+        self.connected_ids = {}
         icon = gtk.Image()
         self.def_icon = icon.render_icon(gtk.STOCK_PREFERENCES,
             gtk.ICON_SIZE_MENU)
@@ -80,7 +82,7 @@ class PluginInstaller(GajimPlugin):
         if 'plugins' in gajim.interface.instances:
             self.on_activate(None)
         if self.config['check_update']:
-            gobject.timeout_add_seconds(30, self.check_update)
+            self.timeout_id = gobject.timeout_add_seconds(30, self.check_update)
 
     @log_calls('PluginInstallerPlugin')
     def warn_update(self, plugins):
@@ -132,6 +134,7 @@ class PluginInstaller(GajimPlugin):
         ftp = Ftp(self)
         ftp.run = _run
         ftp.start()
+        self.timeout_id = 0
 
     @log_calls('PluginInstallerPlugin')
     def deactivate(self):
@@ -139,9 +142,14 @@ class PluginInstaller(GajimPlugin):
         if hasattr(self, 'page_num'):
             self.notebook.remove_page(self.page_num)
             self.notebook.set_current_page(0)
+            for id_, widget in self.connected_ids.items():
+                widget.disconnect(id_)
             del self.page_num
         if hasattr(self, 'ftp'):
             del self.ftp
+        if self.timeout_id > 0:
+            gobject.source_remove(self.timeout_id)
+            self.timeout_id = 0
 
     def on_activate(self, widget):
         if 'plugins' not in gajim.interface.instances:
@@ -152,10 +160,11 @@ class PluginInstaller(GajimPlugin):
         self.installed_plugins_model = gajim.interface.instances[
             'plugins'].installed_plugins_model
         self.notebook = gajim.interface.instances['plugins'].plugins_notebook
-        self.id_n = self.notebook.connect('switch-page',
-            self.on_notebook_switch_page)
+        id_ = self.notebook.connect('switch-page', self.on_notebook_switch_page)
+        self.connected_ids[id_] = self.notebook
         self.window = gajim.interface.instances['plugins'].window
-        self.window.connect('destroy', self.on_win_destroy)
+        id_ = self.window.connect('destroy', self.on_win_destroy)
+        self.connected_ids[id_] = self.window
         self.GTK_BUILDER_FILE_PATH = self.local_file_path('config_dialog.ui')
         self.xml = gtk.Builder()
         self.xml.set_translation_domain('gajim_plugins')
@@ -216,8 +225,11 @@ class PluginInstaller(GajimPlugin):
             gobject.signal_new('plugin_downloaded', self.window,
                 gobject.SIGNAL_RUN_LAST, gobject.TYPE_STRING,
                 (gobject.TYPE_PYOBJECT,))
-        self.window.connect('error_signal', self.on_some_ftp_error)
-        self.window.connect('plugin_downloaded', self.on_plugin_downloaded)
+        id_ = self.window.connect('error_signal', self.on_some_ftp_error)
+        self.connected_ids[id_] = self.window
+        id_ = self.window.connect('plugin_downloaded',
+            self.on_plugin_downloaded)
+        self.connected_ids[id_] = self.window
 
         selection = self.available_treeview.get_selection()
         selection.connect('changed',
@@ -273,13 +285,18 @@ class PluginInstaller(GajimPlugin):
         WarningDialog(_('Ftp error'), error_text, self.window)
 
     def on_plugin_downloaded(self, widget, plugin_dirs):
+        dialog = HigDialog(None, gtk.MESSAGE_INFO, gtk.BUTTONS_OK,
+            '', _('All selected plugins downloaded'))
+        dialog.set_modal(False)
+        dialog.set_transient_for(self.window)
+
         for _dir in plugin_dirs:
             is_active = False
             plugins = None
             plugin_dir = os.path.join(gajim.PLUGINS_DIRS[1], _dir)
             plugin = gajim.plugin_manager.get_plugin_by_path(plugin_dir)
             if plugin:
-                if plugin.active and plugin.name != self.name:
+                if plugin.active:
                     is_active = True
                     gobject.idle_add(gajim.plugin_manager.deactivate_plugin,
                         plugin)
@@ -301,30 +318,23 @@ class PluginInstaller(GajimPlugin):
                     self.available_plugins_model[row][C_LOCAL_VERSION] = \
                         plugin.version
                     self.available_plugins_model[row][C_UPGRADE] = False
-            if is_active and plugin.name != self.name:
+            if is_active:
                 gobject.idle_add(gajim.plugin_manager.activate_plugin, plugin)
-            if plugin.name != 'Plugin Installer':
-                # get plugin icon
-                icon_file = os.path.join(plugin.__path__, os.path.split(
-                    plugin.__path__)[1]) + '.png'
-                icon = self.def_icon
-                if os.path.isfile(icon_file):
-                    icon = gtk.gdk.pixbuf_new_from_file_at_size(icon_file, 16,
-                        16)
-                if not hasattr(plugin, 'activatable'):
-                    # version 0.15
-                    plugin.activatable = False
-                max_row = [plugin, plugin.name, is_active, plugin.activatable,
-                    icon]
-                # support old plugin system
-                row_len = len(self.installed_plugins_model[0])
-                row = max_row[0: row_len]
-                self.installed_plugins_model.append(row)
+            # get plugin icon
+            icon_file = os.path.join(plugin.__path__, os.path.split(
+                plugin.__path__)[1]) + '.png'
+            icon = self.def_icon
+            if os.path.isfile(icon_file):
+                icon = gtk.gdk.pixbuf_new_from_file_at_size(icon_file, 16, 16)
+            if not hasattr(plugin, 'activatable'):
+                # version 0.15
+                plugin.activatable = False
+            max_row = [plugin, plugin.name, is_active, plugin.activatable, icon]
+            # support old plugin system
+            row_len = len(self.installed_plugins_model[0])
+            row = max_row[0: row_len]
+            self.installed_plugins_model.append(row)
 
-        dialog = HigDialog(None, gtk.MESSAGE_INFO, gtk.BUTTONS_OK,
-            '', _('All selected plugins downloaded'))
-        dialog.set_modal(False)
-        dialog.set_transient_for(self.window)
         dialog.popup()
 
     def available_plugins_treeview_selection_changed(self, treeview_selection):
@@ -381,7 +391,11 @@ class PluginInstaller(GajimPlugin):
                 if module_name == '__init__':
                     continue
                 try:
-                    module = __import__('%s.%s' % (mod, module_name))
+                    full_module_name = '%s.%s' % (mod, module_name)
+                    if full_module_name in sys.modules:
+                        module = reload(sys.modules[full_module_name])
+                    else:
+                        module = __import__(full_module_name)
                 except ValueError, value_error:
                     pass
                 except ImportError, import_error:
