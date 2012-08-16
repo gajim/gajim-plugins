@@ -29,6 +29,7 @@ import ConfigParser
 import os
 import fnmatch
 import sys
+import zipfile
 
 from common import gajim
 from plugins import GajimPlugin
@@ -96,15 +97,11 @@ class PluginInstaller(GajimPlugin):
                 to_update = []
                 con = self.ftp_connect()
                 con.cwd('plugins')
-                plugins_dirs = con.nlst()
-                for dir_ in plugins_dirs:
-                    try:
-                        con.retrbinary('RETR %s/manifest.ini' % dir_,
-                            ftp.handleDownload)
-                    except Exception, error:
-                        if str(error).startswith('550'):
-                            continue
-                    ftp.config.readfp(io.BytesIO(ftp.buffer_.getvalue()))
+                self.ftp.retrbinary('RETR manifests.zip', ftp.handleDownload)
+                zip_file = zipfile.ZipFile(ftp.buffer_)
+                manifest_list = zip_file.namelist()
+                for filename in manifest_list:
+                    ftp.config.readfp(zip_file.open(filename))
                     local_version = ftp.get_plugin_version(ftp.config.get(
                         'info', 'name'))
                     if local_version:
@@ -427,22 +424,20 @@ class Ftp(threading.Thread):
             self.ftp = self.plugin.ftp_connect()
             self.ftp.cwd('plugins')
             if not self.remote_dirs:
-                self.plugins_dirs = self.ftp.nlst()
-                progress_step = 1.0 / len(self.plugins_dirs)
                 gobject.idle_add(self.progressbar.set_text,
                     _('Scan files on the server'))
-                for dir_ in self.plugins_dirs:
+                self.ftp.retrbinary('RETR manifests.zip', self.handleDownload)
+                zip_file = zipfile.ZipFile(self.buffer_)
+                manifest_list = zip_file.namelist()
+                progress_step = 1.0 / len(manifest_list)
+                for filename in manifest_list:
+                    dir_ = filename.split('/')[0]
                     fract = self.progressbar.get_fraction() + progress_step
                     gobject.idle_add(self.progressbar.set_fraction, fract)
                     gobject.idle_add(self.progressbar.set_text,
                         _('Reading "%s"') % dir_)
-                    try:
-                        self.ftp.retrbinary('RETR %s/manifest.ini' % dir_,
-                            self.handleDownload)
-                    except Exception, error:
-                        if str(error).startswith('550'):
-                            continue
-                    self.config.readfp(io.BytesIO(self.buffer_.getvalue()))
+
+                    self.config.readfp(zip_file.open(filename))
                     local_version = self.get_plugin_version(
                         self.config.get('info', 'name'))
                     upgrade = False
@@ -461,7 +456,6 @@ class Ftp(threading.Thread):
                         self.config.get('info', 'description'),
                         self.config.get('info', 'authors'),
                         self.config.get('info', 'homepage'), ])
-                self.plugins_dirs = None
                 self.ftp.quit()
             gobject.idle_add(self.progressbar.set_fraction, 0)
             if self.remote_dirs:
