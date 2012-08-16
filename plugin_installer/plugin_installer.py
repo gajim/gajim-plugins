@@ -439,6 +439,8 @@ class PluginInstaller(GajimPlugin):
             if selection.count_selected_rows() == 0:
                 root_iter = self.available_plugins_model.get_iter_root()
                 selection.select_iter(root_iter)
+        scr_win = self.xml.get_object('scrolledwindow2')
+        scr_win.get_vadjustment().set_value(0)
 
 
 class Ftp(threading.Thread):
