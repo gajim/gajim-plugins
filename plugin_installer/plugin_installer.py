@@ -2,8 +2,8 @@
 #
 ## plugins/plugin_installer/plugin_installer.py
 ##
-## Copyright (C) 2010-2011 Denis Fomin <fominde AT gmail.com>
-## Copyright (C) 2011 Yann Leboulanger <asterix AT lagaule.org>
+## Copyright (C) 2010-2012 Denis Fomin <fominde AT gmail.com>
+## Copyright (C) 2011-2012 Yann Leboulanger <asterix AT lagaule.org>
 ##
 ## This file is part of Gajim.
 ##
@@ -306,7 +306,7 @@ class PluginInstaller(GajimPlugin):
             if plugin.name != 'Plugin Installer':
                 # get plugin icon
                 icon_file = os.path.join(plugin.__path__, os.path.split(
-                plugin.__path__)[1]) + '.png'
+                    plugin.__path__)[1]) + '.png'
                 icon = self.def_icon
                 if os.path.isfile(icon_file):
                     icon = gtk.gdk.pixbuf_new_from_file_at_size(icon_file, 16,
