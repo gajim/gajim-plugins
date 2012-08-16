@@ -191,6 +191,7 @@ class PluginInstaller(GajimPlugin):
             gobject.TYPE_PYOBJECT, gobject.TYPE_PYOBJECT)
         self.available_treeview.set_model(self.available_plugins_model)
         self.available_treeview.set_rules_hint(True)
+        self.available_plugins_model.set_sort_column_id(2, gtk.SORT_ASCENDING)
 
         self.progressbar.set_property('no-show-all', True)
         renderer = gtk.CellRendererText()
@@ -215,7 +216,8 @@ class PluginInstaller(GajimPlugin):
         renderer = gtk.CellRendererToggle()
         renderer.set_property('activatable', True)
         renderer.connect('toggled', self.available_plugins_toggled_cb)
-        col = gtk.TreeViewColumn(_('Install /\nUpgrade'), renderer, active=C_UPGRADE)
+        col = gtk.TreeViewColumn(_('Install /\nUpgrade'), renderer,
+            active=C_UPGRADE)
         self.available_treeview.append_column(col)
 
         if gobject.signal_lookup('error_signal', self.window) is 0:
