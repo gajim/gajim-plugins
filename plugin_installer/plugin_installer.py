@@ -68,6 +68,9 @@ class PluginInstaller(GajimPlugin):
         self.progressbar = None
         self.available_plugins_model = None
         self.upgrading = False # True when opened from upgrade popup dialog
+        icon = gtk.Image()
+        self.def_icon = icon.render_icon(gtk.STOCK_PREFERENCES,
+            gtk.ICON_SIZE_MENU)
 
     @log_calls('PluginInstallerPlugin')
     def activate(self):
@@ -301,13 +304,21 @@ class PluginInstaller(GajimPlugin):
             if is_active and plugin.name != self.name:
                 gobject.idle_add(gajim.plugin_manager.activate_plugin, plugin)
             if plugin.name != 'Plugin Installer':
-                if gajim.version.split('-')[0] == '0.15':
-                    # plugin do not have 'activatable' propetry in the Gajim 0.15
-                    self.installed_plugins_model.append([plugin, plugin.name,
-                        is_active])
-                else:
-                    self.installed_plugins_model.append([plugin, plugin.name,
-                        is_active, plugin.activatable])
+                # get plugin icon
+                icon_file = os.path.join(plugin.__path__, os.path.split(
+                plugin.__path__)[1]) + '.png'
+                icon = self.def_icon
+                if os.path.isfile(icon_file):
+                    icon = gtk.gdk.pixbuf_new_from_file_at_size(icon_file, 16,
+                        16)
+
+                max_row = [plugin, plugin.name, is_active, plugin.activatable,
+                    icon]
+                # support old plugin system
+                row_len = len(self.installed_plugins_model[0])
+                row = max_row[0: row_len]
+                self.installed_plugins_model.append(row)
+
         dialog = HigDialog(None, gtk.MESSAGE_INFO, gtk.BUTTONS_OK,
             '', _('All selected plugins downloaded'))
         dialog.set_modal(False)
