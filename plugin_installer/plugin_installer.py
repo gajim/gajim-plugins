@@ -463,11 +463,13 @@ class Ftp(threading.Thread):
             if not self.remote_dirs:
                 gobject.idle_add(self.progressbar.set_text,
                     _('Scan files on the server'))
-                self.ftp.retrbinary('RETR manifests.zip', self.handleDownload)
+                self.ftp.retrbinary('RETR manifests_images.zip', self.handleDownload)
                 zip_file = zipfile.ZipFile(self.buffer_)
                 manifest_list = zip_file.namelist()
                 progress_step = 1.0 / len(manifest_list)
                 for filename in manifest_list:
+                    if not filename.endswith('manifest.ini'):
+                        continue
                     dir_ = filename.split('/')[0]
                     fract = self.progressbar.get_fraction() + progress_step
                     gobject.idle_add(self.progressbar.set_fraction, fract)
@@ -487,15 +489,19 @@ class Ftp(threading.Thread):
                             gobject.idle_add(
                                 self.plugin.inslall_upgrade_button.set_property,
                                 'sensitive', True)
-                    def_icon = self.def_icon
+                    png_filename = dir_ + '/' + dir_ + '.png'
+                    if png_filename in manifest_list:
+                        data = zip_file.open(png_filename).read()
+                        pbl = gtk.gdk.PixbufLoader()
+                        pbl.set_size(16, 16)
+                        pbl.write(data)
+                        pbl.close()
+                        def_icon = pbl.get_pixbuf()
+                    else:
+                        def_icon = self.def_icon
                     if local_version:
                         base_dir, user_dir = gajim.PLUGINS_DIRS
                         local_dir = os.path.join(user_dir, dir_)
-                        icon_name = dir_ + '.png'
-                        filename = os.path.join(local_dir, icon_name)
-                        if os.path.isfile(filename):
-                            def_icon = gtk.gdk.pixbuf_new_from_file_at_size(
-                                filename, 16, 16)
 
                     gobject.idle_add(self.model_append, [def_icon, dir_,
                         self.config.get('info', 'name'), local_version,
