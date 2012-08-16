@@ -166,7 +166,7 @@ class Base(object):
         self.button.set_property('relief', gtk.RELIEF_NONE)
         self.button.set_property('can-focus', False)
         img = gtk.Image()
-        img_path = self.plugin.local_file_path('favicon.png')
+        img_path = self.plugin.local_file_path('juick.png')
         pixbuf = gtk.gdk.pixbuf_new_from_file(img_path)
         iconset = gtk.IconSet(pixbuf=pixbuf)
         factory = gtk.IconFactory()
