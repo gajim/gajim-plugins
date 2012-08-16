@@ -109,7 +109,7 @@ class PluginInstaller(GajimPlugin):
                 to_update = []
                 con = self.ftp_connect()
                 con.cwd('plugins')
-                self.ftp.retrbinary('RETR manifests.zip', ftp.handleDownload)
+                con.retrbinary('RETR manifests.zip', ftp.handleDownload)
                 zip_file = zipfile.ZipFile(ftp.buffer_)
                 manifest_list = zip_file.namelist()
                 for filename in manifest_list:
