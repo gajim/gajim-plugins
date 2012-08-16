@@ -37,6 +37,18 @@ from plugins.helpers import log_calls, log
 from dialogs import WarningDialog, HigDialog, YesNoDialog
 from plugins.gui import GajimPluginConfigDialog
 
+(
+C_PIXBUF,
+C_DIR,
+C_NAME,
+C_LOCAL_VERSION,
+C_VERSION,
+C_UPGRADE,
+C_DESCRIPTION,
+C_AUTHORS,
+C_HOMEPAGE
+) = range(9)
+
 def convert_version_to_list(version_str):
     version_list = version_str.split('.')
     l = []
@@ -161,30 +173,37 @@ class PluginInstaller(GajimPlugin):
         attr_list.insert(pango.AttrWeight(pango.WEIGHT_BOLD, 0, -1))
         self.plugin_name_label1.set_attributes(attr_list)
 
-        self.available_plugins_model = gtk.ListStore(gobject.TYPE_PYOBJECT,
-            gobject.TYPE_STRING, gobject.TYPE_STRING, gobject.TYPE_STRING,
-            gobject.TYPE_BOOLEAN, gobject.TYPE_PYOBJECT, gobject.TYPE_PYOBJECT,
-            gobject.TYPE_PYOBJECT)
+        self.available_plugins_model = gtk.ListStore(gtk.gdk.Pixbuf,
+            gobject.TYPE_PYOBJECT, gobject.TYPE_STRING, gobject.TYPE_STRING,
+            gobject.TYPE_STRING, gobject.TYPE_BOOLEAN, gobject.TYPE_PYOBJECT,
+            gobject.TYPE_PYOBJECT, gobject.TYPE_PYOBJECT)
         self.available_treeview.set_model(self.available_plugins_model)
         self.available_treeview.set_rules_hint(True)
 
         self.progressbar.set_property('no-show-all', True)
         renderer = gtk.CellRendererText()
-        col = gtk.TreeViewColumn(_('Plugin'), renderer, text=1)
+        col = gtk.TreeViewColumn(_('Plugin'))
+        cell = gtk.CellRendererPixbuf()
+        col.pack_start(cell, False)
+        col.add_attribute(cell, 'pixbuf', C_PIXBUF)
+        col.pack_start(renderer, True)
+        col.add_attribute(renderer, 'text', C_NAME)
         col.set_resizable(True)
         col.set_property('expand', True)
         col.set_sizing(gtk.TREE_VIEW_COLUMN_GROW_ONLY)
         self.available_treeview.append_column(col)
-        col = gtk.TreeViewColumn(_('Installed\nversion'), renderer, text=2)
+        col = gtk.TreeViewColumn(_('Installed\nversion'), renderer,
+            text=C_LOCAL_VERSION)
         self.available_treeview.append_column(col)
-        col = gtk.TreeViewColumn(_('Available\nversion'), renderer, text=3)
+        col = gtk.TreeViewColumn(_('Available\nversion'), renderer,
+            text=C_VERSION)
         col.set_property('expand', False)
         self.available_treeview.append_column(col)
 
         renderer = gtk.CellRendererToggle()
         renderer.set_property('activatable', True)
         renderer.connect('toggled', self.available_plugins_toggled_cb)
-        col = gtk.TreeViewColumn(_('Install /\nUpgrade'), renderer, active=4)
+        col = gtk.TreeViewColumn(_('Install /\nUpgrade'), renderer, active=C_UPGRADE)
         self.available_treeview.append_column(col)
 
         if gobject.signal_lookup('error_signal', self.window) is 0:
@@ -213,12 +232,12 @@ class PluginInstaller(GajimPlugin):
             del self.page_num
 
     def available_plugins_toggled_cb(self, cell, path):
-        is_active = self.available_plugins_model[path][4]
-        self.available_plugins_model[path][4] = not is_active
+        is_active = self.available_plugins_model[path][C_UPGRADE]
+        self.available_plugins_model[path][C_UPGRADE] = not is_active
         dir_list = []
         for i in xrange(len(self.available_plugins_model)):
-            if self.available_plugins_model[i][4]:
-                dir_list.append(self.available_plugins_model[i][0])
+            if self.available_plugins_model[i][C_UPGRADE]:
+                dir_list.append(self.available_plugins_model[i][C_DIR])
         if not dir_list:
             self.inslall_upgrade_button.set_property('sensitive', False)
         else:
@@ -237,8 +256,8 @@ class PluginInstaller(GajimPlugin):
         self.inslall_upgrade_button.set_property('sensitive', False)
         dir_list = []
         for i in xrange(len(self.available_plugins_model)):
-            if self.available_plugins_model[i][4]:
-                dir_list.append(self.available_plugins_model[i][0])
+            if self.available_plugins_model[i][C_UPGRADE]:
+                dir_list.append(self.available_plugins_model[i][C_DIR])
 
         ftp = Ftp(self)
         ftp.remote_dirs = dir_list
@@ -246,7 +265,7 @@ class PluginInstaller(GajimPlugin):
 
     def on_some_ftp_error(self, widget, error_text):
         for i in xrange(len(self.available_plugins_model)):
-            self.available_plugins_model[i][4] = False
+            self.available_plugins_model[i][C_UPGRADE] = False
         self.progressbar.hide()
         WarningDialog(_('Ftp error'), error_text, self.window)
 
@@ -275,10 +294,10 @@ class PluginInstaller(GajimPlugin):
             gajim.plugin_manager.add_plugin(plugins[0])
             plugin = gajim.plugin_manager.plugins[-1]
             for row in xrange(len(self.available_plugins_model)):
-                if plugin.name == self.available_plugins_model[row][1]:
-                    self.available_plugins_model[row][2] = plugin.version
-                    self.available_plugins_model[row][4] = False
-                    continue
+                if plugin.name == self.available_plugins_model[row][C_NAME]:
+                    self.available_plugins_model[row][C_LOCAL_VERSION] = \
+                        plugin.version
+                    self.available_plugins_model[row][C_UPGRADE] = False
             if is_active and plugin.name != self.name:
                 gobject.idle_add(gajim.plugin_manager.activate_plugin, plugin)
             if plugin.name != 'Plugin Installer':
@@ -298,15 +317,17 @@ class PluginInstaller(GajimPlugin):
     def available_plugins_treeview_selection_changed(self, treeview_selection):
         model, iter = treeview_selection.get_selected()
         if iter:
-            self.plugin_name_label1.set_text(model.get_value(iter, 1))
-            self.plugin_authors_label1.set_text(model.get_value(iter, 6))
-            self.plugin_homepage_linkbutton1.set_uri(model.get_value(iter, 7))
-            self.plugin_homepage_linkbutton1.set_label(model.get_value(iter, 7))
+            self.plugin_name_label1.set_text(model.get_value(iter, C_NAME))
+            self.plugin_authors_label1.set_text(model.get_value(iter, C_AUTHORS))
+            self.plugin_homepage_linkbutton1.set_uri(model.get_value(iter,
+                C_HOMEPAGE))
+            self.plugin_homepage_linkbutton1.set_label(model.get_value(iter,
+                C_HOMEPAGE))
             label = self.plugin_homepage_linkbutton1.get_children()[0]
             label.set_ellipsize(pango.ELLIPSIZE_END)
             self.plugin_homepage_linkbutton1.set_property('sensitive', True)
             desc_textbuffer = self.plugin_description_textview1.get_buffer()
-            desc_textbuffer.set_text(_(model.get_value(iter, 5)))
+            desc_textbuffer.set_text(_(model.get_value(iter, C_DESCRIPTION)))
             self.plugin_description_textview1.set_property('sensitive', True)
         else:
             self._clear_available_plugin_info()
@@ -403,6 +424,9 @@ class Ftp(threading.Thread):
         self.remote_dirs = None
         self.append_to_model = True
         self.upgrading = False
+        icon = gtk.Image()
+        self.def_icon = icon.render_icon(gtk.STOCK_PREFERENCES,
+            gtk.ICON_SIZE_MENU)
 
     def model_append(self, row):
         self.model.append(row)
@@ -450,7 +474,17 @@ class Ftp(threading.Thread):
                             gobject.idle_add(
                                 self.plugin.inslall_upgrade_button.set_property,
                                 'sensitive', True)
-                    gobject.idle_add(self.model_append, [dir_,
+                    def_icon = self.def_icon
+                    if local_version:
+                        base_dir, user_dir = gajim.PLUGINS_DIRS
+                        local_dir = os.path.join(user_dir, dir_)
+                        icon_name = dir_ + '.png'
+                        filename = os.path.join(local_dir, icon_name)
+                        if os.path.isfile(filename):
+                            def_icon = gtk.gdk.pixbuf_new_from_file_at_size(
+                                filename, 16, 16)
+
+                    gobject.idle_add(self.model_append, [def_icon, dir_,
                         self.config.get('info', 'name'), local_version,
                         self.config.get('info', 'version'), upgrade,
                         self.config.get('info', 'description'),
