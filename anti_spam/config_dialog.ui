@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<interface>
+  <requires lib="gtk+" version="2.16"/>
+  <!-- interface-naming-policy toplevel-contextual -->
+  <object class="GtkWindow" id="window1">
+    <child>
+      <object class="GtkVBox" id="anti_spam_config_vbox">
+        <property name="visible">True</property>
+        <property name="border_width">9</property>
+        <property name="orientation">vertical</property>
+        <property name="spacing">4</property>
+        <child>
+          <object class="GtkCheckButton" id="block_pubsub_messages_checkbutton">
+            <property name="label" translatable="yes">Block pubsub messages</property>
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="receives_default">False</property>
+            <property name="tooltip_text" translatable="yes">If checked, Gajim will block incoming messages from pubsub.</property>
+            <property name="draw_indicator">True</property>
+            <signal name="toggled" handler="on_block_pubsub_messages_checkbutton_toggled"/>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="position">0</property>
+          </packing>
+        </child>
+      </object>
+    </child>
+  </object>
+</interface>
