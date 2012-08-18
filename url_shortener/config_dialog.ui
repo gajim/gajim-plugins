@@ -1,0 +1,42 @@
+<?xml version="1.0"?>
+<interface>
+  <requires lib="gtk+" version="2.16"/>
+  <!-- interface-naming-policy toplevel-contextual -->
+  <object class="GtkWindow" id="window1">
+    <child>
+      <object class="GtkHBox" id="hbox1">
+        <property name="visible">True</property>
+        <property name="extension_events">all</property>
+        <child>
+          <object class="GtkLabel" id="avatar_size_lebel">
+            <property name="visible">True</property>
+            <property name="xalign">0.029999999329447746</property>
+            <property name="label" translatable="yes">The maximum length not be shortened links(chars)</property>
+            <property name="track_visited_links">False</property>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">False</property>
+            <property name="position">0</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkSpinButton" id="max_chars">
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="invisible_char">&#x25CF;</property>
+            <property name="width_chars">6</property>
+            <property name="snap_to_ticks">True</property>
+            <property name="numeric">True</property>
+            <signal name="value_changed" handler="avatar_size_value_changed"/>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">False</property>
+            <property name="position">1</property>
+          </packing>
+        </child>
+      </object>
+    </child>
+  </object>
+</interface>
