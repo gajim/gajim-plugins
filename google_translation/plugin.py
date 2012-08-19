@@ -23,10 +23,12 @@ Translates (currently only incoming) messages using Google Translate.
 :author: Mateusz Biliński <mateusz@bilinski.it>
 :since: 25th August 2008
 :copyright: Copyright (2008) Mateusz Biliński <mateusz@bilinski.it>
+:                     (2012) mrDoctorWho <mrdoctorwho@gmail.com>
 :license: GPL
 '''
 
 import json
+import urllib
 import urllib2
 import HTMLParser
 import gtk
@@ -127,32 +129,19 @@ class GoogleTranslationPlugin(GajimPlugin):
 
     @log_calls('GoogleTranslationPlugin')
     def translate_text(self, account, text, from_lang, to_lang):
-        # Converts text so it can be used within URL as query to Google
-        # Translate.
-        quoted_text = urllib2.quote(text.encode(getfilesystemencoding()))
-        # prepare url
-        translation_url = u'https://ajax.googleapis.com/ajax/services/' \
-            'language/translate?q=%(quoted_text)s&' \
-            'langpair=%(from_lang)s%%7C%(to_lang)s&key=notsupplied&v=1.0' % \
-            locals()
-
-        results = helpers.download_image(account, {'src': translation_url})[0]
-        if not results:
-            return text
-
-        result = json.loads(results)
-
-        if result.get('responseStatus', '') != 200:
-            return text
-
-        translated_text = result['responseData'].get('translatedText', '')
-        if translated_text:
-            try:
-                htmlparser = HTMLParser.HTMLParser()
-                translated_text = htmlparser.unescape(translated_text)
-            except Exception:
-                pass
-            return translated_text
+        data = {"client": "x",
+                "tl": to_lang,
+                "sl": from_lang,
+                "text": text.encode("utf-8")}
+        url = "http://translate.google.ru/translate_a/t"
+        url = u"%s?%s" % (url, urllib.urlencode(data))
+        request = urllib2.Request(url)
+        request.add_header("User-Agent",
+            "Mozilla/5.0 (X11; Linux i686; rv:16.0) Gecko/20120815 Firefox/16.0")
+        response = urllib2.urlopen(request)
+        if response:
+            data = json.load(response)
+            return data["sentences"][0]["trans"]
         return text
 
     @log_calls('GoogleTranslationPlugin')
