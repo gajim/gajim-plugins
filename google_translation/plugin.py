@@ -41,7 +41,7 @@ from common import helpers
 from common import gajim
 
 from plugins import GajimPlugin
-from plugins.helpers import log_calls, log
+from plugins.helpers import log_calls
 from common import ged
 
 languages = {
