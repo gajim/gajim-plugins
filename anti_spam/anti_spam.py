@@ -44,10 +44,14 @@ class AntiSpamPlugin(GajimPlugin):
         self.events_handlers = {
             'atom-entry-received': (ged.POSTCORE,
                 self._nec_atom_entry_received),
+            'message-received': (ged.PRECORE,
+                self._nec_decrypted_message_received_received),
         }
 
         self.config_default_values = {
             'block_pubsub_messages': (False, 'If True, Gajim will block incoming messages from pubsub.'),
+            'disable_xhtml_muc': (False, ''),
+            'disable_xhtml_pm': (False, ''),
         }
 
     @log_calls('AntiSpamPlugin')
@@ -55,6 +59,21 @@ class AntiSpamPlugin(GajimPlugin):
         if self.config['block_pubsub_messages']:
             log.info('discarding pubdubd message')
             return True
+
+    @log_calls('AntiSpamPlugin')
+    def _nec_decrypted_message_received_received(self, obj):
+        if self.config['disable_xhtml_muc'] and obj.mtype == 'groupchat':
+            self.remove_xhtml(obj)
+        if self.config['disable_xhtml_pm'] and obj.gc_control and \
+        obj.resource and obj.mtype == 'chat':
+            self.remove_xhtml(obj)
+        return False
+
+    def remove_xhtml(self, obj):
+        html_node = obj.stanza.getTag('html')
+        if html_node:
+            obj.stanza.delChild(html_node)
+
 
 class AntiSpamPluginConfigDialog(GajimPluginConfigDialog):
     def init(self):
@@ -75,6 +94,16 @@ class AntiSpamPluginConfigDialog(GajimPluginConfigDialog):
     def on_run(self):
         self.block_pubsub_messages_checkbutton.set_active(self.plugin.config[
             'block_pubsub_messages'])
+        widget = self.xml.get_object('disable_xhtml_muc_checkbutton')
+        widget.set_active(self.plugin.config['disable_xhtml_muc'])
+        widget = self.xml.get_object('disable_xhtml_pm_checkbutton')
+        widget.set_active(self.plugin.config['disable_xhtml_pm'])
 
     def on_block_pubsub_messages_checkbutton_toggled(self, button):
         self.plugin.config['block_pubsub_messages'] = button.get_active()
+
+    def on_disable_xhtml_muc_checkbutton_toggled(self, button):
+        self.plugin.config['disable_xhtml_muc'] = button.get_active()
+
+    def on_disable_xhtml_pm_checkbutton_toggled(self, button):
+        self.plugin.config['disable_xhtml_pm'] = button.get_active()
