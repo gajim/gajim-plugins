@@ -27,11 +27,31 @@ class RosterTweaksPlugin(GajimPlugin):
         self.config_default_values = {'hide_status_combo': (False, ''),
                                       'use_ctr_m': (False, ''),
                                       'menu_visible': (True, ''),
-                                      'quick_status': (False, '')}
+                                      'quick_status': (False, ''),
+                                      'contact_status_subs': (False, ''),}
         self.events_handlers = {'our-show': (ged.GUI2, self.our_show),
                                 'pep-received': (ged.GUI2, self.pep_received)}
+        self.gui_extension_points = {
+                'roster_draw_contact': (self.roster_draw_contact,
+                                       self.disconnect_roster_draw_contact),}
         self.roster = gajim.interface.roster
 
+    def roster_draw_contact(self, roster,jid, account, contact):
+        if not self.active:
+            return
+        if not self.config['contact_status_subs']:
+            return
+        child_iters = roster._get_contact_iter(jid, account, contact,
+            roster.model)
+        if not child_iters:
+            return
+        name = roster.model[child_iters[0]][1]
+        if '\n<span size="small" style="italic' not in name:
+            name = name + '\n'
+            roster.model[child_iters[0]][1] = name
+
+    def disconnect_roster_draw_contact(self, roster,jid, account, contact):
+        self.roster.setup_and_draw_roster()
 
     def pep_received(self, obj):
         if obj.jid != gajim.get_jid_from_account(obj.conn.name):
@@ -86,6 +106,7 @@ class RosterTweaksPlugin(GajimPlugin):
         hbox = self.xml.get_object('hbox1')
         vbox.pack_start(hbox, False)
         self.xml.connect_signals(self)
+        self.roster.setup_and_draw_roster()
 
     def enable_ctrl_m(self):
         if self.config['use_ctr_m']:
@@ -168,6 +189,8 @@ class RosterTweaksPluginConfigDialog(GajimPluginConfigDialog):
 
         self.hide_combo = self.xml.get_object('hide_combo')
         self.use_ctr_m = self.xml.get_object('use_ctr_m')
+        status_widget = self.xml.get_object('contact_status_subs')
+        status_widget.set_active(self.plugin.config['contact_status_subs'])
 
         self.xml.connect_signals(self)
 
@@ -201,3 +224,7 @@ class RosterTweaksPluginConfigDialog(GajimPluginConfigDialog):
                     gtk.gdk.CONTROL_MASK)
             self.plugin.config['menu_visible'] = True
             self.plugin.roster.xml.get_object('menubar').set_size_request(-1, -1)
+
+    def on_contact_status_subs_toggled(self, button):
+        self.plugin.config['contact_status_subs'] = button.get_active()
+        self.plugin.roster.setup_and_draw_roster()
