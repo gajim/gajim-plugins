@@ -23,7 +23,6 @@ class RosterTweaksPlugin(GajimPlugin):
             'to all connected accounts.\n'
             'Based on ticket #5085:\n'
             'http://trac.gajim.org/ticket/5085.')
-        self.config_dialog = RosterTweaksPluginConfigDialog(self)
         self.config_default_values = {'hide_status_combo': (False, ''),
                                       'use_ctr_m': (False, ''),
                                       'menu_visible': (True, ''),
@@ -35,6 +34,7 @@ class RosterTweaksPlugin(GajimPlugin):
                 'roster_draw_contact': (self.roster_draw_contact,
                                        self.disconnect_roster_draw_contact),}
         self.roster = gajim.interface.roster
+        self.config_dialog = RosterTweaksPluginConfigDialog(self)
 
     def roster_draw_contact(self, roster,jid, account, contact):
         self.connected = True
