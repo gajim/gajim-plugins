@@ -37,6 +37,7 @@ class RosterTweaksPlugin(GajimPlugin):
         self.roster = gajim.interface.roster
 
     def roster_draw_contact(self, roster,jid, account, contact):
+        self.connected = True
         if not self.active:
             return
         if not self.config['contact_status_subs']:
@@ -46,12 +47,13 @@ class RosterTweaksPlugin(GajimPlugin):
         if not child_iters:
             return
         name = roster.model[child_iters[0]][1]
-        if '\n<span size="small" style="italic' not in name:
-            name = name + '\n'
-            roster.model[child_iters[0]][1] = name
+        if '\n<span ' not in name:
+            roster.model[child_iters[0]][1] = name + '\n'
 
     def disconnect_roster_draw_contact(self, roster,jid, account, contact):
-        self.roster.setup_and_draw_roster()
+        if self.connected:
+            self.roster.setup_and_draw_roster()
+            self.connected = False
 
     def pep_received(self, obj):
         if obj.jid != gajim.get_jid_from_account(obj.conn.name):
@@ -227,4 +229,5 @@ class RosterTweaksPluginConfigDialog(GajimPluginConfigDialog):
 
     def on_contact_status_subs_toggled(self, button):
         self.plugin.config['contact_status_subs'] = button.get_active()
-        self.plugin.roster.setup_and_draw_roster()
+        if self.plugin.active:
+            self.plugin.roster.setup_and_draw_roster()
