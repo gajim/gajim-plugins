@@ -26,12 +26,19 @@ class ImagePlugin(GajimPlugin):
                 self.disconnect_from_chat_control),
             'chat_control_base_update_toolbar': (self.update_button_state,
                 None)}
+        self.first_run = True
 
     @log_calls('ImagePlugin')
     def connect_with_chat_control(self, chat_control):
         self.chat_control = chat_control
         control = Base(self, self.chat_control)
         self.controls.append(control)
+        if self.first_run:
+            # ALT + N
+            gtk.binding_entry_add_signal(chat_control.msg_textview,
+                gtk.keysyms.l, gtk.gdk.MOD1_MASK, 'mykeypress',
+                int, gtk.keysyms.l, gtk.gdk.ModifierType, gtk.gdk.MOD1_MASK)
+            self.first_run = False
 
     @log_calls('ImagePlugin')
     def disconnect_from_chat_control(self, chat_control):
@@ -55,6 +62,8 @@ class ImagePlugin(GajimPlugin):
 
 class Base(object):
     def __init__(self, plugin, chat_control):
+        self.id_ = chat_control.msg_textview.connect('mykeypress',
+            self.on_key_press)
         self.plugin = plugin
         self.chat_control = chat_control
         actions_hbox = chat_control.xml.get_object('actions_hbox')
@@ -73,6 +82,24 @@ class Base(object):
         id_ = self.button.connect('clicked', self.on_image_button_clicked)
         chat_control.handlers[id_] = self.button
         self.button.show()
+
+    def on_key_press(self, widget, event_keyval, event_keymod):
+        # construct event instance from binding
+        event = gtk.gdk.Event(gtk.gdk.KEY_PRESS)  # it's always a key-press here
+        event.keyval = event_keyval
+        event.state = event_keymod
+        event.time = 0  # assign current time
+
+        if event.keyval != gtk.keysyms.l:
+            return
+        if event.state != gtk.gdk.MOD1_MASK:  # ALT+l
+            return
+        if not self.chat_control.contact.supports(NS_XHTML_IM):
+            from dialogs import WarningDialog
+            WarningDialog('Warning', _('This contact does not support XHTML_IM'),
+                self.chat_control.parent_win.window)
+            return
+        self.on_image_button_clicked(widget)
 
     def on_image_button_clicked(self, widget):
         def on_ok(widget, path_to_file):
