@@ -46,12 +46,15 @@ class AntiSpamPlugin(GajimPlugin):
                 self._nec_atom_entry_received),
             'message-received': (ged.PRECORE,
                 self._nec_decrypted_message_received_received),
+            'subscribe-presence-received': (ged.POSTCORE,
+                self._nec_subscribe_presence_received),
         }
 
         self.config_default_values = {
             'block_pubsub_messages': (False, 'If True, Gajim will block incoming messages from pubsub.'),
             'disable_xhtml_muc': (False, ''),
             'disable_xhtml_pm': (False, ''),
+            'block_subscription_requests': (False, ''),
         }
 
     @log_calls('AntiSpamPlugin')
@@ -68,6 +71,13 @@ class AntiSpamPlugin(GajimPlugin):
         obj.resource and obj.mtype == 'chat':
             self.remove_xhtml(obj)
         return False
+
+    @log_calls('AntiSpamPlugin')
+    def _nec_subscribe_presence_received(self, obj):
+        if self.config['block_subscription_requests'] and \
+        not gajim.contacts.get_contacts(obj.conn.name, obj.jid):
+            log.info('discarding subscription request from %s' % obj.jid)
+            return True
 
     def remove_xhtml(self, obj):
         html_node = obj.stanza.getTag('html')
@@ -98,6 +108,8 @@ class AntiSpamPluginConfigDialog(GajimPluginConfigDialog):
         widget.set_active(self.plugin.config['disable_xhtml_muc'])
         widget = self.xml.get_object('disable_xhtml_pm_checkbutton')
         widget.set_active(self.plugin.config['disable_xhtml_pm'])
+        widget = self.xml.get_object('block_subscription_requests_checkbutton')
+        widget.set_active(self.plugin.config['block_subscription_requests'])
 
     def on_block_pubsub_messages_checkbutton_toggled(self, button):
         self.plugin.config['block_pubsub_messages'] = button.get_active()
@@ -107,3 +119,6 @@ class AntiSpamPluginConfigDialog(GajimPluginConfigDialog):
 
     def on_disable_xhtml_pm_checkbutton_toggled(self, button):
         self.plugin.config['disable_xhtml_pm'] = button.get_active()
+
+    def on_block_subscription_requests_checkbutton_toggled(self, button):
+        self.plugin.config['block_subscription_requests'] = button.get_active()

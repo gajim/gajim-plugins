@@ -30,7 +30,7 @@
             <property name="visible">True</property>
             <property name="can_focus">True</property>
             <property name="receives_default">False</property>
-            <property name="tooltip_text" translatable="yes">If checked, Gajim will remove XHTML from incomming multi-user chat messages</property>
+            <property name="tooltip_text" translatable="yes">If checked, Gajim will remove XHTML from incoming multi-user chat messages</property>
             <property name="draw_indicator">True</property>
             <signal name="toggled" handler="on_disable_xhtml_muc_checkbutton_toggled"/>
           </object>
@@ -45,13 +45,28 @@
             <property name="visible">True</property>
             <property name="can_focus">True</property>
             <property name="receives_default">False</property>
-            <property name="tooltip_text" translatable="yes">If checked, Gajim will remove XHTML from incomming private messages</property>
+            <property name="tooltip_text" translatable="yes">If checked, Gajim will remove XHTML from incoming private messages</property>
             <property name="draw_indicator">True</property>
             <signal name="toggled" handler="on_disable_xhtml_pm_checkbutton_toggled"/>
           </object>
           <packing>
             <property name="expand">False</property>
             <property name="position">2</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkCheckButton" id="block_subscription_requests_checkbutton">
+            <property name="label" translatable="yes">Block incoming subscription requests</property>
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="receives_default">False</property>
+            <property name="tooltip_text" translatable="yes">If checked, Gajim will block incoming subscription requests</property>
+            <property name="draw_indicator">True</property>
+            <signal name="toggled" handler="on_block_subscription_requests_checkbutton_toggled"/>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="position">3</property>
           </packing>
         </child>
       </object>
