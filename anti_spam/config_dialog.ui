@@ -13,7 +13,7 @@
           <object class="GtkCheckButton" id="block_pubsub_messages_checkbutton">
             <property name="label" translatable="yes">Block pubsub messages</property>
             <property name="visible">True</property>
-            <property name="can_focus">True</property>
+            <property name="can_focus">False</property>
             <property name="receives_default">False</property>
             <property name="tooltip_text" translatable="yes">If checked, Gajim will block incoming messages from pubsub.</property>
             <property name="draw_indicator">True</property>
@@ -28,7 +28,7 @@
           <object class="GtkCheckButton" id="disable_xhtml_muc_checkbutton">
             <property name="label" translatable="yes">Disable xhtml in MUCs</property>
             <property name="visible">True</property>
-            <property name="can_focus">True</property>
+            <property name="can_focus">False</property>
             <property name="receives_default">False</property>
             <property name="tooltip_text" translatable="yes">If checked, Gajim will remove XHTML from incoming multi-user chat messages</property>
             <property name="draw_indicator">True</property>
@@ -43,7 +43,7 @@
           <object class="GtkCheckButton" id="disable_xhtml_pm_checkbutton">
             <property name="label" translatable="yes">Disable xhtml in private messages</property>
             <property name="visible">True</property>
-            <property name="can_focus">True</property>
+            <property name="can_focus">False</property>
             <property name="receives_default">False</property>
             <property name="tooltip_text" translatable="yes">If checked, Gajim will remove XHTML from incoming private messages</property>
             <property name="draw_indicator">True</property>
@@ -58,7 +58,7 @@
           <object class="GtkCheckButton" id="block_subscription_requests_checkbutton">
             <property name="label" translatable="yes">Block incoming subscription requests</property>
             <property name="visible">True</property>
-            <property name="can_focus">True</property>
+            <property name="can_focus">False</property>
             <property name="receives_default">False</property>
             <property name="tooltip_text" translatable="yes">If checked, Gajim will block incoming subscription requests</property>
             <property name="draw_indicator">True</property>
