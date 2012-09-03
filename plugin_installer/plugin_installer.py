@@ -63,7 +63,8 @@ class PluginInstaller(GajimPlugin):
         self.description = _('Install and upgrade plugins from ftp')
         self.config_dialog = PluginInstallerPluginConfigDialog(self)
         self.config_default_values = {'ftp_server': ('ftp.gajim.org', ''),
-                                      'check_update': (True, ''),}
+                                      'check_update': (True, ''),
+                                      'TLS': (True, ''),}
         self.window = None
         self.progressbar = None
         self.available_plugins_model = None
@@ -98,7 +99,7 @@ class PluginInstaller(GajimPlugin):
                 '\n%s') % plugins_str, on_response_yes=open_update)
 
     def ftp_connect(self):
-        if sys.version_info[:2] > (2, 6):
+        if sys.version_info[:2] > (2, 6) and self.config['TLS'] :
             con = ftplib.FTP_TLS(self.config['ftp_server'])
             con.login()
             con.prot_p()
@@ -620,6 +621,8 @@ class PluginInstallerPluginConfigDialog(GajimPluginConfigDialog):
         widget.set_text(str(self.plugin.config['ftp_server']))
         self.xml.get_object('check_update').set_active(
             self.plugin.config['check_update'])
+        self.xml.get_object('TLS').set_active(
+            self.plugin.config['TLS'])
 
     def on_hide(self, widget):
         widget = self.xml.get_object('ftp_server')
@@ -627,3 +630,6 @@ class PluginInstallerPluginConfigDialog(GajimPluginConfigDialog):
 
     def on_check_update_toggled(self, widget):
         self.plugin.config['check_update'] = widget.get_active()
+
+    def on_tls_toggled(self, widget):
+        self.plugin.config['TLS'] = widget.get_active()
