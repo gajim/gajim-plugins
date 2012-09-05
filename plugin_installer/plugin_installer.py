@@ -621,8 +621,7 @@ class PluginInstallerPluginConfigDialog(GajimPluginConfigDialog):
         widget.set_text(str(self.plugin.config['ftp_server']))
         self.xml.get_object('check_update').set_active(
             self.plugin.config['check_update'])
-        self.xml.get_object('TLS').set_active(
-            self.plugin.config['TLS'])
+        self.xml.get_object('TLS').set_active(self.plugin.config['TLS'])
 
     def on_hide(self, widget):
         widget = self.xml.get_object('ftp_server')
