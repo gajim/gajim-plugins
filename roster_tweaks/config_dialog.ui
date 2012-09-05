@@ -43,7 +43,7 @@
           <object class="GtkCheckButton" id="quick_status">
             <property name="label" translatable="yes">Show quick-change status field</property>
             <property name="visible">True</property>
-            <property name="can_focus">True</property>
+            <property name="can_focus">False</property>
             <property name="receives_default">False</property>
             <property name="focus_on_click">False</property>
             <property name="draw_indicator">True</property>
@@ -58,7 +58,7 @@
           <object class="GtkCheckButton" id="contact_status_subs">
             <property name="label" translatable="yes">Always show contacts status substrings</property>
             <property name="visible">True</property>
-            <property name="can_focus">True</property>
+            <property name="can_focus">False</property>
             <property name="receives_default">False</property>
             <property name="focus_on_click">False</property>
             <property name="draw_indicator">True</property>
