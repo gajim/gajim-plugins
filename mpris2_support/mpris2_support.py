@@ -23,6 +23,7 @@ class Mpris2Plugin(GajimPlugin):
 
     @log_calls('NowListenPlugin')
     def activate(self):
+        self._last_playing_music = None
         self.bus = dbus_support.session_bus.SessionBus()
         self.bus.add_signal_receiver(self.properties_changed,
             "PropertiesChanged", "org.freedesktop.DBus.Properties")
@@ -39,7 +40,9 @@ class Mpris2Plugin(GajimPlugin):
             if args[1]['PlaybackStatus'] in ['Paused', 'Stopped']:
                 self.title = self.artist = self.source = ''
                 self.listener.emit('music-track-changed', None)
-            return
+            if args[1]['PlaybackStatus'] == 'Playing':
+                self.listener.emit('music-track-changed',
+                    self._last_playing_music)
         if 'Metadata' not in args[1]:
             return
 
@@ -50,4 +53,5 @@ class Mpris2Plugin(GajimPlugin):
         info.artist = data.get("xesam:artist", [''])[0]
         info.duration = int(data.get('mpris:length', 0))
         info.track_number = int(data.get('xesam:trackNumber', 0))
+        self._last_playing_music = info
         self.listener.emit('music-track-changed', info)
