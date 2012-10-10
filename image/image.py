@@ -5,6 +5,7 @@ import os
 import base64
 import urllib2
 
+import chat_control
 from plugins import GajimPlugin
 from plugins.helpers import log_calls
 from common.xmpp.protocol import NS_XHTML_IM
@@ -29,13 +30,15 @@ class ImagePlugin(GajimPlugin):
         self.first_run = True
 
     @log_calls('ImagePlugin')
-    def connect_with_chat_control(self, chat_control):
-        self.chat_control = chat_control
-        control = Base(self, self.chat_control)
-        self.controls.append(control)
+    def connect_with_chat_control(self, control):
+        if not isinstance(control, chat_control.ChatControl):
+            return
+        self.chat_control = control
+        base = Base(self, self.chat_control)
+        self.controls.append(base)
         if self.first_run:
-            # ALT + N
-            gtk.binding_entry_add_signal(chat_control.msg_textview,
+            # ALT + L
+            gtk.binding_entry_add_signal(control.msg_textview,
                 gtk.keysyms.l, gtk.gdk.MOD1_MASK, 'mykeypress',
                 int, gtk.keysyms.l, gtk.gdk.ModifierType, gtk.gdk.MOD1_MASK)
             self.first_run = False
@@ -81,6 +84,7 @@ class Base(object):
             send_button_pos - 1, 'expand', False)
         id_ = self.button.connect('clicked', self.on_image_button_clicked)
         chat_control.handlers[id_] = self.button
+        chat_control.handlers[self.id_] = chat_control.msg_textview
         self.button.show()
 
     def on_key_press(self, widget, event_keyval, event_keymod):
@@ -141,3 +145,6 @@ class Base(object):
     def disconnect_from_chat_control(self):
         actions_hbox = self.chat_control.xml.get_object('actions_hbox')
         actions_hbox.remove(self.button)
+        if self.chat_control.handlers[self.id_].handler_is_connected(self.id_):
+            self.chat_control.handlers[self.id_].disconnect(self.id_)
+            del self.chat_control.handlers[self.id_]
