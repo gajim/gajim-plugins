@@ -5,7 +5,7 @@
 #    python-potr is free software; you can redistribute it and/or modify
 #    it under the terms of the GNU Lesser General Public License as published by
 #    the Free Software Foundation; either version 3 of the License, or
-#    (at your option) any later version.
+#    any later version.
 #
 #    python-potr is distributed in the hope that it will be useful,
 #    but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -167,7 +167,7 @@ class Context(object):
         IGN = None, []
 
         if not self.policyOtrEnabled():
-            return (messageData, [])
+            raise NotOTRMessage(messageData)
 
         message = self.parse(messageData)
 
@@ -196,7 +196,7 @@ class Context(object):
                     # but we don't want plaintexts
                     raise UnencryptedMessage(message.msg)
 
-                return (message.msg, [])
+                raise NotOTRMessage(message.msg)
 
             return IGN
 
@@ -234,7 +234,7 @@ class Context(object):
         if isinstance(message, proto.Error):
             raise ErrorReceived(message)
 
-        raise NotOTRMessage(message)
+        raise NotOTRMessage(messageData)
 
     def sendInternal(self, msg, tlvs=[], appdata=None):
         self.sendMessage(FRAGMENT_SEND_ALL, msg, tlvs=tlvs, appdata=appdata,
@@ -302,7 +302,7 @@ class Context(object):
         self.setState(STATE_ENCRYPTED)
 
     def sendFragmented(self, msg, policy=FRAGMENT_SEND_ALL, appdata=None):
-        mms = self.user.maxMessageSize
+        mms = self.maxMessageSize(appdata)
         msgLen = len(msg)
         if mms != 0 and len(msg) > mms:
             fms = mms - 19
@@ -432,6 +432,10 @@ class Context(object):
             return proto.Error(message[indexBase+7:])
 
         return message
+
+    def maxMessageSize(self, appdata=None):
+        """Return the max message size for this context."""
+        return self.user.maxMessageSize
 
 class Account(object):
     contextclass = Context

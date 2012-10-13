@@ -54,7 +54,6 @@ ended_tip = 'The private chat session to this contact has <i>ended</i>'
 inactive_tip = 'Communication to this contact is currently ' \
         '<i>unencrypted</i>'
 
-import cgi
 import logging
 import os
 import pickle
@@ -70,12 +69,12 @@ from message_control import TYPE_CHAT, MessageControl
 from plugins.helpers import log_calls, log
 from plugins.plugin import GajimPluginException
 
-from HTMLParser import HTMLParser
-from htmlentitydefs import name2codepoint
-
 import ui
 
 sys.path.insert(0, os.path.dirname(ui.__file__))
+
+from HTMLParser import HTMLParser
+from htmlentitydefs import name2codepoint
 
 HAS_CRYPTO = True
 try:
@@ -597,7 +596,7 @@ class OtrPlugin(GajimPlugin):
             if event.resource:
                 fjid += '/' + event.resource
 
-        message = event.xhtml or cgi.escape(event.message)
+        message = event.xhtml or escape(event.message)
 
         try:
             newmsg = self.us[event.account].getContext(fjid).sendMessage(
@@ -641,6 +640,15 @@ class HTMLStripper(HTMLParser):
     def unknown_decl(self, data):
         if data.startswith('CDATA['):
             self.data += data[6:]
+
+def escape(s):
+    '''Replace special characters "&", "<" and ">" to HTML-safe sequences.
+    If the optional flag quote is true, the quotation mark character (")
+    is also translated.'''
+    s = s.replace("&", "&amp;") # Must be done first!
+    s = s.replace("<", "&lt;")
+    s = s.replace(">", "&gt;")
+    return s
 
 ## TODO:
 ##  - disconnect ctxs on disconnect
