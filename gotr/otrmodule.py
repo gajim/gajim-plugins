@@ -58,6 +58,7 @@ import os
 import pickle
 import time
 import sys
+import logging
 
 import common.xmpp
 from common import gajim
@@ -88,6 +89,13 @@ try:
     import potr.context
     if not hasattr(potr, 'VERSION') or potr.VERSION < MINVERSION:
         raise ImportError('old / unsupported python-otr version')
+
+    potrrootlog = logging.getLogger('potr')
+    potrrootlog.handlers = []
+    potrrootlog.propagate = False
+    gajimrootlog = logging.getLogger('gajim')
+    for h in gajimrootlog.handlers:
+        potrrootlog.addHandler(h)
 
     def get_jid_from_fjid(fjid):
         return gajim.get_room_and_nick_from_fjid(fjid)[0]
@@ -540,7 +548,16 @@ class OtrPlugin(GajimPlugin):
             # got a protocol error
             self.gajim_log(_('We received the following OTR error '
                     'message from %(jid)s: [%(error)s]') % {'jid': event.fjid,
-                    'error': e.args[0].error})
+                    'error': e.args[0].error},
+                    account, event.fjid)
+            return IGNORE
+        except potr.crypt.InvalidParameterError, e:
+            # received a packet we cannot process (probably tampered or
+            # sent to wrong session)
+            self.gajim_log(_('We received an unreadable OTR message '
+                    'from %(jid)s. It has probably been tampered with, '
+                    'or was sent from an older OTR session.')
+                    % {'jid':event.fjid}, account, event.fjid)
             return IGNORE
         except RuntimeError, e:
             # generic library bug?
