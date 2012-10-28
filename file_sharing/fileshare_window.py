@@ -7,11 +7,11 @@ from common.file_props import FilesProp
 import fshare
 import os
 import fshare_protocol
-import config
 
 class FileShareWindow(gtk.Window):
 
-    def __init__(self):
+    def __init__(self, plugin):
+        self.plugin = plugin
         gtk.Window.__init__(self)
         self.set_title('File Share')
         self.connect('delete_event', self.delete_event)
@@ -115,7 +115,7 @@ class FileShareWindow(gtk.Window):
         # Preferences page
         self.lbl_pref = gtk.Label('Preferences')
         self.entry_dir_pref = gtk.Entry(max=0)
-        self.entry_dir_pref.set_text(config.INCOMING_DIR)
+        self.entry_dir_pref.set_text(self.plugin.config['incoming_dir'])
         self.bt_sel_dir_pref = gtk.Button('Select dir', gtk.STOCK_OPEN)
         self.bt_sel_dir_pref.connect('clicked', self.on_bt_sel_dir_pref_clicked) 
         self.frm_dir_pref = gtk.Frame('Incoming files directory')
@@ -372,7 +372,7 @@ class FileShareWindow(gtk.Window):
         file_info = self.brw_file_info[path]
         fjid = self.get_contact_from_iter(tree, row)
         # Request the file
-        file_path = config.INCOMING_DIR + '/%s' % file_info[0] 
+        file_path = os.path.join(self.plugin.config['incoming_dir'], file_info[0])
         sid = helpers.get_random_string_16()
         new_file_props = FilesProp.getNewFileProp(self.account, sid)
         new_file_props.file_name = file_path
@@ -400,12 +400,12 @@ class FileShareWindow(gtk.Window):
         if response == gtk.RESPONSE_OK:
             file_name = chooser.get_filename()
             self.entry_dir_pref.set_text(file_name)
-            config.set('incoming_dir', file_name)
+            self.plugin.config['incoming_dir'] = file_name
         chooser.destroy()
 
 
 if __name__ == "__main__":
-    f = FileShareWindow()
+    f = FileShareWindow(None)
     f.show()
     gtk.main()
 

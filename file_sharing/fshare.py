@@ -27,6 +27,7 @@ class FileSharePlugin(GajimPlugin):
         self.description = _('This plugin allows you to share folders'+
                             ' with a peer using jingle file transfer.')
         self.config_dialog = None  
+        self.config_default_values = {'incoming_dir': ('/home/', '')}
         # Create one protocol handler per account
         accounts = gajim.contacts.get_accounts()
         for account in gajim.contacts.get_accounts():
@@ -133,7 +134,7 @@ class FileSharePlugin(GajimPlugin):
     def __get_fsw_instance(self, account):
         # Makes sure we only have one instance of the window per account
         if account not in FileSharePlugin.filesharewindow:
-            FileSharePlugin.filesharewindow[account] = fsw = FileShareWindow() 
+            FileSharePlugin.filesharewindow[account] = fsw = FileShareWindow(self)
             FileSharePlugin.prohandler[account].set_window(fsw)
         return FileSharePlugin.filesharewindow[account]
 
