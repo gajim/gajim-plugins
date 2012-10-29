@@ -28,7 +28,7 @@ class FileShareWindow(gtk.Window):
         self.tv_search = gtk.TreeView(self.ts_search)
         self.tv_search.connect('row-expanded', self.row_expanded)
         self.tv_search.connect('button-press-event',
-                               self.on_treeview_button_press_event)
+            self.on_treeview_button_press_event)
         self.browse_popup = gtk.Menu()
         mi_download = gtk.MenuItem('Download')
         mi_property = gtk.MenuItem('Property')
@@ -332,7 +332,8 @@ class FileShareWindow(gtk.Window):
         toplevel = treestore.get_iter_root()
         while toplevel:
             if treestore.is_ancestor(toplevel, iter_):
-                return treestore.get_value(toplevel, 0)
+                return gajim.get_jid_without_resource(treestore.get_value(
+                    toplevel, 0))
             toplevel = treestore.iter_next(toplevel)
 
     def on_treeview_button_press_event(self, treeview, event):
