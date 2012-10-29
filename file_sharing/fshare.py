@@ -25,8 +25,8 @@ class FileSharePlugin(GajimPlugin):
     @log_calls('FileSharePlugin')
     def init(self):
         self.activated = False
-        self.description = _('This plugin allows you to share folders'+
-                            ' with a peer using jingle file transfer.')
+        self.description = _('This plugin allows you to share folders'
+            ' with a peer using jingle file transfer.')
         self.config_dialog = None
         home_path = os.path.expanduser('~/')
         self.config_default_values = {'incoming_dir': (home_path, '')}
@@ -105,8 +105,8 @@ class FileSharePlugin(GajimPlugin):
         submenu.attach(msf, 0, 1, 1, 2)
         submenu.attach(enable_fs, 0, 1, 2, 3)
         if gajim.account_is_disconnected(account) or \
-              contact.show in ('offline', 'error') or not \
-              contact.supports(fshare_protocol.NS_FILE_SHARING):
+        contact.show in ('offline', 'error') or not \
+        contact.supports(fshare_protocol.NS_FILE_SHARING):
             bf.set_sensitive(False)
         submenu.show()
         bf.show()
@@ -137,7 +137,8 @@ class FileSharePlugin(GajimPlugin):
     def __get_fsw_instance(self, account):
         # Makes sure we only have one instance of the window per account
         if account not in FileSharePlugin.filesharewindow:
-            FileSharePlugin.filesharewindow[account] = fsw = FileShareWindow(self)
+            FileSharePlugin.filesharewindow[account] = fsw = FileShareWindow(
+                self)
             FileSharePlugin.prohandler[account].set_window(fsw)
         return FileSharePlugin.filesharewindow[account]
 

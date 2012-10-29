@@ -9,24 +9,24 @@ class FilesharingDatabase:
         path_l = os.path.split(plugin.config.FILE_PATH)
         path = os.path.join(path_l[0], 'shared_files.db')
         db_exist = os.path.exists(path)
-        print path
         self.conn = sqlite3.connect(path)
         # Enable foreign keys contraints
         self.conn.cursor().execute("pragma foreign_keys = on")
         if not db_exist:
             self.create_database()
 
-    # NOTE: Make sure we are getting and setting the requester without its resource
+    # NOTE: Make sure we are getting and setting the requester without its
+    # resource
     def create_database(self):
         c = self.conn.cursor()
         # Create tables
         c.execute("CREATE TABLE permissions" +
-                "(fid integer REFERENCES files(fid) ON DELETE CASCADE, " +
-                "account text, requester text)")
+            "(fid integer REFERENCES files(fid) ON DELETE CASCADE, " +
+            "account text, requester text)")
         c.execute("CREATE TABLE files" +
-                "(fid INTEGER PRIMARY KEY AUTOINCREMENT," +
-                  " file_path text, relative_path text, hash_sha1 text," +
-                  "size numeric, description text, mod_date text, is_dir boolean)")
+            "(fid INTEGER PRIMARY KEY AUTOINCREMENT," +
+            " file_path text, relative_path text, hash_sha1 text," +
+            "size numeric, description text, mod_date text, is_dir boolean)")
         # Save (commit) the changes
         self.conn.commit()
         c.close()
@@ -34,10 +34,10 @@ class FilesharingDatabase:
     def get_toplevel_files(self, account, requester):
         c = self.conn.cursor()
         data = (account, requester)
-        c.execute("SELECT relative_path, hash_sha1, size, description, mod_date," +
-                " is_dir FROM (files JOIN permissions ON" +
-                " files.fid=permissions.fid) WHERE account=? AND requester=?" +
-                " AND relative_path NOT LIKE '%/%'", data)
+        c.execute("SELECT relative_path, hash_sha1, size, description, " +
+            "mod_date, is_dir FROM (files JOIN permissions ON" +
+            " files.fid=permissions.fid) WHERE account=? AND requester=?" +
+            " AND relative_path NOT LIKE '%/%'", data)
         result = c.fetchall()
         c.close()
         return result
@@ -45,10 +45,10 @@ class FilesharingDatabase:
     def get_files_from_dir(self, account, requester, dir_):
         c = self.conn.cursor()
         data = (account, requester, dir_ + '/%')
-        c.execute("SELECT relative_path, hash_sha1, size, description, mod_date," +
-                " is_dir FROM (files JOIN permissions ON" +
-                " files.fid=permissions.fid) WHERE account=? AND requester=?" +
-                " AND relative_path LIKE ?", data)
+        c.execute("SELECT relative_path, hash_sha1, size, description, " +
+            "mod_date, is_dir FROM (files JOIN permissions ON" +
+            " files.fid=permissions.fid) WHERE account=? AND requester=?" +
+            " AND relative_path LIKE ?", data)
         result = c.fetchall()
         c.close()
         fresult = []
@@ -70,9 +70,9 @@ class FilesharingDatabase:
         """
         c = self.conn.cursor()
         data = (account, requester)
-        c.execute("SELECT relative_path, hash_sha1, size, description, mod_date," +
-                " is_dir FROM (files JOIN permissions ON" +
-                " files.fid=permissions.fid) WHERE account=? AND requester=?", data)
+        c.execute("SELECT relative_path, hash_sha1, size, description, " +
+            "mod_date, is_dir FROM (files JOIN permissions ON" +
+            " files.fid=permissions.fid) WHERE account=? AND requester=?", data)
         result = c.fetchall()
         c.close()
         return result
@@ -81,16 +81,16 @@ class FilesharingDatabase:
         c = self.conn.cursor()
         if hash_:
             data = (account, requester, hash_)
-            sql = "SELECT relative_path, hash_sha1, size, description, mod_date," + \
-                  " file_path FROM (files JOIN permissions ON" + \
-                  " files.fid=permissions.fid) WHERE account=? AND requester=?" + \
-                  " AND hash_sha1=?"
+            sql = "SELECT relative_path, hash_sha1, size, description, " + \
+                "mod_date, file_path FROM (files JOIN permissions ON" + \
+                " files.fid=permissions.fid) WHERE account=? AND requester=?" +\
+                " AND hash_sha1=?"
         else:
             data = (account, requester, name)
-            sql = "SELECT relative_path, hash_sha1, size, description, mod_date," + \
-                  " file_path FROM (files JOIN permissions ON" + \
-                  " files.fid=permissions.fid) WHERE account=? AND requester=?" + \
-                  " AND relative_path=?"
+            sql = "SELECT relative_path, hash_sha1, size, description, " + \
+                "mod_date, file_path FROM (files JOIN permissions ON" + \
+                " files.fid=permissions.fid) WHERE account=? AND requester=?" +\
+                " AND relative_path=?"
         c.execute(sql, data)
         result = c.fetchall()
         c.close()
@@ -118,9 +118,8 @@ class FilesharingDatabase:
         requester = gajim.get_jid_without_resource(requester)
         c = self.conn.cursor()
         c.execute("INSERT INTO files (file_path, " +
-                  "relative_path, hash_sha1, size, description, mod_date, " +
-                  " is_dir) VALUES (?,?,?,?,?,?,?)",
-                  file_)
+            "relative_path, hash_sha1, size, description, mod_date, " +
+            " is_dir) VALUES (?,?,?,?,?,?,?)", file_)
         fid = c.lastrowid
         permission_data = (fid, account, requester)
         c.execute("INSERT INTO permissions VALUES (?,?,?)", permission_data)
@@ -132,14 +131,14 @@ class FilesharingDatabase:
         c = self.conn.cursor()
         data = (account, requester, file_[1])
         c.execute("SELECT * FROM (files JOIN permissions ON" +
-                " files.fid=permissions.fid) WHERE account=? AND requester=?" +
-                " AND relative_path=? ", data)
+            " files.fid=permissions.fid) WHERE account=? AND requester=?" +
+            " AND relative_path=? ", data)
         result = c.fetchall()
         if file_[2] != '':
             data = (account, requester, file_[2])
             c.execute("SELECT * FROM (files JOIN permissions ON" +
-                    " files.fid=permissions.fid) WHERE account=? AND requester=?" +
-                    " AND hash_sha1=?)", data)
+                " files.fid=permissions.fid) WHERE account=? AND requester=?" +
+                " AND hash_sha1=?)", data)
             result.extend(c.fetchall())
         if len(result) > 0:
             raise Exception('Duplicated entry')
@@ -156,9 +155,9 @@ class FilesharingDatabase:
         c = self.conn.cursor()
         data = (account, requester, dir_, dir_ + '/%')
         sql = "DELETE FROM files WHERE fid IN " + \
-              " (SELECT files.fid FROM files, permissions WHERE" + \
-              " files.fid=permissions.fid AND account=?"+ \
-              " AND requester=? AND (relative_path=? OR relative_path LIKE ?))"
+            " (SELECT files.fid FROM files, permissions WHERE" + \
+            " files.fid=permissions.fid AND account=?"+ \
+            " AND requester=? AND (relative_path=? OR relative_path LIKE ?))"
         c.execute(sql, data)
         self.conn.commit()
         c.close()
@@ -167,8 +166,8 @@ class FilesharingDatabase:
         c = self.conn.cursor()
         data = (account, requester, relative_path)
         c.execute("SELECT files.fid, is_dir FROM (files JOIN permissions ON" +
-                " files.fid=permissions.fid) WHERE account=? AND requester=? AND " +
-                "relative_path=? ", data)
+            " files.fid=permissions.fid) WHERE account=? AND requester=? AND " +
+            "relative_path=? ", data)
         result = c.fetchone()
         c.close()
         if result[1] == 0:
@@ -180,7 +179,7 @@ class FilesharingDatabase:
         c = self.conn.cursor()
         data = (account, requester)
         sql = "DELETE FROM files WHERE fid IN (SELECT fid FROM permissions" + \
-              " WHERE account=? AND requester=?)"
+            " WHERE account=? AND requester=?)"
         c.execute(sql, data)
         self.conn.commit()
         c.close()
@@ -196,5 +195,5 @@ if __name__ == "__main__":
     conn = sqlite3.connect(path)
     # Enable foreign keys contraints
     conn.cursor().execute("pragma foreign_keys = on")
-    create_database()
+    FilesharingDatabase.create_database()
     doctest.testmod()
