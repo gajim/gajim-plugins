@@ -3,14 +3,14 @@ from common import helpers
 from common import gajim
 from common import XMPPDispatcher
 from common.xmpp import Hashes
-import database
 # Namespace for file sharing
 NS_FILE_SHARING = 'http://gajim.org/protocol/filesharing'
 
-class protocol():
+class Protocol():
 
-    def __init__(self, account):
+    def __init__(self, account, plugin):
         self.account = account
+        self.plugin = plugin
         self.conn = gajim.connections[self.account]
         # get our jid with resource
         self.ourjid = gajim.get_jid_from_account(self.account)
@@ -52,12 +52,12 @@ class protocol():
         if req.getTag('directory') and not \
                 req.getTag('directory').getChildren():
             # We just received a toplevel directory request
-            files = database.get_toplevel_files(self.account, jid)
+            files = self.plugin.database.get_toplevel_files(self.account, jid)
             response = self.offer(stanza.getID(), fjid, files)
             self.conn.connection.send(response)
         elif req.getTag('directory') and req.getTag('directory').getTag('name'):
             dir_ = req.getTag('directory').getTag('name').getData()[1:]
-            files = database.get_files_from_dir(self.account, jid, dir_)
+            files = self.plugin.database.get_files_from_dir(self.account, jid, dir_)
             response = self.offer(stanza.getID(), fjid, files)
             self.conn.connection.send(response)
 
@@ -73,7 +73,7 @@ class protocol():
         for f in info[0]:
             flist.append(f['name'])
         flist.extend(info[1])
-        self.fsw.browse_fref = self.fsw.add_file_list(flist, self.fsw.ts_search, 
+        self.fsw.browse_fref = self.fsw.add_file_list(flist, self.fsw.ts_search,
                                               self.fsw.browse_fref,
                                               self.fsw.browse_jid[fjid]
                                              )
@@ -109,7 +109,7 @@ class protocol():
             pass
 
     def offer(self, id_, contact, items):
-        iq = xmpp.Iq(typ='result', to=contact, frm=self.ourjid, 
+        iq = xmpp.Iq(typ='result', to=contact, frm=self.ourjid,
                      attrs={'id': id_})
         match = iq.addChild(name='match', namespace=NS_FILE_SHARING)
         offer = match.addChild(name='offer')

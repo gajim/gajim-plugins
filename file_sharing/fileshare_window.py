@@ -1,4 +1,3 @@
-import database
 import gtk
 import gobject
 from common import gajim
@@ -65,9 +64,9 @@ class FileShareWindow(gtk.Window):
         self.empty_row_child = {}
         # Manage page
         self.bt_add_file = gtk.Button('Add file')
-        self.bt_add_file.connect('clicked', self.add_file) 
+        self.bt_add_file.connect('clicked', self.add_file)
         self.bt_add_dir = gtk.Button('Add directory')
-        self.bt_add_dir.connect('clicked', self.add_directory) 
+        self.bt_add_dir.connect('clicked', self.add_directory)
         self.bt_remove = gtk.Button('Remove')
         self.bt_remove.connect('clicked', self.remove_file_clicked)
         self.bt_remove_all = gtk.Button('Remove all')
@@ -117,7 +116,7 @@ class FileShareWindow(gtk.Window):
         self.entry_dir_pref = gtk.Entry(max=0)
         self.entry_dir_pref.set_text(self.plugin.config['incoming_dir'])
         self.bt_sel_dir_pref = gtk.Button('Select dir', gtk.STOCK_OPEN)
-        self.bt_sel_dir_pref.connect('clicked', self.on_bt_sel_dir_pref_clicked) 
+        self.bt_sel_dir_pref.connect('clicked', self.on_bt_sel_dir_pref_clicked)
         self.frm_dir_pref = gtk.Frame('Incoming files directory')
         self.frm_dir_pref.set_shadow_type(gtk.SHADOW_IN)
         self.pref_hbox = gtk.HBox()
@@ -137,7 +136,7 @@ class FileShareWindow(gtk.Window):
         pro.set_window(self)
 
     def add_file(self, widget):
-        dialog = gtk.FileChooserDialog('Add file to be shared', self, 
+        dialog = gtk.FileChooserDialog('Add file to be shared', self,
                     gtk.FILE_CHOOSER_ACTION_OPEN,
                     (gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL,
                  gtk.STOCK_OPEN, gtk.RESPONSE_OK)
@@ -150,7 +149,7 @@ class FileShareWindow(gtk.Window):
         dialog.destroy()
 
     def add_directory(self, widget):
-        dialog = gtk.FileChooserDialog('Add directory to be shared', self, 
+        dialog = gtk.FileChooserDialog('Add directory to be shared', self,
                     gtk.FILE_CHOOSER_ACTION_SELECT_FOLDER,
                     (gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL,
                  gtk.STOCK_OPEN, gtk.RESPONSE_ACCEPT)
@@ -172,15 +171,15 @@ class FileShareWindow(gtk.Window):
             dirpath = f.split('/')
             if len(dirpath) == 1:
                 # Top level file, it doesnt have parent, add it right away
-                fref[dirpath[0]] = treestore.insert(root, 
-                                                       0, 
+                fref[dirpath[0]] = treestore.insert(root,
+                                                       0,
                                              (dirpath[0],)
                                                           )
             else:
                 for dir_ in dirpath:
                     if tail + dir_ not in fref:
                         fref[tail + dir_] =  treestore.append(
-                                                                    parent, 
+                                                                    parent,
                                                                     (dir_,)
                                                                    )
                     parent = fref[tail + dir_]
@@ -191,7 +190,7 @@ class FileShareWindow(gtk.Window):
         # Converts date-time from seconds from epoch to iso 8601
         import time, datetime
         ts = time.gmtime(epoch)
-        dt = datetime.datetime(ts.tm_year, ts.tm_mon, ts.tm_mday, ts.tm_hour, 
+        dt = datetime.datetime(ts.tm_year, ts.tm_mon, ts.tm_mday, ts.tm_hour,
                                ts.tm_min,  ts.tm_sec)
         return dt.isoformat()
 
@@ -215,11 +214,11 @@ class FileShareWindow(gtk.Window):
             is_dir = os.path.isdir(f)
             mod_date = os.path.getmtime(f)
             mod_date = self.__convert_date(mod_date)
-            # TODO: add hash 
+            # TODO: add hash
             file_ = (f, relative_name, '', size, '', mod_date, is_dir)
             requester = self.cbb_contacts.get_active_text()
             try:
-                fid = database.add_file(self.account, requester, file_)
+                fid = self.plugin.database.add_file(self.account, requester, file_)
             except Exception, e:
                 if e == 'Duplicated entry':
                     print 'Error: ' + e
@@ -242,7 +241,7 @@ class FileShareWindow(gtk.Window):
                     con.supports(fshare_protocol.NS_FILE_SHARING):
                 break
             cjid = con.get_full_jid()
-            r = self.ts_search.insert(None, 0, 
+            r = self.ts_search.insert(None, 0,
                                    (cjid, ))
             self.browse_jid[cjid] = r
             pro = fshare.FileSharePlugin.prohandler[self.account]
@@ -256,14 +255,14 @@ class FileShareWindow(gtk.Window):
         self.cbb_contacts.grab_focus()
         for c in gajim.contacts.iter_contacts(self.account):
             jid = gajim.get_jid_without_resource(c.get_full_jid())
-            r = self.ts_contacts.insert(None, len(self.ts_contacts), 
+            r = self.ts_contacts.insert(None, len(self.ts_contacts),
                                         (jid, ))
             if c.get_full_jid() == contact.get_full_jid():
                 self.cbb_contacts.set_active_iter(r)
             self.contacts_rows.append(r)
         self.manage_vbox2.set_sensitive(True)
         self.bt_remove.set_sensitive(False)
-        self.add_file_list(database.get_files_name(self.account,
+        self.add_file_list(self.plugin.database.get_files_name(self.account,
                       gajim.get_jid_without_resource(contact.get_full_jid())),
                                                    self.ts_files
                                                    )
@@ -281,7 +280,7 @@ class FileShareWindow(gtk.Window):
             # If the contact in the comboboxentry is include inside of the
             # combobox
             if contact == self.ts_contacts.get_value(i, 0):
-                self.add_file_list(database.get_files_name(self.account,
+                self.add_file_list(self.plugin.database.get_files_name(self.account,
                                                             contact),
                                                             self.ts_files
                                                            )
@@ -295,13 +294,13 @@ class FileShareWindow(gtk.Window):
         sel = self.treeSelection_files.get_selected()
         relative_name = self.ts_files.get_value(sel[1], 0)
         self.ts_files.remove(sel[1])
-        database.delete(self.account, contact, relative_name)
+        self.plugin.database.delete(self.account, contact, relative_name)
         widget.set_sensitive(False)
 
     def remove_all_clicked(self, widget, data=None):
         entry = self.cbb_contacts.child
         contact = entry.get_text()
-        database.delete_all(self.account, contact)
+        self.plugin.database.delete_all(self.account, contact)
         self.ts_files.clear()
 
     def row_selected(self, widget, data=None):
@@ -332,7 +331,7 @@ class FileShareWindow(gtk.Window):
             pro = fshare.FileSharePlugin.prohandler[self.account]
             contact = self.get_contact_from_iter(self.ts_search, i)
             contact = gajim.contacts.get_contact_with_highest_priority(
-                                                        self.account, 
+                                                        self.account,
                                                              contact  )
             stanza = pro.request(contact.get_full_jid(), name, isFile=False)
             if pro.conn.connection:
@@ -393,7 +392,7 @@ class FileShareWindow(gtk.Window):
 
     def on_bt_sel_dir_pref_clicked(self, widget, data=None):
         chooser = gtk.FileChooserDialog(title='Incoming files directory',
-                action=gtk.FILE_CHOOSER_ACTION_SELECT_FOLDER, 
+                action=gtk.FILE_CHOOSER_ACTION_SELECT_FOLDER,
                 buttons=(gtk.STOCK_CANCEL,gtk.RESPONSE_CANCEL,
                     gtk.STOCK_OPEN,gtk.RESPONSE_OK))
         response = chooser.run()

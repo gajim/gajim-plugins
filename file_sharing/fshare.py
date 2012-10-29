@@ -27,14 +27,15 @@ class FileSharePlugin(GajimPlugin):
         self.activated = False
         self.description = _('This plugin allows you to share folders'+
                             ' with a peer using jingle file transfer.')
-        self.config_dialog = None  
+        self.config_dialog = None
         home_path = os.path.expanduser('~/')
         self.config_default_values = {'incoming_dir': (home_path, '')}
+        self.database = database.FilesharingDatabase(self)
         # Create one protocol handler per account
         accounts = gajim.contacts.get_accounts()
         for account in gajim.contacts.get_accounts():
             FileSharePlugin.prohandler[account] = \
-                                          fshare_protocol.protocol(account)
+                fshare_protocol.Protocol(account, self)
         self.events_handlers = {
             'raw-iq-received': (ged.CORE, self._nec_raw_iq)
             }
@@ -46,7 +47,7 @@ class FileSharePlugin(GajimPlugin):
             gajim.gajim_common_features.append(fshare_protocol.NS_FILE_SHARING)
         self._compute_caps_hash()
         # Replace the contact menu
-        self.__get_contact_menu = gui_menu_builder.get_contact_menu 
+        self.__get_contact_menu = gui_menu_builder.get_contact_menu
         gui_menu_builder.get_contact_menu = self.contact_menu
         # Replace get_file_info
         for account in gajim.contacts.get_accounts():
@@ -99,10 +100,10 @@ class FileSharePlugin(GajimPlugin):
         msf = gtk.MenuItem('Manage shared files')
         msf.connect('activate', self.manage_menu_clicked, account, contact)
         enable_fs = gtk.CheckMenuItem('Enable file sharing')
-        enable_fs.set_active(True) 
-        submenu.attach(bf, 0, 1, 0, 1) 
-        submenu.attach(msf, 0, 1, 1, 2) 
-        submenu.attach(enable_fs, 0, 1, 2, 3) 
+        enable_fs.set_active(True)
+        submenu.attach(bf, 0, 1, 0, 1)
+        submenu.attach(msf, 0, 1, 1, 2)
+        submenu.attach(enable_fs, 0, 1, 2, 3)
         if gajim.account_is_disconnected(account) or \
               contact.show in ('offline', 'error') or not \
               contact.supports(fshare_protocol.NS_FILE_SHARING):
@@ -122,13 +123,13 @@ class FileSharePlugin(GajimPlugin):
         file_info = self._get_file_info(hash_, name)
         if file_info:
             return file_info
-        raw_info = database.get_file(account, peerjid, hash_, name)
+        raw_info = self.database.get_file(account, peerjid, hash_, name)
         file_info = {'name': raw_info[0],
                      'file-name' : raw_info[5],
                      'hash' : raw_info[1],
                      'size' : raw_info[2],
                      'date' : raw_info[4],
-                     'peerjid' : peerjid 
+                     'peerjid' : peerjid
                     }
 
         return file_info
