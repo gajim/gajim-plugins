@@ -2,6 +2,7 @@
 ##
 import database
 import gtk
+import os
 import base64
 import urllib2
 from plugins import GajimPlugin
@@ -27,7 +28,8 @@ class FileSharePlugin(GajimPlugin):
         self.description = _('This plugin allows you to share folders'+
                             ' with a peer using jingle file transfer.')
         self.config_dialog = None  
-        self.config_default_values = {'incoming_dir': ('/home/', '')}
+        home_path = os.path.expanduser('~/')
+        self.config_default_values = {'incoming_dir': (home_path, '')}
         # Create one protocol handler per account
         accounts = gajim.contacts.get_accounts()
         for account in gajim.contacts.get_accounts():
