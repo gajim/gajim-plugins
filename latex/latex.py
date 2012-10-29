@@ -155,7 +155,7 @@ class LatexRenderer(Thread):
         try:
             tmpdir = mkdtemp(prefix='gajim_tex')
             tmpfd, tmppng = mkstemp(prefix='gajim_tex', suffix='.png')
-            tmpfd.close()
+            os.close(tmpfd)
         except Exception:
             msg = 'Could not create temporary files for Latex plugin'
             log.debug(msg)
