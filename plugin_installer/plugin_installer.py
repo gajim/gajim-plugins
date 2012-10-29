@@ -119,15 +119,23 @@ class PluginInstaller(GajimPlugin):
                 zip_file = zipfile.ZipFile(ftp.buffer_)
                 manifest_list = zip_file.namelist()
                 for filename in manifest_list:
-                    ftp.config.readfp(zip_file.open(filename))
-                    local_version = ftp.get_plugin_version(ftp.config.get(
+                    config = ConfigParser.ConfigParser()
+                    config.readfp(zip_file.open(filename))
+                    if not config.has_section('info'):
+                        continue
+                    opts = config.options('info')
+                    if 'name' not in opts or 'version' not in opts or \
+                    'description' not in opts or 'authors' not in opts or \
+                    'homepage' not in opts:
+                        continue
+                    local_version = ftp.get_plugin_version(config.get(
                         'info', 'name'))
                     if local_version:
                         local = convert_version_to_list(local_version)
-                        remote = convert_version_to_list(ftp.config.get('info',
+                        remote = convert_version_to_list(config.get('info',
                             'version'))
                         if remote > local:
-                            to_update.append(ftp.config.get('info', 'name'))
+                            to_update.append(config.get('info', 'name'))
                 con.quit()
                 gobject.idle_add(self.warn_update, to_update)
             except Exception, e:
@@ -451,7 +459,6 @@ class Ftp(threading.Thread):
         self.window = plugin.window
         self.progressbar = plugin.progressbar
         self.model = plugin.available_plugins_model
-        self.config = ConfigParser.ConfigParser()
         self.buffer_ = io.BytesIO()
         self.remote_dirs = None
         self.append_to_model = True
@@ -495,13 +502,22 @@ class Ftp(threading.Thread):
                     gobject.idle_add(self.progressbar.set_text,
                         _('Reading "%s"') % dir_)
 
-                    self.config.readfp(zip_file.open(filename))
+                    config = ConfigParser.ConfigParser()
+                    config.readfp(zip_file.open(filename))
+                    if not config.has_section('info'):
+                        continue
+                    opts = config.options('info')
+                    if 'name' not in opts or 'version' not in opts or \
+                    'description' not in opts or 'authors' not in opts or \
+                    'homepage' not in opts:
+                        continue
+
                     local_version = self.get_plugin_version(
-                        self.config.get('info', 'name'))
+                        config.get('info', 'name'))
                     upgrade = False
                     if self.upgrading and local_version:
                         local = convert_version_to_list(local_version)
-                        remote = convert_version_to_list(self.config.get('info',
+                        remote = convert_version_to_list(config.get('info',
                             'version'))
                         if remote > local:
                             upgrade = True
@@ -523,11 +539,11 @@ class Ftp(threading.Thread):
                         local_dir = os.path.join(user_dir, dir_)
 
                     gobject.idle_add(self.model_append, [def_icon, dir_,
-                        self.config.get('info', 'name'), local_version,
-                        self.config.get('info', 'version'), upgrade,
-                        self.config.get('info', 'description'),
-                        self.config.get('info', 'authors'),
-                        self.config.get('info', 'homepage'), ])
+                        config.get('info', 'name'), local_version,
+                        config.get('info', 'version'), upgrade,
+                        config.get('info', 'description'),
+                        config.get('info', 'authors'),
+                        config.get('info', 'homepage'), ])
                 self.ftp.quit()
             gobject.idle_add(self.progressbar.set_fraction, 0)
             if self.remote_dirs:
