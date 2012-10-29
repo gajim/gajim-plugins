@@ -15,6 +15,7 @@ import fshare_protocol
 from common import ged
 from common import caps_cache
 from common import xmpp
+from plugins.gui import GajimPluginConfigDialog
 
 
 class FileSharePlugin(GajimPlugin):
@@ -27,7 +28,7 @@ class FileSharePlugin(GajimPlugin):
         self.activated = False
         self.description = _('This plugin allows you to share folders'
             ' with a peer using jingle file transfer.')
-        self.config_dialog = None
+        self.config_dialog = FileSharePluginConfigDialog(self)
         home_path = os.path.expanduser('~/')
         self.config_default_values = {'incoming_dir': (home_path, '')}
         self.database = database.FilesharingDatabase(self)
@@ -161,4 +162,21 @@ class FileSharePlugin(GajimPlugin):
         fsw = self.__init_window(account, contact)
         fsw.notebook.set_current_page(0)
 
+class FileSharePluginConfigDialog(GajimPluginConfigDialog):
+    def init(self):
+        self.GTK_BUILDER_FILE_PATH = self.plugin.local_file_path(
+            'config_dialog.ui')
+        self.xml = gtk.Builder()
+        self.xml.set_translation_domain('gajim_plugins')
+        self.xml.add_objects_from_file(self.GTK_BUILDER_FILE_PATH, ['hbox111'])
+        hbox = self.xml.get_object('hbox111')
+        self.child.pack_start(hbox)
+        self.connect('hide', self.on_hide)
 
+    def on_run(self):
+        widget = self.xml.get_object('dl_folder')
+        widget.set_text(str(self.plugin.config['incoming_dir']))
+        
+    def on_hide(self, widget):
+        widget = self.xml.get_object('dl_folder')
+        self.plugin.config['incoming_dir'] = widget.get_text()
