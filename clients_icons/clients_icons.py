@@ -345,6 +345,11 @@ class ClientsIconsPlugin(GajimPlugin):
 
         iter_ = roster._get_contact_iter(iq_obj.jid, iq_obj.conn.name, contact,
             roster.model)[0]
+
+        if contact.show == 'error':
+            self.set_icon(roster.model, iter_, self.renderer_num, None)
+            return
+
         if contact != iq_obj.contact:
             # higest contact changed
             if roster.model[iter_][self.renderer_num] is not None:
