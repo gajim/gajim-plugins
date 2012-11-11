@@ -239,6 +239,8 @@ class ClientsIconsPlugin(GajimPlugin):
             vcard_table.attach(self.table, 2, 3, first_place,
                 first_place + 1, gtk.FILL, vertical_fill, 0, 0)
         else:
+            if contact.show == 'offline':
+                return
             label.set_markup(_('Client:'))
             caps = contact.client_caps._node
             vcard_current_row = vcard_table.get_property('n-rows')
