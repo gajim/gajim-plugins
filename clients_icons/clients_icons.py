@@ -172,13 +172,16 @@ class ClientsIconsPlugin(GajimPlugin):
             'groupchat_control': (self.connect_with_groupchat_control,
                                     self.disconnect_from_groupchat_control),
             'roster_draw_contact': (self.connect_with_roster_draw_contact,
-                                    self.disconnect_from_roster_draw_contact)}
+                                    self.disconnect_from_roster_draw_contact),
+            'roster_tooltip_populate': (self.connect_with_roster_tooltip_populate,
+                                    self.disconnect_from_roster_tooltip_populate),}
         self.config_default_values = {
                 'show_in_roster': (True, ''),
                 'show_in_groupchats': (True, ''),
+                'show_in_tooltip': (True, ''),
                 'show_unknown_icon': (True, ''),
                 'pos_in_list': (0, ''),
-                'show_facebook': (True, '') }
+                'show_facebook': (True, ''),}
 
         self.config_dialog = ClientsIconsPluginConfigDialog(self)
         icon_path = os.path.join(self.local_file_path('icons'), 'unknown.png')
@@ -186,6 +189,110 @@ class ClientsIconsPlugin(GajimPlugin):
             16, 16)
         self.icon_cache = {}
 
+    @log_calls('ClientsIconsPlugin')
+    def connect_with_roster_tooltip_populate(self, tooltip, contacts,
+    vcard_table):
+        if not self.config['show_in_tooltip']:
+            return
+        vertical_fill = gtk.FILL
+        if vcard_table.get_property('n-columns') == 4:
+            vertical_fill |= gtk.EXPAND
+        vcard_current_row = vcard_table.get_property('n-rows')
+        # put contacts in dict, where key is priority
+        num_resources = 0
+        contacts_dict = {}
+        for contact in contacts:
+            if contact.resource:
+                num_resources += 1
+                if contact.priority in contacts_dict:
+                    contacts_dict[contact.priority].append(contact)
+                else:
+                    contacts_dict[contact.priority] = [contact]
+
+        label = gtk.Label()
+        label.set_alignment(0, 0)
+        self.table = gtk.Table(4, 1)
+        self.table.set_property('column-spacing', 2)
+
+        if num_resources > 1:
+            label.set_markup(_('Clients:'))
+            first_place = vcard_current_row = vcard_table.get_property('n-rows')
+            vcard_table.attach(label, 1, 2, vcard_current_row,
+                vcard_current_row + 1, gtk.FILL, gtk.FILL | gtk.EXPAND, 0, 0)
+            contact_keys = sorted(contacts_dict.keys())
+            contact_keys.reverse()
+            vcard_current_row = 0
+            for priority in contact_keys:
+                for acontact in contacts_dict[priority]:
+                    caps = acontact.client_caps._node
+                    caps_image , client_name = self.get_icon(caps)
+                    caps_image.set_alignment(0, 0)
+                    self.table.attach(caps_image, 1, 2, vcard_current_row,
+                        vcard_current_row + 1, gtk.FILL,
+                            gtk.FILL, 0, 0)
+                    label = gtk.Label()
+                    label.set_alignment(0, 0)
+                    label.set_markup(client_name)
+                    self.table.attach(label, 2, 3, vcard_current_row,
+                        vcard_current_row + 1, gtk.FILL | gtk.EXPAND, 0, 0, 0)
+                    vcard_current_row = vcard_table.get_property('n-rows')
+            vcard_table.attach(self.table, 2, 3, first_place,
+                first_place + 1, gtk.FILL, vertical_fill, 0, 0)
+        else:
+            label.set_markup(_('Client:'))
+            caps = contact.client_caps._node
+            vcard_current_row = vcard_table.get_property('n-rows')
+            vcard_table.attach(label, 1, 2, vcard_current_row,
+                vcard_current_row + 1, gtk.FILL, gtk.FILL | gtk.EXPAND, 0, 0)
+            caps_image ,client_name = self.get_icon(caps)
+            caps_image.set_alignment(0, 0)
+            self.table.attach(caps_image, 1, 2, vcard_current_row,
+                vcard_current_row + 1, gtk.FILL, gtk.FILL, 0, 0)
+            label = gtk.Label()
+            label.set_alignment(0, 0)
+            label.set_markup(client_name)
+            self.table.attach(label, 2, 3, vcard_current_row,
+                vcard_current_row + 1, gtk.FILL | gtk.EXPAND, 0, 0, 0)
+            vcard_table.attach(self.table, 2, 3, vcard_current_row,
+                vcard_current_row + 1, gtk.FILL, vertical_fill, 0, 0)
+
+        # rewrite avatar
+        if vcard_table.get_property('n-columns') == 4:
+            avatar_widget_idx = vcard_table.get_children().index(
+                tooltip.avatar_image)
+            vcard_table.remove(vcard_table.get_children()[avatar_widget_idx])
+            vcard_table.attach(tooltip.avatar_image, 4, 5, 2,
+                vcard_table.get_property('n-rows'), gtk.FILL,
+                    gtk.FILL | gtk.EXPAND, 3, 3)
+
+    def get_icon(self, caps, contact=None):
+        if not caps:
+            return gtk.image_new_from_pixbuf(self.default_pixbuf), _('Unknown')
+
+        caps_ = caps.split('#')[0].split()
+        if caps_:
+            client_icon = clients.get(caps_[0].split()[0], (None,))[0]
+            client_name = clients.get(caps_[0].split()[0], ('', _('Unknown'))[1]
+        else:
+            client_icon = None
+
+        if not client_icon:
+            return gtk.image_new_from_pixbuf(self.default_pixbuf), _('Unknown')
+        else:
+            icon_path = os.path.join(self.local_file_path('icons'),
+                client_icon)
+            if icon_path in self.icon_cache:
+                return gtk.image_new_from_pixbuf(self.icon_cache[icon_path]),
+                    client_name
+            else:
+                pb = gtk.gdk.pixbuf_new_from_file_at_size(icon_path, 16, 16)
+                return gtk.image_new_from_pixbuf(pb), client_name
+                self.icon_cache[icon_path] = pixbuf
+
+    @log_calls('ClientsIconsPlugin')
+    def disconnect_from_roster_tooltip_populate(self, tooltip, contacts,
+    vcard_table):
+        pass
     @log_calls('ClientsIconsPlugin')
     def connect_with_roster_draw_contact(self, roster, jid, account, contact):
         if not self.active:
@@ -404,7 +511,7 @@ class ClientsIconsPlugin(GajimPlugin):
 
         caps_ = caps.split('#')[0].split()
         if caps_:
-            client_icon = clients.get(caps_[0].split()[0], None)
+            client_icon = clients.get(caps_[0].split()[0], (None,))[0]
         else:
             client_icon = None
 
@@ -471,6 +578,8 @@ class ClientsIconsPluginConfigDialog(GajimPluginConfigDialog):
             self.plugin.config['show_unknown_icon'])
         self.xml.get_object('show_facebook').set_active(
             self.plugin.config['show_facebook'])
+        self.xml.get_object('show_in_tooltip').set_active(
+            self.plugin.config['show_in_tooltip'])
 
         self.xml.connect_signals(self)
 
@@ -486,6 +595,9 @@ class ClientsIconsPluginConfigDialog(GajimPluginConfigDialog):
         self.plugin.config['show_in_roster'] = widget.get_active()
         self.plugin.deactivate()
         self.plugin.activate()
+
+    def on_show_in_tooltip_toggled(self, widget):
+        self.plugin.config['show_in_tooltip'] = widget.get_active()
 
     def on_show_in_groupchats_toggled(self, widget):
         self.plugin.config['show_in_groupchats'] = widget.get_active()
