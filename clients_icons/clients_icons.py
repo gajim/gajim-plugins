@@ -272,7 +272,7 @@ class ClientsIconsPlugin(GajimPlugin):
         caps_ = caps.split('#')[0].split()
         if caps_:
             client_icon = clients.get(caps_[0].split()[0], (None,))[0]
-            client_name = clients.get(caps_[0].split()[0], ('', _('Unknown'))[1]
+            client_name = clients.get(caps_[0].split()[0], ('', _('Unknown')))[1]
         else:
             client_icon = None
 
@@ -282,7 +282,7 @@ class ClientsIconsPlugin(GajimPlugin):
             icon_path = os.path.join(self.local_file_path('icons'),
                 client_icon)
             if icon_path in self.icon_cache:
-                return gtk.image_new_from_pixbuf(self.icon_cache[icon_path]),
+                return gtk.image_new_from_pixbuf(self.icon_cache[icon_path]), \
                     client_name
             else:
                 pb = gtk.gdk.pixbuf_new_from_file_at_size(icon_path, 16, 16)
