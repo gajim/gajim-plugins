@@ -29,6 +29,7 @@ class ServerStatusIconsPlugin(GajimPlugin):
                               'odnoklassniki.ru': 'odnoklassniki',
                               'vk.com': 'vkontakte',
                               'ya.ru': 'yaonline'}
+        self.config_dialog = None
 
     @log_calls('ServerStatusIconsPlugin')
     def connect_with_roster_draw_contact(self, roster, jid, account, contact):
