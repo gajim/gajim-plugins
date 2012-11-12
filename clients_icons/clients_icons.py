@@ -197,10 +197,6 @@ class ClientsIconsPlugin(GajimPlugin):
         if not self.config['show_in_tooltip']:
             return
 
-        vertical_fill = gtk.FILL
-        if vcard_table.get_property('n-columns') == 4:
-            vertical_fill |= gtk.EXPAND
-
         #fill clients table
         self.table = gtk.Table(4, 1)
         self.table.set_property('column-spacing', 2)
@@ -210,21 +206,21 @@ class ClientsIconsPlugin(GajimPlugin):
         caps_image , client_name = self.get_icon(caps, contact)
         caps_image.set_alignment(0, 0)
         self.table.attach(caps_image, 1, 2, vcard_current_row,
-            vcard_current_row + 1, gtk.FILL, gtk.FILL, 0, 0)
+            vcard_current_row + 1, 0, 0, 0, 0)
         label = gtk.Label()
         label.set_alignment(0, 0)
         label.set_markup(client_name)
         self.table.attach(label, 2, 3, vcard_current_row,
-            vcard_current_row + 1, gtk.FILL | gtk.EXPAND, 0, 0, 0)
+            vcard_current_row + 1, 0, 0, 0, 0)
         # set label
         label = gtk.Label()
         label.set_alignment(0, 0)
         label.set_markup(_('Client:'))
         vcard_table.attach(label, 1, 2, vcard_current_row,
-            vcard_current_row + 1, gtk.FILL, gtk.FILL | gtk.EXPAND, 0, 0)
+            vcard_current_row + 1, gtk.FILL, gtk.FILL, 0, 0)
         # set client table to tooltip
         vcard_table.attach(self.table, 2, 3, vcard_current_row,
-            vcard_current_row + 1, gtk.FILL, vertical_fill, 0, 0)
+            vcard_current_row + 1, gtk.FILL, gtk.FILL, 0, 0)
 
         # rewrite avatar
         if vcard_table.get_property('n-columns') == 4:
@@ -242,9 +238,6 @@ class ClientsIconsPlugin(GajimPlugin):
             return
         if len(contacts) == 1 and contacts[0].jid in gajim.get_our_jids():
             return
-        vertical_fill = gtk.FILL
-        if vcard_table.get_property('n-columns') == 4:
-            vertical_fill |= gtk.EXPAND
 
         # put contacts in dict, where key is priority
         num_resources = 0
@@ -288,10 +281,10 @@ class ClientsIconsPlugin(GajimPlugin):
                 return
             label.set_markup(_('Client:'))
         vcard_table.attach(label, 1, 2, first_place,
-            first_place + 1, gtk.FILL, gtk.FILL | gtk.EXPAND, 0, 0)
+            first_place + 1, gtk.FILL, gtk.FILL, 0, 0)
         # set clients table to tooltip
         vcard_table.attach(self.table, 2, 3, first_place, first_place + 1,
-            gtk.FILL, vertical_fill, 0, 0)
+            gtk.FILL, gtk.FILL, 0, 0)
 
         # rewrite avatar
         if vcard_table.get_property('n-columns') == 4:
