@@ -194,6 +194,8 @@ class ClientsIconsPlugin(GajimPlugin):
     vcard_table):
         if not self.config['show_in_tooltip']:
             return
+        if len(contacts) == 1 and contacts[0].jid in gajim.get_our_jids():
+            return
         vertical_fill = gtk.FILL
         if vcard_table.get_property('n-columns') == 4:
             vertical_fill |= gtk.EXPAND
@@ -221,8 +223,6 @@ class ClientsIconsPlugin(GajimPlugin):
             for acontact in contacts_dict[priority]:
                 caps = acontact.client_caps._node
                 caps_image , client_name = self.get_icon(caps, acontact)
-                if not caps_image:
-                    return
                 caps_image.set_alignment(0, 0)
                 self.table.attach(caps_image, 1, 2, vcard_current_row,
                     vcard_current_row + 1, gtk.FILL,
@@ -258,9 +258,6 @@ class ClientsIconsPlugin(GajimPlugin):
                     gtk.FILL | gtk.EXPAND, 3, 3)
 
     def get_icon(self, caps, contact=None):
-        if contact.jid in gajim.get_our_jids():
-            return None, None
-
         if not caps:
             return gtk.image_new_from_pixbuf(self.default_pixbuf), _('Unknown')
 
