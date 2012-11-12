@@ -21,7 +21,7 @@ clients = {
     'http://bombus-im.org/ng': ['bombusng.png', 'Bombus-NG'],
     'http://voffk.org.ru/bombus': ['bombusplus.png', 'Bombus+'],
     'http://bombusng-qd.googlecode.com': ['bombusqd.png', 'Bombus-NG'],
-    'http://bombusmod-qd.wen.ru/caps': ['bombusqd.png', 'Bombusmod'],
+    'http://bombusmod-qd.wen.ru/caps': ['bombusqd.png', 'BombusQD'],
     'http://bombusmod.net.ru': ['bombusmod.png', 'Bombusmod'],
     'http://ex-im.name/caps': ['bombusmod.png', 'Bombusmod'],
     'http://bombusmod.eu,http://bombus.pl': ['bombuspl.png', 'Bombusmod'],
@@ -174,7 +174,9 @@ class ClientsIconsPlugin(GajimPlugin):
             'roster_draw_contact': (self.connect_with_roster_draw_contact,
                                     self.disconnect_from_roster_draw_contact),
             'roster_tooltip_populate': (self.connect_with_roster_tooltip_populate,
-                                    self.disconnect_from_roster_tooltip_populate),}
+                                    self.disconnect_from_roster_tooltip_populate),
+            'gc_tooltip_populate': (self.connect_with_gc_tooltip_populate,
+                                    self.disconnect_from_gc_tooltip_populate),}
         self.config_default_values = {
                 'show_in_roster': (True, ''),
                 'show_in_groupchats': (True, ''),
@@ -188,6 +190,50 @@ class ClientsIconsPlugin(GajimPlugin):
         self.default_pixbuf = gtk.gdk.pixbuf_new_from_file_at_size(icon_path,
             16, 16)
         self.icon_cache = {}
+
+    @log_calls('ClientsIconsPlugin')
+    def connect_with_gc_tooltip_populate(self, tooltip, contact,
+    vcard_table):
+        if not self.config['show_in_tooltip']:
+            return
+
+        vertical_fill = gtk.FILL
+        if vcard_table.get_property('n-columns') == 4:
+            vertical_fill |= gtk.EXPAND
+
+        #fill clients table
+        self.table = gtk.Table(4, 1)
+        self.table.set_property('column-spacing', 2)
+        vcard_current_row = vcard_table.get_property('n-rows')
+
+        caps = contact.client_caps._node
+        caps_image , client_name = self.get_icon(caps, contact)
+        caps_image.set_alignment(0, 0)
+        self.table.attach(caps_image, 1, 2, vcard_current_row,
+            vcard_current_row + 1, gtk.FILL, gtk.FILL, 0, 0)
+        label = gtk.Label()
+        label.set_alignment(0, 0)
+        label.set_markup(client_name)
+        self.table.attach(label, 2, 3, vcard_current_row,
+            vcard_current_row + 1, gtk.FILL | gtk.EXPAND, 0, 0, 0)
+        # set label
+        label = gtk.Label()
+        label.set_alignment(0, 0)
+        label.set_markup(_('Client:'))
+        vcard_table.attach(label, 1, 2, vcard_current_row,
+            vcard_current_row + 1, gtk.FILL, gtk.FILL | gtk.EXPAND, 0, 0)
+        # set client table to tooltip
+        vcard_table.attach(self.table, 2, 3, vcard_current_row,
+            vcard_current_row + 1, gtk.FILL, vertical_fill, 0, 0)
+
+        # rewrite avatar
+        if vcard_table.get_property('n-columns') == 4:
+            avatar_widget_idx = vcard_table.get_children().index(
+                tooltip.avatar_image)
+            vcard_table.remove(vcard_table.get_children()[avatar_widget_idx])
+            vcard_table.attach(tooltip.avatar_image, 3, 4, 2,
+                vcard_table.get_property('n-rows'), gtk.FILL,
+                    gtk.FILL | gtk.EXPAND, 3, 3)
 
     @log_calls('ClientsIconsPlugin')
     def connect_with_roster_tooltip_populate(self, tooltip, contacts,
@@ -547,6 +593,11 @@ class ClientsIconsPlugin(GajimPlugin):
         else:
             renderer.set_property('cell-background', None)
         renderer.set_property('width', 16)
+
+    @log_calls('ClientsIconsPlugin')
+    def disconnect_from_gc_tooltip_populate(self, tooltip, contact,
+    vcard_table):
+        pass
 
 
 class ClientsIconsPluginConfigDialog(GajimPluginConfigDialog):
