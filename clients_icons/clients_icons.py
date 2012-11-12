@@ -312,6 +312,10 @@ class ClientsIconsPlugin(GajimPlugin):
                 if client in contact.resource.lower():
                     caps = libpurple_clients[client]
 
+        caps_from_jid = self.check_jid(contact.jid)
+        if caps_from_jid:
+            caps = caps_from_jid
+
         caps_ = caps.split('#')[0].split()
         if caps_:
             client_icon = clients.get(caps_[0].split()[0], (None,))[0]
@@ -337,6 +341,20 @@ class ClientsIconsPlugin(GajimPlugin):
     vcard_table):
         pass
 
+    def check_jid(self, jid):
+        caps = None
+        if 'facebook.com' in jid and self.config['show_facebook']:
+            caps = 'facebook.com'
+        elif '@vk.com' in jid and self.config['show_facebook']:
+            caps = 'vk.com'
+        elif jid == 'juick@juick.com':
+            caps = 'http://juick.com/caps'
+        elif jid == 'psto@psto.net':
+            caps = 'psto@psto.net'
+        elif jid == 'rss@isida-bot.com':
+            caps = 'rss@isida-bot.com'
+        return caps
+
     @log_calls('ClientsIconsPlugin')
     def connect_with_roster_draw_contact(self, roster, jid, account, contact):
         if not self.active:
@@ -349,16 +367,8 @@ class ClientsIconsPlugin(GajimPlugin):
             return
         if roster.model[child_iters[0]][self.renderer_num] is None:
             caps = contact.client_caps._node
-            if 'facebook.com' in jid and self.config['show_facebook']:
-                caps = 'facebook.com'
-            elif '@vk.com' in jid and self.config['show_facebook']:
-                caps = 'vk.com'
-            elif jid == 'juick@juick.com':
-                caps = 'http://juick.com/caps'
-            elif jid == 'psto@psto.net':
-                caps = 'psto@psto.net'
-            elif jid == 'rss@isida-bot.com':
-                caps = 'rss@isida-bot.com'
+            if not caps:
+                caps = self.check_jid(jid)
             self.set_icon(roster.model, child_iters[0], self.renderer_num,
                 caps)
 
@@ -518,15 +528,11 @@ class ClientsIconsPlugin(GajimPlugin):
                     for client in libpurple_clients:
                         if client in contact.resource.lower():
                             caps = libpurple_clients[client]
-        if 'facebook.com' in iq_obj.jid and self.config['show_facebook']:
-            caps = 'facebook.com'
-        if not caps:
-            if iq_obj.jid == 'juick@juick.com':
-                caps = 'http://juick.com/caps'
-            elif '@vk.com' in iq_obj.jid and self.config['show_facebook']:
-                caps = 'vk.com'
-            elif 'psto@psto.net' in iq_obj.jid:
-                caps = 'psto@psto.net'
+
+        caps_from_jid = self.check_jid(iq_obj.jid)
+        if caps_from_jid:
+            caps = caps_from_jid
+
         self.set_icon(roster.model, iter_, self.renderer_num, caps)
 
     def gc_presence_received(self, iq_obj):
