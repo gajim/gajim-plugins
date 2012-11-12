@@ -208,28 +208,21 @@ class ClientsIconsPlugin(GajimPlugin):
                     contacts_dict[contact.priority].append(contact)
                 else:
                     contacts_dict[contact.priority] = [contact]
-        # set label
-        label = gtk.Label()
-        label.set_alignment(0, 0)
-        if num_resources > 1:
-            label.set_markup(_('Clients:'))
-        else:
-            if contact.show == 'offline':
-                return
-            label.set_markup(_('Client:'))
+        contact_keys = sorted(contacts_dict.keys())
+        contact_keys.reverse()
+
         #fill clients table
         self.table = gtk.Table(4, 1)
         self.table.set_property('column-spacing', 2)
         first_place = vcard_current_row = vcard_table.get_property('n-rows')
-        vcard_table.attach(label, 1, 2, vcard_current_row,
-            vcard_current_row + 1, gtk.FILL, gtk.FILL | gtk.EXPAND, 0, 0)
-        contact_keys = sorted(contacts_dict.keys())
-        contact_keys.reverse()
+
         vcard_current_row = 0
         for priority in contact_keys:
             for acontact in contacts_dict[priority]:
                 caps = acontact.client_caps._node
                 caps_image , client_name = self.get_icon(caps, acontact)
+                if not caps_image:
+                    return
                 caps_image.set_alignment(0, 0)
                 self.table.attach(caps_image, 1, 2, vcard_current_row,
                     vcard_current_row + 1, gtk.FILL,
@@ -240,7 +233,18 @@ class ClientsIconsPlugin(GajimPlugin):
                 self.table.attach(label, 2, 3, vcard_current_row,
                     vcard_current_row + 1, gtk.FILL | gtk.EXPAND, 0, 0, 0)
                 vcard_current_row += 1
-        #set clients table to tooltip
+        # set label
+        label = gtk.Label()
+        label.set_alignment(0, 0)
+        if num_resources > 1:
+            label.set_markup(_('Clients:'))
+        else:
+            if contact.show == 'offline':
+                return
+            label.set_markup(_('Client:'))
+        vcard_table.attach(label, 1, 2, first_place,
+            first_place + 1, gtk.FILL, gtk.FILL | gtk.EXPAND, 0, 0)
+        # set clients table to tooltip
         vcard_table.attach(self.table, 2, 3, first_place, first_place + 1,
             gtk.FILL, vertical_fill, 0, 0)
 
@@ -254,6 +258,9 @@ class ClientsIconsPlugin(GajimPlugin):
                     gtk.FILL | gtk.EXPAND, 3, 3)
 
     def get_icon(self, caps, contact=None):
+        if contact.jid in gajim.get_our_jids():
+            return None, None
+
         if not caps:
             return gtk.image_new_from_pixbuf(self.default_pixbuf), _('Unknown')
 
