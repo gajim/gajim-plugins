@@ -197,7 +197,7 @@ class ClientsIconsPlugin(GajimPlugin):
         vertical_fill = gtk.FILL
         if vcard_table.get_property('n-columns') == 4:
             vertical_fill |= gtk.EXPAND
-        vcard_current_row = vcard_table.get_property('n-rows')
+
         # put contacts in dict, where key is priority
         num_resources = 0
         contacts_dict = {}
@@ -208,55 +208,41 @@ class ClientsIconsPlugin(GajimPlugin):
                     contacts_dict[contact.priority].append(contact)
                 else:
                     contacts_dict[contact.priority] = [contact]
-
+        # set label
         label = gtk.Label()
         label.set_alignment(0, 0)
-        self.table = gtk.Table(4, 1)
-        self.table.set_property('column-spacing', 2)
-
         if num_resources > 1:
             label.set_markup(_('Clients:'))
-            first_place = vcard_current_row = vcard_table.get_property('n-rows')
-            vcard_table.attach(label, 1, 2, vcard_current_row,
-                vcard_current_row + 1, gtk.FILL, gtk.FILL | gtk.EXPAND, 0, 0)
-            contact_keys = sorted(contacts_dict.keys())
-            contact_keys.reverse()
-            vcard_current_row = 0
-            for priority in contact_keys:
-                for acontact in contacts_dict[priority]:
-                    caps = acontact.client_caps._node
-                    caps_image , client_name = self.get_icon(caps)
-                    caps_image.set_alignment(0, 0)
-                    self.table.attach(caps_image, 1, 2, vcard_current_row,
-                        vcard_current_row + 1, gtk.FILL,
-                            gtk.FILL, 0, 0)
-                    label = gtk.Label()
-                    label.set_alignment(0, 0)
-                    label.set_markup(client_name)
-                    self.table.attach(label, 2, 3, vcard_current_row,
-                        vcard_current_row + 1, gtk.FILL | gtk.EXPAND, 0, 0, 0)
-                    vcard_current_row = vcard_table.get_property('n-rows')
-            vcard_table.attach(self.table, 2, 3, first_place,
-                first_place + 1, gtk.FILL, vertical_fill, 0, 0)
         else:
             if contact.show == 'offline':
                 return
             label.set_markup(_('Client:'))
-            caps = contact.client_caps._node
-            vcard_current_row = vcard_table.get_property('n-rows')
-            vcard_table.attach(label, 1, 2, vcard_current_row,
-                vcard_current_row + 1, gtk.FILL, gtk.FILL | gtk.EXPAND, 0, 0)
-            caps_image ,client_name = self.get_icon(caps)
-            caps_image.set_alignment(0, 0)
-            self.table.attach(caps_image, 1, 2, vcard_current_row,
-                vcard_current_row + 1, gtk.FILL, gtk.FILL, 0, 0)
-            label = gtk.Label()
-            label.set_alignment(0, 0)
-            label.set_markup(client_name)
-            self.table.attach(label, 2, 3, vcard_current_row,
-                vcard_current_row + 1, gtk.FILL | gtk.EXPAND, 0, 0, 0)
-            vcard_table.attach(self.table, 2, 3, vcard_current_row,
-                vcard_current_row + 1, gtk.FILL, vertical_fill, 0, 0)
+        #fill clients table
+        self.table = gtk.Table(4, 1)
+        self.table.set_property('column-spacing', 2)
+        first_place = vcard_current_row = vcard_table.get_property('n-rows')
+        vcard_table.attach(label, 1, 2, vcard_current_row,
+            vcard_current_row + 1, gtk.FILL, gtk.FILL | gtk.EXPAND, 0, 0)
+        contact_keys = sorted(contacts_dict.keys())
+        contact_keys.reverse()
+        vcard_current_row = 0
+        for priority in contact_keys:
+            for acontact in contacts_dict[priority]:
+                caps = acontact.client_caps._node
+                caps_image , client_name = self.get_icon(caps)
+                caps_image.set_alignment(0, 0)
+                self.table.attach(caps_image, 1, 2, vcard_current_row,
+                    vcard_current_row + 1, gtk.FILL,
+                        gtk.FILL, 0, 0)
+                label = gtk.Label()
+                label.set_alignment(0, 0)
+                label.set_markup(client_name)
+                self.table.attach(label, 2, 3, vcard_current_row,
+                    vcard_current_row + 1, gtk.FILL | gtk.EXPAND, 0, 0, 0)
+                vcard_current_row += 1
+        #set clients table to tooltip
+        vcard_table.attach(self.table, 2, 3, first_place, first_place + 1,
+            gtk.FILL, vertical_fill, 0, 0)
 
         # rewrite avatar
         if vcard_table.get_property('n-columns') == 4:
@@ -295,6 +281,7 @@ class ClientsIconsPlugin(GajimPlugin):
     def disconnect_from_roster_tooltip_populate(self, tooltip, contacts,
     vcard_table):
         pass
+
     @log_calls('ClientsIconsPlugin')
     def connect_with_roster_draw_contact(self, roster, jid, account, contact):
         if not self.active:
@@ -470,11 +457,12 @@ class ClientsIconsPlugin(GajimPlugin):
         tag = iq_obj.stanza.getTags('c')
         if tag:
             caps = tag[0].getAttr('node')
-            if 'pidgin.im' in caps:
-                caps = 'libpurple'
-                for client in libpurple_clients:
-                    if client in contact.resource.lower():
-                        caps = libpurple_clients[client]
+            if caps:
+                if 'pidgin.im' in caps:
+                    caps = 'libpurple'
+                    for client in libpurple_clients:
+                        if client in contact.resource.lower():
+                            caps = libpurple_clients[client]
         if 'facebook.com' in iq_obj.jid and self.config['show_facebook']:
             caps = 'facebook.com'
         if not caps:
