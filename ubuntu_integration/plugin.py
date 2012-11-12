@@ -25,6 +25,11 @@ from plugins.plugin import GajimPluginException
 from plugins.helpers import log_calls
 from common import gajim
 import gtkgui_helpers
+try:
+    from xdg.BaseDirectory import load_data_paths
+    import indicate
+except ImportError:
+    pass
 
 
 class UbuntuIntegrationPlugin(GajimPlugin):
