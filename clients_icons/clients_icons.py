@@ -274,8 +274,8 @@ class ClientsIconsPlugin(GajimPlugin):
                     client_name
             else:
                 pb = gtk.gdk.pixbuf_new_from_file_at_size(icon_path, 16, 16)
+                self.icon_cache[icon_path] = pb
                 return gtk.image_new_from_pixbuf(pb), client_name
-                self.icon_cache[icon_path] = pixbuf
 
     @log_calls('ClientsIconsPlugin')
     def disconnect_from_roster_tooltip_populate(self, tooltip, contacts,
