@@ -6,7 +6,7 @@ import os
 
 from plugins.gui import GajimPluginConfigDialog
 from plugins import GajimPlugin
-from plugins.helpers import log_calls, log
+from plugins.helpers import log_calls
 from common import ged
 from common import gajim
 import cell_renderer_image
@@ -271,8 +271,7 @@ class ClientsIconsPlugin(GajimPlugin):
                 caps_image , client_name = self.get_icon(caps, acontact)
                 caps_image.set_alignment(0, 0)
                 self.table.attach(caps_image, 1, 2, vcard_current_row,
-                    vcard_current_row + 1, gtk.FILL,
-                        gtk.FILL, 0, 0)
+                    vcard_current_row + 1, gtk.FILL, gtk.FILL, 0, 0)
                 label = gtk.Label()
                 label.set_alignment(0, 0)
                 label.set_markup(client_name)
