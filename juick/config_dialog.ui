@@ -46,7 +46,7 @@
               <object class="GtkCheckButton" id="only_first_avatar">
                 <property name="label" translatable="yes">Show only the first avatar in the message</property>
                 <property name="visible">True</property>
-                <property name="can_focus">True</property>
+                <property name="can_focus">False</property>
                 <property name="receives_default">False</property>
                 <property name="relief">none</property>
                 <property name="xalign">0</property>
@@ -145,7 +145,7 @@
           <object class="GtkCheckButton" id="show_pic">
             <property name="label" translatable="yes">Show Juick picture preview</property>
             <property name="visible">True</property>
-            <property name="can_focus">True</property>
+            <property name="can_focus">False</property>
             <property name="receives_default">False</property>
             <property name="draw_indicator">True</property>
             <signal name="toggled" handler="on_show_pic_toggled"/>
@@ -256,7 +256,7 @@
               <object class="GtkCheckButton" id="show_tag_button">
                 <property name="label" translatable="yes">Show Juick tag button</property>
                 <property name="visible">True</property>
-                <property name="can_focus">True</property>
+                <property name="can_focus">False</property>
                 <property name="receives_default">False</property>
                 <property name="draw_indicator">True</property>
                 <signal name="toggled" handler="on_show_tag_button_toggled"/>

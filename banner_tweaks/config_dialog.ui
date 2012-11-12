@@ -13,7 +13,7 @@
           <object class="GtkCheckButton" id="show_banner_image_checkbutton">
             <property name="label" translatable="yes">Display status icon</property>
             <property name="visible">True</property>
-            <property name="can_focus">True</property>
+            <property name="can_focus">False</property>
             <property name="receives_default">False</property>
             <property name="tooltip_text" translatable="yes">If checked, status icon will be displayed in chat window banner.</property>
             <property name="draw_indicator">True</property>
@@ -28,7 +28,7 @@
           <object class="GtkCheckButton" id="show_banner_online_msg_checkbutton">
             <property name="label" translatable="yes">Display status message of contact</property>
             <property name="visible">True</property>
-            <property name="can_focus">True</property>
+            <property name="can_focus">False</property>
             <property name="receives_default">False</property>
             <property name="tooltip_text" translatable="yes">If checked, status message of contact will be displayed in chat window banner.</property>
             <property name="draw_indicator">True</property>
@@ -43,7 +43,7 @@
           <object class="GtkCheckButton" id="show_banner_resource_checkbutton">
             <property name="label" translatable="yes">Display resource name of contact</property>
             <property name="visible">True</property>
-            <property name="can_focus">True</property>
+            <property name="can_focus">False</property>
             <property name="receives_default">False</property>
             <property name="tooltip_text" translatable="yes">If checked, resource name of contact will be displayed in chat window banner.</property>
             <property name="draw_indicator">True</property>
@@ -58,7 +58,7 @@
           <object class="GtkCheckButton" id="banner_small_fonts_checkbutton">
             <property name="label" translatable="yes">Use small fonts for contact name and resource name</property>
             <property name="visible">True</property>
-            <property name="can_focus">True</property>
+            <property name="can_focus">False</property>
             <property name="receives_default">False</property>
             <property name="tooltip_text" translatable="yes">If checked, smaller font will be used to display resource name and contact name in chat window banner.</property>
             <property name="draw_indicator">True</property>
