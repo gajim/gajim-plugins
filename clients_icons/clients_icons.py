@@ -229,7 +229,7 @@ class ClientsIconsPlugin(GajimPlugin):
         for priority in contact_keys:
             for acontact in contacts_dict[priority]:
                 caps = acontact.client_caps._node
-                caps_image , client_name = self.get_icon(caps)
+                caps_image , client_name = self.get_icon(caps, acontact)
                 caps_image.set_alignment(0, 0)
                 self.table.attach(caps_image, 1, 2, vcard_current_row,
                     vcard_current_row + 1, gtk.FILL,
@@ -256,6 +256,12 @@ class ClientsIconsPlugin(GajimPlugin):
     def get_icon(self, caps, contact=None):
         if not caps:
             return gtk.image_new_from_pixbuf(self.default_pixbuf), _('Unknown')
+
+        if 'pidgin.im' in caps:
+            caps = 'libpurple'
+            for client in libpurple_clients:
+                if client in contact.resource.lower():
+                    caps = libpurple_clients[client]
 
         caps_ = caps.split('#')[0].split()
         if caps_:
