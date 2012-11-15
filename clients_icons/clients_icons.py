@@ -163,7 +163,7 @@ class ClientsIconsPlugin(GajimPlugin):
     def init(self):
         self.description = _('Shows the client icons in the roster'
             ' and in groupchats.\nFor icons in tooltip support, '
-            'you need to install Gajim r14117 and above.')
+            'you need to install Gajim r14117 or above.')
         self.pos_list = [_('after statusicon'), _('before avatar')]
         self.events_handlers = {'presence-received':
                                     (ged.POSTGUI, self.presence_received),
