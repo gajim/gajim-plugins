@@ -239,6 +239,8 @@ class ClientsIconsPlugin(GajimPlugin):
             return
         if len(contacts) == 1 and contacts[0].jid in gajim.get_our_jids():
             return
+        if contacts[0].is_groupchat():
+            return
 
         # put contacts in dict, where key is priority
         num_resources = 0
