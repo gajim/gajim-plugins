@@ -62,7 +62,13 @@ class OfflineBookmarksPlugin(GajimPlugin):
         # do not autojoin if we are invisible
         if connection.connected == invisible_show:
             return
-        gajim.interface.auto_join_bookmarks(connection.name)
+        # do not autojoin if bookmarks supported
+        bookmarks_supported = (
+            gajim.connections[account].private_storage_supported or \
+            (gajim.connections[account].pubsub_supported and \
+            gajim.connections[account].pubsub_publish_options_supported))
+        if not bookmarks_supported:
+            gajim.interface.auto_join_bookmarks(connection.name)
 
     def connect_with_gc_control(self, gc_control):
         control = Base(self, gc_control)
