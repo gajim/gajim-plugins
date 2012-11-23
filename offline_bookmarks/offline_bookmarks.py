@@ -10,6 +10,7 @@ from common import ged
 from common import gajim
 import gtkgui_helpers
 from config import ManageBookmarksWindow
+from common.i18n import Q_
 
 
 class OfflineBookmarksPlugin(GajimPlugin):
@@ -29,12 +30,9 @@ class OfflineBookmarksPlugin(GajimPlugin):
         self.controls = []
         self.config_dialog = OfflineBookmarksPluginConfigDialog(self)
 
-
-
     @log_calls('OfflineBookmarksPlugin')
     def activate(self):
         pass
-
 
     @log_calls('OfflineBookmarksPlugin')
     def deactivate(self):
@@ -63,10 +61,8 @@ class OfflineBookmarksPlugin(GajimPlugin):
         if connection.connected == invisible_show:
             return
         # do not autojoin if bookmarks supported
-        bookmarks_supported = (
-            gajim.connections[account].private_storage_supported or \
-            (gajim.connections[account].pubsub_supported and \
-            gajim.connections[account].pubsub_publish_options_supported))
+        bookmarks_supported = self.is_bookmark_supported(
+            gajim.connections[account])
         if not bookmarks_supported:
             gajim.interface.auto_join_bookmarks(connection.name)
 
@@ -78,6 +74,10 @@ class OfflineBookmarksPlugin(GajimPlugin):
         for control in self.controls:
             control.disconnect_from_gc_control()
         self.controls = []
+
+    def is_bookmark_supported(self, account):
+        return (account.private_storage_supported or (
+            account.pubsub_supported and account.pubsub_publish_options_supported))
 
 
 class Base(object):
@@ -113,10 +113,8 @@ class Base(object):
                 break
         else:
             account = self.gc_control.account
-            bookmarks_supported = (
-                gajim.connections[account].private_storage_supported and \
-                (gajim.connections[account].pubsub_supported or \
-                gajim.connections[account].pubsub_publish_options_supported))
+            bookmarks_supported = self.plugin.is_bookmark_supported(
+                gajim.connections[account])
             self.button.set_sensitive(not bookmarks_supported)
             self.button.set_visible(not bookmarks_supported)
 
@@ -175,13 +173,45 @@ class OfflineBookmarksPluginConfigDialog(GajimPluginConfigDialog,
                 ['vbox86'])
         vbox = self.xml.get_object('vbox86')
         self.child.pack_start(vbox)
+        self.import_to_button = self.xml.get_object('import_to')
+        self.import_from_combo = self.xml.get_object('import_from')
 
     def on_run(self):
-        from common.i18n import Q_
+        self.fill_treeview()
+
+        self.selection = self.view.get_selection()
+        self.selection.connect('changed', self.bookmark_selected)
+
+        #Prepare input fields
+        self.title_entry = self.xml.get_object('title_entry')
+        self.title_entry.connect('changed', self.on_title_entry_changed)
+        self.nick_entry = self.xml.get_object('nick_entry')
+        self.nick_entry.connect('changed', self.on_nick_entry_changed)
+        self.server_entry = self.xml.get_object('server_entry')
+        self.server_entry.connect('changed', self.on_server_entry_changed)
+        self.room_entry = self.xml.get_object('room_entry')
+        self.room_entry.connect('changed', self.on_room_entry_changed)
+        self.pass_entry = self.xml.get_object('pass_entry')
+        self.pass_entry.connect('changed', self.on_pass_entry_changed)
+        self.autojoin_checkbutton = self.xml.get_object('autojoin_checkbutton')
+        self.minimize_checkbutton = self.xml.get_object('minimize_checkbutton')
+
+        self.xml.connect_signals(self)
+        self.connect('hide', self.on_hide)
+
+
+        self.show_all()
+        # select root iter
+        self.selection.select_iter(self.treestore.get_iter_root())
+        self.view.set_cursor((0,))
+
+    def fill_treeview(self):
         # Account-JID, RoomName, Room-JID, Autojoin, Minimize, Passowrd, Nick,
         # Show_Status
         self.treestore = gtk.TreeStore(str, str, str, bool, bool, str, str, str)
         self.treestore.set_sort_column_id(1, gtk.SORT_ASCENDING)
+        self.accounts = []
+        self.jids = []
 
         # Store bookmarks in treeview.
         for account in gajim.connections:
@@ -189,6 +219,9 @@ class OfflineBookmarksPluginConfigDialog(GajimPluginConfigDialog,
                 continue
             if gajim.connections[account].is_zeroconf:
                 continue
+
+            self.accounts.append(account)
+            self.jids.append(gajim.get_jid_from_account(account))
             #if not gajim.connections[account].private_storage_supported:
                 #continue
             iter_ = self.treestore.append(None, [None, account, None, None,
@@ -223,16 +256,24 @@ class OfflineBookmarksPluginConfigDialog(GajimPluginConfigDialog,
 
         self.print_status_combobox = self.xml.get_object('print_status_combobox')
         model = gtk.ListStore(str, str)
-
         self.option_list = {'': _('Default'), 'all': Q_('?print_status:All'),
                 'in_and_out': _('Enter and leave only'),
                 'none': Q_('?print_status:None')}
         opts = sorted(self.option_list.keys())
         for opt in opts:
             model.append([self.option_list[opt], opt])
-
         self.print_status_combobox.set_model(model)
         self.print_status_combobox.set_active(1)
+
+        model = gtk.ListStore(str)
+        for account in self.accounts:
+            model.append([account,])
+        for account_jid in self.plugin.config:
+            if account_jid not in self.plugin.config_default_values and \
+            account_jid not in self.jids:
+                model.append([account_jid,])
+        self.import_from_combo.set_model(model)
+
 
         self.view = self.xml.get_object('bookmarks_treeview')
         self.view.set_model(self.treestore)
@@ -243,29 +284,6 @@ class OfflineBookmarksPluginConfigDialog(GajimPluginConfigDialog,
         if self.view.get_column(0):
             self.view.remove_column(self.view.get_column(0))
         self.view.append_column(column)
-
-        self.selection = self.view.get_selection()
-        self.selection.connect('changed', self.bookmark_selected)
-
-        #Prepare input fields
-        self.title_entry = self.xml.get_object('title_entry')
-        self.title_entry.connect('changed', self.on_title_entry_changed)
-        self.nick_entry = self.xml.get_object('nick_entry')
-        self.nick_entry.connect('changed', self.on_nick_entry_changed)
-        self.server_entry = self.xml.get_object('server_entry')
-        self.server_entry.connect('changed', self.on_server_entry_changed)
-        self.room_entry = self.xml.get_object('room_entry')
-        self.room_entry.connect('changed', self.on_room_entry_changed)
-        self.pass_entry = self.xml.get_object('pass_entry')
-        self.pass_entry.connect('changed', self.on_pass_entry_changed)
-        self.autojoin_checkbutton = self.xml.get_object('autojoin_checkbutton')
-        self.minimize_checkbutton = self.xml.get_object('minimize_checkbutton')
-
-        self.xml.connect_signals(self)
-        self.connect('hide', self.on_hide)
-        self.show_all()
-        # select root iter
-        self.selection.select_iter(self.treestore.get_iter_root())
 
     def on_hide(self, widget):
         """
@@ -306,7 +324,53 @@ class OfflineBookmarksPluginConfigDialog(GajimPluginConfigDialog,
 
                 gajim.connections[account_unicode].bookmarks.append(bmdict)
 
-            #gajim.connections[account_unicode].store_bookmarks()
+            bookmarks_supported = self.plugin.is_bookmark_supported(
+                gajim.connections[account_unicode])
+            if bookmarks_supported:
+                gajim.connections[account_unicode].store_bookmarks()
             self.plugin.save_bookmarks(account_unicode,
                 gajim.connections[account_unicode].bookmarks)
         gajim.interface.roster.set_actions_menu_needs_rebuild()
+
+    def on_treeview_cursor_changed(self, treeview):
+        selection = treeview.get_selection()
+        (model, iter_) = selection.get_selected()
+        if not iter_:
+            return
+        if model.iter_parent(iter_):
+            self.import_to_button.set_text(model.get_value(iter_, 0))
+        else:
+            self.import_to_button.set_text(model.get_value(iter_, 1))
+        self.on_import_from_changed(self.import_from_combo)
+
+    def on_import_from_changed(self, widget):
+        if widget.get_active() == -1:
+            self.xml.get_object('import_button').set_sensitive(False)
+        else:
+            if widget.get_active_text() != self.xml.get_object('import_to'
+            ).get_text():
+                self.xml.get_object('import_button').set_sensitive(True)
+            else:
+                self.xml.get_object('import_button').set_sensitive(False)
+
+    def on_import_button_clicked(self, widget):
+        from_ = self.import_from_combo.get_active_text()
+        to_connection = gajim.connections[self.import_to_button.get_text()]
+        to_bookmarks = to_connection.bookmarks
+
+        if from_ in self.accounts:
+            from_bookmarks = gajim.connections[from_].bookmarks
+        else:
+            from_bookmarks = self.plugin.config[from_]
+        for bm in from_bookmarks:
+            for bookmark in to_bookmarks:
+                if bookmark['jid'] == bm['jid']:
+                    break
+            else:
+                to_bookmarks.append(bm)
+
+        self.fill_treeview()
+        # select root iter
+        self.selection.select_iter(self.treestore.get_iter_root())
+        self.view.set_cursor((0,))
+        self.import_from_combo.set_active(-1)
