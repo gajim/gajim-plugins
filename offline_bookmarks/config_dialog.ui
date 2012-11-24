@@ -2,12 +2,6 @@
 <interface>
   <requires lib="gtk+" version="2.16"/>
   <!-- interface-naming-policy toplevel-contextual -->
-  <object class="GtkListStore" id="liststore1">
-    <columns>
-      <!-- column-name item -->
-      <column type="gchararray"/>
-    </columns>
-  </object>
   <object class="GtkWindow" id="manage_bookmarks_window">
     <property name="border_width">12</property>
     <property name="title" translatable="yes">Manage Bookmarks</property>
@@ -40,7 +34,6 @@
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="headers_visible">False</property>
-                        <signal name="cursor_changed" handler="on_treeview_cursor_changed"/>
                       </object>
                     </child>
                   </object>
@@ -257,7 +250,6 @@
                   <object class="GtkComboBox" id="print_status_combobox">
                     <property name="visible">True</property>
                     <property name="sensitive">False</property>
-                    <property name="model">liststore1</property>
                     <signal name="changed" handler="on_print_status_combobox_changed"/>
                     <child>
                       <object class="GtkCellRendererText" id="cellrenderertext1"/>
@@ -390,7 +382,6 @@
                   <object class="GtkComboBox" id="import_from">
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
-                    <property name="model">liststore1</property>
                     <property name="focus_on_click">False</property>
                     <signal name="changed" handler="on_import_from_changed"/>
                     <child>
@@ -423,21 +414,29 @@
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkEntry" id="import_to">
+                  <placeholder/>
+                </child>
+                <child>
+                  <object class="GtkComboBox" id="import_to">
                     <property name="visible">True</property>
-                    <property name="editable">False</property>
-                    <property name="invisible_char">&#x25CF;</property>
+                    <property name="can_focus">True</property>
+                    <property name="focus_on_click">False</property>
+                    <signal name="changed" handler="on_import_to_changed"/>
+                    <child>
+                      <object class="GtkCellRendererText" id="cellrenderertext3"/>
+                      <attributes>
+                        <attribute name="text">0</attribute>
+                      </attributes>
+                    </child>
                   </object>
                   <packing>
                     <property name="left_attach">1</property>
                     <property name="right_attach">2</property>
                     <property name="top_attach">8</property>
                     <property name="bottom_attach">9</property>
-                    <property name="y_options"/>
+                    <property name="x_options">GTK_FILL</property>
+                    <property name="y_options">GTK_FILL</property>
                   </packing>
-                </child>
-                <child>
-                  <placeholder/>
                 </child>
               </object>
               <packing>
