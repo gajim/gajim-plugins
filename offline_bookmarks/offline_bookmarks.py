@@ -3,22 +3,24 @@
 
 import gtk
 
+import gtkgui_helpers
 from plugins.gui import GajimPluginConfigDialog
 from plugins import GajimPlugin
 from plugins.helpers import log_calls
 from common import ged
 from common import gajim
-import gtkgui_helpers
-from config import ManageBookmarksWindow
 from common.i18n import Q_
+from config import ManageBookmarksWindow
 
 
 class OfflineBookmarksPlugin(GajimPlugin):
 
     @log_calls('OfflineBookmarksPlugin')
     def init(self):
-        self.description = _('OfflineBookmarks')
-        self.pos_list = [_('after statusicon'), _('before avatar')]
+        self.description = _('Saving bookmarks inside the plugin configuration '
+        'file. Allows the use of locally stored bookmarks if the server '
+        'does not support the storage of bookmarks (eg talk.google.com).\n'
+        'Support to import bookmarks from one account to another.')
 
         self.events_handlers = {
         'bookmarks-received': (ged.POSTGUI, self.bookmarks_received),
@@ -362,7 +364,6 @@ class OfflineBookmarksPluginConfigDialog(GajimPluginConfigDialog,
                 to_bookmarks.append(bm)
 
         self.fill_treeview()
-        # select root iter
         self.view.set_cursor((0,))
         self.import_from_combo.set_active(-1)
         self.import_to_combo.set_active(-1)
