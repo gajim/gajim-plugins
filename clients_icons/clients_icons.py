@@ -144,6 +144,7 @@ clients = {
     'https://www.meebo.com/': ['meebo.png', 'Meebo'],
     'http://opensource.palm.com/packages.html': ['palm.png', 'Palm'],
     'http://spectrum.im/': ['spectrum.png', 'Spectrum'],
+    'http://tigase.org/messenger': ['tigase.png', 'Tigase'],
 }
 libpurple_clients ={
     'adium': 'http://www.adium.im/',
