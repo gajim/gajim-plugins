@@ -24,7 +24,8 @@ class NowListenPlugin(GajimPlugin):
             (self.connect_with_chat_control, self.disconnect_from_chat_control)}
 
         self.config_default_values = {
-        'format_string': ('Now listen:"%title" by %artist from %album', '')}
+        'format_string': ('Now listen:"%title" by %artist from %album', ''),
+        'format_string_http': ('Now listen:"%title" by %artist', ''),}
 
         self.controls = []
         self.first_run = True
@@ -83,6 +84,11 @@ class NowListenPlugin(GajimPlugin):
             self.artist = music_track_info.artist
             self.title = music_track_info.title
             self.source = music_track_info.album
+            if hasattr(music_track_info, 'url'):
+                self.url = music_track_info.url
+                self.albumartist = music_track_info.albumartist
+            else:
+                self.url = ''
 
 
 class Base(object):
@@ -93,6 +99,8 @@ class Base(object):
         self.id_ = chat_control.msg_textview.connect('mykeypress',
             self.on_insert)
         self.chat_control.handlers[self.id_] = self.chat_control.msg_textview
+        self.plugin.artist = self.plugin.title = self.plugin.source = ''
+        self.plugin.url = self.plugin.albumartist = ''
 
     def disconnect_from_chat_control(self):
         if self.id_ not in self.chat_control.handlers:
@@ -119,9 +127,13 @@ class Base(object):
         if self.plugin.artist == self.plugin.title == self.plugin.source == '':
             tune_string = 'paused or stopped'
         else:
-            tune_string =  self.plugin.config['format_string'].replace(
+            format_string = self.plugin.config['format_string']
+            if self.plugin.url and not self.plugin.url.startswith('file://'):
+                format_string = self.plugin.config['format_string_http']
+            tune_string = format_string.replace(
             '%artist', self.plugin.artist).replace(
-            '%title', self.plugin.title).replace('%album',self.plugin.source)
+            '%title', self.plugin.title).replace('%album',self.plugin.source).\
+            replace('%url', self.plugin.url)
 
         message_buffer = self.chat_control.msg_textview.get_buffer()
         message_buffer.insert_at_cursor(tune_string)
@@ -141,11 +153,14 @@ class NowListenPluginConfigDialog(GajimPluginConfigDialog):
         self.child.pack_start(self.config_vbox)
 
         self.format_sting = self.xml.get_object('format_sting')
+        self.format_sting_http = self.xml.get_object('format_sting_http')
         self.xml.connect_signals(self)
         self.connect('hide', self.on_hide)
 
     def on_run(self):
         self.format_sting.set_text(self.plugin.config['format_string'])
+        self.format_sting_http.set_text(self.plugin.config['format_string_http'])
 
     def on_hide(self, widget):
         self.plugin.config['format_string'] = self.format_sting.get_text()
+        self.plugin.config['format_string_http'] = self.format_sting_http.get_text()

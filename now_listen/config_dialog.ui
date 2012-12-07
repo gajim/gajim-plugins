@@ -40,6 +40,36 @@
           </packing>
         </child>
         <child>
+          <object class="GtkHBox" id="hbox2">
+            <property name="visible">True</property>
+            <child>
+              <object class="GtkLabel" id="label4">
+                <property name="visible">True</property>
+                <property name="label" translatable="yes">Format string for not local files(MPRIS2 only):</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">False</property>
+                <property name="position">0</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkEntry" id="format_sting_http">
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="invisible_char">&#x25CF;</property>
+              </object>
+              <packing>
+                <property name="position">1</property>
+              </packing>
+            </child>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="position">1</property>
+          </packing>
+        </child>
+        <child>
           <object class="GtkFrame" id="frame1">
             <property name="visible">True</property>
             <property name="label_xalign">0</property>
@@ -55,7 +85,11 @@
                     <property name="yalign">0</property>
                     <property name="label" translatable="yes">%title - song name
 %artist - artist
-%album - album</property>
+%album - album
+
+&lt;b&gt;For MPRIS2:&lt;/b&gt;
+%url - the URL of the file. Local files use the file:// schema</property>
+                    <property name="use_markup">True</property>
                   </object>
                 </child>
               </object>
@@ -71,7 +105,7 @@
           <packing>
             <property name="expand">False</property>
             <property name="fill">False</property>
-            <property name="position">1</property>
+            <property name="position">2</property>
           </packing>
         </child>
       </object>
