@@ -10,7 +10,13 @@ from plugins.plugin import GajimPluginException
 from common import dbus_support
 
 if dbus_support.supported:
-    from music_track_listener import MusicTrackInfo, MusicTrackListener
+    from music_track_listener import MusicTrackListener
+
+
+class MusicTrackInfo(object):
+    __slots__ = ['title', 'album', 'artist', 'duration', 'track_number',
+        'paused', 'url', 'albumartist']
+
 
 class Mpris2Plugin(GajimPlugin):
     @log_calls('Mpris2Plugin')
@@ -51,7 +57,10 @@ class Mpris2Plugin(GajimPlugin):
         info.title = data.get("xesam:title", '')
         info.album = data.get("xesam:album", '')
         info.artist = data.get("xesam:artist", [''])[0]
+        info.albumartist = data.get("xesam:albumArtist", [''])[0]
         info.duration = int(data.get('mpris:length', 0))
         info.track_number = int(data.get('xesam:trackNumber', 0))
+        info.url = data.get("xesam:url", '')
+
         self._last_playing_music = info
         self.listener.emit('music-track-changed', info)
