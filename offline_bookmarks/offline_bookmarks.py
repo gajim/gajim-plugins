@@ -78,6 +78,8 @@ class OfflineBookmarksPlugin(GajimPlugin):
         self.controls = []
 
     def is_bookmark_supported(self, account):
+        if account.is_zeroconf:
+            return False
         return (account.private_storage_supported or (
             account.pubsub_supported and account.pubsub_publish_options_supported))
 
