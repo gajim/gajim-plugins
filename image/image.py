@@ -8,8 +8,9 @@ import urllib2
 import chat_control
 from plugins import GajimPlugin
 from plugins.helpers import log_calls
-from common.xmpp.protocol import NS_XHTML_IM
 from dialogs import ImageChooserDialog, ErrorDialog
+
+NS_XHTML_IM = 'http://jabber.org/protocol/xhtml-im'             # XEP-0071
 
 
 class ImagePlugin(GajimPlugin):
