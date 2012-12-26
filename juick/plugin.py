@@ -17,7 +17,12 @@ from plugins.helpers import log_calls, log
 from plugins.gui import GajimPluginConfigDialog
 from conversation_textview import TextViewImage
 import gtkgui_helpers
+
+nb_xmpp = False
 import common.xmpp
+if not dir(common.xmpp):
+    import nbxmpp
+    nb_xmpp = True
 
 
 class JuickPlugin(GajimPlugin):
@@ -372,7 +377,10 @@ class Base(object):
                 # nick not in the db
                 id_ = conn.connection.getAnID()
                 to = 'juick@juick.com'
-                iq = common.xmpp.Iq('get', to=to)
+                if not nb_xmpp:
+                    iq = common.xmpp.Iq('get', to=to)
+                else:
+                    iq = nbxmpp.Iq('get', to=to)
                 a = iq.addChild(name='query',
                     namespace='http://juick.com/query#users')
                 a.addChild(name='user', namespace='http://juick.com/user',
