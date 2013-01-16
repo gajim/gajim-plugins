@@ -44,6 +44,8 @@ class UrlShortenerPlugin(GajimPlugin):
             return
         if not self.config['SHORTEN_OUTGOING']:
             return
+        if hasattr(event, 'shortened'):
+            return
 
         iterator = gajim.interface.basic_pattern_re.finditer(event.message)
         for match in iterator:
@@ -67,6 +69,7 @@ class UrlShortenerPlugin(GajimPlugin):
             if short_link:
                 event.message = event.message.replace(link, short_link)
         event.callback_args[1] = event.message
+        event.shortened = True
 
     @log_calls('UrlShortenerPlugin')
     def connect_with_chat_control(self, chat_control):
