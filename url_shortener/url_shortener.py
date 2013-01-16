@@ -5,9 +5,13 @@ import json
 import urllib
 import urllib2
 from common import gajim
+from common import ged
 from plugins import GajimPlugin
 from plugins.helpers import log_calls
 from plugins.gui import GajimPluginConfigDialog
+
+APIKEY  = 'R_fcba926fc7978bd19acbca73ec82b2be'
+USER = 'dicson'
 
 class UrlShortenerPlugin(GajimPlugin):
     @log_calls('UrlShortenerPlugin')
@@ -28,9 +32,41 @@ class UrlShortenerPlugin(GajimPlugin):
                 'print_special_text': (self.print_special_text,
                                        self.print_special_text1),}
         self.config_default_values = {
-                'MAX_CHARS': (50, _('MAX_CHARS(30-...)'))}
+                'MAX_CHARS': (50, _('MAX_CHARS(30-...)')),
+                'SHORTEN_OUTGOING': (False, ''),}
+        self.events_handlers['message-outgoing'] = (ged.OUT_PRECORE,
+                self.handle_outgoing_msg)
         self.chat_control = None
         self.controls = []
+
+    def handle_outgoing_msg(self, event):
+        if not event.message:
+            return
+        if not self.config['SHORTEN_OUTGOING']:
+            return
+
+        iterator = gajim.interface.basic_pattern_re.finditer(event.message)
+        for match in iterator:
+            start, end = match.span()
+            link = event.message[start:end]
+            if len(link) < self.config['MAX_CHARS']:
+                continue
+            short_link = None
+            try:
+                params = urllib.urlencode({'longUrl': link,
+                                            'login': USER,
+                                            'apiKey': APIKEY,
+                                            'format': 'json'})
+                req = urllib2.Request('http://api.bit.ly/v3/shorten?%s' % params)
+                response = urllib2.urlopen(req)
+                j = json.load(response)
+                if j['status_code'] == 200:
+                    short_link =  j['data']['url']
+            except urllib2.HTTPError, e:
+                pass
+            if short_link:
+                event.message = event.message.replace(link, short_link)
+        event.callback_args[1] = event.message
 
     @log_calls('UrlShortenerPlugin')
     def connect_with_chat_control(self, chat_control):
@@ -59,8 +95,6 @@ class UrlShortenerPlugin(GajimPlugin):
 
 class Base(object):
     def __init__(self, plugin, chat_control):
-        self.user = 'dicson'
-        self.apikey  = 'R_fcba926fc7978bd19acbca73ec82b2be'
         self.plugin = plugin
         self.chat_control = chat_control
         self.textview = self.chat_control.conv_textview
@@ -99,8 +133,8 @@ class Base(object):
     def insert_hyperlink(self, mark, special_text, ttt):
         try:
             params = urllib.urlencode({'longUrl': special_text,
-                                        'login': self.user,
-                                        'apiKey': self.apikey,
+                                        'login': USER,
+                                        'apiKey': APIKEY,
                                         'format': 'json'})
             req = urllib2.Request('http://api.bit.ly/v3/shorten?%s' % params)
             response = urllib2.urlopen(req)
@@ -132,8 +166,8 @@ class Base(object):
             if text.startswith('http://bit.ly/'):
                 try:
                     params = urllib.urlencode({'shortUrl': text,
-                                                'login': self.user,
-                                                'apiKey': self.apikey,
+                                                'login': USER,
+                                                'apiKey': APIKEY,
                                                 'format': 'json'})
                     req = urllib2.Request('http://api.bit.ly/v3/expand?%s' \
                         % params)
@@ -161,17 +195,23 @@ class UrlShortenerPluginConfigDialog(GajimPluginConfigDialog):
             'config_dialog.ui')
         self.xml = gtk.Builder()
         self.xml.set_translation_domain('gajim_plugins')
-        self.xml.add_objects_from_file(self.GTK_BUILDER_FILE_PATH, ['hbox1'])
+        self.xml.add_objects_from_file(self.GTK_BUILDER_FILE_PATH, ['vbox1'])
         self.max_chars_spinbutton = self.xml.get_object('max_chars')
         self.max_chars_spinbutton.get_adjustment().set_all(30, 30, 99999, 1,
             10, 0)
-        hbox = self.xml.get_object('hbox1')
+        self.shorten_outgoing = self.xml.get_object('shorten_outgoing')
+        print self.shorten_outgoing
+        hbox = self.xml.get_object('vbox1')
         self.child.pack_start(hbox)
 
         self.xml.connect_signals(self)
 
     def on_run(self):
         self.max_chars_spinbutton.set_value(self.plugin.config['MAX_CHARS'])
+        self.shorten_outgoing.set_active(self.plugin.config['SHORTEN_OUTGOING'])
 
     def avatar_size_value_changed(self, spinbutton):
         self.plugin.config['MAX_CHARS'] = spinbutton.get_value()
+
+    def shorten_outgoing_toggled(self, checkbutton):
+        self.plugin.config['SHORTEN_OUTGOING'] = checkbutton.get_active()
