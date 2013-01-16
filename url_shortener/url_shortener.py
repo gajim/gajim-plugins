@@ -200,7 +200,6 @@ class UrlShortenerPluginConfigDialog(GajimPluginConfigDialog):
         self.max_chars_spinbutton.get_adjustment().set_all(30, 30, 99999, 1,
             10, 0)
         self.shorten_outgoing = self.xml.get_object('shorten_outgoing')
-        print self.shorten_outgoing
         hbox = self.xml.get_object('vbox1')
         self.child.pack_start(hbox)
 
