@@ -8,40 +8,87 @@
         <property name="visible">True</property>
         <property name="orientation">vertical</property>
         <child>
-          <object class="GtkHBox" id="hbox1">
+          <object class="GtkFrame" id="frame1">
             <property name="visible">True</property>
-            <property name="extension_events">all</property>
+            <property name="label_xalign">0</property>
+            <property name="shadow_type">none</property>
             <child>
-              <object class="GtkLabel" id="avatar_size_lebel">
+              <object class="GtkTable" id="table1">
                 <property name="visible">True</property>
-                <property name="xalign">0.029999999329447746</property>
-                <property name="label" translatable="yes">The maximum length not be shortened links(chars)</property>
-                <property name="track_visited_links">False</property>
+                <property name="n_rows">2</property>
+                <property name="n_columns">2</property>
+                <child>
+                  <object class="GtkSpinButton" id="max_chars">
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="invisible_char">&#x25CF;</property>
+                    <property name="width_chars">6</property>
+                    <property name="snap_to_ticks">True</property>
+                    <property name="numeric">True</property>
+                    <signal name="value_changed" handler="avatar_size_value_changed"/>
+                  </object>
+                  <packing>
+                    <property name="left_attach">1</property>
+                    <property name="right_attach">2</property>
+                    <property name="y_options"/>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkSpinButton" id="in_max_chars">
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="invisible_char">&#x25CF;</property>
+                    <property name="width_chars">6</property>
+                    <property name="snap_to_ticks">True</property>
+                    <property name="numeric">True</property>
+                    <signal name="value_changed" handler="on_in_max_chars_value_changed"/>
+                  </object>
+                  <packing>
+                    <property name="left_attach">1</property>
+                    <property name="right_attach">2</property>
+                    <property name="top_attach">1</property>
+                    <property name="bottom_attach">2</property>
+                    <property name="y_options">GTK_EXPAND</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkLabel" id="incoming message">
+                    <property name="visible">True</property>
+                    <property name="xalign">0</property>
+                    <property name="xpad">13</property>
+                    <property name="label" translatable="yes">incoming message</property>
+                    <property name="track_visited_links">False</property>
+                  </object>
+                  <packing>
+                    <property name="top_attach">1</property>
+                    <property name="bottom_attach">2</property>
+                    <property name="y_options">GTK_EXPAND</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkLabel" id="avatar_size_lebel">
+                    <property name="visible">True</property>
+                    <property name="xalign">0</property>
+                    <property name="xpad">12</property>
+                    <property name="label" translatable="yes">outgoing message</property>
+                    <property name="track_visited_links">False</property>
+                  </object>
+                  <packing>
+                    <property name="y_options">GTK_EXPAND</property>
+                  </packing>
+                </child>
               </object>
-              <packing>
-                <property name="expand">False</property>
-                <property name="fill">False</property>
-                <property name="position">0</property>
-              </packing>
             </child>
-            <child>
-              <object class="GtkSpinButton" id="max_chars">
+            <child type="label">
+              <object class="GtkLabel" id="label1">
                 <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="invisible_char">&#x25CF;</property>
-                <property name="width_chars">6</property>
-                <property name="snap_to_ticks">True</property>
-                <property name="numeric">True</property>
-                <signal name="value_changed" handler="avatar_size_value_changed"/>
+                <property name="label" translatable="yes">&lt;b&gt;The maximum length not be shortened links(chars):&lt;/b&gt;</property>
+                <property name="use_markup">True</property>
               </object>
-              <packing>
-                <property name="expand">False</property>
-                <property name="fill">False</property>
-                <property name="position">1</property>
-              </packing>
             </child>
           </object>
           <packing>
+            <property name="padding">6</property>
             <property name="position">0</property>
           </packing>
         </child>

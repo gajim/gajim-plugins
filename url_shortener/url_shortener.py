@@ -32,7 +32,8 @@ class UrlShortenerPlugin(GajimPlugin):
                 'print_special_text': (self.print_special_text,
                                        self.print_special_text1),}
         self.config_default_values = {
-                'MAX_CHARS': (50, _('MAX_CHARS(30-...)')),
+                'MAX_CHARS': (50, ('MAX_CHARS(30-...)')),
+                'IN_MAX_CHARS': (50, ('MAX_CHARS(30-...)')),
                 'SHORTEN_OUTGOING': (False, ''),}
         self.events_handlers['message-outgoing'] = (ged.OUT_PRECORE,
                 self.handle_outgoing_msg)
@@ -125,7 +126,7 @@ class Base(object):
                 text_is_valid_uri = True
         if special_text.startswith('www.') or special_text.startswith('ftp.') \
         or text_is_valid_uri and not is_xhtml_link:
-            if len(special_text) < self.plugin.config['MAX_CHARS']:
+            if len(special_text) < self.plugin.config['IN_MAX_CHARS']:
                 return
             end_iter = buffer_.get_end_iter()
             mark = buffer_.create_mark(None, end_iter, True)
@@ -202,6 +203,9 @@ class UrlShortenerPluginConfigDialog(GajimPluginConfigDialog):
         self.max_chars_spinbutton = self.xml.get_object('max_chars')
         self.max_chars_spinbutton.get_adjustment().set_all(30, 30, 99999, 1,
             10, 0)
+        self.in_max_chars_spinbutton = self.xml.get_object('in_max_chars')
+        self.in_max_chars_spinbutton.get_adjustment().set_all(30, 30, 99999, 1,
+            10, 0)
         self.shorten_outgoing = self.xml.get_object('shorten_outgoing')
         hbox = self.xml.get_object('vbox1')
         self.child.pack_start(hbox)
@@ -210,10 +214,14 @@ class UrlShortenerPluginConfigDialog(GajimPluginConfigDialog):
 
     def on_run(self):
         self.max_chars_spinbutton.set_value(self.plugin.config['MAX_CHARS'])
+        self.in_max_chars_spinbutton.set_value(self.plugin.config['IN_MAX_CHARS'])
         self.shorten_outgoing.set_active(self.plugin.config['SHORTEN_OUTGOING'])
 
     def avatar_size_value_changed(self, spinbutton):
         self.plugin.config['MAX_CHARS'] = spinbutton.get_value()
+
+    def on_in_max_chars_value_changed(self, spinbutton):
+        self.plugin.config['IN_MAX_CHARS'] = spinbutton.get_value()
 
     def shorten_outgoing_toggled(self, checkbutton):
         self.plugin.config['SHORTEN_OUTGOING'] = checkbutton.get_active()
