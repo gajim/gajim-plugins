@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 ##
 
-import gtk
+from gi.repository import Gtk
+from gi.repository import GdkPixbuf
 import os
 
 from plugins.gui import GajimPluginConfigDialog
@@ -189,7 +190,7 @@ class ClientsIconsPlugin(GajimPlugin):
 
         self.config_dialog = ClientsIconsPluginConfigDialog(self)
         icon_path = os.path.join(self.local_file_path('icons'), 'unknown.png')
-        self.default_pixbuf = gtk.gdk.pixbuf_new_from_file_at_size(icon_path,
+        self.default_pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(icon_path,
             16, 16)
         self.icon_cache = {}
 
@@ -200,7 +201,7 @@ class ClientsIconsPlugin(GajimPlugin):
             return
 
         #fill clients table
-        self.table = gtk.Table(4, 1)
+        self.table = Gtk.Table(4, 1)
         self.table.set_property('column-spacing', 2)
         vcard_current_row = vcard_table.get_property('n-rows')
 
@@ -209,20 +210,20 @@ class ClientsIconsPlugin(GajimPlugin):
         caps_image.set_alignment(0, 0)
         self.table.attach(caps_image, 1, 2, vcard_current_row,
             vcard_current_row + 1, 0, 0, 0, 0)
-        label = gtk.Label()
+        label = Gtk.Label()
         label.set_alignment(0, 0)
         label.set_markup(client_name)
         self.table.attach(label, 2, 3, vcard_current_row,
             vcard_current_row + 1, 0, 0, 0, 0)
         # set label
-        label = gtk.Label()
+        label = Gtk.Label()
         label.set_alignment(0, 0)
         label.set_markup(_('Client:'))
         vcard_table.attach(label, 1, 2, vcard_current_row,
-            vcard_current_row + 1, gtk.FILL, gtk.FILL, 0, 0)
+            vcard_current_row + 1, Gtk.FILL, Gtk.FILL, 0, 0)
         # set client table to tooltip
         vcard_table.attach(self.table, 2, 3, vcard_current_row,
-            vcard_current_row + 1, gtk.FILL, gtk.FILL, 0, 0)
+            vcard_current_row + 1, Gtk.FILL, Gtk.FILL, 0, 0)
 
         # rewrite avatar
         if vcard_table.get_property('n-columns') == 4:
@@ -230,8 +231,8 @@ class ClientsIconsPlugin(GajimPlugin):
                 tooltip.avatar_image)
             vcard_table.remove(vcard_table.get_children()[avatar_widget_idx])
             vcard_table.attach(tooltip.avatar_image, 3, 4, 2,
-                vcard_table.get_property('n-rows'), gtk.FILL,
-                    gtk.FILL | gtk.EXPAND, 3, 3)
+                vcard_table.get_property('n-rows'), Gtk.FILL,
+                    Gtk.FILL | Gtk.EXPAND, 3, 3)
 
     @log_calls('ClientsIconsPlugin')
     def connect_with_roster_tooltip_populate(self, tooltip, contacts,
@@ -257,7 +258,7 @@ class ClientsIconsPlugin(GajimPlugin):
         contact_keys.reverse()
 
         #fill clients table
-        self.table = gtk.Table(4, 1)
+        self.table = Gtk.Table(4, 1)
         self.table.set_property('column-spacing', 2)
         first_place = vcard_current_row = vcard_table.get_property('n-rows')
 
@@ -268,15 +269,15 @@ class ClientsIconsPlugin(GajimPlugin):
                 caps_image , client_name = self.get_icon(caps, acontact)
                 caps_image.set_alignment(0, 0)
                 self.table.attach(caps_image, 1, 2, vcard_current_row,
-                    vcard_current_row + 1, gtk.FILL, gtk.FILL, 0, 0)
-                label = gtk.Label()
+                    vcard_current_row + 1, Gtk.FILL, Gtk.FILL, 0, 0)
+                label = Gtk.Label()
                 label.set_alignment(0, 0)
                 label.set_markup(client_name)
                 self.table.attach(label, 2, 3, vcard_current_row,
-                    vcard_current_row + 1, gtk.FILL | gtk.EXPAND, 0, 0, 0)
+                    vcard_current_row + 1, Gtk.FILL | Gtk.EXPAND, 0, 0, 0)
                 vcard_current_row += 1
         # set label
-        label = gtk.Label()
+        label = Gtk.Label()
         label.set_alignment(0, 0)
         if num_resources > 1:
             label.set_markup(_('Clients:'))
@@ -285,10 +286,10 @@ class ClientsIconsPlugin(GajimPlugin):
                 return
             label.set_markup(_('Client:'))
         vcard_table.attach(label, 1, 2, first_place,
-            first_place + 1, gtk.FILL, gtk.FILL, 0, 0)
+            first_place + 1, Gtk.FILL, Gtk.FILL, 0, 0)
         # set clients table to tooltip
         vcard_table.attach(self.table, 2, 3, first_place, first_place + 1,
-            gtk.FILL, gtk.FILL, 0, 0)
+            Gtk.FILL, Gtk.FILL, 0, 0)
 
         # rewrite avatar
         if vcard_table.get_property('n-columns') == 4:
@@ -296,12 +297,12 @@ class ClientsIconsPlugin(GajimPlugin):
                 tooltip.avatar_image)
             vcard_table.remove(vcard_table.get_children()[avatar_widget_idx])
             vcard_table.attach(tooltip.avatar_image, 4, 5, 2,
-                vcard_table.get_property('n-rows'), gtk.FILL,
-                    gtk.FILL | gtk.EXPAND, 3, 3)
+                vcard_table.get_property('n-rows'), Gtk.FILL,
+                    Gtk.FILL | Gtk.EXPAND, 3, 3)
 
     def get_icon(self, caps, contact=None):
         if not caps:
-            return gtk.image_new_from_pixbuf(self.default_pixbuf), _('Unknown')
+            return Gtk.image_new_from_pixbuf(self.default_pixbuf), _('Unknown')
 
         if 'pidgin.im' in caps:
             caps = 'libpurple'
@@ -321,17 +322,17 @@ class ClientsIconsPlugin(GajimPlugin):
             client_icon = None
 
         if not client_icon:
-            return gtk.image_new_from_pixbuf(self.default_pixbuf), _('Unknown')
+            return Gtk.image_new_from_pixbuf(self.default_pixbuf), _('Unknown')
         else:
             icon_path = os.path.join(self.local_file_path('icons'),
                 client_icon)
             if icon_path in self.icon_cache:
-                return gtk.image_new_from_pixbuf(self.icon_cache[icon_path]), \
+                return Gtk.image_new_from_pixbuf(self.icon_cache[icon_path]), \
                     client_name
             else:
-                pb = gtk.gdk.pixbuf_new_from_file_at_size(icon_path, 16, 16)
+                pb = GdkPixbuf.Pixbuf.new_from_file_at_size(icon_path, 16, 16)
                 self.icon_cache[icon_path] = pb
-                return gtk.image_new_from_pixbuf(pb), client_name
+                return Gtk.image_new_from_pixbuf(pb), client_name
 
     @log_calls('ClientsIconsPlugin')
     def disconnect_from_roster_tooltip_populate(self, tooltip, contacts,
@@ -372,12 +373,12 @@ class ClientsIconsPlugin(GajimPlugin):
     @log_calls('ClientsIconsPlugin')
     def connect_with_groupchat_control(self, chat_control):
         chat_control.nb_ext_renderers += 1
-        chat_control.columns += [gtk.gdk.Pixbuf]
+        chat_control.columns += [GdkPixbuf.Pixbuf]
         self.groupchats_tree_is_transformed = True
         self.chat_control = chat_control
-        col = gtk.TreeViewColumn()
+        col = Gtk.TreeViewColumn()
         self.muc_renderer_num = 4 + chat_control.nb_ext_renderers
-        client_icon_rend = ('client_icon', gtk.CellRendererPixbuf(), False,
+        client_icon_rend = ('client_icon', Gtk.CellRendererPixbuf(), False,
                 'pixbuf', self.muc_renderer_num,
                 self.tree_cell_data_func, chat_control)
         # remove old column
@@ -395,9 +396,9 @@ class ClientsIconsPlugin(GajimPlugin):
         chat_control.fill_column(col)
         chat_control.list_treeview.insert_column(col, 0)
         # redraw roster
-        chat_control.model = gtk.TreeStore(*chat_control.columns)
+        chat_control.model = Gtk.TreeStore(*chat_control.columns)
         chat_control.model.set_sort_func(1, chat_control.tree_compare_iters)
-        chat_control.model.set_sort_column_id(1, gtk.SORT_ASCENDING)
+        chat_control.model.set_sort_column_id(1, Gtk.SortType.ASCENDING)
         chat_control.list_treeview.set_model(chat_control.model)
         # draw roster
         for nick in gajim.contacts.get_nick_list(chat_control.account,
@@ -421,7 +422,7 @@ class ClientsIconsPlugin(GajimPlugin):
         gc_control.nb_ext_renderers -= 1
         col = gc_control.list_treeview.get_column(0)
         gc_control.list_treeview.remove_column(col)
-        col = gtk.TreeViewColumn()
+        col = Gtk.TreeViewColumn()
         for renderer in gc_control.renderers_list:
             if renderer[0] == 'client_icon':
                 gc_control.renderers_list.remove(renderer)
@@ -430,9 +431,9 @@ class ClientsIconsPlugin(GajimPlugin):
         gc_control.list_treeview.insert_column(col, 0)
         gc_control.columns = gc_control.columns[:self.muc_renderer_num] + \
             gc_control.columns[self.muc_renderer_num + 1:]
-        gc_control.model = gtk.TreeStore(*gc_control.columns)
+        gc_control.model = Gtk.TreeStore(*gc_control.columns)
         gc_control.model.set_sort_func(1, gc_control.tree_compare_iters)
-        gc_control.model.set_sort_column_id(1, gtk.SORT_ASCENDING)
+        gc_control.model.set_sort_column_id(1, Gtk.SortType.ASCENDING)
         gc_control.list_treeview.set_model(gc_control.model)
         gc_control.draw_roster()
 
@@ -445,10 +446,10 @@ class ClientsIconsPlugin(GajimPlugin):
     def activate(self):
         self.active = None
         roster = gajim.interface.roster
-        col = gtk.TreeViewColumn()
+        col = Gtk.TreeViewColumn()
         roster.nb_ext_renderers += 1
         self.renderer_num = 10 + roster.nb_ext_renderers
-        self.renderer = gtk.CellRendererPixbuf()
+        self.renderer = Gtk.CellRendererPixbuf()
         client_icon_rend = ('client_icon', self.renderer, False,
                 'pixbuf', self.renderer_num,
                 roster._fill_pep_pixbuf_renderer, self.renderer_num)
@@ -466,7 +467,7 @@ class ClientsIconsPlugin(GajimPlugin):
         roster.fill_column(col)
         roster.tree.insert_column(col, 0)
         # redraw roster
-        roster.columns += [gtk.gdk.Pixbuf]
+        roster.columns += [GdkPixbuf.Pixbuf]
         self.active = True
         roster.setup_and_draw_roster()
 
@@ -477,7 +478,7 @@ class ClientsIconsPlugin(GajimPlugin):
         roster.nb_ext_renderers -= 1
         col = roster.tree.get_column(0)
         roster.tree.remove_column(col)
-        col = gtk.TreeViewColumn()
+        col = Gtk.TreeViewColumn()
         for renderer in roster.renderers_list:
             if renderer[0] == 'client_icon':
                 roster.renderers_list.remove(renderer)
@@ -536,7 +537,7 @@ class ClientsIconsPlugin(GajimPlugin):
         if not self.config['show_in_groupchats']:
             return
         contact = gajim.contacts.get_gc_contact(iq_obj.conn.name,
-            iq_obj.presence_obj.jid, iq_obj.nick.decode('utf-8'))
+            iq_obj.presence_obj.jid, iq_obj.nick)
         if not contact:
             return
         caps = None
@@ -545,7 +546,7 @@ class ClientsIconsPlugin(GajimPlugin):
             caps = tag[0].getAttr('node')
             if 'pidgin.im' in caps:
                 caps = 'libpurple'
-        iter_ = iq_obj.gc_control.get_contact_iter(iq_obj.nick.decode('utf-8'))
+        iter_ = iq_obj.gc_control.get_contact_iter(iq_obj.nick)
         model = iq_obj.gc_control.model
         if model[iter_][self.muc_renderer_num] is not None:
             return
@@ -572,7 +573,7 @@ class ClientsIconsPlugin(GajimPlugin):
             if icon_path in self.icon_cache:
                 model[iter_][pos] = self.icon_cache[icon_path]
             else:
-                pixbuf = gtk.gdk.pixbuf_new_from_file_at_size(icon_path, 16, 16)
+                pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(icon_path, 16, 16)
                 model[iter_][pos] = pixbuf
                 self.icon_cache[icon_path] = pixbuf
 
@@ -584,7 +585,7 @@ class ClientsIconsPlugin(GajimPlugin):
             renderer.set_property('visible', True)
 
         contact = gajim.contacts.get_gc_contact(control.account,
-            control.room_jid, model[iter_][1].decode('utf-8'))
+            control.room_jid, model[iter_][1])
         if not contact:
             return
 
@@ -604,18 +605,18 @@ class ClientsIconsPlugin(GajimPlugin):
 
 class ClientsIconsPluginConfigDialog(GajimPluginConfigDialog):
     def init(self):
-        self.GTK_BUILDER_FILE_PATH = self.plugin.local_file_path(
+        self.Gtk_BUILDER_FILE_PATH = self.plugin.local_file_path(
                 'config_dialog.ui')
-        self.xml = gtk.Builder()
+        self.xml = Gtk.Builder()
         self.xml.set_translation_domain('gajim_plugins')
-        self.xml.add_objects_from_file(self.GTK_BUILDER_FILE_PATH,
+        self.xml.add_objects_from_file(self.Gtk_BUILDER_FILE_PATH,
                 ['vbox1'])
         vbox = self.xml.get_object('vbox1')
-        self.child.pack_start(vbox)
+        self.get_child().pack_start(vbox, True, True, 0)
         self.combo = self.xml.get_object('combobox1')
-        self.liststore = gtk.ListStore(str)
+        self.liststore = Gtk.ListStore(str)
         self.combo.set_model(self.liststore)
-        cellrenderer = gtk.CellRendererText()
+        cellrenderer = Gtk.CellRendererText()
         self.combo.pack_start(cellrenderer, True)
         self.combo.add_attribute(cellrenderer, 'text', 0)
 
