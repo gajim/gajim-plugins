@@ -1,1 +1,1 @@
-from plugin_installer import PluginInstaller
+from .plugin_installer import PluginInstaller

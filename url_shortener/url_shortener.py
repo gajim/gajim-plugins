@@ -19,12 +19,9 @@ class UrlShortenerPlugin(GajimPlugin):
         self.description = _('Plugin that allows users to shorten a long URL '
  'in received messages.\n'
  'For example, you can turn this link:\n'
- 'http://maps.google.com/maps?f=d&saddr=New+York+Penn+Station&daddr='
- '9th+Ave+%26+14th+St,+New+York,+NY&hl=en&geocode=&mra=ls&dirflg=r&date='
- '11%2F12%2F08&time=4:13pm&ttype=dep&noexp=0&noal=0&sort=&sll='
- '40.746175,-73.998395&sspn=0.014468,0.036392&ie=UTF8&z=14\n'
+ 'https://trac.gajim.org/timeline\n'
  'Into this link:\n'
- 'http://bit.ly/CUjV')
+ 'http://bit.ly/THy6ZK')
         self.config_dialog = UrlShortenerPluginConfigDialog(self)
         self.gui_extension_points = {
                 'chat_control_base': (self.connect_with_chat_control,
