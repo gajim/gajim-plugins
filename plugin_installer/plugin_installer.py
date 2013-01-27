@@ -62,7 +62,7 @@ class PluginInstaller(GajimPlugin):
     @log_calls('PluginInstallerPlugin')
     def init(self):
         self.description = _('Install and upgrade plugins from ftp')
-        #self.config_dialog = PluginInstallerPluginConfigDialog(self)
+        self.config_dialog = PluginInstallerPluginConfigDialog(self)
         self.config_default_values = {'ftp_server': ('ftp.gajim.org', ''),
                                       'check_update': (True, ''),
                                       'TLS': (True, ''),}
@@ -192,13 +192,6 @@ class PluginInstaller(GajimPlugin):
 
         for widget_name in widgets_to_extract:
             setattr(self, widget_name, self.xml.get_object(widget_name))
-
-        ##attr_list = Pango.AttrList()
-        ##attr_list.insert(Pango.AttrSize(Pango.Weight.BOLD))
-        #fd = Pango.FontDescription()
-        #fd.set_weight(Pango.Weight.BOLD)
-        #self.plugin_name_label1.modify_font(fd)
-        ##self.plugin_name_label1.set_attributes(attr_list)
 
         self.available_plugins_model = Gtk.ListStore(GdkPixbuf.Pixbuf,
             GObject.TYPE_PYOBJECT, GObject.TYPE_STRING, GObject.TYPE_STRING,
@@ -635,7 +628,7 @@ class PluginInstallerPluginConfigDialog(GajimPluginConfigDialog):
         self.xml.set_translation_domain('gajim_plugins')
         self.xml.add_objects_from_file(self.Gtk_BUILDER_FILE_PATH, ['hbox111'])
         hbox = self.xml.get_object('hbox111')
-        self.child.pack_start(hbox)
+        self.get_child().pack_start(hbox, True, True, 0)
 
         self.xml.connect_signals(self)
         self.connect('hide', self.on_hide)
