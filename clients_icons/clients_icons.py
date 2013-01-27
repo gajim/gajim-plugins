@@ -220,10 +220,12 @@ class ClientsIconsPlugin(GajimPlugin):
         label.set_alignment(0, 0)
         label.set_markup(_('Client:'))
         vcard_table.attach(label, 1, 2, vcard_current_row,
-            vcard_current_row + 1, Gtk.FILL, Gtk.FILL, 0, 0)
+            vcard_current_row + 1, Gtk.AttachOptions.FILL,
+            Gtk.AttachOptions.FILL, 0, 0)
         # set client table to tooltip
         vcard_table.attach(self.table, 2, 3, vcard_current_row,
-            vcard_current_row + 1, Gtk.FILL, Gtk.FILL, 0, 0)
+            vcard_current_row + 1, Gtk.AttachOptions.FILL,
+            Gtk.AttachOptions.FILL, 0, 0)
 
         # rewrite avatar
         if vcard_table.get_property('n-columns') == 4:
@@ -231,8 +233,8 @@ class ClientsIconsPlugin(GajimPlugin):
                 tooltip.avatar_image)
             vcard_table.remove(vcard_table.get_children()[avatar_widget_idx])
             vcard_table.attach(tooltip.avatar_image, 3, 4, 2,
-                vcard_table.get_property('n-rows'), Gtk.FILL,
-                    Gtk.FILL | Gtk.EXPAND, 3, 3)
+                vcard_table.get_property('n-rows'), Gtk.AttachOptions.FILL,
+                    Gtk.AttachOptions.FILL | Gtk.AttachOptions.EXPAND, 3, 3)
 
     @log_calls('ClientsIconsPlugin')
     def connect_with_roster_tooltip_populate(self, tooltip, contacts,
@@ -269,12 +271,14 @@ class ClientsIconsPlugin(GajimPlugin):
                 caps_image , client_name = self.get_icon(caps, acontact)
                 caps_image.set_alignment(0, 0)
                 self.table.attach(caps_image, 1, 2, vcard_current_row,
-                    vcard_current_row + 1, Gtk.FILL, Gtk.FILL, 0, 0)
+                    vcard_current_row + 1, Gtk.AttachOptions.FILL,
+                    Gtk.AttachOptions.FILL, 0, 0)
                 label = Gtk.Label()
                 label.set_alignment(0, 0)
                 label.set_markup(client_name)
                 self.table.attach(label, 2, 3, vcard_current_row,
-                    vcard_current_row + 1, Gtk.FILL | Gtk.EXPAND, 0, 0, 0)
+                    vcard_current_row + 1, Gtk.AttachOptions.FILL | \
+                    Gtk.AttachOptions.EXPAND, 0, 0, 0)
                 vcard_current_row += 1
         # set label
         label = Gtk.Label()
@@ -285,11 +289,11 @@ class ClientsIconsPlugin(GajimPlugin):
             if contact.show == 'offline':
                 return
             label.set_markup(_('Client:'))
-        vcard_table.attach(label, 1, 2, first_place,
-            first_place + 1, Gtk.FILL, Gtk.FILL, 0, 0)
+        vcard_table.attach(label, 1, 2, first_place, first_place + 1,
+            Gtk.AttachOptions.FILL, Gtk.AttachOptions.FILL, 0, 0)
         # set clients table to tooltip
         vcard_table.attach(self.table, 2, 3, first_place, first_place + 1,
-            Gtk.FILL, Gtk.FILL, 0, 0)
+            Gtk.AttachOptions.FILL, Gtk.AttachOptions.FILL, 0, 0)
 
         # rewrite avatar
         if vcard_table.get_property('n-columns') == 4:
@@ -297,12 +301,12 @@ class ClientsIconsPlugin(GajimPlugin):
                 tooltip.avatar_image)
             vcard_table.remove(vcard_table.get_children()[avatar_widget_idx])
             vcard_table.attach(tooltip.avatar_image, 4, 5, 2,
-                vcard_table.get_property('n-rows'), Gtk.FILL,
-                    Gtk.FILL | Gtk.EXPAND, 3, 3)
+                vcard_table.get_property('n-rows'), Gtk.AttachOptions.FILL,
+                    Gtk.AttachOptions.FILL | Gtk.AttachOptions.EXPAND, 3, 3)
 
     def get_icon(self, caps, contact=None):
         if not caps:
-            return Gtk.image_new_from_pixbuf(self.default_pixbuf), _('Unknown')
+            return Gtk.Image.new_from_pixbuf(self.default_pixbuf), _('Unknown')
 
         if 'pidgin.im' in caps:
             caps = 'libpurple'
@@ -322,17 +326,17 @@ class ClientsIconsPlugin(GajimPlugin):
             client_icon = None
 
         if not client_icon:
-            return Gtk.image_new_from_pixbuf(self.default_pixbuf), _('Unknown')
+            return Gtk.Image.new_from_pixbuf(self.default_pixbuf), _('Unknown')
         else:
             icon_path = os.path.join(self.local_file_path('icons'),
                 client_icon)
             if icon_path in self.icon_cache:
-                return Gtk.image_new_from_pixbuf(self.icon_cache[icon_path]), \
+                return Gtk.Image.new_from_pixbuf(self.icon_cache[icon_path]), \
                     client_name
             else:
                 pb = GdkPixbuf.Pixbuf.new_from_file_at_size(icon_path, 16, 16)
                 self.icon_cache[icon_path] = pb
-                return Gtk.image_new_from_pixbuf(pb), client_name
+                return Gtk.Image.new_from_pixbuf(pb), client_name
 
     @log_calls('ClientsIconsPlugin')
     def disconnect_from_roster_tooltip_populate(self, tooltip, contacts,
