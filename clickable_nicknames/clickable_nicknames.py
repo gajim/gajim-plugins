@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 
-import gtk
-from string import rstrip
-from string import lstrip
+from gi.repository import Gtk
+from gi.repository import Gdk
 
 from common import gajim
 from plugins import GajimPlugin
@@ -88,25 +87,26 @@ class Base(object):
 
     def on_textview_motion_notify_event(self, widget, event):
         # change cursor on the nicks
-        pointer_x, pointer_y = self.textview.tv.window.get_pointer()[0:2]
-        x, y = self.textview.tv.window_to_buffer_coords(gtk.TEXT_WINDOW_TEXT,
-                pointer_x, pointer_y)
+        pointer_x, pointer_y = self.textview.tv.get_window(
+            Gtk.TextWindowType.TEXT).get_pointer()[1:3]
+        x, y = self.textview.tv.window_to_buffer_coords(Gtk.TextWindowType.TEXT,
+            pointer_x, pointer_y)
         tags = self.textview.tv.get_iter_at_location(x, y).get_tags()
         tag_table = self.textview.tv.get_buffer().get_tag_table()
         if self.change_cursor:
-            self.textview.tv.get_window(gtk.TEXT_WINDOW_TEXT).set_cursor(
-                    gtk.gdk.Cursor(gtk.gdk.XTERM))
+            self.textview.tv.get_window(Gtk.TextWindowType.TEXT).set_cursor(
+                    Gdk.Cursor.new(Gdk.CursorType.XTERM))
             self.change_cursor = False
         for tag in tags:
             if tag in [x[1] for x in self.tags_id]:
-                self.textview.tv.get_window(gtk.TEXT_WINDOW_TEXT).set_cursor(
-                    gtk.gdk.Cursor(gtk.gdk.HAND2))
+                self.textview.tv.get_window(Gtk.TextWindowType.TEXT).set_cursor(
+                    Gdk.Cursor.new(Gdk.CursorType.HAND2))
             self.change_cursor = True
         self.textview.on_textview_motion_notify_event(widget, event)
 
     def insert_nick(self, texttag, widget, event, iter_, kind):
         # insert nickname to message buffer
-        if event.type == gtk.gdk.BUTTON_PRESS and event.button == 1:
+        if event.type == Gdk.EventType.BUTTON_PRESS and event.button.button == 1:
             # left mouse button clicked
             begin_iter = iter_.copy()
             # we get the begining of the tag
@@ -117,7 +117,7 @@ class Base(object):
             while not end_iter.ends_tag(texttag):
                 end_iter.forward_char()
             buffer_ = self.textview.tv.get_buffer()
-            word = buffer_.get_text(begin_iter, end_iter).decode('utf-8')
+            word = buffer_.get_text(begin_iter, end_iter, True)
             nick = word.rstrip().rstrip(gajim.config.get('after_nickname'))
             if nick.startswith('* '):
                 nick = nick.lstrip('* ').split(' ')[0]

@@ -1,1 +1,1 @@
-from clickable_nicknames import ClickableNicknames
+from .clickable_nicknames import ClickableNicknames
