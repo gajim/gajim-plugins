@@ -1,1 +1,1 @@
-from regex_filter import RegexFilterPlugin
+from .regex_filter import RegexFilterPlugin
