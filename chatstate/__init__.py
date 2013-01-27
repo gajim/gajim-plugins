@@ -1,1 +1,1 @@
-from chatstate import ChatstatePlugin
+from .chatstate import ChatstatePlugin

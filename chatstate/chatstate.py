@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 ##
 
-import gobject
+from gi.repository import GObject
 
 from plugins import GajimPlugin
 from plugins.helpers import log_calls
@@ -21,11 +21,11 @@ def paragraph_direction_mark(text):
     for char in text:
         bidi = unicodedata.bidirectional(char)
         if bidi == 'L':
-            return u'\u200E'
+            return '\u200E'
         elif bidi == 'AL' or bidi == 'R':
-            return u'\u200F'
+            return '\u200F'
 
-    return u'\u200E'
+    return '\u200E'
 
 class ChatstatePlugin(GajimPlugin):
 
@@ -57,7 +57,7 @@ class ChatstatePlugin(GajimPlugin):
         child_iters = gajim.interface.roster._get_contact_iter(obj.jid,
             obj.conn.name, contact, self.model)
 
-        name = gobject.markup_escape_text(contact.get_shown_name())
+        name = GObject.markup_escape_text(contact.get_shown_name())
         contact_instances = gajim.contacts.get_contacts(obj.conn.name,
             contact.jid)
 
@@ -68,7 +68,7 @@ class ChatstatePlugin(GajimPlugin):
                 nb_connected_contact += 1
         if nb_connected_contact > 1:
             name += paragraph_direction_mark(unicode(name))
-            name += u' (%d)' % nb_connected_contact
+            name += ' (%d)' % nb_connected_contact
 
         for child_iter in child_iters:
             if chatstate != 'gone':
@@ -82,7 +82,7 @@ class ChatstatePlugin(GajimPlugin):
                             max_lines=1)
                     name += '\n<span size="small" style="italic" ' \
                             'foreground="%s">%s</span>' % (self.status_color,
-                            gobject.markup_escape_text(status))
+                            GObject.markup_escape_text(status))
             self.model[child_iter][1] = name
 
     @log_calls('ChatstatePlugin')
