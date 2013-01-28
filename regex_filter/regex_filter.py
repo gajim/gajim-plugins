@@ -88,8 +88,7 @@ class RegexFilterPlugin(GajimPlugin):
     def _nec_all(self, obj):
         if not obj.msgtxt:
             return
-        rules_num = self.rules.keys()
-        rules_num.sort()
+        rules_num = sorted(self.rules.keys())
         for num in rules_num:
             rule = self.rules[num]
             obj.msgtxt = rule[0].sub(rule[1], obj.msgtxt)
