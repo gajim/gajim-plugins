@@ -1,1 +1,1 @@
-from hamster import HamsterIntegrationPlugin
+from .hamster import HamsterIntegrationPlugin

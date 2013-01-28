@@ -2,7 +2,7 @@
 
 import dbus
 import datetime as dt
-import gobject
+from gi.repository import GObject
 from common import gajim
 from common import ged
 from common import dbus_support
@@ -13,7 +13,7 @@ from common.pep import ACTIVITIES
 
 HAMSTAER_INTERFACE = 'org.gnome.Hamster'
 SUBACTIVITIES = []
-subactivity_ = [ACTIVITIES[x].keys() for x in ACTIVITIES.keys()]
+subactivity_ = [list(ACTIVITIES[x].keys()) for x in list(ACTIVITIES.keys())]
 for x in subactivity_ :
     SUBACTIVITIES = SUBACTIVITIES + x
 SUBACTIVITIES = set(SUBACTIVITIES)
@@ -65,7 +65,7 @@ class HamsterIntegrationPlugin(GajimPlugin):
         if not facts:
             return
         if self.from_dbus_fact(facts[-1])['end_time']:
-            accounts = gajim.connections.keys()
+            accounts = list(gajim.connections.keys())
             for account in accounts:
                 if gajim.account_is_connected(account):
                     connection = gajim.connections[account]
@@ -106,4 +106,4 @@ class HamsterIntegrationPlugin(GajimPlugin):
             id = fact[0])
 
     def on_signed_in(self, network_event):
-        gobject.timeout_add(5000,self.hamster_facts_changed)
+        GObject.timeout_add(5000,self.hamster_facts_changed)
