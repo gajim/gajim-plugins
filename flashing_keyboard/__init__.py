@@ -1,1 +1,1 @@
-from flashing_keyboard import FlashingKeyboard
+from .flashing_keyboard import FlashingKeyboard
