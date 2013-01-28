@@ -1,1 +1,1 @@
-from now_listen import NowListenPlugin
+from .now_listen import NowListenPlugin

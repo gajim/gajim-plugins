@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
-import gtk
-import gobject
+from gi.repository import Gtk
+from gi.repository import Gdk
 
 from common import gajim
 from plugins import GajimPlugin
@@ -33,14 +33,6 @@ class NowListenPlugin(GajimPlugin):
 
     @log_calls('NowListenPlugin')
     def connect_with_chat_control(self, chat_control):
-        #if not dbus_support.supported:
-            #return
-        if self.first_run:
-            # ALT + N
-            gtk.binding_entry_add_signal(chat_control.msg_textview,
-                gtk.keysyms.n, gtk.gdk.MOD1_MASK, 'mykeypress',
-                int, gtk.keysyms.n, gtk.gdk.ModifierType, gtk.gdk.MOD1_MASK)
-            self.first_run = False
         self.chat_control = chat_control
         control = Base(self, self.chat_control)
         self.controls.append(control)
@@ -64,10 +56,6 @@ class NowListenPlugin(GajimPlugin):
 
     @log_calls('NowListenPlugin')
     def deactivate(self):
-        if hasattr(self, 'chat_control'):
-            gtk.binding_entry_remove(self.chat_control.msg_textview,
-                gtk.keysyms.n, gtk.gdk.MOD1_MASK)
-        self.first_run = True
         if dbus_support.supported:
             listener = MusicTrackListener.get()
             if self.music_track_changed_signal:
@@ -95,12 +83,12 @@ class Base(object):
     def __init__(self, plugin, chat_control):
         self.plugin = plugin
         self.chat_control = chat_control
-
-        self.id_ = chat_control.msg_textview.connect('mykeypress',
-            self.on_insert)
-        self.chat_control.handlers[self.id_] = self.chat_control.msg_textview
         self.plugin.artist = self.plugin.title = self.plugin.source = ''
         self.plugin.url = self.plugin.albumartist = ''
+
+        self.id_ = self.chat_control.msg_textview.connect('key_press_event',
+            self.on_insert)
+        self.chat_control.handlers[self.id_] = self.chat_control.msg_textview
 
     def disconnect_from_chat_control(self):
         if self.id_ not in self.chat_control.handlers:
@@ -109,19 +97,13 @@ class Base(object):
             self.chat_control.handlers[self.id_].disconnect(self.id_)
             del self.chat_control.handlers[self.id_]
 
-    def on_insert(self, widget, event_keyval, event_keymod):
+    def on_insert(self, widget, event):
         """
         Insert text to conversation input box, at cursor position
         """
-        # construct event instance from binding
-        event = gtk.gdk.Event(gtk.gdk.KEY_PRESS)  # it's always a key-press here
-        event.keyval = event_keyval
-        event.state = event_keymod
-        event.time = 0  # assign current time
-
-        if event.keyval != gtk.keysyms.n:
+        if event.keyval != Gdk.KEY_n:
             return
-        if event.state != gtk.gdk.MOD1_MASK:  # ALT+N
+        if not event.state & Gdk.ModifierType.MOD1_MASK:  # ALT+N
             return
 
         if self.plugin.artist == self.plugin.title == self.plugin.source == '':
@@ -138,19 +120,20 @@ class Base(object):
         message_buffer = self.chat_control.msg_textview.get_buffer()
         message_buffer.insert_at_cursor(tune_string)
         self.chat_control.msg_textview.grab_focus()
+        return True
 
 
 class NowListenPluginConfigDialog(GajimPluginConfigDialog):
     def init(self):
         self.GTK_BUILDER_FILE_PATH = self.plugin.local_file_path(
                 'config_dialog.ui')
-        self.xml = gtk.Builder()
+        self.xml = Gtk.Builder()
         self.xml.set_translation_domain('gajim_plugins')
         self.xml.add_objects_from_file(self.GTK_BUILDER_FILE_PATH,
                 ['now_listen_config_vbox'])
 
         self.config_vbox = self.xml.get_object('now_listen_config_vbox')
-        self.child.pack_start(self.config_vbox)
+        self.get_child().pack_start(self.config_vbox, True, True, 0)
 
         self.format_sting = self.xml.get_object('format_sting')
         self.format_sting_http = self.xml.get_object('format_sting_http')
