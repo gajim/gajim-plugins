@@ -24,7 +24,7 @@ Block some incoming messages
 :license: GPLv3
 '''
 
-import gtk
+from gi.repository import Gtk
 from common import ged
 
 from plugins import GajimPlugin
@@ -89,12 +89,12 @@ class AntiSpamPluginConfigDialog(GajimPluginConfigDialog):
     def init(self):
         self.GTK_BUILDER_FILE_PATH = self.plugin.local_file_path(
             'config_dialog.ui')
-        self.xml = gtk.Builder()
+        self.xml = Gtk.Builder()
         self.xml.set_translation_domain('gajim_plugins')
         self.xml.add_objects_from_file(self.GTK_BUILDER_FILE_PATH,
             ['anti_spam_config_vbox'])
         self.config_vbox = self.xml.get_object('anti_spam_config_vbox')
-        self.child.pack_start(self.config_vbox)
+        self.get_child().pack_start(self.config_vbox, True, True, 0)
 
         self.block_pubsub_messages_checkbutton = self.xml.get_object(
             'block_pubsub_messages_checkbutton')
