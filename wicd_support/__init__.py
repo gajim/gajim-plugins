@@ -1,1 +1,1 @@
-from wicd_support import WicdPlugin
+from .wicd_support import WicdPlugin

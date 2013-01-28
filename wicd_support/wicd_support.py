@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-import gobject
 
 from common import gajim
 from plugins import GajimPlugin
@@ -55,12 +54,12 @@ class WicdPlugin(GajimPlugin):
         #WIRED = 3
         #SUSPENDED = 4
         if state == 2 or state == 3:
-            for connection in gajim.connections.itervalues():
+            for connection in gajim.connections.values():
                 if gajim.config.get_per('accounts', connection.name,
                 'listen_to_network_manager') and connection.time_to_reconnect:
                     connection._reconnect()
         else:
-            for connection in gajim.connections.itervalues():
+            for connection in gajim.connections.values():
                 if gajim.config.get_per('accounts', connection.name,
                 'listen_to_network_manager') and connection.connected > 1:
                     connection._disconnectedReconnCB()
