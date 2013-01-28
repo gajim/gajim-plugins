@@ -86,7 +86,7 @@ class Base(object):
 
     def _on_message_textview_key_press_event(self, widget, event):
         if event.get_state() & Gdk.ModifierType.MOD1_MASK and \
-            event.keyval == Gdk.KEY_r:
+            event.keyval == Gdk.KEY_l:
             if not self.chat_control.contact.supports(NS_XHTML_IM):
                 from dialogs import WarningDialog
                 WarningDialog('Warning',
