@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
-import gtk
+from gi.repository import Gtk
+from gi.repository import GdkPixbuf
 import re
 import os
 
@@ -88,10 +89,11 @@ class Base(object):
             self.textview.account, {'src': special_text}], self._update_img,
             [mark])
 
-    def _update_img(self, (mem, alt), mark):
+    def _update_img(self, mem_alt, mark):
+        mem, alt = mem_alt
         if mem:
             try:
-                loader = gtk.gdk.PixbufLoader()
+                loader = GdkPixbuf.PixbufLoader()
                 loader.write(mem)
                 loader.close()
                 pixbuf = loader.get_pixbuf()
@@ -124,7 +126,7 @@ class Base(object):
                 image_height = int(size)
 
         crop_pixbuf = pixbuf.scale_simple(image_width, image_height,
-            gtk.gdk.INTERP_BILINEAR)
+            GdkPixbuf.InterpType.BILINEAR)
         return (crop_pixbuf, image_width, image_height)
 
     def disconnect_from_chat_control(self):
@@ -135,14 +137,14 @@ class UrlImagePreviewPluginConfigDialog(GajimPluginConfigDialog):
     def init(self):
         self.GTK_BUILDER_FILE_PATH = self.plugin.local_file_path(
             'config_dialog.ui')
-        self.xml = gtk.Builder()
+        self.xml = Gtk.Builder()
         self.xml.set_translation_domain('gajim_plugins')
         self.xml.add_objects_from_file(self.GTK_BUILDER_FILE_PATH, ['vbox1'])
         self.preview_size_spinbutton = self.xml.get_object('preview_size')
-        self.preview_size_spinbutton.get_adjustment().set_all(20, 10, 512, 1,
-            10, 0)
+        adjustment = Gtk.Adjustment(20, 10, 512, 1, 10, 0)
+        self.preview_size_spinbutton.set_adjustment(adjustment)
         vbox = self.xml.get_object('vbox1')
-        self.child.pack_start(vbox)
+        self.get_child().pack_start(vbox, True, True, 0)
 
         self.xml.connect_signals(self)
 

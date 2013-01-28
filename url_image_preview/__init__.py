@@ -1,1 +1,1 @@
-from url_image_preview import UrlImagePreviewPlugin
+from .url_image_preview import UrlImagePreviewPlugin
