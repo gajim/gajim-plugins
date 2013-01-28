@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 ##
-
-import gtk
 import os
 
 from plugins.gui import GajimPluginConfigDialog

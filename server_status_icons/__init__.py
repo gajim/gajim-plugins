@@ -1,1 +1,1 @@
-from server_status_icons import ServerStatusIconsPlugin
+from .server_status_icons import ServerStatusIconsPlugin
