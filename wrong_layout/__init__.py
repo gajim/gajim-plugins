@@ -1,1 +1,1 @@
-from plugin import WrongLayoutPlugin
+from .plugin import WrongLayoutPlugin

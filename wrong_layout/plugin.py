@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
 
-import gtk
+from gi.repository import Gtk
+from gi.repository import Gdk
 from common import helpers
 from common import gajim
 
 from plugins import GajimPlugin
-from plugins.helpers import log_calls, log
+from plugins.helpers import log_calls
 
 
 class WrongLayoutPlugin(GajimPlugin):
@@ -34,7 +35,7 @@ class WrongLayoutPlugin(GajimPlugin):
                 'X': 'Ч', 'C': 'С', 'V': 'М', 'B': 'И', 'N': 'Т', 'M': 'Ь',
                 '<': 'Б', '>': 'Ю', '?': ',', ':': 'Ж'}
         self.dict_ru = {}
-        for key in self.dict_eng.keys():
+        for key in list(self.dict_eng.keys()):
             self.dict_ru[self.dict_eng[key]] = key
 
     @log_calls('WrongLayoutPlugin')
@@ -73,11 +74,11 @@ class Base(object):
             self.chat_control.msg_textview.disconnect(self.id_)
 
     def mykeypress_event(self, widget, event):
-        if event.keyval == gtk.keysyms.r or event.keyval == 1739:
-            if event.state & gtk.gdk.MOD1_MASK:  # alt+r
+        if event.keyval == Gdk.KEY_r or event.keyval == 1739:
+            if event.state & Gdk.ModifierType.MOD1_MASK:  # alt+r
                 start, end, iter_ = self.get_start_end()
                 count_eng = count_rus = 0
-                c = iter_.get_char().decode('utf-8')
+                c = iter_.get_char()
                 while ((c != 0) & iter_.in_range(start, end)):
                     if ((ord(c) > 65) & (ord(c) < 122)) | \
                         (c == '@') | (c == '#') | (c == '$') | (c == '^') | \
@@ -89,10 +90,10 @@ class Base(object):
                         (c == 'Ё') | (c == '№'):
                         count_rus += 1
                     iter_.forward_char()
-                    c = iter_.get_char().decode('utf-8')
+                    c = iter_.get_char()
                 is_russian = (count_rus >= count_eng)
                 start, end, iter_ = self.get_start_end()
-                c = iter_.get_char().decode('utf-8')
+                c = iter_.get_char()
                 text = ''
                 while ((c != 0) & iter_.in_range(start, end)):
                     if not is_russian:
@@ -101,7 +102,7 @@ class Base(object):
                         conv = self.plugin.dict_ru.get(c.encode('utf-8'), c)
                     text = text + conv
                     iter_.forward_char()
-                    c = iter_.get_char().decode('utf-8')
+                    c = iter_.get_char()
                 start, end, iter_ = self.get_start_end()
                 message_buffer = self.chat_control.msg_textview.get_buffer()
                 message_buffer.delete(start, end)
@@ -118,7 +119,7 @@ class Base(object):
             start = message_buffer.get_start_iter()
             end = message_buffer.get_end_iter()
             stext = gajim.config.get('gc_refer_to_nick_char')
-            res = start.forward_search(stext, gtk.TEXT_SEARCH_TEXT_ONLY)
+            res = start.forward_search(stext, Gtk.TextSearchFlags.TEXT_ONLY, None)
             if res:
                 first, start = res
         start.order(end)
