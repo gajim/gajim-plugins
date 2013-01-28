@@ -31,8 +31,8 @@ http://trac.gajim.org/attachment/ticket/4133/gajim-chatbanneroptions-svn10008.pa
 
 import sys
 
-import gtk
-import gobject
+from gi.repository import Gtk
+from gi.repository import GObject
 import message_control
 from common import gajim
 from common import helpers
@@ -52,8 +52,9 @@ class BannerTweaksPlugin(GajimPlugin):
         self.config_dialog = BannerTweaksPluginConfigDialog(self)
 
         self.gui_extension_points = {
-            'chat_control_base_draw_banner': (self.chat_control_base_draw_banner_called,
-                                              self.chat_control_base_draw_banner_deactivation)
+            'chat_control_base_draw_banner': (
+                self.chat_control_base_draw_banner_called,
+                self.chat_control_base_draw_banner_deactivation)
         }
 
         self.config_default_values = {
@@ -66,12 +67,14 @@ class BannerTweaksPlugin(GajimPlugin):
 
     @log_calls('BannerTweaksPlugin')
     def activate(self):
-        self.config['old_chat_avatar_height'] = gajim.config.get('chat_avatar_height')
+        self.config['old_chat_avatar_height'] = gajim.config.get(
+            'chat_avatar_height')
         #gajim.config.set('chat_avatar_height', 28)
 
     @log_calls('BannerTweaksPlugin')
     def deactivate(self):
-        gajim.config.set('chat_avatar_height', self.config['old_chat_avatar_height'])
+        gajim.config.set('chat_avatar_height', self.config[
+            'old_chat_avatar_height'])
 
     @log_calls('BannerTweaksPlugin')
     def chat_control_base_draw_banner_called(self, chat_control):
@@ -90,11 +93,13 @@ class BannerTweaksPlugin(GajimPlugin):
                     'banner_status_image')
             banner_status_img.clear()
 
-        # TODO: part below repeats a lot of code from ChatControl.draw_banner_text()
+        # TODO: part below repeats a lot of code from 
+        # ChatControl.draw_banner_text()
         # This could be rewritten using re module: getting markup text from
         # banner_name_label and replacing some elements based on plugin config.
         # Would it be faster?
-        if self.config['show_banner_resource'] or self.config['banner_small_fonts']:
+        if self.config['show_banner_resource'] or self.config[
+        'banner_small_fonts']:
             banner_name_label = chat_control.xml.get_object('banner_name_label')
             label_text = banner_name_label.get_label()
 
@@ -108,13 +113,14 @@ class BannerTweaksPlugin(GajimPlugin):
                 name += '/' + contact.resource
 
             if chat_control.TYPE_ID == message_control.TYPE_PM:
-                name = _('%(nickname)s from group chat %(room_name)s') %\
-                        {'nickname': name, 'room_name': chat_control.room_name}
-            name = gobject.markup_escape_text(name)
+                name = _('%(nickname)s from group chat %(room_name)s') % \
+                    {'nickname': name, 'room_name': chat_control.room_name}
+            name = GObject.markup_escape_text(name)
 
-            # We know our contacts nick, but if another contact has the same nick
-            # in another account we need to also display the account.
-            # except if we are talking to two different resources of the same contact
+            # We know our contacts nick, but if another contact has the same
+            # nick in another account we need to also display the account.
+            # except if we are talking to two different resources of the same
+            # contact
             acct_info = ''
             for account in gajim.contacts.get_accounts():
                 if account == chat_control.account:
@@ -123,10 +129,11 @@ class BannerTweaksPlugin(GajimPlugin):
                     break
                 for jid in gajim.contacts.get_jid_list(account):
                     other_contact_ = \
-                            gajim.contacts.get_first_contact_from_jid(account, jid)
-                    if other_contact_.get_shown_name() == chat_control.contact.get_shown_name():
+                        gajim.contacts.get_first_contact_from_jid(account, jid)
+                    if other_contact_.get_shown_name() == \
+                    chat_control.contact.get_shown_name():
                         acct_info = ' (%s)' % \
-                                gobject.markup_escape_text(chat_control.account)
+                            GObject.markup_escape_text(chat_control.account)
                         break
 
             font_attrs, font_attrs_small = chat_control.get_font_attrs()
@@ -161,25 +168,33 @@ class BannerTweaksPluginConfigDialog(GajimPluginConfigDialog):
     def init(self):
         self.GTK_BUILDER_FILE_PATH = self.plugin.local_file_path(
                 'config_dialog.ui')
-        self.xml = gtk.Builder()
+        self.xml = Gtk.Builder()
         self.xml.set_translation_domain('gajim_plugins')
         self.xml.add_objects_from_file(self.GTK_BUILDER_FILE_PATH,
-                ['banner_tweaks_config_vbox'])
+            ['banner_tweaks_config_vbox'])
         self.config_vbox = self.xml.get_object('banner_tweaks_config_vbox')
-        self.child.pack_start(self.config_vbox)
+        self.get_child().pack_start(self.config_vbox, True, True, 0)
 
-        self.show_banner_image_checkbutton = self.xml.get_object('show_banner_image_checkbutton')
-        self.show_banner_online_msg_checkbutton = self.xml.get_object('show_banner_online_msg_checkbutton')
-        self.show_banner_resource_checkbutton = self.xml.get_object('show_banner_resource_checkbutton')
-        self.banner_small_fonts_checkbutton = self.xml.get_object('banner_small_fonts_checkbutton')
+        self.show_banner_image_checkbutton = self.xml.get_object(
+            'show_banner_image_checkbutton')
+        self.show_banner_online_msg_checkbutton = self.xml.get_object(
+            'show_banner_online_msg_checkbutton')
+        self.show_banner_resource_checkbutton = self.xml.get_object(
+            'show_banner_resource_checkbutton')
+        self.banner_small_fonts_checkbutton = self.xml.get_object(
+            'banner_small_fonts_checkbutton')
 
         self.xml.connect_signals(self)
 
     def on_run(self):
-        self.show_banner_image_checkbutton.set_active(self.plugin.config['show_banner_image'])
-        self.show_banner_online_msg_checkbutton.set_active(self.plugin.config['show_banner_online_msg'])
-        self.show_banner_resource_checkbutton.set_active(self.plugin.config['show_banner_resource'])
-        self.banner_small_fonts_checkbutton.set_active(self.plugin.config['banner_small_fonts'])
+        self.show_banner_image_checkbutton.set_active(self.plugin.config[
+            'show_banner_image'])
+        self.show_banner_online_msg_checkbutton.set_active(self.plugin.config[
+            'show_banner_online_msg'])
+        self.show_banner_resource_checkbutton.set_active(self.plugin.config[
+            'show_banner_resource'])
+        self.banner_small_fonts_checkbutton.set_active(self.plugin.config[
+            'banner_small_fonts'])
 
     def on_show_banner_image_checkbutton_toggled(self, button):
         self.plugin.config['show_banner_image'] = button.get_active()
