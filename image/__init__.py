@@ -1,1 +1,1 @@
-from image import ImagePlugin
+from .image import ImagePlugin

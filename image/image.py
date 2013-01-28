@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
 ##
-import gtk
+from gi.repository import Gtk
+from gi.repository import Gdk
+from gi.repository import GObject
 import os
 import base64
-import urllib2
+import urllib
 
 import chat_control
 from plugins import GajimPlugin
@@ -37,12 +39,6 @@ class ImagePlugin(GajimPlugin):
         self.chat_control = control
         base = Base(self, self.chat_control)
         self.controls.append(base)
-        if self.first_run:
-            # ALT + L
-            gtk.binding_entry_add_signal(control.msg_textview,
-                gtk.keysyms.l, gtk.gdk.MOD1_MASK, 'mykeypress',
-                int, gtk.keysyms.l, gtk.gdk.ModifierType, gtk.gdk.MOD1_MASK)
-            self.first_run = False
 
     @log_calls('ImagePlugin')
     def disconnect_from_chat_control(self, chat_control):
@@ -66,45 +62,39 @@ class ImagePlugin(GajimPlugin):
 
 class Base(object):
     def __init__(self, plugin, chat_control):
-        self.id_ = chat_control.msg_textview.connect('mykeypress',
-            self.on_key_press)
+        ## ALT + L
+        self.id_ = chat_control.msg_textview.connect('key_press_event',
+            self._on_message_textview_key_press_event)
         self.plugin = plugin
         self.chat_control = chat_control
         actions_hbox = chat_control.xml.get_object('actions_hbox')
-        self.button = gtk.Button(label=None, stock=None, use_underline=True)
-        self.button.set_property('relief', gtk.RELIEF_NONE)
+        self.button = Gtk.Button(label=None, stock=None, use_underline=True)
+        self.button.set_property('relief', Gtk.ReliefStyle.NONE)
         self.button.set_property('can-focus', False)
-        img = gtk.Image()
-        img.set_from_stock('gtk-orientation-portrait', gtk.ICON_SIZE_MENU)
+        img = Gtk.Image()
+        img.set_from_stock('gtk-orientation-portrait', Gtk.IconSize.MENU)
         self.button.set_image(img)
         self.button.set_tooltip_text('Send image')
         send_button = chat_control.xml.get_object('send_button')
-        send_button_pos = actions_hbox.child_get_property(send_button,
-            'position')
-        actions_hbox.add_with_properties(self.button, 'position',
-            send_button_pos - 1, 'expand', False)
+        actions_hbox.pack_start(self.button, False, False , 0)
+        actions_hbox.reorder_child(self.button,
+            len(actions_hbox.get_children()) - 3)
         id_ = self.button.connect('clicked', self.on_image_button_clicked)
-        chat_control.handlers[id_] = self.button
-        chat_control.handlers[self.id_] = chat_control.msg_textview
+        self.chat_control.handlers[id_] = self.button
+        self.chat_control.handlers[self.id_] = chat_control.msg_textview
         self.button.show()
 
-    def on_key_press(self, widget, event_keyval, event_keymod):
-        # construct event instance from binding
-        event = gtk.gdk.Event(gtk.gdk.KEY_PRESS)  # it's always a key-press here
-        event.keyval = event_keyval
-        event.state = event_keymod
-        event.time = 0  # assign current time
-
-        if event.keyval != gtk.keysyms.l:
-            return
-        if event.state != gtk.gdk.MOD1_MASK:  # ALT+l
-            return
-        if not self.chat_control.contact.supports(NS_XHTML_IM):
-            from dialogs import WarningDialog
-            WarningDialog('Warning', _('This contact does not support XHTML_IM'),
-                self.chat_control.parent_win.window)
-            return
-        self.on_image_button_clicked(widget)
+    def _on_message_textview_key_press_event(self, widget, event):
+        if event.get_state() & Gdk.ModifierType.MOD1_MASK and \
+            event.keyval == Gdk.KEY_r:
+            if not self.chat_control.contact.supports(NS_XHTML_IM):
+                from dialogs import WarningDialog
+                WarningDialog('Warning',
+                    _('This contact does not support XHTML_IM'),
+                    self.chat_control.parent_win.window)
+                return True
+            self.on_image_button_clicked(widget)
+            return True
 
     def on_image_button_clicked(self, widget):
         def on_ok(widget, path_to_file):
@@ -120,11 +110,13 @@ class Base(object):
                 invalid_file = True
                 msg = _('File does not exist')
             if filesize < 60000:
-                img = urllib2.quote(base64.standard_b64encode(open(
-                    path_to_file, "rb").read()), '')
+                file_ = open(path_to_file, "rb")
+                img = urllib.parse.quote(base64.standard_b64encode(
+                    file_.read()), '')
                 if len(img) > 60000:
                     invalid_file = True
                     msg = _('File too big')
+                file_.close()
             else:
                 invalid_file = True
                 msg = _('File too big')
