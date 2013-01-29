@@ -26,7 +26,8 @@ Message length notifier plugin.
 
 import sys
 
-import gtk
+from gi.repository import Gtk
+from gi.repository import Gdk
 
 from plugins import GajimPlugin
 from plugins.helpers import log, log_calls
@@ -41,8 +42,8 @@ class LengthNotifierPlugin(GajimPlugin):
         self.config_dialog = LengthNotifierPluginConfigDialog(self)
 
         self.gui_extension_points = {
-                'chat_control' : (self.connect_with_chat_control,
-                                                  self.disconnect_from_chat_control)
+            'chat_control' : (self.connect_with_chat_control,
+                self.disconnect_from_chat_control)
         }
 
         self.config_default_values = {
@@ -55,16 +56,21 @@ class LengthNotifierPlugin(GajimPlugin):
     def textview_length_warning(self, tb, chat_control):
         tv = chat_control.msg_textview
         d = chat_control.length_notifier_plugin_data
-        t = tb.get_text(tb.get_start_iter(), tb.get_end_iter())
+        t = tb.get_text(tb.get_start_iter(), tb.get_end_iter(), True)
         if t:
             len_t = len(t)
-            #print("len_t: %d"%(len_t))
-            if len_t>self.config['MESSAGE_WARNING_LENGTH']:
+            if len_t > self.config['MESSAGE_WARNING_LENGTH']:
                 if not d['prev_color']:
-                    d['prev_color'] = tv.style.copy().base[gtk.STATE_NORMAL]
-                tv.modify_base(gtk.STATE_NORMAL, gtk.gdk.color_parse(self.config['WARNING_COLOR']))
+                    #FIXME: That doesn't work
+                    context = tv.get_style_context()
+                    d['prev_color'] = context.get_background_color(
+                        Gtk.StateFlags.NORMAL)
+                color = Gdk.RGBA()
+                Gdk.RGBA.parse(color, self.config['WARNING_COLOR'])
+                tv.override_background_color(Gtk.StateFlags.NORMAL, color)
             elif d['prev_color']:
-                tv.modify_base(gtk.STATE_NORMAL, d['prev_color'])
+                tv.override_background_color(Gtk.StateFlags.NORMAL,
+                    d['prev_color'])
                 d['prev_color'] = None
 
     @log_calls('LengthNotifierPlugin')
@@ -74,15 +80,20 @@ class LengthNotifierPlugin(GajimPlugin):
             d = {'prev_color' : None}
             tv = chat_control.msg_textview
             tb = tv.get_buffer()
-            h_id = tb.connect('changed', self.textview_length_warning, chat_control)
+            h_id = tb.connect('changed', self.textview_length_warning,
+                chat_control)
             d['h_id'] = h_id
 
-            t = tb.get_text(tb.get_start_iter(), tb.get_end_iter())
+            t = tb.get_text(tb.get_start_iter(), tb.get_end_iter(), True)
             if t:
                 len_t = len(t)
-                if len_t>self.config['MESSAGE_WARNING_LENGTH']:
-                    d['prev_color'] = tv.style.copy().base[gtk.STATE_NORMAL]
-                    tv.modify_base(gtk.STATE_NORMAL, gtk.gdk.color_parse(self.config['WARNING_COLOR']))
+                if len_t > self.config['MESSAGE_WARNING_LENGTH']:
+                    context = tv.get_style_context()
+                    d['prev_color'] = context.get_background_color(
+                        Gtk.StateFlags.NORMAL)
+                    color = Gdk.RGBA()
+                    Gdk.RGBA.parse(color, self.config['WARNING_COLOR'])
+                    tv.override_background_color(Gtk.StateType.NORMAL, color)
 
             chat_control.length_notifier_plugin_data = d
 
@@ -97,8 +108,9 @@ class LengthNotifierPlugin(GajimPlugin):
             tv = chat_control.msg_textview
             tv.get_buffer().disconnect(d['h_id'])
             if d['prev_color']:
-                tv.modify_base(gtk.STATE_NORMAL, d['prev_color'])
-        except AttributeError, error:
+                tv.override_background_color(Gtk.StateType.NORMAL,
+                    d['prev_color'])
+        except AttributeError as error:
             pass
             #log.debug('Length Notifier Plugin was (probably) never connected with this chat window.\n Error: %s' % (error))
 
@@ -113,26 +125,28 @@ class LengthNotifierPluginConfigDialog(GajimPluginConfigDialog):
     def init(self):
         self.GTK_BUILDER_FILE_PATH = self.plugin.local_file_path(
                 'config_dialog.ui')
-        self.xml = gtk.Builder()
+        self.xml = Gtk.Builder()
         self.xml.set_translation_domain('gajim_plugins')
         self.xml.add_objects_from_file(self.GTK_BUILDER_FILE_PATH,
-                ['length_notifier_config_table'])
+            ['length_notifier_config_table'])
         self.config_table = self.xml.get_object('length_notifier_config_table')
-        self.child.pack_start(self.config_table)
+        self.get_child().pack_start(self.config_table, False, False, 0)
 
         self.message_length_spinbutton = self.xml.get_object(
-                'message_length_spinbutton')
-        self.message_length_spinbutton.get_adjustment().set_all(140, 0, 500, 1,
-    10, 0)
+            'message_length_spinbutton')
+        self.message_length_spinbutton.get_adjustment().configure(140, 0, 500,
+            1, 10, 0)
         self.notification_colorbutton = self.xml.get_object(
-                'notification_colorbutton')
+            'notification_colorbutton')
         self.jids_entry = self.xml.get_object('jids_entry')
 
         self.xml.connect_signals(self)
 
     def on_run(self):
-        self.message_length_spinbutton.set_value(self.plugin.config['MESSAGE_WARNING_LENGTH'])
-        self.notification_colorbutton.set_color(gtk.gdk.color_parse(self.plugin.config['WARNING_COLOR']))
+        self.message_length_spinbutton.set_value(self.plugin.config[
+            'MESSAGE_WARNING_LENGTH'])
+        color = Gdk.Color.parse(self.plugin.config['WARNING_COLOR'])[1]
+        self.notification_colorbutton.set_color(color)
         #self.jids_entry.set_text(self.plugin.config['JIDS'])
         self.jids_entry.set_text(','.join(self.plugin.config['JIDS']))
 
@@ -142,12 +156,13 @@ class LengthNotifierPluginConfigDialog(GajimPluginConfigDialog):
 
     @log_calls('LengthNotifierPluginConfigDialog')
     def on_notification_colorbutton_color_set(self, colorbutton):
-        self.plugin.config['WARNING_COLOR'] = colorbutton.get_color().to_string()
+        self.plugin.config['WARNING_COLOR'] = colorbutton.get_color().\
+            to_string()
 
     @log_calls('LengthNotifierPluginConfigDialog')
     def on_jids_entry_changed(self, entry):
         text = entry.get_text()
-        if len(text)>0:
+        if len(text) > 0:
             self.plugin.config['JIDS'] = entry.get_text().split(',')
         else:
             self.plugin.config['JIDS'] = []

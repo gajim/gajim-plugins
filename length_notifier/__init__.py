@@ -1,2 +1,1 @@
-
-from length_notifier import LengthNotifierPlugin
+from .length_notifier import LengthNotifierPlugin
