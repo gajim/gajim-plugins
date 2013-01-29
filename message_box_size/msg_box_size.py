@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-import gtk
+from gi.repository import Gtk
 
 from common import gajim
 from plugins import GajimPlugin
@@ -15,8 +15,8 @@ class MsgBoxSizePlugin(GajimPlugin):
             ' of the new message input field.')
         self.config_dialog = MsgBoxSizePluginConfigDialog(self)
         self.gui_extension_points = {
-                'chat_control_base': (self.connect_with_chat_control,
-                                       self.disconnect_from_chat_control)}
+            'chat_control_base': (self.connect_with_chat_control,
+                self.disconnect_from_chat_control)}
         self.config_default_values = {'Do_not_resize': (False, ''),
                                       'Minimum_lines': (2, ''),}
         self.chat_control = None
@@ -44,7 +44,7 @@ class Base(object):
         chat_control.msg_textview.set_property('height-request', min_size)
           #  plugin.config['Minimum_lines'])
 
-        self.id_ = chat_control.msg_textview.connect('size-request',
+        self.id_ = chat_control.msg_textview.connect('size-allocate',
             self.size_request)
         chat_control.handlers[self.id_] = chat_control.msg_textview
         self.chat_control = chat_control
@@ -57,7 +57,7 @@ class Base(object):
 
         if self.plugin.config['Do_not_resize']:
             self.chat_control.msg_scrolledwindow.set_property(
-                'vscrollbar-policy', gtk.POLICY_AUTOMATIC)
+                'vscrollbar-policy', Gtk.PolicyType.AUTOMATIC)
         elif requisition.height > min_size:
             msg_textview.set_property('height-request', requisition.height)
         else:
@@ -77,14 +77,14 @@ class MsgBoxSizePluginConfigDialog(GajimPluginConfigDialog):
     def init(self):
         self.GTK_BUILDER_FILE_PATH = self.plugin.local_file_path(
             'config_dialog.ui')
-        self.xml = gtk.Builder()
+        self.xml = Gtk.Builder()
         self.xml.set_translation_domain('gajim_plugins')
         self.xml.add_objects_from_file(self.GTK_BUILDER_FILE_PATH, ['vbox1'])
         self.checkbutton = self.xml.get_object('checkbutton')
         self.spinbutton = self.xml.get_object('minimum_lines')
-        self.spinbutton.get_adjustment().set_all(20, 1, 10, 1, 10, 0)
+        self.spinbutton.get_adjustment().configure(20, 1, 10, 1, 10, 0)
         vbox = self.xml.get_object('vbox1')
-        self.child.pack_start(vbox)
+        self.get_child().pack_start(vbox, False, False, 0)
 
         self.xml.connect_signals(self)
 

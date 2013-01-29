@@ -1,1 +1,1 @@
-from msg_box_size import MsgBoxSizePlugin
+from .msg_box_size import MsgBoxSizePlugin
