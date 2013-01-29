@@ -1,1 +1,1 @@
-from plugin import GoogleTranslationPlugin
+from .plugin import GoogleTranslationPlugin

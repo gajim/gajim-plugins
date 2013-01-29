@@ -29,9 +29,7 @@ Translates (currently only incoming) messages using Google Translate.
 
 import json
 import urllib
-import urllib2
-import HTMLParser
-import gtk
+from gi.repository import Gtk
 from sys import getfilesystemencoding
 
 import chat_control
@@ -132,15 +130,15 @@ class GoogleTranslationPlugin(GajimPlugin):
         data = {"client": "x",
                 "tl": to_lang,
                 "sl": from_lang,
-                "text": text.encode("utf-8")}
+                "text": text}
         url = "http://translate.google.ru/translate_a/t"
-        url = u"%s?%s" % (url, urllib.urlencode(data))
-        request = urllib2.Request(url)
+        url = "%s?%s" % (url, urllib.parse.urlencode(data))
+        request = urllib.request.Request(url)
         request.add_header("User-Agent",
             "Mozilla/5.0 (X11; Linux i686; rv:16.0) Gecko/20120815 Firefox/16.0")
-        response = urllib2.urlopen(request)
+        response = urllib.request.urlopen(request).read().decode('utf-8')
         if response:
-            data = json.load(response)
+            data = json.loads(response)
             return data["sentences"][0]["trans"]
         return text
 
@@ -200,19 +198,19 @@ class Base(object):
         else:
             return
 
-        self.expander = gtk.Expander(_('Google translation'))
-        hbox = gtk.HBox(spacing=6)
+        self.expander = Gtk.Expander(label=_('Google translation'))
+        hbox = Gtk.HBox(spacing=6)
         self.expander.add(hbox)
-        label = gtk.Label(_('Translate from'))
-        hbox.pack_start(label, False, False)
-        liststore1 = gtk.ListStore(str, str)
-        liststore2 = gtk.ListStore(str, str)
-        cb1 = gtk.ComboBox(liststore1)
-        cb2 = gtk.ComboBox(liststore2)
-        cell = gtk.CellRendererText()
+        label = Gtk.Label(_('Translate from'))
+        hbox.pack_start(label, False, False, 0)
+        liststore1 = Gtk.ListStore(str, str)
+        liststore2 = Gtk.ListStore(str, str)
+        cb1 = Gtk.ComboBox.new_with_model(liststore1)
+        cb2 = Gtk.ComboBox.new_with_model(liststore2)
+        cell = Gtk.CellRendererText()
         cb1.pack_start(cell, True)
         cb1.add_attribute(cell, 'text', 0)
-        cell = gtk.CellRendererText()
+        cell = Gtk.CellRendererText()
         cb2.pack_start(cell, True)
         cb2.add_attribute(cell, 'text', 0)
         #Language to translate from
@@ -222,8 +220,7 @@ class Base(object):
         if self.config['from'] == '':
             cb1.set_active(0)
         i = 0
-        ls = languages.items()
-        ls.sort()
+        ls = sorted(languages.items())
         for l in ls:
             liststore1.append(l)
             if l[1] == self.config['from']:
@@ -233,16 +230,16 @@ class Base(object):
                 cb2.set_active(i)
             i += 1
 
-        hbox.pack_start(cb1, False, False)
-        label = gtk.Label(_('to'))
-        hbox.pack_start(label, False, False)
-        hbox.pack_start(cb2, False, False)
+        hbox.pack_start(cb1, False, False, 0)
+        label = Gtk.Label(_('to'))
+        hbox.pack_start(label, False, False, 0)
+        hbox.pack_start(cb2, False, False, 0)
 
-        cb = gtk.CheckButton(_('enable'))
+        cb = Gtk.CheckButton(_('enable'))
         if self.config['enabled']:
             cb.set_active(True)
-        hbox.pack_start(cb, False, False)
-        vbox.pack_start(self.expander, False, False)
+        hbox.pack_start(cb, False, False, 0)
+        vbox.pack_start(self.expander, False, False, 0)
         vbox.reorder_child(self.expander, 1)
 
         cb1.connect('changed', self.on_cb_changed, 'from')
