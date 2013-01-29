@@ -1,1 +1,1 @@
-from latex import LatexPlugin
+from .latex import LatexPlugin

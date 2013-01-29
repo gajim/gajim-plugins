@@ -23,8 +23,11 @@
 
 from threading import Thread
 import os
-import gtk
-import gobject
+from gi.repository import Gtk
+from gi.repository import Gdk
+from gi.repository import GdkPixbuf
+from gi.repository import Pango
+from gi.repository import GObject
 from tempfile import mkstemp, mkdtemp
 import random
 from subprocess import Popen, PIPE
@@ -35,7 +38,7 @@ from plugins import GajimPlugin
 from plugins.helpers import log, log_calls
 from plugins.gui import GajimPluginConfigDialog
 
-gtk.gdk.threads_init() # for gtk.gdk.thread_[enter|leave]()
+Gdk.threads_init()
 
 def latex_template(code):
     return '''\\documentclass[12pt]{article}
@@ -73,7 +76,7 @@ def try_run(argv, directory):
         out = p.communicate()[0]
         log.info(out)
         return p.wait()
-    except Exception, e:
+    except Exception as e:
         return _('Error executing "%(command)s": %(error)s') % {
             'command': " ".join(argv),
             'error': helpers.decode_string(str(e))}
@@ -114,8 +117,8 @@ class LatexRenderer(Thread):
                 self.show_image()
             else:
                 self.show_error(_('There are bad commands!'))
-        except:
-            pass
+        except Exception:
+            self.show_error(_('Error processing LaTeX'))
         finally:
             self.buffer_.delete_mark(self.mark)
 
@@ -123,16 +126,16 @@ class LatexRenderer(Thread):
         """
         String -> TextBuffer
         """
-        gtk.gdk.threads_enter()
+        Gdk.threads_enter()
         iter_mark = self.buffer_.get_iter_at_mark(self.mark)
         iter_end = iter_mark.copy().forward_search(_('Processing LaTeX'),
-            gtk.TEXT_SEARCH_TEXT_ONLY)[1]
+            Gtk.TextSearchFlags.TEXT_ONLY, None)[1]
         self.buffer_.delete(iter_mark, iter_end)
 
-        pixbuf = self.widget.render_icon(gtk.STOCK_STOP, gtk.ICON_SIZE_BUTTON)
+        pixbuf = self.widget.render_icon(Gtk.STOCK_STOP, Gtk.IconSize.BUTTON)
         self.buffer_.insert_pixbuf(iter_end, pixbuf)
         self.buffer_.insert(iter_end, message)
-        gtk.gdk.threads_leave()
+        Gdk.threads_leave()
 
     @log_calls('LatexRenderer')
     def show_image(self):
@@ -207,21 +210,21 @@ class LatexRenderer(Thread):
 
         log.debug('Loading PNG %s' % tmppng)
         try:
-            gtk.gdk.threads_enter()
-            pixbuf = gtk.gdk.pixbuf_new_from_file(tmppng)
+            Gdk.threads_enter()
+            pixbuf = GdkPixbuf.Pixbuf.new_from_file(tmppng)
             log.debug('png loaded')
             iter_mark = self.buffer_.get_iter_at_mark(self.mark)
             iter_end = iter_mark.copy().forward_search('Processing LaTeX',
-                gtk.TEXT_SEARCH_TEXT_ONLY)[1]
+                Gtk.TextSearchFlags.TEXT_ONLY, None)[1]
             log.debug('Delete old Text')
             self.buffer_.delete(iter_mark, iter_end)
             log.debug('Insert pixbuf')
             self.buffer_.insert_pixbuf(iter_end, pixbuf)
-        except gobject.GError:
+        except GObject.GError:
             self.show_error(_('Cannot open %s for reading') % tmppng)
             log.debug('Cant open %s for reading' % tmppng)
         finally:
-            gtk.gdk.threads_leave()
+            Gdk.threads_leave()
             os.remove(tmppng)
 
     def check_code(self):
@@ -235,11 +238,11 @@ class LatexPluginConfiguration(GajimPluginConfigDialog):
     def init(self):
         self.GTK_BUILDER_FILE_PATH = self.plugin.local_file_path(
             'config_dialog.ui')
-        self.xml = gtk.Builder()
+        self.xml = Gtk.Builder()
         self.xml.set_translation_domain('gajim_plugins')
         self.xml.add_objects_from_file(self.GTK_BUILDER_FILE_PATH, ['vbox1'])
         hbox = self.xml.get_object('vbox1')
-        self.child.pack_start(hbox)
+        self.get_child().pack_start(hbox, False, False, 0)
         self.result_label = self.xml.get_object('result_label')
 
         self.xml.connect_signals(self)
@@ -340,16 +343,17 @@ class LatexPlugin(GajimPlugin):
             self.activatable = False
             self.available_text += _('. Install %s') % pkgs
 
-    def textview_event_after(self, tag, widget, event, iter):
+    def textview_event_after(self, tag, widget, event, iter_):
         """
         start rendering if clicked on a link
         """
         if tag.get_property('name') != 'latex' or \
-        event.type != gtk.gdk.BUTTON_PRESS:            return
-        dollar_start, iter_start = iter.backward_search('$$',
-            gtk.TEXT_SEARCH_TEXT_ONLY)
-        iter_end, dollar_end = iter.forward_search('$$',
-            gtk.TEXT_SEARCH_TEXT_ONLY)
+        event.type != Gdk.EventType.BUTTON_PRESS:
+            return
+        dollar_start, iter_start = iter_.backward_search('$$',
+            Gtk.TextSearchFlags.TEXT_ONLY, None)
+        iter_end, dollar_end = iter_.forward_search('$$',
+            Gtk.TextSearchFlags.TEXT_ONLY, None)
         LatexRenderer(dollar_start, dollar_end, widget.get_buffer(), widget,
             self.config['png_dpi'])
 
@@ -363,14 +367,15 @@ class LatexPlugin(GajimPlugin):
                 newlist.append( [ list[i], list[i+1], ] )
             return newlist
 
-        assert isinstance(tb, gtk.TextBuffer)
+        assert isinstance(tb, Gtk.TextBuffer)
         start_iter = tb.get_start_iter()
         points = []
-        tuple_found = start_iter.forward_search('$$', gtk.TEXT_SEARCH_TEXT_ONLY)
+        tuple_found = start_iter.forward_search('$$',
+            Gtk.TextSearchFlags.TEXT_ONLY, None)
         while tuple_found != None:
             points.append(tuple_found)
             tuple_found = tuple_found[1].forward_search('$$',
-                gtk.TEXT_SEARCH_TEXT_ONLY)
+                Gtk.TextSearchFlags.TEXT_ONLY, None)
 
         for pair in split_list(points):
             tb.apply_tag_by_name('latex', pair[0][1], pair[1][0])
@@ -380,9 +385,9 @@ class LatexPlugin(GajimPlugin):
         tv = chat_control.conv_textview.tv
         tb = tv.get_buffer()
 
-        self.latex_tag = gtk.TextTag('latex')
+        self.latex_tag = Gtk.TextTag.new('latex')
         self.latex_tag.set_property('foreground', 'blue')
-        self.latex_tag.set_property('underline', 'single')
+        self.latex_tag.set_property('underline', Pango.Underline.SINGLE)
         d['tag_id'] = self.latex_tag.connect('event', self.textview_event_after)
         tb.get_tag_table().add(self.latex_tag)
 
