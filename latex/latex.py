@@ -33,7 +33,6 @@ import random
 from subprocess import Popen, PIPE
 
 from common import gajim
-from common import helpers
 from plugins import GajimPlugin
 from plugins.helpers import log, log_calls
 from plugins.gui import GajimPluginConfigDialog
@@ -79,7 +78,7 @@ def try_run(argv, directory):
     except Exception as e:
         return _('Error executing "%(command)s": %(error)s') % {
             'command': " ".join(argv),
-            'error': helpers.decode_string(str(e))}
+            'error': str(e)}
 
 BLACKLIST = ['\def', '\\let', '\\futurelet', '\\newcommand', '\\renewcomment',
    '\\else', '\\fi', '\\write', '\\input', '\\include', '\\chardef',
@@ -402,4 +401,3 @@ class LatexPlugin(GajimPlugin):
 
         tv.get_buffer().disconnect(d['h_id'])
         self.latex_tag.disconnect(d['tag_id'])
-
