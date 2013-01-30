@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 ##
 
-import gobject
 import os
 
 from common import gajim
