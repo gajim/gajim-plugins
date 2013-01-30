@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 
-import gtk
-import gobject
 
 from common import gajim
 from plugins import GajimPlugin

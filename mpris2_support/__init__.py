@@ -1,1 +1,1 @@
-from mpris2_support import Mpris2Plugin
+from .mpris2_support import Mpris2Plugin
