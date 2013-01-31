@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 
-import gtk
-import pango
-import gobject
+from gi.repository import Pango
+from gi.repository import Gtk
+from gi.repository import Gdk
+from gi.repository import GObject
 
 from common import gajim, ged, helpers, pep
 from plugins import GajimPlugin
@@ -63,15 +64,17 @@ class RosterTweaksPlugin(GajimPlugin):
         if  obj.pep_type == 'mood':
             img = self.xml.get_object('mood_image')
             if 'mood' in pep_dict:
-                img.set_from_pixbuf(pep_dict['mood'].asPixbufIcon())
+                pixbuf = gtkgui_helpers.get_pep_as_pixbuf(pep_dict['mood'])
+                img.set_from_pixbuf(pixbuf)
             else:
-                img.set_from_stock('gtk-stop', gtk.ICON_SIZE_MENU)
+                img.set_from_stock('gtk-stop', Gtk.IconSize.MENU)
         if  obj.pep_type == 'activity':
             img = self.xml.get_object('activity_image')
             if 'activity' in pep_dict:
-                img.set_from_pixbuf(pep_dict['activity'].asPixbufIcon())
+                pb = gtkgui_helpers.get_pep_as_pixbuf(pep_dict['activity'])
+                img.set_from_pixbuf(pb)
             else:
-                img.set_from_stock('gtk-stop', gtk.ICON_SIZE_MENU)
+                img.set_from_stock('gtk-stop', Gtk.IconSize.MENU)
 
     def our_show(self, obj):
         if self.active:
@@ -91,7 +94,7 @@ class RosterTweaksPlugin(GajimPlugin):
         vbox = self.roster.xml.get_object('roster_vbox2')
         self.GTK_BUILDER_FILE_PATH = self.local_file_path(
             'config_dialog.ui')
-        self.xml = gtk.Builder()
+        self.xml = Gtk.Builder()
         self.xml.add_objects_from_file(self.GTK_BUILDER_FILE_PATH, ['hbox1'])
         self.status_widget = self.xml.get_object('status_entry')
         self.status_widget.set_property('visible', self.config['quick_status'])
@@ -106,16 +109,17 @@ class RosterTweaksPlugin(GajimPlugin):
         self.mood_button.set_property('no-show-all', True)
         self.mood_button.set_property('visible', self.config['quick_status'])
         hbox = self.xml.get_object('hbox1')
-        vbox.pack_start(hbox, False)
+        vbox.pack_start(hbox, False, True, 0)
         self.xml.connect_signals(self)
         self.roster.setup_and_draw_roster()
 
     def enable_ctrl_m(self):
         if self.config['use_ctr_m']:
             window = self.roster.window
-            self.accel_group = gtk.accel_groups_from_object(window)[0]
-            self.accel_group.connect_group(gtk.keysyms.m, gtk.gdk.CONTROL_MASK,
-                    gtk.ACCEL_MASK, self.on_ctrl_m)
+            self.accel_group = Gtk.accel_groups_from_object(window)[0]
+            self.accel_group.connect(Gdk.KEY_m,
+                Gdk.ModifierType.CONTROL_MASK, Gtk.AccelFlags.MASK,
+                self.on_ctrl_m)
             self.config['menu_visible'] = not self.config['menu_visible']
             self.on_ctrl_m(None, None, None, None)
 
@@ -130,9 +134,11 @@ class RosterTweaksPlugin(GajimPlugin):
     def on_ctrl_m(self, accel_group, acceleratable, keyval, modifier):
         menubar = self.roster.xml.get_object('menubar')
         if not self.config['menu_visible']:
-            menubar.set_size_request(1, 1)
+            #menubar.set_size_request(-1, -1)
+            menubar.hide()
         else:
-            menubar.set_size_request(-1, -1)
+            menubar.show()
+            #menubar.set_size_request(-1, -1)
         self.config['menu_visible'] = not self.config['menu_visible']
         return True
 
@@ -181,13 +187,13 @@ class RosterTweaksPluginConfigDialog(GajimPluginConfigDialog):
     def init(self):
         self.GTK_BUILDER_FILE_PATH = self.plugin.local_file_path(
                 'config_dialog.ui')
-        self.xml = gtk.Builder()
+        self.xml = Gtk.Builder()
         self.xml.set_translation_domain('gajim_plugins')
         self.xml.add_objects_from_file(self.GTK_BUILDER_FILE_PATH,
                 ['roster_tweaks_config_vbox'])
 
         self.config_vbox = self.xml.get_object('roster_tweaks_config_vbox')
-        self.child.pack_start(self.config_vbox)
+        self.get_child().pack_start(self.config_vbox, True, True, 0)
 
         self.hide_combo = self.xml.get_object('hide_combo')
         self.use_ctr_m = self.xml.get_object('use_ctr_m')
@@ -222,8 +228,8 @@ class RosterTweaksPluginConfigDialog(GajimPluginConfigDialog):
         if is_ctr_m_enabled:
             self.plugin.enable_ctrl_m()
         else:
-            self.plugin.accel_group.disconnect_key(gtk.keysyms.m,
-                    gtk.gdk.CONTROL_MASK)
+            self.plugin.accel_group.disconnect_key(Gdk.KEY_m,
+                Gdk.ModifierType.CONTROL_MASK)
             self.plugin.config['menu_visible'] = True
             self.plugin.roster.xml.get_object('menubar').set_size_request(-1, -1)
 

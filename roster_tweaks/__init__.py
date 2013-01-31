@@ -1,1 +1,1 @@
-from roster_tweaks import RosterTweaksPlugin
+from .roster_tweaks import RosterTweaksPlugin
