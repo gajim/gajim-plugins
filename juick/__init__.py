@@ -1,1 +1,1 @@
-from plugin import JuickPlugin
+from .plugin import JuickPlugin

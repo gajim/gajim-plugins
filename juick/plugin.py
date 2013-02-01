@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 
-import gtk
-import pango
+from gi.repository import Pango
+from gi.repository import Gtk
+from gi.repository import GdkPixbuf
+from gi.repository import Gdk
 import re
 import os
 import time
-from string import upper
-from string import rstrip
 import locale
 import sqlite3
 
@@ -18,11 +18,7 @@ from plugins.gui import GajimPluginConfigDialog
 from conversation_textview import TextViewImage
 import gtkgui_helpers
 
-nb_xmpp = False
-import common.xmpp
-if not dir(common.xmpp):
-    import nbxmpp
-    nb_xmpp = True
+import nbxmpp
 
 
 class JuickPlugin(GajimPlugin):
@@ -126,7 +122,7 @@ class Base(object):
         self.textview.tagSharpSlash = buffer_.create_tag('sharp_slash')
         self.textview.tagSharpSlash.set_property('foreground', color)
         self.textview.tagSharpSlash.set_property('underline',
-            pango.UNDERLINE_SINGLE)
+            Pango.Underline.SINGLE)
         id_ = self.textview.tagSharpSlash.connect('event',
             self.juick_hyperlink_handler, 'sharp_slash')
         chat_control.handlers[id_] = self.textview.tagSharpSlash
@@ -134,7 +130,7 @@ class Base(object):
         self.textview.tagJuickNick = buffer_.create_tag('juick_nick')
         self.textview.tagJuickNick.set_property('foreground', color)
         self.textview.tagJuickNick.set_property('underline',
-            pango.UNDERLINE_SINGLE)
+            Pango.Underline.SINGLE)
         id_ = self.textview.tagJuickNick.connect('event',
             self.juick_hyperlink_handler, 'juick_nick')
         chat_control.handlers[id_] = self.textview.tagJuickNick
@@ -167,41 +163,41 @@ class Base(object):
     def create_buttons(self):
         # create juick button
         actions_hbox = self.chat_control.xml.get_object('actions_hbox')
-        self.button = gtk.Button(label=None, stock=None, use_underline=True)
-        self.button.set_property('relief', gtk.RELIEF_NONE)
+        self.button = Gtk.Button(label=None, stock=None, use_underline=True)
+        self.button.set_property('relief', Gtk.ReliefStyle.NONE)
         self.button.set_property('can-focus', False)
-        img = gtk.Image()
+        img = Gtk.Image()
         img_path = self.plugin.local_file_path('juick.png')
-        pixbuf = gtk.gdk.pixbuf_new_from_file(img_path)
-        iconset = gtk.IconSet(pixbuf=pixbuf)
-        factory = gtk.IconFactory()
+        pixbuf = GdkPixbuf.Pixbuf.new_from_file(img_path)
+        iconset = Gtk.IconSet(pixbuf=pixbuf)
+        factory = Gtk.IconFactory()
         factory.add('juick', iconset)
         factory.add_default()
-        img.set_from_stock('juick', gtk.ICON_SIZE_MENU)
+        img.set_from_stock('juick', Gtk.IconSize.MENU)
         self.button.set_image(img)
         self.button.set_tooltip_text(_('Juick commands'))
         send_button = self.chat_control.xml.get_object('send_button')
-        send_button_pos = actions_hbox.child_get_property(send_button,
-            'position')
-        actions_hbox.add_with_properties(self.button, 'position',
-            send_button_pos - 1, 'expand', False)
+        actions_hbox.pack_start(self.button, False, False , 0)
+        actions_hbox.reorder_child(self.button,
+            len(actions_hbox.get_children()) - 3)
         id_ = self.button.connect('clicked', self.on_juick_button_clicked)
         self.chat_control.handlers[id_] = self.button
         self.button.show()
         # create juick tag button
-        self.tag_button = gtk.Button(label=None, stock=None, use_underline=True)
-        self.tag_button.set_property('relief', gtk.RELIEF_NONE)
+        self.tag_button = Gtk.Button(label=None, stock=None, use_underline=True)
+        self.tag_button.set_property('relief', Gtk.ReliefStyle.NONE)
         self.tag_button.set_property('can-focus', False)
-        img = gtk.Image()
+        img = Gtk.Image()
         img_path = self.plugin.local_file_path('juick_tag_button.png')
-        pixbuf = gtk.gdk.pixbuf_new_from_file(img_path)
-        iconset = gtk.IconSet(pixbuf=pixbuf)
+        pixbuf = GdkPixbuf.Pixbuf.new_from_file(img_path)
+        iconset = Gtk.IconSet(pixbuf=pixbuf)
         factory.add('juick_tag', iconset)
         factory.add_default()
-        img.set_from_stock('juick_tag', gtk.ICON_SIZE_MENU)
+        img.set_from_stock('juick_tag', Gtk.IconSize.MENU)
         self.tag_button.set_image(img)
-        actions_hbox.add_with_properties(self.tag_button, 'position',
-            send_button_pos - 1, 'expand', False)
+        actions_hbox.pack_start(self.tag_button, False, False , 0)
+        actions_hbox.reorder_child(self.tag_button,
+            len(actions_hbox.get_children()) - 4)
         id_ = self.tag_button.connect('clicked', self.on_juick_tag_button_clicked)
         self.chat_control.handlers[id_] = self.tag_button
         self.tag_button.set_no_show_all(True)
@@ -213,9 +209,9 @@ class Base(object):
         """
         Create juick link context menu
         """
-        self.juick_link_menu = gtk.Menu()
+        self.juick_link_menu = Gtk.Menu()
 
-        item = gtk.MenuItem(_('Reply to message'))
+        item = Gtk.MenuItem(_('Reply to message'))
         item.connect('activate', self.on_reply)
         self.juick_link_menu.append(item)
 
@@ -225,11 +221,11 @@ class Base(object):
                      (_('Show message with replies'), '#WORD+'),
                      (_('Delete post'), 'D #WORD'),)
         for menuitem in menuitems:
-            item = gtk.MenuItem(menuitem[0])
+            item = Gtk.MenuItem(menuitem[0])
             item.connect('activate', self.send, menuitem[1])
             self.juick_link_menu.append(item)
 
-        item = gtk.MenuItem(_('Open in browser'))
+        item = Gtk.MenuItem(_('Open in browser'))
         item.connect('activate', self.open_in_browser)
         self.juick_link_menu.append(item)
 
@@ -239,11 +235,11 @@ class Base(object):
                      (_('Unsubscribe from user\'s blog'), 'U NICK'),
                      (_('Add/delete user to/from your blacklist'), 'BL NICK'),)
         for menuitem in menuitems:
-            item = gtk.MenuItem(menuitem[0])
+            item =Gtk.MenuItem(menuitem[0])
             item.connect('activate', self.send, menuitem[1])
             self.juick_link_menu.append(item)
 
-        item = gtk.MenuItem(_('Send personal message'))
+        item = Gtk.MenuItem(_('Send personal message'))
         item.connect('activate', self.on_pm)
         self.juick_link_menu.append(item)
 
@@ -251,20 +247,20 @@ class Base(object):
         """
         Create juick tag button menu
         """
-        self.menu = gtk.Menu()
-        for num in xrange(1, 11):
+        self.menu = Gtk.Menu()
+        for num in range(1, 11):
             menuitem = self.plugin.config['MENUITEM' + str(num)]
             text = self.plugin.config['MENUITEM_TEXT' + str(num)]
             if not menuitem or not text:
                 continue
-            item = gtk.MenuItem(menuitem)
+            item = Gtk.MenuItem(menuitem)
             item.connect('activate', self.on_insert, text)
             self.menu.append(item)
         self.menu.show_all()
 
     def juick_hyperlink_handler(self, texttag, widget, event, iter_, kind):
         # handle message links( #12345 or #12345/6) and juick nicks
-        if event.type == gtk.gdk.BUTTON_PRESS and event.button == 3:
+        if event.type == Gdk.EventType.BUTTON_PRESS and event.button.button == 3:
             # show popup menu (right mouse button clicked)
             begin_iter = iter_.copy()
             # we get the begining of the tag
@@ -276,7 +272,7 @@ class Base(object):
                 end_iter.forward_char()
 
             buffer_ = self.textview.tv.get_buffer()
-            word = buffer_.get_text(begin_iter, end_iter).decode('utf-8')
+            word = buffer_.get_text(begin_iter, end_iter, True)
             self.juick_post = word
 
             post = self.juick_post_re.search(word)
@@ -288,19 +284,19 @@ class Base(object):
                 self.juick_post_full = gajim.interface.sharp_slash_re\
                                                     .search(word).group(0)
                 self.juick_post_uid = post.group(1)
-                for menuitem in xrange(7):
+                for menuitem in range(7):
                     childs[menuitem].show()
-                for menuitem in xrange(7, 13):
+                for menuitem in range(7, 13):
                     childs[menuitem].hide()
             if nick:
                 self.juick_nick = nick.group(0)
-                for menuitem in xrange(7):
+                for menuitem in range(7):
                     childs[menuitem].hide()
-                for menuitem in xrange(7, 13):
+                for menuitem in range(7, 13):
                     childs[menuitem].show()
-            self.juick_link_menu.popup(None, None, None, event.button,
-                                                                event.time)
-        if event.type == gtk.gdk.BUTTON_PRESS and event.button == 1:
+            self.juick_link_menu.popup(None, None, None, None,
+                event.button.button, event.time)
+        if event.type == Gdk.EventType.BUTTON_PRESS and event.button.button == 1:
             # insert message num or nick (left mouse button clicked)
             begin_iter = iter_.copy()
             # we get the begining of the tag
@@ -311,7 +307,7 @@ class Base(object):
             while not end_iter.ends_tag(texttag):
                 end_iter.forward_char()
             buffer_ = self.textview.tv.get_buffer()
-            word = buffer_.get_text(begin_iter, end_iter).decode('utf-8')
+            word = buffer_.get_text(begin_iter, end_iter, True)
             if kind == 'sharp_slash':
                 self.on_insert(widget, word)
             if kind == 'juick_nick':
@@ -377,10 +373,7 @@ class Base(object):
                 # nick not in the db
                 id_ = conn.connection.getAnID()
                 to = 'juick@juick.com'
-                if not nb_xmpp:
-                    iq = common.xmpp.Iq('get', to=to)
-                else:
-                    iq = nbxmpp.Iq('get', to=to)
+                iq = nbxmpp.Iq('get', to=to)
                 a = iq.addChild(name='query',
                     namespace='http://juick.com/query#users')
                 a.addChild(name='user', namespace='http://juick.com/user',
@@ -447,31 +440,32 @@ class Base(object):
         # search avatar in cache or download from juick.com
         pic = uid + '.png'
         pic_path = os.path.join(self.plugin.cache_path, pic)
-        pic_path = pic_path.decode(locale.getpreferredencoding())
+        #pic_path = pic_path.decode(locale.getpreferredencoding())
         url = 'http://i.juick.com/as/%s.png' % uid
         if need_check and os.path.isfile(pic_path):
             max_old = self.plugin.config['avatars_old']
             if (time.time() - os.stat(pic_path).st_mtime) < max_old:
-                return gtk.gdk.pixbuf_new_from_file(pic_path)
+                return GdkPixbuf.Pixbuf.new_from_file(pic_path)
 
         avatar_size = self.plugin.config['AVATAR_SIZE']
         pixbuf = self.get_pixbuf_from_url(url, avatar_size)
         if pixbuf:
              # save to cache
-            pixbuf.save(pic_path, 'png')
+            pixbuf.savev(pic_path, 'png', [], [])
             if need_check:
                 return pixbuf
             query = "select nick, id from person where nick = :nick"
             self.plugin.cursor.execute(query, {'nick':nick})
             db_item = self.plugin.cursor.fetchone()
             if not db_item:
-                data = (nick.decode('utf-8'), uid.decode('utf-8'))
+
+                data = (nick, uid)
                 self.plugin.cursor.execute('insert into person(nick, id)'
                     ' values (?, ?)', data)
                 self.plugin.conn.commit()
         else:
             img_path = self.plugin.local_file_path('unknown.png')
-            pixbuf = gtk.gdk.pixbuf_new_from_file(img_path)
+            pixbuf = GdkPixbuf.Pixbuf.new_from_file(img_path)
             pixbuf, w, h = self.get_pixbuf_of_size(pixbuf, avatar_size)
         return pixbuf
 
@@ -480,12 +474,17 @@ class Base(object):
         try:
             data, alt = helpers.download_image(self.textview.account,
                 {'src': url})
-            pix = gtk.gdk.PixbufLoader()
-            pix.write(data)
+            pix = GdkPixbuf.PixbufLoader()
+            if data:
+                pix.write(data)
+                pix.close()
+                pixbuf = pix.get_pixbuf()
+                pixbuf, w, h = self.get_pixbuf_of_size(pixbuf, size)
+            else:
+                pix.close()
+                return
+        except Exception as e:
             pix.close()
-            pixbuf = pix.get_pixbuf()
-            pixbuf, w, h = self.get_pixbuf_of_size(pixbuf, size)
-        except Exception,e:
             return
         return pixbuf
 
@@ -506,7 +505,7 @@ class Base(object):
                 image_height = int(size)
 
         crop_pixbuf = pixbuf.scale_simple(image_width, image_height,
-            gtk.gdk.INTERP_BILINEAR)
+            GdkPixbuf.InterpType.BILINEAR)
         return (crop_pixbuf, image_width, image_height)
 
     def on_textview_button_press_event(self, widget, event, obj):
@@ -515,7 +514,7 @@ class Base(object):
         if event.button != 3:
             return False
 
-        x, y = obj.tv.window_to_buffer_coords(gtk.TEXT_WINDOW_TEXT,
+        x, y = obj.tv.window_to_buffer_coords(Gtk.TextWindowType.TEXT,
             int(event.x), int(event.y))
         iter_ = obj.tv.get_iter_at_location(x, y)
         tags = iter_.get_tags()
@@ -530,19 +529,20 @@ class Base(object):
 
     def on_textview_motion_notify_event(self, widget, event):
         # Change the cursor to a hand when we are over a nicks or an post nums
-        pointer_x, pointer_y = self.textview.tv.window.get_pointer()[0:2]
-        x, y = self.textview.tv.window_to_buffer_coords(gtk.TEXT_WINDOW_TEXT,
-                pointer_x, pointer_y)
+        pointer_x, pointer_y = self.textview.tv.get_window(
+            Gtk.TextWindowType.TEXT).get_pointer()[1:3]
+        x, y = self.textview.tv.window_to_buffer_coords(Gtk.TextWindowType.TEXT,
+            pointer_x, pointer_y)
         tags = self.textview.tv.get_iter_at_location(x, y).get_tags()
         tag_table = self.textview.tv.get_buffer().get_tag_table()
         if self.change_cursor:
-            self.textview.tv.get_window(gtk.TEXT_WINDOW_TEXT).set_cursor(
-                    gtk.gdk.Cursor(gtk.gdk.XTERM))
+            self.textview.tv.get_window(Gtk.TextWindowType.TEXT).set_cursor(
+                    Gdk.Cursor.new(Gdk.CursorType.XTERM))
             self.change_cursor = False
         for tag in tags:
             if tag in (self.textview.tagSharpSlash, self.textview.tagJuickNick):
-                self.textview.tv.get_window(gtk.TEXT_WINDOW_TEXT).set_cursor(
-                    gtk.gdk.Cursor(gtk.gdk.HAND2))
+                self.textview.tv.get_window(Gtk.TextWindowType.TEXT).set_cursor(
+                    Gdk.Cursor.new(Gdk.CursorType.HAND2))
             self.change_cursor = True
         self.textview.on_textview_motion_notify_event(widget, event)
 
@@ -550,7 +550,7 @@ class Base(object):
         """
         Popup juick menu
         """
-        menu = gtk.Menu()
+        menu = Gtk.Menu()
         menuitems = ((_('Show last messages from public timeline'), '#+'),
                      (_('Show last messages from your feed'), '#'),
                      (_('Show popular personal blogs'), '@'),
@@ -565,7 +565,7 @@ class Base(object):
                      (_('Login'), 'LOGIN'),
                      (_('HELP'), 'HELP'),)
         for menuitem in menuitems:
-            item = gtk.MenuItem(menuitem[0])
+            item = Gtk.MenuItem(menuitem[0])
             item.connect('activate', self.send, menuitem[1])
             menu.append(item)
 
@@ -622,8 +622,8 @@ class Base(object):
         actions_hbox.remove(self.tag_button)
 
     def mykeypress_event(self, widget, event):
-        if event.keyval == gtk.keysyms.Up:
-            if event.state & gtk.gdk.MOD1_MASK:  # Alt+UP
+        if event.keyval == Gdk.KEY_Up:
+            if event.state & Gdk.ModifierType.MOD1_MASK:  # Alt+UP
                 self.on_insert(widget, self.last_juick_num)
                 return True
 
@@ -632,23 +632,23 @@ class JuickPluginConfigDialog(GajimPluginConfigDialog):
     def init(self):
         self.GTK_BUILDER_FILE_PATH = self.plugin.local_file_path(
             'config_dialog.ui')
-        self.xml = gtk.Builder()
+        self.xml = Gtk.Builder()
         self.xml.set_translation_domain('gajim_plugins')
         self.xml.add_objects_from_file(self.GTK_BUILDER_FILE_PATH, ['vbox1'])
         self.checkbutton = self.xml.get_object('checkbutton')
         self.only_first_avatar = self.xml.get_object('only_first_avatar')
         self.avatar_size_spinbutton = self.xml.get_object('avatar_size')
-        self.avatar_size_spinbutton.get_adjustment().set_all(20, 10, 32, 1,
+        self.avatar_size_spinbutton.get_adjustment().configure(20, 10, 32, 1,
             10, 0)
         self.avatars_old = self.xml.get_object('avatars_old')
-        self.avatars_old.get_adjustment().set_all(20, 1, 3650, 1, 10, 0)
+        self.avatars_old.get_adjustment().configure(20, 1, 3650, 1, 10, 0)
         self.show_pic = self.xml.get_object('show_pic')
         self.preview_size_spinbutton = self.xml.get_object('preview_size')
-        self.preview_size_spinbutton.get_adjustment().set_all(20, 10, 512, 1,
+        self.preview_size_spinbutton.get_adjustment().configure(20, 10, 512, 1,
             10, 0)
         self.link_colorbutton = self.xml.get_object('link_colorbutton')
         vbox = self.xml.get_object('vbox1')
-        self.child.pack_start(vbox)
+        self.get_child().pack_start(vbox, True, True, 0)
 
         self.xml.connect_signals(self)
 
@@ -663,11 +663,11 @@ class JuickPluginConfigDialog(GajimPluginConfigDialog):
         self.show_pic.set_active(self.plugin.config['SHOW_PREVIEW'])
         self.preview_size_spinbutton.set_value(self.plugin.config[
             'PREVIEW_SIZE'])
-        self.link_colorbutton.set_color(gtk.gdk.color_parse(
+        self.link_colorbutton.set_color(Gdk.color_parse(
             self.plugin.config['LINK_COLOR']))
         self.xml.get_object('show_tag_button').set_active(self.plugin.config[
             'SHOW_TAG_BUTTON'])
-        for num in xrange(1, 11):
+        for num in range(1, 11):
             self.xml.get_object('menuitem' + str(num)).set_text(
                 self.plugin.config['MENUITEM' + str(num)])
             self.xml.get_object('menuitem_text' + str(num)).set_text(
@@ -707,7 +707,7 @@ class JuickPluginConfigDialog(GajimPluginConfigDialog):
             control.textview.tagJuickNick.set_property('foreground', color)
 
     def menuitem_changed(self, widget):
-        name = upper(gtk.Buildable.get_name(widget))
+        name = (Gtk.Buildable.get_name(widget)).upper()
         self.plugin.config[name] = widget.get_text()
         for control in self.plugin.controls:
             control.create_tag_menu()
