@@ -85,12 +85,6 @@ try:
 except ImportError:
     HAS_CRYPTO = False
 
-nb_xmpp = False
-import common.xmpp
-if not dir(common.xmpp):
-    import nbxmpp
-    nb_xmpp = True
-
 HAS_POTR = True
 try:
     import potr
@@ -125,10 +119,7 @@ try:
             msg = unicode(msg)
             account = self.user.accountname
 
-            if not nb_xmpp:
-                stanza = common.xmpp.Message(to=self.peer, body=msg, typ='chat')
-            else:
-                stanza = nbxmpp.Message(to=self.peer, body=msg, typ='chat')
+            stanza = common.xmpp.Message(to=self.peer, body=msg, typ='chat')
             if appdata is not None:
                 session = appdata.get('session', None)
                 if session is not None:
