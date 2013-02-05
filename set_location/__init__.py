@@ -1,1 +1,1 @@
-from set_location import SetLocationPlugin
+from .set_location import SetLocationPlugin
