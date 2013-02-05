@@ -91,6 +91,7 @@ class SetLocationPluginConfigDialog(GajimPluginConfigDialog):
         self.get_child().pack_start(hbox, True, True, 0)
         self.xml.connect_signals(self)
         self.connect('hide', self.on_hide)
+        self.connect('show', self.on_show)
         self.is_active = None
 
         self.preset_combo = self.xml.get_object('preset_combobox')
@@ -171,7 +172,11 @@ class SetLocationPluginConfigDialog(GajimPluginConfigDialog):
             self.xml.get_object('lat').connect('changed', self.on_lon_changed)
             self.xml.get_object('lon').connect('changed', self.on_lon_changed)
             self.layer.animate_in_all_markers()
-            self.show_contacts()
+            self.contacts_layer = Champlain.MarkerLayer()
+
+    def on_show(self, widget):
+        self.contacts_layer.destroy()
+        self.show_contacts()
 
     def on_hide(self, widget):
         for name in self.plugin.config_default_values:
@@ -239,7 +244,7 @@ class SetLocationPluginConfigDialog(GajimPluginConfigDialog):
                 if not lat or not lon:
                     continue
                 name = accounts[account].contacts.get_first_contact_from_jid(
-                    contact).name
+                    contact).get_shown_name()
                 data[contact] = (lat, lon, name)
 
         self.contacts_layer = Champlain.MarkerLayer()
