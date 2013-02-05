@@ -242,8 +242,8 @@ class SetLocationPluginConfigDialog(GajimPluginConfigDialog):
                         contact).name
                     data[contact] = (lat, lon, name)
             for jid in data:
-                path = self.get_path_to_generic_or_avatar(None,
-                        jid=jid, suffix='')
+                path = self.get_path_to_generic_or_avatar(self.path_to_image,
+                    jid=jid, suffix='')
                 marker = Champlain.Label.new_from_file(path)
                 marker.set_text(data[jid][2])
                 self.contacts_layer = Champlain.MarkerLayer()
