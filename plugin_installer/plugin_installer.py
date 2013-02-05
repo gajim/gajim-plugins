@@ -424,7 +424,8 @@ class PluginInstaller(GajimPlugin):
                         file_path))
 
                     # read metadata from manifest.ini
-                    conf.readfp(open(manifest_path, 'r'))
+                    with open(manifest_path) as _file:
+                        conf.read_file(_file)
                     for option in fields:
                         if conf.get('info', option) is '':
                             raise configparser.NoOptionError('field empty')
@@ -582,7 +583,7 @@ class Ftp(threading.Thread):
                     else:
                         files.append(i[1:])
             dirs, files = [], []
-            nlstr('/plugins/' + remote_dir)
+            nlstr('/plugins_gtk3/' + remote_dir)
 
             base_dir, user_dir = gajim.PLUGINS_DIRS
             if not os.path.isdir(user_dir):
@@ -605,14 +606,16 @@ class Ftp(threading.Thread):
             for filename in files:
                 GObject.idle_add(self.progressbar.set_text,
                     _('Downloading "%s"') % filename)
-                full_filename = os.path.join(local_dir, filename)
+                full_filename = os.path.join(local_dir, filename.replace(
+                    'plugins_gtk3', 'plugins'))
                 try:
                     file_ = open(full_filename, 'wb')
+
                     self.ftp.retrbinary('RETR /%s' % filename,
                         file_.write)
                     file_.close()
-                except ftplib.error_perm:
-                    print('ERROR: cannot read file "%s"' % filename)
+                except ftplib.all_errors as e:
+                    print (str(e))
                     os.unlink(filename)
         self.ftp.quit()
         GObject.idle_add(self.window.emit, 'plugin_downloaded',
