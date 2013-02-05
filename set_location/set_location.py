@@ -12,6 +12,7 @@ from plugins import GajimPlugin
 from plugins.helpers import log_calls
 from common import gajim
 from common import ged
+from common import helpers
 import gtkgui_helpers
 from dialogs import InputDialog, WarningDialog
 
@@ -224,35 +225,35 @@ class SetLocationPluginConfigDialog(GajimPluginConfigDialog):
 
     def show_contacts(self):
         from gi.repository import Champlain
-        if not self.markers_is_visible:
-            data = {}
-            accounts = gajim.contacts._accounts
-            for account in accounts:
-                if not gajim.account_is_connected(account):
+        data = {}
+        accounts = gajim.contacts._accounts
+        for account in accounts:
+            if not gajim.account_is_connected(account):
+                continue
+            for contact in accounts[account].contacts._contacts:
+                pep = accounts[account].contacts._contacts[contact][0].pep
+                if 'location' not in pep:
                     continue
-                for contact in accounts[account].contacts._contacts:
-                    pep = accounts[account].contacts._contacts[contact][0].pep
-                    if 'location' not in pep:
-                        continue
-                    lat = pep['location']._pep_specific_data.get('lat', None)
-                    lon = pep['location']._pep_specific_data.get('lon', None)
-                    if not lat or not lon:
-                        continue
-                    name = accounts[account].contacts.get_first_contact_from_jid(
-                        contact).name
-                    data[contact] = (lat, lon, name)
-            for jid in data:
-                path = self.get_path_to_generic_or_avatar(self.path_to_image,
-                    jid=jid, suffix='')
-                marker = Champlain.Label.new_from_file(path)
-                marker.set_text(data[jid][2])
-                self.contacts_layer = Champlain.MarkerLayer()
+                lat = pep['location']._pep_specific_data.get('lat', None)
+                lon = pep['location']._pep_specific_data.get('lon', None)
+                if not lat or not lon:
+                    continue
+                name = accounts[account].contacts.get_first_contact_from_jid(
+                    contact).name
+                data[contact] = (lat, lon, name)
 
-                marker.set_location(float(data[jid][0]), float(data[jid][1]))
-                self.view.add_layer(self.contacts_layer)
-                self.contacts_layer.add_marker(marker)
-                self.contacts_layer.animate_in_all_markers()
-                self.markers_is_visible = True
+        self.contacts_layer = Champlain.MarkerLayer()
+        for jid in data:
+            path = self.get_path_to_generic_or_avatar(self.path_to_image,
+                jid=jid, suffix='')
+            marker = Champlain.Label.new_from_file(path)
+            marker.set_text(data[jid][2])
+            marker.set_location(float(data[jid][0]), float(data[jid][1]))
+            self.contacts_layer.add_marker(marker)
+
+        self.view.add_layer(self.contacts_layer)
+        self.contacts_layer.animate_in_all_markers()
+        self.markers_is_visible = True
 
     def get_path_to_generic_or_avatar(self, generic, jid=None, suffix=None):
         """
@@ -262,7 +263,6 @@ class SetLocationPluginConfigDialog(GajimPluginConfigDialog):
         path to the image.  generic must be with extension and suffix without
         """
         if jid:
-            from common import helpers
             # we want an avatar
             puny_jid = helpers.sanitize_filename(jid)
             path_to_file = os.path.join(gajim.AVATAR_PATH, puny_jid) + suffix
