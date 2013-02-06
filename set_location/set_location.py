@@ -163,9 +163,12 @@ class SetLocationPluginConfigDialog(GajimPluginConfigDialog):
             vbox.pack_start(label, expand=False, fill=False, padding=6)
             self.is_active = True
             self.layer = Champlain.MarkerLayer()
-            self.marker = Champlain.Label.new_from_file(self.path_to_image)
-            self.marker.set_text("I am")
+            texture = Clutter.Texture()
+            texture.set_from_file(self.path_to_image)
+            texture.set_size(32,32)
+            self.marker = Champlain.Label.new_with_image(texture)
             self.marker.set_location(self.lat, self.lon)
+            self.marker.set_text("I am")
             self.view.add_layer(self.layer)
             self.layer.add_marker(self.marker)
             self.markers_is_visible = False
@@ -229,7 +232,7 @@ class SetLocationPluginConfigDialog(GajimPluginConfigDialog):
             self.marker.set_location(self.lat, self.lon)
 
     def show_contacts(self):
-        from gi.repository import Champlain
+        from gi.repository import Champlain, Clutter
         data = {}
         accounts = gajim.contacts._accounts
         for account in accounts:
@@ -251,7 +254,10 @@ class SetLocationPluginConfigDialog(GajimPluginConfigDialog):
         for jid in data:
             path = self.get_path_to_generic_or_avatar(self.path_to_image,
                 jid=jid, suffix='')
-            marker = Champlain.Label.new_from_file(path)
+            texture = Clutter.Texture()
+            texture.set_from_file(path)
+            texture.set_size(32,32)
+            marker = Champlain.Label.new_with_image(texture)
             marker.set_text(data[jid][2])
             marker.set_location(float(data[jid][0]), float(data[jid][1]))
             self.contacts_layer.add_marker(marker)
