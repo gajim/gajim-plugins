@@ -126,8 +126,10 @@ class Base(object):
                 self.chat_control.room_jid)
             if nick not in nicks:
                 return
-            nick = nick + gajim.config.get('gc_refer_to_nick_char') + ' '
             message_buffer = self.chat_control.msg_textview.get_buffer()
+            if message_buffer.get_char_count() < 2:
+                nick = nick + gajim.config.get('gc_refer_to_nick_char')
+            nick = nick + ' '
             message_buffer.insert_at_cursor(nick)
             self.chat_control.msg_textview.grab_focus()
 
