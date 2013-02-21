@@ -291,6 +291,8 @@ class LatexPlugin(GajimPlugin):
                 self.disconnect_from_chat_control_base)
         }
         self.test_activatable()
+        self.timeout_id = None
+        self.last_eol_offset = -1
 
     def test_activatable(self):
         """
@@ -357,23 +359,47 @@ class LatexPlugin(GajimPlugin):
         """
         called when conversation text widget changes
         """
-        def split_list(list):
+        def split_list(list_):
             newlist = []
-            for i in range(0, len(list)-1, 2):
-                newlist.append( [ list[i], list[i+1], ] )
+            for i in range(0, len(list_)-1, 2):
+                newlist.append( [ list_[i], list_[i+1], ] )
             return newlist
 
-        assert isinstance(tb, gtk.TextBuffer)
-        start_iter = tb.get_start_iter()
-        points = []
-        tuple_found = start_iter.forward_search('$$', gtk.TEXT_SEARCH_TEXT_ONLY)
-        while tuple_found != None:
-            points.append(tuple_found)
-            tuple_found = tuple_found[1].forward_search('$$',
+        def detect_tags(tb, start_it=None, end_it=None):
+            self.timeout_id = None
+            if not end_it:
+                end_it = tb.get_end_iter()
+            if not start_it:
+                eol_tag = tb.get_tag_table().lookup('eol')
+                start_it = end_it.copy()
+                start_it.backward_to_tag_toggle(eol_tag)
+            points = []
+            tuple_found = start_it.forward_search('$$',
                 gtk.TEXT_SEARCH_TEXT_ONLY)
+            while tuple_found != None:
+                points.append(tuple_found)
+                tuple_found = tuple_found[1].forward_search('$$',
+                    gtk.TEXT_SEARCH_TEXT_ONLY)
 
-        for pair in split_list(points):
-            tb.apply_tag_by_name('latex', pair[0][1], pair[1][0])
+            for pair in split_list(points):
+                tb.apply_tag_by_name('latex', pair[0][1], pair[1][0])
+        
+        end_iter = tb.get_end_iter()
+        eol_tag = tb.get_tag_table().lookup('eol')
+        it = end_iter.copy()
+        it.backward_to_tag_toggle(eol_tag)
+        if it.get_offset() == self.last_eol_offset:
+            if self.timeout_id:
+                gobject.source_remove(self.timeout_id)
+            self.timeout_id = gobject.timeout_add(100, detect_tags, tb, it, end_iter)
+        else:
+            if self.timeout_id:
+                gobject.source_remove(self.timeout_id)
+                it1 = it.copy()
+                it1.backward_char()
+                it1.backward_to_tag_toggle(eol_tag)
+                detect_tags(tb, it1, it)
+            self.last_eol_offset = it.get_offset()
 
     def connect_with_chat_control_base(self, chat_control):
         d = {}
