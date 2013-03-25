@@ -229,6 +229,8 @@ class ClientsIconsPlugin(GajimPlugin):
 
         # rewrite avatar
         if vcard_table.get_property('n-columns') == 4:
+            if tooltip.avatar_image not in vcard_table.get_children():
+                return
             avatar_widget_idx = vcard_table.get_children().index(
                 tooltip.avatar_image)
             vcard_table.remove(vcard_table.get_children()[avatar_widget_idx])
@@ -297,6 +299,8 @@ class ClientsIconsPlugin(GajimPlugin):
 
         # rewrite avatar
         if vcard_table.get_property('n-columns') == 4:
+            if tooltip.avatar_image not in vcard_table.get_children():
+                return
             avatar_widget_idx = vcard_table.get_children().index(
                 tooltip.avatar_image)
             vcard_table.remove(vcard_table.get_children()[avatar_widget_idx])
