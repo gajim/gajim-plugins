@@ -17,7 +17,9 @@ class FlashingKeyboard(GajimPlugin):
         self.config_dialog = FlashingKeyboardPluginConfigDialog(self)
         self.config_default_values = {
             'command1': ("xset led named 'Scroll Lock'", ''),
-            'command2': ("xset -led named 'Scroll Lock'", '')}
+            'command2': ("xset -led named 'Scroll Lock'", ''),
+            'flash': (True, ''),
+        }
 
         self.is_active = None
         self.timeout = 500
@@ -35,15 +37,22 @@ class FlashingKeyboard(GajimPlugin):
         if gajim.events.get_nb_systray_events():
             if self.id_0:
                 return
-            self.id_0 = GObject.timeout_add(self.timeout, self.led_on)
+            if self.config['flash']:
+                self.id_0 = GObject.timeout_add(self.timeout, self.led_on)
+            else:
+                self.led_on()
+                self.id_0 = True
         else:
             if self.id_0:
-                GObject.source_remove(self.id_0)
+                if self.config['flash']:
+                    GObject.source_remove(self.id_0)
                 self.id_0 = None
+                self.led_off()
 
     def led_on(self):
         subprocess.Popen('%s' % self.config['command1'], shell=True).wait()
-        GObject.timeout_add(self.timeout_off, self.led_off)
+        if self.config['flash']:
+            GObject.timeout_add(self.timeout_off, self.led_off)
         return True
 
     def led_off(self):
@@ -54,7 +63,11 @@ class FlashingKeyboard(GajimPlugin):
         gajim.events.event_added_subscribe(self.on_event_added)
         gajim.events.event_removed_subscribe(self.on_event_removed)
         if gajim.events.get_nb_systray_events():
-            self.id_0 = GObject.timeout_add(self.timeout, self.led_on)
+            if self.config['flash']:
+                self.id_0 = GObject.timeout_add(self.timeout, self.led_on)
+            else:
+                self.led_on()
+                self.id_0 = True
 
     @log_calls('FlashingKeyboard')
     def deactivate(self):
@@ -62,6 +75,7 @@ class FlashingKeyboard(GajimPlugin):
         gajim.events.event_removed_unsubscribe(self.on_event_removed)
         if self.id_0:
             GObject.source_remove(self.id_0)
+            self.led_off()
 
 
 class FlashingKeyboardPluginConfigDialog(GajimPluginConfigDialog):
@@ -81,14 +95,18 @@ class FlashingKeyboardPluginConfigDialog(GajimPluginConfigDialog):
         self.isactive = self.plugin.active
         if self.plugin.active:
             gajim.plugin_manager.deactivate_plugin(self.plugin)
-        for name in self.plugin.config_default_values:
+        for name in ('command1', 'command2'):
             widget = self.xml.get_object(name)
             widget.set_text(self.plugin.config[name])
+        widget = self.xml.get_object('flash_cb')
+        widget.set_active(not self.plugin.config['flash'])
 
     def on_close_button_clicked(self, widget):
         widget = self.xml.get_object('command1')
         self.plugin.config['command1'] = widget.get_text()
         widget = self.xml.get_object('command2')
         self.plugin.config['command2'] = widget.get_text()
+        widget = self.xml.get_object('flash_cb')
+        self.plugin.config['flash'] = not widget.get_active()
         if self.isactive:
             gajim.plugin_manager.activate_plugin(self.plugin)

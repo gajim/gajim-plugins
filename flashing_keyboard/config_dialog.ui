@@ -7,7 +7,7 @@
       <object class="GtkTable" id="config_table">
         <property name="visible">True</property>
         <property name="border_width">6</property>
-        <property name="n_rows">2</property>
+        <property name="n_rows">3</property>
         <property name="n_columns">2</property>
         <property name="column_spacing">7</property>
         <property name="row_spacing">5</property>
@@ -45,7 +45,7 @@
           <packing>
             <property name="left_attach">1</property>
             <property name="right_attach">2</property>
-            <property name="y_options"></property>
+            <property name="y_options"/>
           </packing>
         </child>
         <child>
@@ -59,8 +59,27 @@
             <property name="right_attach">2</property>
             <property name="top_attach">1</property>
             <property name="bottom_attach">2</property>
-            <property name="y_options"></property>
+            <property name="y_options"/>
           </packing>
+        </child>
+        <child>
+          <object class="GtkCheckButton" id="flash_cb">
+            <property name="label" translatable="yes">Do not flash the LED, only switch it on.</property>
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="receives_default">False</property>
+            <property name="draw_indicator">True</property>
+          </object>
+          <packing>
+            <property name="left_attach">1</property>
+            <property name="right_attach">2</property>
+            <property name="top_attach">2</property>
+            <property name="bottom_attach">3</property>
+            <property name="y_options"/>
+          </packing>
+        </child>
+        <child>
+          <placeholder/>
         </child>
       </object>
     </child>
