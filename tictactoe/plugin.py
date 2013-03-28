@@ -288,7 +288,7 @@ class TicTacToeSession(stanza_session.StanzaSession):
         game = invite.getTag('game')
         x = game.getTag('x', namespace='jabber:x:data')
 
-        form = xmpp.DataForm(node=x)
+        form = xmpp.DataForm(node=str(x))
 
         if form.getField('role'):
             self.role_o = form.getField('role').getValues()[0]
