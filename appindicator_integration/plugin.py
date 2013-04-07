@@ -13,7 +13,7 @@ import gtkgui_helpers
 import gtk
 try:
     import appindicator
-except: 
+except:
     appindicator = None
 # Gajim
 from common import gajim
@@ -21,14 +21,14 @@ from plugins import GajimPlugin
 from plugins.plugin import GajimPluginException
 from plugins.helpers import log_calls
 
-    
 
 class AppindicatorIntegrationPlugin(GajimPlugin):
 
     @log_calls("AppindicatorIntegrationPlugin")
     def init(self):
         self.description = _('This plugin integrates Gajim with the appindicator.\n'
-            'You must have python-appindicator (and Gajim obviously) installed to enable this plugin.\n')
+            'You must have python-appindicator (and Gajim obviously) '
+            'installed to enable this plugin.\n')
         self.config_dialog = None
         self.test_activatable()
 
@@ -42,32 +42,33 @@ class AppindicatorIntegrationPlugin(GajimPlugin):
     @log_calls("AppindicatorIntegrationPlugin")
     def activate(self):
 
-        self.events={};
+        self.events = {}
 
         self.show_gajim_menu_item = gtk.MenuItem('Show/hide roster')
         self.show_gajim_menu_item.connect("activate", self.roster_raise)
         self.show_gajim_menu_item.show()
 
-        self.event_separator = gtk.SeparatorMenuItem();
-        self.menuEventInsertIndex = 2;
-        
+        self.event_separator = gtk.SeparatorMenuItem()
+        self.menuEventInsertIndex = 2
+
         itemExitSeparator = gtk.SeparatorMenuItem()
         itemExitSeparator.show()
-    
+
         itemExit = gtk.MenuItem('Exit')
         itemExit.connect("activate", self.on_exit_menuitem_activate)
         itemExit.show()
-        
+
         self.menu = gtk.Menu()
         self.menu.append(self.show_gajim_menu_item)
         self.menu.append(self.event_separator)
         self.menu.append(itemExitSeparator)
         self.menu.append(itemExit)
         self.menu.show()
-        
-        self.indicator = appindicator.Indicator ("Gajim","tray-online", appindicator.CATEGORY_APPLICATION_STATUS)
-        self.indicator.set_attention_icon ("tray-message")
-        self.indicator.set_status (appindicator.STATUS_ACTIVE)
+
+        self.indicator = appindicator.Indicator("Gajim", "tray-online",
+            appindicator.CATEGORY_APPLICATION_STATUS)
+        self.indicator.set_attention_icon("tray-message")
+        self.indicator.set_status(appindicator.STATUS_ACTIVE)
         self.indicator.set_menu(self.menu)
 
         gajim.events.event_added_subscribe(self.on_event_added)
@@ -79,7 +80,7 @@ class AppindicatorIntegrationPlugin(GajimPlugin):
         gajim.events.event_removed_unsubscribe(self.on_event_removed)
 
         if hasattr(self, 'indicator'):
-            self.indicator.set_status (appindicator.STATUS_PASSIVE)
+            self.indicator.set_status(appindicator.STATUS_PASSIVE)
             del self.indicator
 
     def roster_raise(self, widget, data=None):
@@ -91,14 +92,13 @@ class AppindicatorIntegrationPlugin(GajimPlugin):
 
     def on_exit_menuitem_activate(self, widget, data=None):
             gajim.interface.roster.on_quit_request()
-            
 
     def event_raise(self, widget, event):
         gajim.interface.handle_event(event.account, event.jid, event.type_)
         win = gajim.interface.roster.window
         if not win.is_active():
             win.present()
-    
+
     def on_event_added(self, event):
         account = event.account
         jid = event.jid
@@ -118,7 +118,7 @@ class AppindicatorIntegrationPlugin(GajimPlugin):
             else:
                 contact = jid
         elif event.type_ == "pm" or event.type_ == "printed_pm":
-            contact = gajim.get_nick_from_jid(gajim.get_room_from_fjid(jid)) +\
+            contact = gajim.get_nick_from_jid(gajim.get_room_from_fjid(jid)) + \
                     "/" + gajim.get_room_and_nick_from_fjid(jid)[1]
         elif event.type_ == "printed_marked_gc_msg":
             contact = gajim.get_nick_from_jid(gajim.get_room_from_fjid(jid))
@@ -138,7 +138,7 @@ class AppindicatorIntegrationPlugin(GajimPlugin):
                         fd = fopen(file_path, 'rb')
                         data = fd.read()
                         icon = gtkgui_helpers.get_pixbuf_from_data(data)
-            item = gtk.ImageMenuItem(contact+" (1)")
+            item = gtk.ImageMenuItem(contact + " (1)")
             if icon:
                 item.setImage(icon)
                 item.set_always_show_image(True)
@@ -147,25 +147,26 @@ class AppindicatorIntegrationPlugin(GajimPlugin):
             self.menu.insert(item, self.menuEventInsertIndex)
             self.event_separator.show()
             self.events[key] = {}
-            self.events[key]['item']=item
-            self.events[key]['contact']=contact
-            self.events[key]['events']=[event]
+            self.events[key]['item'] = item
+            self.events[key]['contact'] = contact
+            self.events[key]['events'] = [event]
         else:
             self.events[key]['events'].append(event)
             item = self.events[key]['item']
-            item.set_label(self.events[key]['contact']+" ("+str(len(self.events[key]['events']))+")")
-        self.indicator.set_status (appindicator.STATUS_ATTENTION)
+            item.set_label(self.events[key]['contact'] +
+                " (" + str(len(self.events[key]['events'])) + ")")
+        self.indicator.set_status(appindicator.STATUS_ATTENTION)
 
     def on_event_removed(self, events):
         for event in events:
             key = (event.account, event.jid)
-            if key in self.events and \
-            event in self.events[key]['events']:
+            if key in self.events and event in self.events[key]['events']:
                 self.events[key]['events'].remove(event)
                 if len(self.events[key]['events']) == 0:  # remove indicator
                     self.menu.remove(self.events[key]['item'])
                     del self.events[key]
                     self.event_separator.hide()
-                    self.indicator.set_status (appindicator.STATUS_ACTIVE)
+                    self.indicator.set_status(appindicator.STATUS_ACTIVE)
                 else:
-                    self.events[key]['item'].connect("activate", self.event_raise, self.events[key]['events'][-1])
+                    self.events[key]['item'].connect("activate",
+                        self.event_raise, self.events[key]['events'][-1])
