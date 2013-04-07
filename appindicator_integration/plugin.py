@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 """
-AppindicatorSupport plugin.
+Appindicator integration plugin.
 
 Rewriten from Ubuntu Ayatana Integration plugin
-2013 Denis Borenko borenko@rambler.ru
-:license: GPLv3
+2013 Denis Borenko <borenko@rambler.ru>
+:license: GPLv3     
 """
 # Python
 import time
@@ -23,9 +23,9 @@ from plugins.helpers import log_calls
 
     
 
-class AppindicatorSupportPlugin(GajimPlugin):
+class AppindicatorIntegrationPlugin(GajimPlugin):
 
-    @log_calls("AppindicatorSupportPlugin")
+    @log_calls("AppindicatorIntegrationPlugin")
     def init(self):
         self.description = _('This plugin integrates Gajim with the appindicator.\n'
             'You must have python-appindicator (and Gajim obviously) installed to enable this plugin.\n')
@@ -39,7 +39,7 @@ class AppindicatorSupportPlugin(GajimPlugin):
             self.available_text += _('\n\n Error: python-appindicator is missing! \n'
                 'Please install it.\n')
 
-    @log_calls("AppindicatorSupportPlugin")
+    @log_calls("AppindicatorIntegrationPlugin")
     def activate(self):
 
         self.events={};
@@ -73,7 +73,7 @@ class AppindicatorSupportPlugin(GajimPlugin):
         gajim.events.event_added_subscribe(self.on_event_added)
         gajim.events.event_removed_subscribe(self.on_event_removed)
 
-    @log_calls("AppindicatorSupportPlugin")
+    @log_calls("AppindicatorPlugin")
     def deactivate(self):
         gajim.events.event_added_unsubscribe(self.on_event_added)
         gajim.events.event_removed_unsubscribe(self.on_event_removed)
@@ -100,7 +100,6 @@ class AppindicatorSupportPlugin(GajimPlugin):
             win.present()
     
     def on_event_added(self, event):
-        print event.type_
         account = event.account
         jid = event.jid
         when = time.time()
@@ -125,7 +124,7 @@ class AppindicatorSupportPlugin(GajimPlugin):
             contact = gajim.get_nick_from_jid(gajim.get_room_from_fjid(jid))
         else:
             return
-        print account, jid, when, contact
+        #print account, jid, when, contact
         event.time = when
         if key not in self.events:
             icon = None
@@ -159,7 +158,6 @@ class AppindicatorSupportPlugin(GajimPlugin):
 
     def on_event_removed(self, events):
         for event in events:
-            print "====", event.type_
             key = (event.account, event.jid)
             if key in self.events and \
             event in self.events[key]['events']:
