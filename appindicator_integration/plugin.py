@@ -8,6 +8,7 @@ Rewriten from Ubuntu Ayatana Integration plugin
 """
 # Python
 import time
+import gobject
 #GTK
 import gtkgui_helpers
 import gtk
@@ -86,9 +87,14 @@ class AppindicatorIntegrationPlugin(GajimPlugin):
     def roster_raise(self, widget, data=None):
         win = gajim.interface.roster.window
         if win.is_active():
-            win.hide()
+            gobject.idle_add(win.hide)
         else:
             win.present()
+        # preserve the 'steal focus preservation'
+        #if self._is_first():
+        #    win.window.focus(gtk.get_current_event_time())
+        #else:
+        win.window.focus(long(time.time()))
 
     def on_exit_menuitem_activate(self, widget, data=None):
             gajim.interface.roster.on_quit_request()
