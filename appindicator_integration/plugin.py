@@ -171,8 +171,9 @@ class AppindicatorIntegrationPlugin(GajimPlugin):
                 if len(self.events[key]['events']) == 0:  # remove indicator
                     self.menu.remove(self.events[key]['item'])
                     del self.events[key]
-                    self.event_separator.hide()
-                    self.indicator.set_status(appindicator.STATUS_ACTIVE)
                 else:
                     self.events[key]['item'].connect("activate",
                         self.event_raise, self.events[key]['events'][-1])
+                if len(self.events) == 0:
+                    self.event_separator.hide()
+                    self.indicator.set_status(appindicator.STATUS_ACTIVE)
