@@ -67,7 +67,7 @@ class ChatstatePlugin(GajimPlugin):
             if c.show not in ('error', 'offline'):
                 nb_connected_contact += 1
         if nb_connected_contact > 1:
-            name += paragraph_direction_mark(unicode(name))
+            name += paragraph_direction_mark(name)
             name += ' (%d)' % nb_connected_contact
 
         for child_iter in child_iters:
