@@ -51,13 +51,16 @@ class AppindicatorIntegrationPlugin(GajimPlugin):
         self.online_icon     = "tray-online"
         self.offline_icon    = "tray-offline"
         self.connected       = 0
-        
+
+        self.connect_menu_item = gtk.MenuItem('Connect')
+        self.connect_menu_item.connect("activate", self.connect)
+
         self.show_gajim_menu_item = gtk.MenuItem('Show/hide roster')
         self.show_gajim_menu_item.connect("activate", self.roster_raise)
         self.show_gajim_menu_item.show()
 
         self.event_separator = gtk.SeparatorMenuItem()
-        self.menuEventInsertIndex = 2
+        self.menuEventInsertIndex = 3
 
         itemExitSeparator = gtk.SeparatorMenuItem()
         itemExitSeparator.show()
@@ -67,6 +70,7 @@ class AppindicatorIntegrationPlugin(GajimPlugin):
         itemExit.show()
 
         self.menu = gtk.Menu()
+        self.menu.append(self.connect_menu_item)
         self.menu.append(self.show_gajim_menu_item)
         self.menu.append(self.event_separator)
         self.menu.append(itemExitSeparator)
@@ -83,6 +87,13 @@ class AppindicatorIntegrationPlugin(GajimPlugin):
 
         gajim.events.event_added_subscribe(self.on_event_added)
         gajim.events.event_removed_subscribe(self.on_event_removed)
+
+    def connect(self, widget, data=None):
+        for account in gajim.connections:
+            if gajim.config.get_per('accounts', account,
+            'sync_with_global_status'):
+                gajim.connections[account].change_status('online','online')
+    
         
     def set_indicator_icon(self, obj=''):
         is_connected = 0
@@ -97,8 +108,10 @@ class AppindicatorIntegrationPlugin(GajimPlugin):
             self.connected = is_connected
             if self.connected == 1:
                 self.indicator.set_icon(self.online_icon)
+                self.connect_menu_item.hide()
             else:
                 self.indicator.set_icon(self.offline_icon)
+                self.connect_menu_item.show()
 
     @log_calls("AppindicatorPlugin")
     def deactivate(self):
