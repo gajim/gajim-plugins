@@ -17,7 +17,7 @@ try:
 except:
     appindicator = None
 # Gajim
-from common import gajim
+from common import gajim, ged
 from plugins import GajimPlugin
 from plugins.plugin import GajimPluginException
 from plugins.helpers import log_calls
@@ -32,6 +32,8 @@ class AppindicatorIntegrationPlugin(GajimPlugin):
             'installed to enable this plugin.\n')
         self.config_dialog = None
         self.test_activatable()
+        self.events_handlers = {'our-show': (ged.GUI2, self.set_indicator_icon)}
+
 
     def test_activatable(self):
         self.available_text = ''
@@ -45,6 +47,11 @@ class AppindicatorIntegrationPlugin(GajimPlugin):
 
         self.events = {}
 
+        self.attention_icon  = "tray-message"
+        self.online_icon     = "tray-online"
+        self.offline_icon    = "tray-offline"
+        self.connected       = 0
+        
         self.show_gajim_menu_item = gtk.MenuItem('Show/hide roster')
         self.show_gajim_menu_item.connect("activate", self.roster_raise)
         self.show_gajim_menu_item.show()
@@ -66,14 +73,32 @@ class AppindicatorIntegrationPlugin(GajimPlugin):
         self.menu.append(itemExit)
         self.menu.show()
 
-        self.indicator = appindicator.Indicator("Gajim", "tray-online",
+        self.indicator = appindicator.Indicator("Gajim", self.offline_icon,
             appindicator.CATEGORY_APPLICATION_STATUS)
-        self.indicator.set_attention_icon("tray-message")
+        self.indicator.set_attention_icon(self.attention_icon)
         self.indicator.set_status(appindicator.STATUS_ACTIVE)
         self.indicator.set_menu(self.menu)
 
+        self.set_indicator_icon()
+
         gajim.events.event_added_subscribe(self.on_event_added)
         gajim.events.event_removed_subscribe(self.on_event_removed)
+        
+    def set_indicator_icon(self, obj=''):
+        is_connected = 0
+        for account in gajim.connections:
+            if not gajim.config.get_per('accounts', account,
+            'sync_with_global_status'):
+                continue
+            if gajim.account_is_connected(account):
+                is_connected = 1
+                break
+        if self.connected != is_connected:
+            self.connected = is_connected
+            if self.connected == 1:
+                self.indicator.set_icon(self.online_icon)
+            else:
+                self.indicator.set_icon(self.offline_icon)
 
     @log_calls("AppindicatorPlugin")
     def deactivate(self):
