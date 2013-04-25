@@ -152,7 +152,7 @@ class PluginInstaller(GajimPlugin):
     def deactivate(self):
         self.pl_menuitem.disconnect(self.id_)
         if hasattr(self, 'page_num'):
-            self.notebook.remove_page(self.page_num)
+            self.notebook.remove_page(self.notebook.page_num(self.hpaned))
             self.notebook.set_current_page(0)
             for id_, widget in list(self.connected_ids.items()):
                 widget.disconnect(id_)
@@ -181,8 +181,8 @@ class PluginInstaller(GajimPlugin):
         self.xml = Gtk.Builder()
         self.xml.set_translation_domain('gajim_plugins')
         self.xml.add_objects_from_file(self.Gtk_BUILDER_FILE_PATH, ['hpaned2'])
-        hpaned = self.xml.get_object('hpaned2')
-        self.page_num = self.notebook.append_page(hpaned,
+        self.hpaned = self.xml.get_object('hpaned2')
+        self.page_num = self.notebook.append_page(self.hpaned,
             Gtk.Label(_('Available')))
 
         widgets_to_extract = ('plugin_name_label1',
