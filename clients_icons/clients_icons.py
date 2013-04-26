@@ -371,12 +371,13 @@ class ClientsIconsPlugin(GajimPlugin):
             roster.model)
         if not child_iters:
             return
-        if roster.model[child_iters[0]][self.renderer_num] is None:
-            caps = contact.client_caps._node
-            if not caps:
-                caps = self.check_jid(jid)
-            self.set_icon(roster.model, child_iters[0], self.renderer_num,
-                caps)
+        for iter_ in child_iters:
+            if roster.model[iter_][self.renderer_num] is None:
+                caps = contact.client_caps._node
+                if not caps:
+                    caps = self.check_jid(jid)
+                self.set_icon(roster.model, iter_, self.renderer_num,
+                    caps)
 
     @log_calls('ClientsIconsPlugin')
     def connect_with_groupchat_control(self, chat_control):
@@ -510,8 +511,9 @@ class ClientsIconsPlugin(GajimPlugin):
             # zeroconf
             return
 
-        iter_ = roster._get_contact_iter(iq_obj.jid, iq_obj.conn.name, contact,
-            roster.model)[0]
+        iters = roster._get_contact_iter(iq_obj.jid, iq_obj.conn.name, contact,
+            roster.model)
+        iter_ = iters[0]
 
         if contact.show == 'error':
             self.set_icon(roster.model, iter_, self.renderer_num, None)
@@ -539,7 +541,8 @@ class ClientsIconsPlugin(GajimPlugin):
         if caps_from_jid:
             caps = caps_from_jid
 
-        self.set_icon(roster.model, iter_, self.renderer_num, caps)
+        for iter_ in iters:
+            self.set_icon(roster.model, iter_, self.renderer_num, caps)
 
     def gc_presence_received(self, iq_obj):
         if not self.config['show_in_groupchats']:
