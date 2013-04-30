@@ -112,7 +112,7 @@ class EmoticonsPackPlugin(GajimPlugin):
 
         renderer = Gtk.CellRendererToggle()
         renderer.set_property('activatable', True)
-        renderer.connect('toggled', self.available_plugins_toggled_cb)
+        renderer.connect('toggled', self.available_emoticons_toggled_cb)
         col = Gtk.TreeViewColumn(
             _('Install /\nUpgrade'), renderer,  active=C_UPGRADE)
         col.set_property('expand', False)
@@ -121,12 +121,12 @@ class EmoticonsPackPlugin(GajimPlugin):
 
         selection = self.available_treeview.get_selection()
         selection.connect(
-            'changed', self.available_plugins_treeview_selection_changed)
+            'changed', self.available_emoticons_treeview_selection_changed)
         selection.set_mode(Gtk.SelectionMode.SINGLE)
 
-        self.plugin_description_textview = ConversationTextview(None)
+        self.emoticons_description_textview = ConversationTextview(None)
         sw = self.xml.get_object('scrolledwindow1')
-        sw.add(self.plugin_description_textview.tv)
+        sw.add(self.emoticons_description_textview.tv)
         self.xml.connect_signals(self)
         self.window.show_all()
 
@@ -145,12 +145,12 @@ class EmoticonsPackPlugin(GajimPlugin):
             import emoticons
             imp.reload(emoticons)
 
-            self.plugin_description_textview = Gtk.TextView()
+            self.emoticons_description_textview = Gtk.TextView()
             sw = self.xml.get_object('scrolledwindow1')
-            sw.add(self.plugin_description_textview)
+            sw.add(self.emoticons_description_textview)
             sw.show_all()
 
-            buff = self.plugin_description_textview.get_buffer()
+            buff = self.emoticons_description_textview.get_buffer()
             for icon in emoticons.emoticons:
                 icon_file = os.path.join(self.tmp_dir, name, icon)
                 with open(icon_file, 'rb') as _file:
@@ -162,13 +162,13 @@ class EmoticonsPackPlugin(GajimPlugin):
                 text = ' , '.join(emoticons.emoticons[icon])
                 buff.insert(buff.get_end_iter(), text + '\n', -1)
 
-            self.plugin_description_textview.set_property('sensitive', True)
+            self.emoticons_description_textview.set_property('sensitive', True)
             sys.path.remove(os.path.join(self.tmp_dir, name))
 
         else:
-            self.plugin_description_textview = ConversationTextview(None)
+            self.emoticons_description_textview = ConversationTextview(None)
             sw = self.xml.get_object('scrolledwindow1')
-            sw.add(self.plugin_description_textview.tv)
+            sw.add(self.emoticons_description_textview.tv)
             sw.show_all()
             label.set_text('Legend')
             desc = _(model.get_value(iter, C_DESCRIPTION))
@@ -177,9 +177,9 @@ class EmoticonsPackPlugin(GajimPlugin):
                     desc + ' </body>'
             desc = desc.replace('preview.image', ('file:' + os.path.join(
                     self.tmp_dir, name, 'preview.png')))
-            self.plugin_description_textview.tv.display_html(
-                desc, self.plugin_description_textview)
-            self.plugin_description_textview.tv.set_property('sensitive', True)
+            self.emoticons_description_textview.tv.display_html(
+                desc, self.emoticons_description_textview)
+            self.emoticons_description_textview.tv.set_property('sensitive', True)
 
     def dict_to_html(self, dict_):
         desc = ''
@@ -243,7 +243,7 @@ class EmoticonsPackPlugin(GajimPlugin):
         if hasattr(self, 'page_num'):
             del self.page_num
 
-    def available_plugins_toggled_cb(self, cell, path):
+    def available_emoticons_toggled_cb(self, cell, path):
         is_active = self.model[path][C_UPGRADE]
         self.model[path][C_UPGRADE] = not is_active
         dir_list = []
@@ -292,7 +292,7 @@ class EmoticonsPackPlugin(GajimPlugin):
                     conf.get(section, 'homepage'), False])
             conf.remove_section(section)
 
-    def available_plugins_treeview_selection_changed(self, treeview_selection):
+    def available_emoticons_treeview_selection_changed(self, treeview_selection):
         model, iter = treeview_selection.get_selected()
         label = self.xml.get_object('label2')
         label.set_text(_('Legend'))
@@ -322,9 +322,9 @@ class EmoticonsPackPlugin(GajimPlugin):
             self.homepage_linkbutton.set_property('sensitive', True)
 
             self.xml.get_object('scrolledwindow1').get_children()[0].destroy()
-            self.plugin_description_textview = ConversationTextview(None)
+            self.emoticons_description_textview = ConversationTextview(None)
             sw = self.xml.get_object('scrolledwindow1')
-            sw.add(self.plugin_description_textview.tv)
+            sw.add(self.emoticons_description_textview.tv)
             sw.show_all()
             desc = _(model.get_value(iter, C_DESCRIPTION))
             if not desc.startswith('<body '):
@@ -333,9 +333,9 @@ class EmoticonsPackPlugin(GajimPlugin):
             else:
                 desc = desc.replace('preview.image', ('file:' + os.path.join(
                     self.tmp_dir, set_name, 'preview.png')))
-            self.plugin_description_textview.tv.display_html(
-                desc, self.plugin_description_textview)
-            self.plugin_description_textview.tv.set_property('sensitive', True)
+            self.emoticons_description_textview.tv.display_html(
+                desc, self.emoticons_description_textview)
+            self.emoticons_description_textview.tv.set_property('sensitive', True)
         else:
             self.set_name.set_text('')
             self.authors_label.set_text('')
