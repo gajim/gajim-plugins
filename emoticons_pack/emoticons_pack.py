@@ -337,18 +337,11 @@ class EmoticonsPackPlugin(GajimPlugin):
                 desc, self.plugin_description_textview)
             self.plugin_description_textview.tv.set_property('sensitive', True)
         else:
-            self._clear_available_plugin_info()
-
-    def _clear_available_plugin_info(self):
-        self.set_name.set_text('')
-        self.authors_label.set_text('')
-        self.homepage_linkbutton.set_uri('')
-        self.homepage_linkbutton.set_label('')
-        self.homepage_linkbutton.set_property('sensitive', False)
-
-        desc_textbuffer = self.plugin_description_textview.tv.get_buffer()
-        desc_textbuffer.set_text('')
-        self.plugin_description_textview.tv.set_property('sensitive', False)
+            self.set_name.set_text('')
+            self.authors_label.set_text('')
+            self.homepage_linkbutton.set_uri('')
+            self.homepage_linkbutton.set_label('')
+            self.homepage_linkbutton.set_property('sensitive', False)
 
     def select_root_iter(self):
         if hasattr(self, 'page_num'):
@@ -357,5 +350,7 @@ class EmoticonsPackPlugin(GajimPlugin):
                 root_iter = self.model.get_iter_first()
                 selection.select_iter(root_iter)
         scr_win = self.xml.get_object('scrolledwindow2')
-        scr_win.get_vadjustment().set_value(0)
+        vadjustment = scr_win.get_vadjustment()
+        if vadjustment:
+            vadjustment.set_value(0)
         #GObject.idle_add(self.available_treeview.grab_focus)
