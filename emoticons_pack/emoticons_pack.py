@@ -120,8 +120,7 @@ class EmoticonsPackPlugin(GajimPlugin):
         self.available_treeview.append_column(col)
 
         selection = self.available_treeview.get_selection()
-        selection.connect(
-            'changed', self.available_emoticons_treeview_selection_changed)
+        selection.connect('changed', self.emoticons_treeview_selection_changed)
         selection.set_mode(Gtk.SelectionMode.SINGLE)
 
         self.emoticons_description_textview = ConversationTextview(None)
@@ -187,14 +186,8 @@ class EmoticonsPackPlugin(GajimPlugin):
                     self.tmp_dir, name, 'preview.png')))
             self.emoticons_description_textview.tv.display_html(
                 desc, self.emoticons_description_textview)
-            self.emoticons_description_textview.tv.set_property('sensitive', True)
-
-    def dict_to_html(self, dict_):
-        desc = ''
-        for icon in dict_:
-            acr = ' , '.join(dict_[icon])
-            desc += ' '+ icon + '  '+ acr + '\n'
-        return desc
+            self.emoticons_description_textview.tv.set_property(
+                'sensitive', True)
 
     def on_inslall_upgrade_clicked(self, widget):
         self.inslall_upgrade_button.set_property('sensitive', False)
@@ -300,7 +293,7 @@ class EmoticonsPackPlugin(GajimPlugin):
                     conf.get(section, 'homepage'), False])
             conf.remove_section(section)
 
-    def available_emoticons_treeview_selection_changed(self, treeview_selection):
+    def emoticons_treeview_selection_changed(self, treeview_selection):
         model, iter = treeview_selection.get_selected()
         label = self.xml.get_object('label2')
         label.set_text(_('Legend'))
@@ -343,7 +336,8 @@ class EmoticonsPackPlugin(GajimPlugin):
                     self.tmp_dir, set_name, 'preview.png')))
             self.emoticons_description_textview.tv.display_html(
                 desc, self.emoticons_description_textview)
-            self.emoticons_description_textview.tv.set_property('sensitive', True)
+            self.emoticons_description_textview.tv.set_property(
+                'sensitive', True)
         else:
             self.set_name.set_text('')
             self.authors_label.set_text('')
