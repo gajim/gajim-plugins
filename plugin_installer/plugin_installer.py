@@ -270,7 +270,10 @@ class PluginInstaller(GajimPlugin):
             self.inslall_upgrade_button.set_property('sensitive', True)
 
     def on_notebook_switch_page(self, widget, page, page_num):
-        if not hasattr(self, 'ftp') and self.page_num == page_num:
+        tab_label_text = self.notebook.get_tab_label_text(self.hpaned)
+        if tab_label_text != (_('Available')):
+            return
+        if not hasattr(self, 'ftp'):
             self.available_plugins_model.clear()
             self.progressbar.show()
             self.ftp = Ftp(self)
