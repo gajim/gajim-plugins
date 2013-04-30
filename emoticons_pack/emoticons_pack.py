@@ -158,7 +158,15 @@ class EmoticonsPackPlugin(GajimPlugin):
                 pbl = GdkPixbuf.PixbufLoader()
                 pbl.write(data)
                 pbl.close()
-                buff.insert_pixbuf(buff.get_end_iter(), pbl.get_pixbuf())
+                if icon.endswith('.gif'):
+                    img = Gtk.Image()
+                    img.set_from_animation(pbl.get_animation())
+                    img.show()
+                    anchor = buff.create_child_anchor(buff.get_end_iter())
+                    self.emoticons_description_textview.add_child_at_anchor(
+                        img, anchor)
+                else:
+                    buff.insert_pixbuf(buff.get_end_iter(), pbl.get_pixbuf())
                 text = ' , '.join(emoticons.emoticons[icon])
                 buff.insert(buff.get_end_iter(), text + '\n', -1)
 
