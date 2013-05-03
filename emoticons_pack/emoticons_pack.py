@@ -34,7 +34,7 @@ class EmoticonsPackPlugin(GajimPlugin):
 
     @log_calls('EmoticonsPackPlugin')
     def init(self):
-        self.description = _('Install, update and view a detailed legend '
+        self.description = _('Install, update and view detailed legend '
             'of emoticons')
         self.config_dialog = None  # EmoticonsPackPluginConfigDialog(self)
         self.window = None
