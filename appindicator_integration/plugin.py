@@ -7,6 +7,7 @@ Rewriten from Ubuntu Ayatana Integration plugin
 :license: GPLv3     
 """
 # Python
+import os
 import time
 import gobject
 #GTK
@@ -175,16 +176,18 @@ class AppindicatorIntegrationPlugin(GajimPlugin):
             if gajim.config.get("show_avatars_in_roster"):
                 pixbuf = gtkgui_helpers.get_avatar_pixbuf_from_cache(jid)
                 if pixbuf not in (None, "ask"):
-                    icon = pixbuf
+                    icon = gtk.Image()
+                    icon.set_from_pixbuf(pixbuf)
                 else:
-                    file_path = get_path_to_generic_or_avatar(jid)
+                    file_path = gtkgui_helpers.get_path_to_generic_or_avatar(jid)
                     if os.path.isfile(file_path):
                         fd = fopen(file_path, 'rb')
                         data = fd.read()
-                        icon = gtkgui_helpers.get_pixbuf_from_data(data)
+                        icon = gtk.Image()
+                        icon.set_from_pixbuf(gtkgui_helpers.get_pixbuf_from_data(data))
             item = gtk.ImageMenuItem(contact + " (1)")
             if icon:
-                item.setImage(icon)
+                item.set_image(icon)
                 item.set_always_show_image(True)
             item.connect("activate", self.event_raise, event)
             item.show()
