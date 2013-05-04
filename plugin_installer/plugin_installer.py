@@ -35,6 +35,7 @@ import zipfile
 from common import gajim
 from plugins import GajimPlugin
 from plugins.helpers import log_calls, log
+from conversation_textview import ConversationTextview
 from dialogs import WarningDialog, HigDialog, YesNoDialog
 from plugins.gui import GajimPluginConfigDialog
 
@@ -188,7 +189,7 @@ class PluginInstaller(GajimPlugin):
         widgets_to_extract = ('plugin_name_label1',
         'available_treeview', 'progressbar', 'inslall_upgrade_button',
         'plugin_authors_label1', 'plugin_authors_label1',
-        'plugin_homepage_linkbutton1', 'plugin_description_textview1')
+        'plugin_homepage_linkbutton1')
 
         for widget_name in widgets_to_extract:
             setattr(self, widget_name, self.xml.get_object(widget_name))
@@ -247,6 +248,11 @@ class PluginInstaller(GajimPlugin):
         selection.set_mode(Gtk.SelectionMode.SINGLE)
 
         self._clear_available_plugin_info()
+
+        self.plugin_description_textview = ConversationTextview(None)
+        sw = self.xml.get_object('scrolledwindow1')
+        sw.add(self.plugin_description_textview.tv)
+
         self.xml.connect_signals(self)
         self.window.show_all()
 
@@ -349,6 +355,11 @@ class PluginInstaller(GajimPlugin):
 
     def available_plugins_treeview_selection_changed(self, treeview_selection):
         model, iter = treeview_selection.get_selected()
+        self.xml.get_object('scrolledwindow1').get_children()[0].destroy()
+        self.plugin_description_textview = ConversationTextview(None)
+        sw = self.xml.get_object('scrolledwindow1')
+        sw.add(self.plugin_description_textview.tv)
+        sw.show_all()
         if iter:
             self.plugin_name_label1.set_text(model.get_value(iter, C_NAME))
             self.plugin_authors_label1.set_text(model.get_value(iter, C_AUTHORS))
@@ -359,9 +370,13 @@ class PluginInstaller(GajimPlugin):
             label = self.plugin_homepage_linkbutton1.get_children()[0]
             label.set_ellipsize(Pango.EllipsizeMode.END)
             self.plugin_homepage_linkbutton1.set_property('sensitive', True)
-            desc_textbuffer = self.plugin_description_textview1.get_buffer()
-            desc_textbuffer.set_text(_(model.get_value(iter, C_DESCRIPTION)))
-            self.plugin_description_textview1.set_property('sensitive', True)
+            desc = _(model.get_value(iter, C_DESCRIPTION))
+            if not desc.startswith('<body '):
+                desc = '<body  xmlns=\'http://www.w3.org/1999/xhtml\'>' + \
+                    desc + ' </body>'
+            self.plugin_description_textview.tv.display_html(
+                desc, self.plugin_description_textview)
+            self.plugin_description_textview.tv.set_property('sensitive', True)
         else:
             self._clear_available_plugin_info()
 
@@ -371,10 +386,6 @@ class PluginInstaller(GajimPlugin):
         self.plugin_homepage_linkbutton1.set_uri('')
         self.plugin_homepage_linkbutton1.set_label('')
         self.plugin_homepage_linkbutton1.set_property('sensitive', False)
-
-        desc_textbuffer = self.plugin_description_textview1.get_buffer()
-        desc_textbuffer.set_text('')
-        self.plugin_description_textview1.set_property('sensitive', False)
 
     def scan_dir_for_plugin(self, path):
         plugins_found = []

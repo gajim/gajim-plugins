@@ -1,9 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
   <!-- interface-requires gtk+ 3.0 -->
-  <object class="GtkTextBuffer" id="textbuffer1">
-    <property name="text">Plug-in decription should be displayed here. This text will be erased during PluginsWindow initialization.</property>
-  </object>
   <object class="GtkWindow" id="window1">
     <property name="can_focus">False</property>
     <child>
@@ -30,9 +27,7 @@
                     <property name="can_focus">True</property>
                     <property name="search_column">1</property>
                     <child internal-child="selection">
-                      <object class="GtkTreeSelection" id="treeview-selection1">
-                        <property name="mode">none</property>
-                      </object>
+                      <object class="GtkTreeSelection" id="treeview-selection1"/>
                     </child>
                   </object>
                 </child>
@@ -46,9 +41,6 @@
             <child>
               <object class="GtkProgressBar" id="progressbar">
                 <property name="can_focus">False</property>
-                <property name="margin_left">6</property>
-                <property name="margin_right">6</property>
-                <property name="show_text">True</property>
                 <property name="ellipsize">end</property>
               </object>
               <packing>
@@ -74,12 +66,9 @@
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <property name="xalign">0</property>
-                <property name="label">empty</property>
+                <property name="label">&lt;empty&gt;</property>
                 <property name="selectable">True</property>
                 <property name="ellipsize">end</property>
-                <attributes>
-                  <attribute name="weight" value="bold"/>
-                </attributes>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -210,14 +199,13 @@
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkTextView" id="plugin_description_textview1">
+                  <object class="GtkScrolledWindow" id="scrolledwindow1">
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
-                    <property name="pixels_above_lines">6</property>
-                    <property name="wrap_mode">word</property>
-                    <property name="left_margin">6</property>
-                    <property name="right_margin">6</property>
-                    <property name="indent">1</property>
+                    <property name="shadow_type">in</property>
+                    <child>
+                      <placeholder/>
+                    </child>
                   </object>
                   <packing>
                     <property name="expand">True</property>
@@ -309,7 +297,7 @@
           </object>
           <packing>
             <property name="resize">True</property>
-            <property name="shrink">False</property>
+            <property name="shrink">True</property>
           </packing>
         </child>
       </object>
@@ -366,7 +354,7 @@
             <property name="receives_default">False</property>
             <property name="use_action_appearance">False</property>
             <property name="focus_on_click">False</property>
-            <property name="xalign">0</property>
+            <property name="xalign">0.5</property>
             <property name="draw_indicator">True</property>
             <signal name="toggled" handler="on_check_update_toggled" swapped="no"/>
           </object>
@@ -385,7 +373,7 @@
             <property name="receives_default">False</property>
             <property name="use_action_appearance">False</property>
             <property name="focus_on_click">False</property>
-            <property name="xalign">0</property>
+            <property name="xalign">0.5</property>
             <property name="draw_indicator">True</property>
             <signal name="toggled" handler="on_tls_toggled" swapped="no"/>
           </object>
