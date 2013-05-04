@@ -184,7 +184,7 @@ class EmoticonsPackPlugin(GajimPlugin):
                 desc = '<body  xmlns=\'http://www.w3.org/1999/xhtml\'>' + \
                     desc + ' </body>'
             desc = desc.replace('preview.image', ('file:' + os.path.join(
-                    self.tmp_dir, name, 'preview.png')))
+                    self.tmp_dir, name, 'preview.png'))).replace('\n', '<br/>')
             self.emoticons_description_textview.tv.display_html(
                 desc, self.emoticons_description_textview)
             self.emoticons_description_textview.tv.set_property('sensitive', True)
