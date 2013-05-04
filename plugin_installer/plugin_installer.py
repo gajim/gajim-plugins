@@ -374,6 +374,7 @@ class PluginInstaller(GajimPlugin):
             if not desc.startswith('<body '):
                 desc = '<body  xmlns=\'http://www.w3.org/1999/xhtml\'>' + \
                     desc + ' </body>'
+                desc = desc.replace('\n', '<br/>')
             self.plugin_description_textview.tv.display_html(
                 desc, self.plugin_description_textview)
             self.plugin_description_textview.tv.set_property('sensitive', True)
