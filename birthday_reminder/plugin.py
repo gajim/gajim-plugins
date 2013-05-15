@@ -2,7 +2,7 @@ import os
 import glob
 import datetime
 from xml.dom.minidom import *
-import gobject
+from gi.repository import GObject
 
 from plugins import GajimPlugin
 from plugins.helpers import log_calls
@@ -46,7 +46,7 @@ class BirthDayPlugin(GajimPlugin):
 
         today = datetime.date.today()
 
-        for key, value in date_dict.iteritems():
+        for key, value in date_dict.items():
             try:
                 convert_date = datetime.datetime.strptime(value, "%Y-%m-%d")
                 user_bday = datetime.date(today.year, convert_date.month,
@@ -78,11 +78,10 @@ class BirthDayPlugin(GajimPlugin):
     @log_calls('BirthDayPlugin')
     def activate(self):
         self.check_birthdays()
-        self.timeout_id = gobject.timeout_add_seconds(24*3600,
+        self.timeout_id = GObject.timeout_add_seconds(24*3600,
             self.check_birthdays)
 
     @log_calls('BirthDayPlugin')
     def deactivate(self):
         if self.timeout_id > 0:
-            gobject.source_remove(self.timeout_id)
-
+            GObject.source_remove(self.timeout_id)

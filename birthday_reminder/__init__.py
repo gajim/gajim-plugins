@@ -1,1 +1,1 @@
-from plugin import BirthDayPlugin
+from .plugin import BirthDayPlugin
