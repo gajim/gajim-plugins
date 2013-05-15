@@ -185,6 +185,15 @@ class Triggers(GajimPlugin):
                 apply_func(obj, rule)
                 # Should we stop after first valid rule ?
                 # break
+        new_num = 0
+        new_config = {}
+        while str(num) in self.config:
+            rule = self.config[str(num)]
+            if not rule['one_shot']:
+                new_config[new_num] = self.config[num].copy()
+                new_num += 1
+            num += 1
+        self.config = new_config
 
     def _nec_notif(self, obj):
         self._nec_all(obj, self.check_rule_apply_notif, self.apply_rule_notif)
@@ -218,7 +227,8 @@ class TriggersPluginConfigDialog(GajimPluginConfigDialog):
     recipient_types_list = ['contact', 'group', 'all']
     config_options = ['event', 'recipient_type', 'recipients', 'status',
         'tab_opened', 'sound', 'sound_file', 'popup', 'auto_open',
-        'run_command', 'command', 'systray', 'roster', 'urgency_hint']
+        'run_command', 'command', 'systray', 'roster', 'urgency_hint',
+        'one_shot']
 
     def init(self):
         self.GTK_BUILDER_FILE_PATH = self.plugin.local_file_path(
@@ -242,7 +252,7 @@ class TriggersPluginConfigDialog(GajimPluginConfigDialog):
         'use_systray_cb', 'disable_systray_cb', 'use_roster_cb',
         'disable_roster_cb', 'tab_opened_cb', 'not_tab_opened_cb',
         'sound_entry', 'sound_file_hbox', 'up_button', 'down_button',
-        'run_command_cb', 'command_entry', 'use_urgency_hint_cb',
+        'run_command_cb', 'command_entry', 'one_shot_cb', 'use_urgency_hint_cb',
         'disable_urgency_hint_cb'):
             self.__dict__[w] = self.xml.get_object(w)
 
@@ -375,6 +385,13 @@ class TriggersPluginConfigDialog(GajimPluginConfigDialog):
         value = self.config[self.active_num]['command']
         self.command_entry.set_text(value)
 
+        # one shot
+        if 'one_shot' in self.config[self.active_num]:
+            value = self.config[self.active_num]['one_shot']
+        else:
+            value = False
+        self.one_shot_cb.set_active(value)
+
     def set_treeview_string(self):
         (model, iter_) = self.conditions_treeview.get_selection().get_selected()
         if not iter_:
@@ -420,7 +437,7 @@ class TriggersPluginConfigDialog(GajimPluginConfigDialog):
             'recipients': '', 'status': 'all', 'tab_opened': 'both',
             'sound': '', 'sound_file': '', 'popup': '', 'auto_open': '',
             'run_command': False, 'command': '', 'systray': '', 'roster': '',
-            'urgency_hint': False}
+            'one_shot': False, 'urgency_hint': False}
         iter_ = model.append((num, ''))
         path = model.get_path(iter_)
         self.conditions_treeview.set_cursor(path)
@@ -660,6 +677,10 @@ class TriggersPluginConfigDialog(GajimPluginConfigDialog):
 
     def on_disable_roster_cb_toggled(self, widget):
         self.on_disable_it_toggled(widget, self.use_roster_cb, 'roster')
+
+    def on_one_shot_cb_toggled(self, widget):
+        self.config[self.active_num]['one_shot'] = widget.get_active()
+        self.command_entry.set_sensitive(widget.get_active())
 
     def on_use_urgency_hint_cb_toggled(self, widget):
         self.on_use_it_toggled(widget, self.disable_urgency_hint_cb,
