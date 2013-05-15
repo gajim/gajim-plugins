@@ -27,13 +27,18 @@ Whiteboard plugin.
 :license: GPL
 '''
 
-
+import common
 from common import helpers
 from common import gajim
 from plugins import GajimPlugin
 from plugins.plugin import GajimPluginException
 from plugins.helpers import log_calls, log
-import common.xmpp
+from common import gajim
+ver = list(gajim.config.get('version').split('.'))
+if ver < [0, 15, 3, 0]:
+    from common.xmpp import Message
+else:
+    from nbxmpp import Message
 import gtk
 import chat_control
 from common import ged
@@ -42,7 +47,6 @@ from common.jingle_content import JingleContent
 from common.jingle_transport import JingleTransport, TransportType
 import dialogs
 from whiteboard_widget import Whiteboard, HAS_GOOCANVAS
-from common import xmpp
 from common import caps_cache
 
 NS_JINGLE_XHTML = 'urn:xmpp:tmp:jingle:apps:xhtml'
@@ -412,7 +416,7 @@ class JingleWhiteboard(JingleContent):
         # sends new item
         jid = self.session.peerjid
         sid = self.session.sid
-        message = xmpp.Message(to=jid)
+        message = Message(to=jid)
         sxe = message.addChild(name='sxe', attrs={'session': sid},
             namespace=NS_SXE)
 
@@ -435,7 +439,7 @@ class JingleWhiteboard(JingleContent):
         self.session.connection.connection.send(message)
 
     def delete_whiteboard_node(self, rids):
-        message = xmpp.Message(to=self.session.peerjid)
+        message = Message(to=self.session.peerjid)
         sxe = message.addChild(name='sxe', attrs={'session': self.session.sid},
             namespace=NS_SXE)
 
