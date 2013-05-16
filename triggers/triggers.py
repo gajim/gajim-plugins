@@ -186,6 +186,7 @@ class Triggers(GajimPlugin):
                 # Should we stop after first valid rule ?
                 # break
         new_num = 0
+        num = 0
         new_config = {}
         while str(num) in self.config:
             rule = self.config[str(num)]
