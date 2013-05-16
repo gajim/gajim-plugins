@@ -189,7 +189,7 @@ class Triggers(GajimPlugin):
         new_config = {}
         while str(num) in self.config:
             rule = self.config[str(num)]
-            if not rule['one_shot']:
+            if 'one_shot' in rule and not rule['one_shot']:
                 new_config[new_num] = self.config[num].copy()
                 new_num += 1
             num += 1
