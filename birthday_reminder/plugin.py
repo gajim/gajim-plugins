@@ -34,7 +34,7 @@ class BirthDayPlugin(GajimPlugin):
             contact = gajim.contacts.get_highest_prio_contact_from_contacts(
                 contact_instances)
             if contact:
-                nick = gobject.markup_escape_text(contact.get_shown_name())
+                nick = GObject.markup_escape_text(contact.get_shown_name())
                 try:
                     image = os.path.dirname(__file__) + os.sep + \
                             'birthday_reminder_large.png'
@@ -103,7 +103,6 @@ class BirthDayPlugin(GajimPlugin):
 
     @log_calls('BirthDayPlugin')
     def activate(self):
-        self.check_birthdays()
         self.timeout_id = GObject.timeout_add_seconds(24*3600,
             self.check_birthdays)
 
@@ -118,4 +117,3 @@ class BirthDayPlugin(GajimPlugin):
         if obj.conn.name not in self.showed_accounts:
             self.check_birthdays(obj.conn.name)
             self.showed_accounts.append(obj.conn.name)
-
