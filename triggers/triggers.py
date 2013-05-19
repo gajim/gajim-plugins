@@ -21,6 +21,7 @@
 
 import gtk
 import sys
+import os
 
 from common import gajim
 from plugins import GajimPlugin
@@ -28,6 +29,7 @@ from plugins.helpers import log_calls
 from plugins.gui import GajimPluginConfigDialog
 from common import ged
 from common import helpers
+from dialogs import SoundChooserDialog
 
 
 class Triggers(GajimPlugin):
