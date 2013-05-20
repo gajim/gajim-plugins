@@ -181,22 +181,28 @@ class Triggers(GajimPlugin):
         # check rules in order
         rules_num = [int(i) for i in self.config.keys()]
         rules_num.sort()
+        to_remove = []
         for num in rules_num:
             rule = self.config[str(num)]
             if check_func(obj, rule):
                 apply_func(obj, rule)
+                if 'one_shot' in rule and rule['one_shot']:
+                    to_remove.append(num)
                 # Should we stop after first valid rule ?
                 # break
-        new_num = 0
+
+        decal = 0
         num = 0
-        new_config = {}
         while str(num) in self.config:
-            rule = self.config[str(num)]
-            if 'one_shot' in rule and not rule['one_shot']:
-                new_config[new_num] = self.config[num].copy()
-                new_num += 1
-            num += 1
-        self.config = new_config
+            if (num + decal) in to_remove:
+                num2 = num
+                while str(num2 + 1) in self.config:
+                    self.config[str(num2)] = self.config[str(num2 + 1)].copy()
+                    num2 += 1
+                del self.config[str(num2)]
+                decal += 1
+            else:
+                num += 1
 
     def _nec_notif(self, obj):
         self._nec_all(obj, self.check_rule_apply_notif, self.apply_rule_notif)
@@ -501,7 +507,7 @@ class TriggersPluginConfigDialog(GajimPluginConfigDialog):
             return
         active = self.event_combobox.get_active()
         if active == -1:
-            event = ''
+            return
         else:
             event = self.events_list.keys()[active]
         self.config[self.active_num]['event'] = event
