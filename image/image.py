@@ -128,8 +128,8 @@ class Base(object):
             msg = 'HTML image'
             extension = os.path.splitext(os.path.split(path_to_file)[1])[1] \
                 .lower()[1:]
-            xhtml = ' <img alt="img" src="data:image/%s;base64,%s"/>' % (
-                extension, img)
+            xhtml = '<body><br/> <img alt="img" src="data:image/%s;base64,%s"/> \
+                    </body>' % (extension, img)
             self.chat_control.send_message(message=msg, xhtml=xhtml)
             self.chat_control.msg_textview.grab_focus()
 
