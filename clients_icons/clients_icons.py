@@ -121,7 +121,7 @@ clients = {
     'http://sim-im.org/caps': ['sim.png', 'Sim'],
     'http://www.igniterealtime.org/project/spark/caps': ['spark.png', 'Spark'],
     'http://emess.eqx.su/caps': ['emess.png', 'Emess'],
-    'http://fin.jabber.ru/caps': ['bot.png', 'Fin-bot'],
+    'http://fin.jabber.ru/caps': ['bot.png', 'Fin jabber'],
     'https://www.jappix.com/': ['jappix.png', 'Jappix'],
     'http://japyt.googlecode.com': ['japyt.png', 'Japyt'],
     'http://www.xfire.com/': ['xfire.png', 'Xfire'],
