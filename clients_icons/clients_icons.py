@@ -51,7 +51,7 @@ clients = {
     'http://online.yandex.ru/caps': ['yaonline.png', 'Yaonline'],
     'http://psi-im.org/caps': ['psi.png', 'Psi'],
     'http://jimm.net.ru/caps': ['jimm-aspro.png', 'Jimm'],
-    'http://stranger.kiev.ua/caps': ['fin.png', 'Fin-bot'],
+    'http://jabga.ru/': ['fin.png', 'Fin-bot'],
     'http://bluendo.com/protocol/caps': ['lampiro.png', 'Lampiro'],
     'nimbuzz:caps': ['nimbuzz.png', 'Nimbuzz'],
     'http://nimbuzz.com/caps': ['nimbuzz.png', 'Nimbuzz'],
