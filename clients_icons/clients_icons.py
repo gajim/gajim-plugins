@@ -145,6 +145,7 @@ clients = {
     'http://opensource.palm.com/packages.html': ['palm.png', 'Palm'],
     'http://spectrum.im/': ['spectrum.png', 'Spectrum'],
     'http://tigase.org/messenger': ['tigase.png', 'Tigase'],
+    'httр://sleekxmpp.com/ver/1.1.11': ['poezio.png', 'Poezio'],
 }
 libpurple_clients ={
     'adium': 'http://www.adium.im/',
@@ -312,6 +313,9 @@ class ClientsIconsPlugin(GajimPlugin):
             for client in libpurple_clients:
                 if client in contact.resource.lower():
                     caps = libpurple_clients[client]
+
+        if 'sleekxmpp.com'in caps:
+            caps = 'httр://sleekxmpp.com/ver/1.1.11'
 
         caps_from_jid = self.check_jid(contact.jid)
         if caps_from_jid:
@@ -531,6 +535,8 @@ class ClientsIconsPlugin(GajimPlugin):
                     for client in libpurple_clients:
                         if client in contact.resource.lower():
                             caps = libpurple_clients[client]
+                if 'sleekxmpp.com'in caps:
+                    caps = 'httр://sleekxmpp.com/ver/1.1.11'
 
         caps_from_jid = self.check_jid(iq_obj.jid)
         if caps_from_jid:
@@ -552,6 +558,8 @@ class ClientsIconsPlugin(GajimPlugin):
             caps = tag[0].getAttr('node')
             if 'pidgin.im' in caps:
                 caps = 'libpurple'
+            if 'sleekxmpp.com' in caps:
+                caps = 'httр://sleekxmpp.com/ver/1.1.11'
         iter_ = iq_obj.gc_control.get_contact_iter(iq_obj.nick.decode('utf-8'))
         model = iq_obj.gc_control.model
         if model[iter_][self.muc_renderer_num] is not None:
