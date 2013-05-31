@@ -16,7 +16,7 @@ class QuickRepliesPlugin(GajimPlugin):
         self.chat_control = None
         self.gui_extension_points = {
             'chat_control_base': (self.connect_with_chat_control,
-                                    self.disconnect_from_chat_control),}
+                                    self.disconnect_from_chat_control), }
         self.config_default_values = {
             'entry1': ('Hello!', ''),
             'entry2': ('How are you?', ''),
@@ -44,6 +44,7 @@ class QuickRepliesPlugin(GajimPlugin):
         for control in self.controls:
             control.disconnect_from_chat_control()
         self.controls = []
+
 
 class Base(object):
 
@@ -108,6 +109,7 @@ class Base(object):
         actions_hbox = self.chat_control.xml.get_object('actions_hbox')
         actions_hbox.remove(self.button)
 
+
 class QuickRepliesPluginConfigDialog(GajimPluginConfigDialog):
 
     def init(self):
@@ -133,4 +135,3 @@ class QuickRepliesPluginConfigDialog(GajimPluginConfigDialog):
         self.plugin.config[name] = widget.get_text()
         for control in self.plugin.controls:
             control.create_menu()
-
