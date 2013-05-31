@@ -42,7 +42,7 @@ class QuickRepliesPlugin(GajimPlugin):
     def disconnect_from_chat_control(self, chat_control):
 
         for control in self.controls:
-            control.disconnect_from_chat_contro()
+            control.disconnect_from_chat_control()
         self.controls = []
 
 class Base(object):
@@ -53,7 +53,6 @@ class Base(object):
         self.chat_control = chat_control
         self.create_menu()
         self.create_button()
-
 
     def create_button(self):
 
@@ -80,12 +79,10 @@ class Base(object):
         self.chat_control.handlers[id_] = self.button
         self.button.show()
 
-
     def on_button_cliecked(self, widget):
 
         gtkgui_helpers.popup_emoticons_under_button(self.menu, widget,
                                                 self.chat_control.parent_win)
-
 
     def on_insert(self, widget, text):
 
@@ -106,6 +103,10 @@ class Base(object):
             item.connect('activate', self.on_insert, text)
             self.menu.append(item)
         self.menu.show_all()
+
+    def disconnect_from_chat_control(self):
+        actions_hbox = self.chat_control.xml.get_object('actions_hbox')
+        actions_hbox.remove(self.button)
 
 class QuickRepliesPluginConfigDialog(GajimPluginConfigDialog):
 
