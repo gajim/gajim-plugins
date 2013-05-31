@@ -1,0 +1,1 @@
+# Gajim plugin QuickReplies
