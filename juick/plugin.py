@@ -9,6 +9,9 @@ from string import upper
 from string import rstrip
 import locale
 import sqlite3
+import json
+import urllib2
+import gobject
 
 from common import helpers
 from common import gajim
@@ -375,20 +378,7 @@ class Base(object):
                 return
             else:
                 # nick not in the db
-                id_ = conn.connection.getAnID()
-                to = 'juick@juick.com'
-                if not nb_xmpp:
-                    iq = common.xmpp.Iq('get', to=to)
-                else:
-                    iq = nbxmpp.Iq('get', to=to)
-                a = iq.addChild(name='query',
-                    namespace='http://juick.com/query#users')
-                a.addChild(name='user', namespace='http://juick.com/user',
-                    attrs={'uname': nick})
-                iq.setID(id_)
-                conn.connection.SendAndCallForResponse(iq, self._on_response,
-                    {'mark': mark, 'special_text': special_text})
-                self.textview.plugin_modified = True
+                gobject.idle_add(self.get_new_avatar, mark, nick)
                 return
         if gajim.interface.juick_pic_re.match(special_text) and \
             self.plugin.config['SHOW_PREVIEW']:
@@ -422,24 +412,22 @@ class Base(object):
         tag = ttable.lookup(tag_name)
         return buffer_, buffer_.get_end_iter(), tag
 
-    def _on_response(self, a, resp, **kwargs):
-        # insert avatar to text mark
-        mark = kwargs['mark']
+    def get_new_avatar(self, mark, nick):
+        try:
+            req = urllib2.Request('http://api.juick.com/users?uname=%s' % nick)
+            response = urllib2.urlopen(req)
+            j = json.load(response)
+            _id = str(j[0]['uid'])
+        except urllib2.HTTPError, e:
+            return
         buffer_ = mark.get_buffer()
         end_iter = buffer_.get_iter_at_mark(mark)
-        tags = resp.getTag('query')
-        nick = kwargs['special_text'][1:].rstrip(':')
-        if tags:
-            user = tags.getTag('user')
-            if not user:
-                return
-            uid = user.getAttr('uid')
-            pixbuf = self.get_avatar(uid, nick)
-            anchor = buffer_.create_child_anchor(end_iter)
-            img = TextViewImage(anchor, nick)
-            img.set_from_pixbuf(pixbuf)
-            img.show()
-            self.textview.tv.add_child_at_anchor(img, anchor)
+        pixbuf = self.get_avatar(_id, nick)
+        anchor = buffer_.create_child_anchor(end_iter)
+        img = TextViewImage(anchor, nick)
+        img.set_from_pixbuf(pixbuf)
+        img.show()
+        self.textview.tv.add_child_at_anchor(img, anchor)
 
 
 
@@ -448,7 +436,7 @@ class Base(object):
         pic = uid + '.png'
         pic_path = os.path.join(self.plugin.cache_path, pic)
         pic_path = pic_path.decode(locale.getpreferredencoding())
-        url = 'http://i.juick.com/as/%s.png' % uid
+        url = 'http://api.juick.com/avatar?uname=%s&size=32' % nick
         if need_check and os.path.isfile(pic_path):
             max_old = self.plugin.config['avatars_old']
             if (time.time() - os.stat(pic_path).st_mtime) < max_old:
