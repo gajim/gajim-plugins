@@ -146,6 +146,7 @@ clients = {
     'http://spectrum.im/': ['spectrum.png', 'Spectrum'],
     'http://tigase.org/messenger': ['tigase.png', 'Tigase'],
     'httр://sleekxmpp.com/ver/1.1.11': ['poezio.png', 'Poezio'],
+    'http://jitsi.org' :['jitsi.png', 'Jitsi'],
 }
 libpurple_clients ={
     'adium': 'http://www.adium.im/',
