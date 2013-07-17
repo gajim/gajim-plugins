@@ -611,12 +611,9 @@ class Ftp(threading.Thread):
 
             # creating dirs
             for dir_ in dirs:
-                try:
-                    os.mkdir(os.path.join(local_dir, dir_))
-                except OSError, e:
-                    if str(e).startswith('[Errno 17]'):
-                        continue
-                    raise
+                if os.path.exists(os.path.join(local_dir, dir_)):
+                    continue
+                os.mkdir(os.path.join(local_dir, dir_))
 
             # downloading files
             for filename in files:
