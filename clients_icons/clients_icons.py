@@ -51,7 +51,7 @@ clients = {
     'http://online.yandex.ru/caps': ['yaonline.png', 'Yaonline'],
     'http://psi-im.org/caps': ['psi.png', 'Psi'],
     'http://jimm.net.ru/caps': ['jimm-aspro.png', 'Jimm'],
-    'http://jabga.ru/': ['fin.png', 'Fin jabber'],
+    'http://jabga.ru': ['fin.png', 'Fin jabber'],
     'http://bluendo.com/protocol/caps': ['lampiro.png', 'Lampiro'],
     'nimbuzz:caps': ['nimbuzz.png', 'Nimbuzz'],
     'http://nimbuzz.com/caps': ['nimbuzz.png', 'Nimbuzz'],
@@ -283,7 +283,7 @@ class ClientsIconsPlugin(GajimPlugin):
         if not caps:
             return Gtk.Image.new_from_pixbuf(self.default_pixbuf), _('Unknown')
 
-        if 'pidgin.im' in caps:
+        if 'pidgin.im/' in caps:
             caps = 'libpurple'
             for client in libpurple_clients:
                 if client in contact.resource.lower():
@@ -505,7 +505,7 @@ class ClientsIconsPlugin(GajimPlugin):
         if tag:
             caps = tag[0].getAttr('node')
             if caps:
-                if 'pidgin.im' in caps:
+                if 'pidgin.im/' in caps:
                     caps = 'libpurple'
                     for client in libpurple_clients:
                         if client in contact.resource.lower():
@@ -531,7 +531,7 @@ class ClientsIconsPlugin(GajimPlugin):
         tag = iq_obj.stanza.getTags('c')
         if tag:
             caps = tag[0].getAttr('node')
-            if 'pidgin.im' in caps:
+            if 'pidgin.im/' in caps:
                 caps = 'libpurple'
             if 'sleekxmpp.com' in caps:
                 caps = 'httр://sleekxmpp.com/ver/1.1.11'
