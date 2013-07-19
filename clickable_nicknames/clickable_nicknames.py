@@ -124,7 +124,7 @@ class Base(object):
             nick = nick.lstrip(gajim.config.get('before_nickname'))
             nicks = gajim.contacts.get_nick_list(self.chat_control.account,
                 self.chat_control.room_jid)
-            if '-' in gajim.version:
+            if u'\u200E' in nick or u'\u200F' in nick:
                 if nick[1:] not in nicks:
                     return
             else:
