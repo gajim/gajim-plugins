@@ -37,10 +37,15 @@ class UrlShortenerPlugin(GajimPlugin):
                 'SHORTEN_OUTGOING': (False, ''),}
         self.events_handlers['message-outgoing'] = (ged.OUT_PRECORE,
                 self.handle_outgoing_msg)
+        self.events_handlers['gc-message-outgoing'] = (ged.OUT_PRECORE,
+                self.handle_outgoing_msg)
         self.chat_control = None
         self.controls = []
+        self.is_active = None
 
     def handle_outgoing_msg(self, event):
+        if not self.active:
+            return
         if not event.message:
             return
         if not self.config['SHORTEN_OUTGOING']:
@@ -96,6 +101,13 @@ class UrlShortenerPlugin(GajimPlugin):
             if control.chat_control == chat_control:
                 control.disconnect_from_chat_control()
                 self.controls.remove(control)
+
+    def activate(self):
+        self.active = True
+
+    def deactivate(self):
+        self.active = False
+
 
 class Base(object):
     def __init__(self, plugin, chat_control):
