@@ -14,8 +14,10 @@ class GuiForMe(GajimPlugin):
         self.description = _('Gui for the \'/me\' command.')
         self.config_dialog = None  # GuiForMePluginConfigDialog(self)
         self.gui_extension_points = {
-                'chat_control_base': (self.connect_with_chat_control,
-                                       self.disconnect_from_chat_control)}
+            'chat_control_base': (self.connect_with_chat_control,
+                                  self.disconnect_from_chat_control),
+            'chat_control_base_update_toolbar': (self.update_button_state,
+                                                None)}
         self.controls = []
 
     @log_calls('GuiForMePlugin')
@@ -33,6 +35,13 @@ class GuiForMe(GajimPlugin):
         for control in self.controls:
             control.disconnect_from_chat_control()
         self.controls = []
+
+    @log_calls('GuiForMePlugin')
+    def update_button_state(self, chat_control):
+        for base in self.controls:
+            if base.chat_control != chat_control:
+                continue
+            base.button.set_sensitive(chat_control.msg_textview.get_sensitive())
 
 
 class Base(object):
