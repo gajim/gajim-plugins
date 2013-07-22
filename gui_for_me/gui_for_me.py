@@ -41,7 +41,8 @@ class GuiForMe(GajimPlugin):
         for base in self.controls:
             if base.chat_control != chat_control:
                 continue
-            base.button.set_sensitive(chat_control.msg_textview.get_sensitive())
+            base.button.set_sensitive(chat_control.contact.show != 'offline' \
+            and gajim.connections[chat_control.account].connected > 0)
 
 
 class Base(object):

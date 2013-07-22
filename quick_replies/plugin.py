@@ -1,5 +1,6 @@
 import gtk
 import gtkgui_helpers
+from common import gajim
 
 from plugins import GajimPlugin
 from plugins.gui import GajimPluginConfigDialog
@@ -37,8 +38,8 @@ class QuickRepliesPlugin(GajimPlugin):
     def connect_with_chat_control(self, chat_control):
 
         self.chat_control = chat_control
-        control = Base(self, self.chat_control)
-        self.controls.append(control)
+        base = Base(self, chat_control)
+        self.controls.append(base)
 
     @log_calls('QuickRepliesPlugin')
     def disconnect_from_chat_control(self, chat_control):
@@ -47,12 +48,13 @@ class QuickRepliesPlugin(GajimPlugin):
             control.disconnect_from_chat_control()
         self.controls = []
 
-    @log_calls('GuiForMePlugin')
+    @log_calls('QuickRepliesPlugin')
     def update_button_state(self, chat_control):
         for base in self.controls:
             if base.chat_control != chat_control:
                 continue
-            base.button.set_sensitive(chat_control.msg_textview.get_sensitive())
+            base.button.set_sensitive(chat_control.contact.show != 'offline' \
+            and gajim.connections[chat_control.account].connected > 0)
 
 
 class Base(object):
