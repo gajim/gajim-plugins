@@ -40,7 +40,9 @@ class JuickPlugin(GajimPlugin):
                 'chat_control_base': (self.connect_with_chat_control,
                                        self.disconnect_from_chat_control),
                 'print_special_text': (self.print_special_text,
-                                       self.print_special_text1),}
+                                       self.print_special_text1),
+                'chat_control_base_update_toolbar': (self.update_button_state,
+                                        None)}
         self.config_default_values = {'SHOW_AVATARS': (False, ''),
                     'AVATAR_SIZE': (20, 'Avatar size(10-32)'),
                     'avatars_old': (2419200, 'Update avatars '
@@ -102,6 +104,15 @@ class JuickPlugin(GajimPlugin):
             if control.chat_control == chat_control:
                 control.disconnect_from_chat_control()
                 self.controls.remove(control)
+
+    def update_button_state(self, chat_control):
+        for base in self.controls:
+            if base.chat_control != chat_control:
+                continue
+            state = gajim.connections[chat_control.account].connected > 0
+            base.button.set_sensitive(state)
+            base.tag_button.set_sensitive(state)
+
 
 class Base(object):
     def __init__(self, plugin, chat_control):
