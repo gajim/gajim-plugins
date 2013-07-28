@@ -1,12 +1,71 @@
-from common import xmpp
-from common import helpers
-from common import gajim
-from common import XMPPDispatcher
-from common.xmpp import Hashes
+import nbxmpp
+from nbxmpp import Hashes
+
+try:
+    from common import helpers
+    from common import gajim
+except ImportError:
+    print "Import Error: Ignore if we are testing"
+
 # Namespace for file sharing
 NS_FILE_SHARING = 'http://gajim.org/protocol/filesharing'
 
 class Protocol():
+    '''
+    Creates and extracts information from stanzas
+    '''
+
+
+    def __init__(self, ourjid):
+        # set our jid with resource
+        self.ourjid = ourjid
+
+    def request(self, contact, stanzaID, path=None):
+        iq = nbxmpp.Iq(typ='get', to=contact, frm=self.ourjid)
+        iq.setID(stanzaID)
+        query = iq.setQuery()
+        query.setNamespace(NS_FILE_SHARING)
+        query.setAttr('node', path)
+        return iq
+
+    def buildReply(self, typ, stanza):
+        iq = nbxmpp.Iq(typ, to=stanza.getFrom(), frm=stanza.getTo(),
+            attrs={'id': stanza.getID()})
+        iq.addChild(name='match', namespace=NS_FILE_SHARING)
+        return iq
+
+
+    def offer(self, id_, contact, items):
+        iq = nbxmpp.Iq(typ='result', to=contact, frm=self.ourjid,
+                     attrs={'id': id_})
+        match = iq.addChild(name='match', namespace=NS_FILE_SHARING)
+        offer = match.addChild(name='offer')
+        if len(items) == 0:
+            offer.addChild(name='directory')
+        else:
+            for i in items:
+                # if it is a directory
+                if i[5] == True:
+                    item = offer.addChild(name='directory')
+                    name = item.addChild('name')
+                    name.setData('/' + i[0])
+                else:
+                    item = offer.addChild(name='file')
+                    item.addChild('name').setData('/' + i[0])
+                    if i[1] != '':
+                        h = Hashes()
+                        h.addHash(i[1], 'sha-1')
+                        item.addChild(node=h)
+                    item.addChild('size').setData(i[2])
+                    item.addChild('desc').setData(i[3])
+                    item.addChild('date').setData(i[4])
+        return iq
+
+class ProtocolDispatcher():
+    '''
+    Sends and receives stanzas
+    '''
+
 
     def __init__(self, account, plugin):
         self.account = account
@@ -16,27 +75,24 @@ class Protocol():
         self.ourjid = gajim.get_jid_from_account(self.account)
         self.fsw = None
 
+
+    def set_window(self, fsw):
+        self.fsw = fsw
+
+
     def set_window(self, window):
         self.fsw = window
 
-    def request(self, contact, name=None, isFile=False):
-        iq = xmpp.Iq(typ='get', to=contact, frm=self.ourjid)
-        match = iq.addChild(name='match', namespace=NS_FILE_SHARING)
-        request = match.addChild(name='request')
-        if not isFile and name is None:
-            request.addChild(name='directory')
-        elif not isFile and name is not None:
-            dir_ = request.addChild(name='directory')
-            dir_.addChild(name='name').addData('/' + name)
-        elif isFile:
-            pass
-        return iq
 
-    def __buildReply(self, typ, stanza):
-        iq = xmpp.Iq(typ, to=stanza.getFrom(), frm=stanza.getTo(),
-            attrs={'id': stanza.getID()})
-        iq.addChild(name='match', namespace=NS_FILE_SHARING)
-        return iq
+    def handler(self, stanza):
+        # handles incoming match stanza
+        if stanza.getTag('match').getTag('offer'):
+            self.on_offer(stanza)
+        elif stanza.getTag('match').getTag('request'):
+            self.on_request(stanza)
+        else:
+            # TODO: reply with malformed stanza error
+            pass
 
     def on_request(self, stanza):
         try:
@@ -98,44 +154,6 @@ class Protocol():
                 row = self.fsw.ts_search.append(parent, ('',))
                 self.fsw.empty_row_child[dir_] = row
 
-    def handler(self, stanza):
-        # handles incoming match stanza
-        if stanza.getTag('match').getTag('offer'):
-            self.on_offer(stanza)
-        elif stanza.getTag('match').getTag('request'):
-            self.on_request(stanza)
-        else:
-            # TODO: reply with malformed stanza error
-            pass
-
-    def offer(self, id_, contact, items):
-        iq = xmpp.Iq(typ='result', to=contact, frm=self.ourjid,
-                     attrs={'id': id_})
-        match = iq.addChild(name='match', namespace=NS_FILE_SHARING)
-        offer = match.addChild(name='offer')
-        if len(items) == 0:
-            offer.addChild(name='directory')
-        else:
-            for i in items:
-                # if it is a directory
-                if i[5] == True:
-                    item = offer.addChild(name='directory')
-                    name = item.addChild('name')
-                    name.setData('/' + i[0])
-                else:
-                    item = offer.addChild(name='file')
-                    item.addChild('name').setData('/' + i[0])
-                    if i[1] != '':
-                        h = Hashes()
-                        h.addHash(i[1], 'sha-1')
-                        item.addChild(node=h)
-                    item.addChild('size').setData(i[2])
-                    item.addChild('desc').setData(i[3])
-                    item.addChild('date').setData(i[4])
-        return iq
-
-    def set_window(self, fsw):
-        self.fsw = fsw
 
 
 def get_files_info(stanza):
