@@ -8,7 +8,7 @@ except ImportError:
     print "Import Error: Ignore if we are testing"
 
 # Namespace for file sharing
-NS_FILE_SHARING = 'http://gajim.org/protocol/filesharing'
+NS_FILE_SHARING = 'urn:xmpp:fis'
 
 class Protocol():
     '''
@@ -25,7 +25,8 @@ class Protocol():
         iq.setID(stanzaID)
         query = iq.setQuery()
         query.setNamespace(NS_FILE_SHARING)
-        query.setAttr('node', path)
+        if path:
+            query.setAttr('node', path)
         return iq
 
     def buildReply(self, typ, stanza):
@@ -34,31 +35,40 @@ class Protocol():
         iq.addChild(name='match', namespace=NS_FILE_SHARING)
         return iq
 
+    def buildFileNode(self, file_info):
+        node = nbxmpp.Node(tag='file')
+        node.setNamespace(nbxmpp.NS_JINGLE_FILE_TRANSFER)
+        if not file_info['name']:
+            raise Exception("Child name is required.")
+        node.addChild(name='name').setData(file_info['name'])
+        if file_info['date']:
+            node.addChild(name='date').setData(file_info['date'])
+        if file_info['desc']:
+            node.addChild(name='desc').setData(file_info['desc'])
+        if file_info['size']:
+            node.addChild(name='size').setData(file_info['size'])
+        if file_info['hash']:
+            h = Hashes()
+            h.addHash(file_info['hash'], 'sha-1')
+            node.addChild(node=h)
+        return node
 
-    def offer(self, id_, contact, items):
+
+    def offer(self, id_, contact, node, items):
         iq = nbxmpp.Iq(typ='result', to=contact, frm=self.ourjid,
                      attrs={'id': id_})
-        match = iq.addChild(name='match', namespace=NS_FILE_SHARING)
-        offer = match.addChild(name='offer')
-        if len(items) == 0:
-            offer.addChild(name='directory')
-        else:
-            for i in items:
-                # if it is a directory
-                if i[5] == True:
-                    item = offer.addChild(name='directory')
-                    name = item.addChild('name')
-                    name.setData('/' + i[0])
-                else:
-                    item = offer.addChild(name='file')
-                    item.addChild('name').setData('/' + i[0])
-                    if i[1] != '':
-                        h = Hashes()
-                        h.addHash(i[1], 'sha-1')
-                        item.addChild(node=h)
-                    item.addChild('size').setData(i[2])
-                    item.addChild('desc').setData(i[3])
-                    item.addChild('date').setData(i[4])
+        query = iq.setQuery()
+        query.setNamespace(NS_FILE_SHARING)
+        if node:
+            query.setAttr('node', node)
+        for item in items:
+            if item['type'] == 'file':
+                fn = self.buildFileNode(item)
+                query.addChild(node=fn)
+            elif item['type'] == 'directory':
+                query.addChild(name='directory',  attrs={'name': item['name']})
+            else:
+                raise Exception("Unexpected Type")
         return iq
 
 class ProtocolDispatcher():
