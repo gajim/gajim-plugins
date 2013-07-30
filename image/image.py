@@ -56,32 +56,32 @@ class ImagePlugin(GajimPlugin):
                 if not is_support_xhtml:
                     text = _('This contact does not support XHTML_IM')
                 else:
-                    text = _('Send image')
+                    text = _('Send image (Alt+L)')
                 base.button.set_tooltip_text(text)
 
 
 class Base(object):
     def __init__(self, plugin, chat_control):
-        ## ALT + L
-        self.id_ = chat_control.msg_textview.connect('key_press_event',
-            self._on_message_textview_key_press_event)
         self.plugin = plugin
         self.chat_control = chat_control
         actions_hbox = chat_control.xml.get_object('actions_hbox')
+
         self.button = Gtk.Button(label=None, stock=None, use_underline=True)
         self.button.set_property('relief', Gtk.ReliefStyle.NONE)
         self.button.set_property('can-focus', False)
         img = Gtk.Image()
         img.set_from_stock('gtk-orientation-portrait', Gtk.IconSize.MENU)
         self.button.set_image(img)
-        self.button.set_tooltip_text('Send image')
+        self.button.set_tooltip_text('Send image (Alt+L)')
+        ag = Gtk.accel_groups_from_object(self.chat_control.parent_win.window)[0]
+        self.button.add_accelerator('activate', ag, Gdk.KEY_L,
+            Gdk.ModifierType.MOD1_MASK, Gtk.AccelFlags.VISIBLE)
         send_button = chat_control.xml.get_object('send_button')
+
         actions_hbox.pack_start(self.button, False, False , 0)
         actions_hbox.reorder_child(self.button,
             len(actions_hbox.get_children()) - 3)
         id_ = self.button.connect('clicked', self.on_image_button_clicked)
-        self.chat_control.handlers[id_] = self.button
-        self.chat_control.handlers[self.id_] = chat_control.msg_textview
         self.button.show()
 
     def _on_message_textview_key_press_event(self, widget, event):
@@ -138,6 +138,3 @@ class Base(object):
     def disconnect_from_chat_control(self):
         actions_hbox = self.chat_control.xml.get_object('actions_hbox')
         actions_hbox.remove(self.button)
-        if self.chat_control.handlers[self.id_].handler_is_connected(self.id_):
-            self.chat_control.handlers[self.id_].disconnect(self.id_)
-            del self.chat_control.handlers[self.id_]
