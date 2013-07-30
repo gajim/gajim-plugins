@@ -1,1 +1,1 @@
-from gui_for_me import GuiForMe
+from .gui_for_me import GuiForMe

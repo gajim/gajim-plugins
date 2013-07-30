@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
-import gtk
+from gi.repository import Gtk
+from gi.repository import GdkPixbuf
 
 from common import gajim
 from plugins import GajimPlugin
@@ -57,25 +58,24 @@ class Base(object):
     def create_buttons(self):
         # create juick button
         actions_hbox = self.chat_control.xml.get_object('actions_hbox')
-        self.button = gtk.Button(label=None, stock=None, use_underline=True)
-        self.button.set_property('relief', gtk.RELIEF_NONE)
+        self.button = Gtk.Button(label=None, stock=None, use_underline=True)
+        self.button.set_property('relief', Gtk.ReliefStyle.NONE)
         self.button.set_property('can-focus', False)
-        img = gtk.Image()
+        img = Gtk.Image()
         img_path = self.plugin.local_file_path('gui_for_me.png')
-        pixbuf = gtk.gdk.pixbuf_new_from_file(img_path)
-        iconset = gtk.IconSet(pixbuf=pixbuf)
-        factory = gtk.IconFactory()
+        pixbuf = GdkPixbuf.Pixbuf.new_from_file(img_path)
+        iconset = Gtk.IconSet(pixbuf=pixbuf)
+        factory = Gtk.IconFactory()
         factory.add('gui_for_me', iconset)
         factory.add_default()
-        img.set_from_stock('gui_for_me', gtk.ICON_SIZE_MENU)
+        img.set_from_stock('gui_for_me', Gtk.IconSize.MENU)
         self.button.set_image(img)
         self.button.set_tooltip_text(_('Insert /me to conversation input box,'
             ' at cursor position'))
         send_button = self.chat_control.xml.get_object('send_button')
-        send_button_pos = actions_hbox.child_get_property(send_button,
-            'position')
-        actions_hbox.add_with_properties(self.button, 'position',
-            send_button_pos - 1, 'expand', False)
+        actions_hbox.pack_start(self.button, False, False , 0)
+        actions_hbox.reorder_child(self.button,
+            len(actions_hbox.get_children()) - 3)
         id_ = self.button.connect('clicked', self.on_me_button_clicked)
         self.chat_control.handlers[id_] = self.button
         self.button.show()
