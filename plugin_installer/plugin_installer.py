@@ -22,7 +22,9 @@
 from gi.repository import Gtk
 from gi.repository import GdkPixbuf
 from gi.repository import Pango
+from gi.repository import GLib
 from gi.repository import GObject
+
 import ftplib
 import io
 import threading
@@ -85,7 +87,7 @@ class PluginInstaller(GajimPlugin):
         if 'plugins' in gajim.interface.instances:
             self.on_activate(None)
         if self.config['check_update']:
-            self.timeout_id = GObject.timeout_add_seconds(30, self.check_update)
+            self.timeout_id = GLib.timeout_add_seconds(30, self.check_update)
 
     @log_calls('PluginInstallerPlugin')
     def warn_update(self, plugins):
@@ -93,7 +95,7 @@ class PluginInstaller(GajimPlugin):
             self.upgrading = True
             self.pl_menuitem.activate()
             nb = gajim.interface.instances['plugins'].plugins_notebook
-            GObject.idle_add(nb.set_current_page, 1)
+            GLib.idle_add(nb.set_current_page, 1)
         if plugins:
             plugins_str = '\n'.join(plugins)
             YesNoDialog(_('Plugins updates'), _('Some updates are available for'
@@ -141,7 +143,7 @@ class PluginInstaller(GajimPlugin):
                         if remote > local:
                             to_update.append(config.get('info', 'name'))
                 con.quit()
-                GObject.idle_add(self.warn_update, to_update)
+                GLib.idle_add(self.warn_update, to_update)
             except Exception as e:
                 log.debug('Ftp error when check updates: %s' % str(e))
         ftp = Ftp(self)
@@ -161,7 +163,7 @@ class PluginInstaller(GajimPlugin):
         if hasattr(self, 'ftp'):
             del self.ftp
         if self.timeout_id > 0:
-            GObject.source_remove(self.timeout_id)
+            GLib.source_remove(self.timeout_id)
             self.timeout_id = 0
 
     def on_activate(self, widget):
@@ -195,9 +197,7 @@ class PluginInstaller(GajimPlugin):
             setattr(self, widget_name, self.xml.get_object(widget_name))
 
         self.available_plugins_model = Gtk.ListStore(GdkPixbuf.Pixbuf,
-            GObject.TYPE_PYOBJECT, GObject.TYPE_STRING, GObject.TYPE_STRING,
-            GObject.TYPE_STRING, GObject.TYPE_BOOLEAN, GObject.TYPE_PYOBJECT,
-            GObject.TYPE_PYOBJECT, GObject.TYPE_PYOBJECT)
+            object, str, str, str, bool,object, object, object)
         self.available_treeview.set_model(self.available_plugins_model)
         self.available_treeview.set_rules_hint(True)
         self.available_plugins_model.set_sort_column_id(2, Gtk.SortType.ASCENDING)
@@ -236,6 +236,7 @@ class PluginInstaller(GajimPlugin):
             GObject.signal_new('plugin_downloaded', self.window,
                 GObject.SIGNAL_RUN_LAST, GObject.TYPE_STRING,
                 (GObject.TYPE_PYOBJECT,))
+
         id_ = self.window.connect('error_signal', self.on_some_ftp_error)
         self.connected_ids[id_] = self.window
         id_ = self.window.connect('plugin_downloaded',
@@ -317,7 +318,7 @@ class PluginInstaller(GajimPlugin):
             if plugin:
                 if plugin.active:
                     is_active = True
-                    GObject.idle_add(gajim.plugin_manager.deactivate_plugin,
+                    GLib.idle_add(gajim.plugin_manager.deactivate_plugin,
                         plugin)
                 gajim.plugin_manager.plugins.remove(plugin)
 
@@ -338,7 +339,7 @@ class PluginInstaller(GajimPlugin):
                         plugin.version
                     self.available_plugins_model[row][C_UPGRADE] = False
             if is_active:
-                GObject.idle_add(gajim.plugin_manager.activate_plugin, plugin)
+                GLib.idle_add(gajim.plugin_manager.activate_plugin, plugin)
             # get plugin icon
             icon_file = os.path.join(plugin.__path__, os.path.split(
                 plugin.__path__)[1]) + '.png'
@@ -497,13 +498,13 @@ class Ftp(threading.Thread):
 
     def run(self):
         try:
-            GObject.idle_add(self.progressbar.set_text,
+            GLib.idle_add(self.progressbar.set_text,
                 _('Connecting to server'))
             self.ftp = self.plugin.ftp_connect()
             self.ftp.cwd('plugins_gtk3')
             self.progressbar.set_show_text(True)
             if not self.remote_dirs:
-                GObject.idle_add(self.progressbar.set_text,
+                GLib.idle_add(self.progressbar.set_text,
                     _('Scan files on the server'))
                 self.ftp.retrbinary('RETR manifests_images.zip', self.handleDownload)
                 zip_file = zipfile.ZipFile(self.buffer_)
@@ -514,8 +515,8 @@ class Ftp(threading.Thread):
                         continue
                     dir_ = filename.split('/')[0]
                     fract = self.progressbar.get_fraction() + progress_step
-                    GObject.idle_add(self.progressbar.set_fraction, fract)
-                    GObject.idle_add(self.progressbar.set_text,
+                    GLib.idle_add(self.progressbar.set_fraction, fract)
+                    GLib.idle_add(self.progressbar.set_text,
                         _('Reading "%s"') % dir_)
 
                     config = configparser.ConfigParser()
@@ -539,7 +540,7 @@ class Ftp(threading.Thread):
                             'version'))
                         if remote > local:
                             upgrade = True
-                            GObject.idle_add(
+                            GLib.idle_add(
                                 self.plugin.inslall_upgrade_button.set_property,
                                 'sensitive', True)
                     png_filename = dir_ + '/' + dir_ + '.png'
@@ -556,18 +557,18 @@ class Ftp(threading.Thread):
                         base_dir, user_dir = gajim.PLUGINS_DIRS
                         local_dir = os.path.join(user_dir, dir_)
 
-                    GObject.idle_add(self.model_append, [def_icon, dir_,
+                    GLib.idle_add(self.model_append, [def_icon, dir_,
                         config.get('info', 'name'), local_version,
                         config.get('info', 'version'), upgrade,
                         config.get('info', 'description'),
                         config.get('info', 'authors'),
                         config.get('info', 'homepage'), ])
                 self.ftp.quit()
-            GObject.idle_add(self.progressbar.set_fraction, 0)
+            GLib.idle_add(self.progressbar.set_fraction, 0)
             if self.remote_dirs:
                 self.download_plugin()
-            GObject.idle_add(self.progressbar.hide)
-            GObject.idle_add(self.plugin.select_root_iter)
+            GLib.idle_add(self.progressbar.hide)
+            GLib.idle_add(self.plugin.select_root_iter)
         except Exception as e:
             self.window.emit('error_signal', str(e))
 
@@ -575,9 +576,9 @@ class Ftp(threading.Thread):
         self.buffer_.write(block)
 
     def download_plugin(self):
-        GObject.idle_add(self.progressbar.show)
-        self.pulse = GObject.timeout_add(150, self.progressbar_pulse)
-        GObject.idle_add(self.progressbar.set_text, _('Creating a list of files'))
+        GLib.idle_add(self.progressbar.show)
+        self.pulse = GLib.timeout_add(150, self.progressbar_pulse)
+        GLib.idle_add(self.progressbar.set_text, _('Creating a list of files'))
         for remote_dir in self.remote_dirs:
 
             def nlstr(dir_, subdir=None):
@@ -621,7 +622,7 @@ class Ftp(threading.Thread):
 
             # downloading files
             for filename in files:
-                GObject.idle_add(self.progressbar.set_text,
+                GLib.idle_add(self.progressbar.set_text,
                     _('Downloading "%s"') % filename)
                 full_filename = os.path.join(local_dir, filename.replace(
                     'plugins_gtk3', 'plugins'))
@@ -635,9 +636,9 @@ class Ftp(threading.Thread):
                     print (str(e))
                     os.unlink(filename)
         self.ftp.quit()
-        GObject.idle_add(self.window.emit, 'plugin_downloaded',
+        GLib.idle_add(self.window.emit, 'plugin_downloaded',
             self.remote_dirs)
-        GObject.source_remove(self.pulse)
+        GLib.source_remove(self.pulse)
 
 
 class PluginInstallerPluginConfigDialog(GajimPluginConfigDialog):
