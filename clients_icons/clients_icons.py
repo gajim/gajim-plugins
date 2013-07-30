@@ -201,42 +201,27 @@ class ClientsIconsPlugin(GajimPlugin):
             return
 
         #fill clients table
-        self.table = Gtk.Table(4, 1)
+        self.table = Gtk.Grid()
+        self.table.insert_row(0)
+        self.table.insert_row(0)
+        self.table.insert_column(0)
         self.table.set_property('column-spacing', 2)
-        vcard_current_row = vcard_table.get_property('n-rows')
 
         caps = contact.client_caps._node
         caps_image , client_name = self.get_icon(caps, contact)
         caps_image.set_alignment(0, 0)
-        self.table.attach(caps_image, 1, 2, vcard_current_row,
-            vcard_current_row + 1, 0, 0, 0, 0)
+        self.table.attach(caps_image, 1, 1, 1, 1)
         label = Gtk.Label()
         label.set_alignment(0, 0)
         label.set_markup(client_name)
-        self.table.attach(label, 2, 3, vcard_current_row,
-            vcard_current_row + 1, 0, 0, 0, 0)
+        self.table.attach(label, 2, 1, 1, 1)
         # set label
         label = Gtk.Label()
         label.set_alignment(0, 0)
         label.set_markup(_('Client:'))
-        vcard_table.attach(label, 1, 2, vcard_current_row,
-            vcard_current_row + 1, Gtk.AttachOptions.FILL,
-            Gtk.AttachOptions.FILL, 0, 0)
+        vcard_table.attach(label, 1, 100, 1,1)
         # set client table to tooltip
-        vcard_table.attach(self.table, 2, 3, vcard_current_row,
-            vcard_current_row + 1, Gtk.AttachOptions.FILL,
-            Gtk.AttachOptions.FILL, 0, 0)
-
-        # rewrite avatar
-        if vcard_table.get_property('n-columns') == 4:
-            if tooltip.avatar_image not in vcard_table.get_children():
-                return
-            avatar_widget_idx = vcard_table.get_children().index(
-                tooltip.avatar_image)
-            vcard_table.remove(vcard_table.get_children()[avatar_widget_idx])
-            vcard_table.attach(tooltip.avatar_image, 3, 4, 2,
-                vcard_table.get_property('n-rows'), Gtk.AttachOptions.FILL,
-                    Gtk.AttachOptions.FILL | Gtk.AttachOptions.EXPAND, 3, 3)
+        vcard_table.attach(self.table, 2, 100, 1,1)
 
     @log_calls('ClientsIconsPlugin')
     def connect_with_roster_tooltip_populate(self, tooltip, contacts,
@@ -262,9 +247,12 @@ class ClientsIconsPlugin(GajimPlugin):
         contact_keys.reverse()
 
         #fill clients table
-        self.table = Gtk.Table(4, 1)
+        self.table = Gtk.Grid()
+        self.table.insert_row(0)
+        self.table.insert_row(0)
+        self.table.insert_column(0)
         self.table.set_property('column-spacing', 2)
-        first_place = vcard_current_row = vcard_table.get_property('n-rows')
+        first_place = 100
 
         vcard_current_row = 0
         for priority in contact_keys:
@@ -272,15 +260,11 @@ class ClientsIconsPlugin(GajimPlugin):
                 caps = acontact.client_caps._node
                 caps_image , client_name = self.get_icon(caps, acontact)
                 caps_image.set_alignment(0, 0)
-                self.table.attach(caps_image, 1, 2, vcard_current_row,
-                    vcard_current_row + 1, Gtk.AttachOptions.FILL,
-                    Gtk.AttachOptions.FILL, 0, 0)
+                self.table.attach(caps_image, 1, vcard_current_row, 1, 1)
                 label = Gtk.Label()
                 label.set_alignment(0, 0)
                 label.set_markup(client_name)
-                self.table.attach(label, 2, 3, vcard_current_row,
-                    vcard_current_row + 1, Gtk.AttachOptions.FILL | \
-                    Gtk.AttachOptions.EXPAND, 0, 0, 0)
+                self.table.attach(label, 2, vcard_current_row, 1, 1)
                 vcard_current_row += 1
         # set label
         label = Gtk.Label()
@@ -291,22 +275,9 @@ class ClientsIconsPlugin(GajimPlugin):
             if contact.show == 'offline':
                 return
             label.set_markup(_('Client:'))
-        vcard_table.attach(label, 1, 2, first_place, first_place + 1,
-            Gtk.AttachOptions.FILL, Gtk.AttachOptions.FILL, 0, 0)
+        vcard_table.attach(label, 1, first_place,  1, 1)
         # set clients table to tooltip
-        vcard_table.attach(self.table, 2, 3, first_place, first_place + 1,
-            Gtk.AttachOptions.FILL, Gtk.AttachOptions.FILL, 0, 0)
-
-        # rewrite avatar
-        if vcard_table.get_property('n-columns') == 4:
-            if tooltip.avatar_image not in vcard_table.get_children():
-                return
-            avatar_widget_idx = vcard_table.get_children().index(
-                tooltip.avatar_image)
-            vcard_table.remove(vcard_table.get_children()[avatar_widget_idx])
-            vcard_table.attach(tooltip.avatar_image, 4, 5, 2,
-                vcard_table.get_property('n-rows'), Gtk.AttachOptions.FILL,
-                    Gtk.AttachOptions.FILL | Gtk.AttachOptions.EXPAND, 3, 3)
+        vcard_table.attach(self.table, 2, first_place, 1, 1)
 
     def get_icon(self, caps, contact=None):
         if not caps:
