@@ -1,4 +1,6 @@
-import gtk
+from gi.repository import Gtk
+from gi.repository import GdkPixbuf
+
 import gtkgui_helpers
 from common import gajim
 
@@ -63,30 +65,29 @@ class Base(object):
 
         self.plugin = plugin
         self.chat_control = chat_control
-        self.create_menu()
         self.create_button()
+        self.create_menu()
 
     def create_button(self):
 
         actions_hbox = self.chat_control.xml.get_object('actions_hbox')
-        self.button = gtk.Button(label=None, stock=None, use_underline=True)
-        self.button.set_property('relief', gtk.RELIEF_NONE)
+        self.button = Gtk.Button(label=None, stock=None, use_underline=True)
+        self.button.set_property('relief', Gtk.ReliefStyle.NONE)
         self.button.set_property('can-focus', False)
-        img = gtk.Image()
+        img = Gtk.Image()
         img_path = self.plugin.local_file_path('quick_replies.png')
-        pixbuf = gtk.gdk.pixbuf_new_from_file(img_path)
-        iconset = gtk.IconSet(pixbuf=pixbuf)
-        factory = gtk.IconFactory()
+        pixbuf = GdkPixbuf.Pixbuf.new_from_file(img_path)
+        iconset = Gtk.IconSet(pixbuf=pixbuf)
+        factory = Gtk.IconFactory()
         factory.add('quickreplies', iconset)
         factory.add_default()
-        img.set_from_stock('quickreplies', gtk.ICON_SIZE_MENU)
+        img.set_from_stock('quickreplies', Gtk.IconSize.MENU)
         self.button.set_image(img)
         self.button.set_tooltip_text(_('Quick replies'))
         send_button = self.chat_control.xml.get_object('send_button')
-        send_button_pos = actions_hbox.child_get_property(send_button,
-            'position')
-        actions_hbox.add_with_properties(self.button, 'position',
-            send_button_pos - 1, 'expand', False)
+        actions_hbox.pack_start(self.button, False, False , 0)
+        actions_hbox.reorder_child(self.button,
+            len(actions_hbox.get_children()) - 3)
         id_ = self.button.connect('clicked', self.on_button_cliecked)
         self.chat_control.handlers[id_] = self.button
         self.button.show()
@@ -105,16 +106,17 @@ class Base(object):
 
     def create_menu(self):
 
-        self.menu = gtk.Menu()
+        self.menu = Gtk.Menu()
 
-        for count in xrange(1, 11):
+        for count in range(1, 11):
             text = self.plugin.config['entry' + str(count)]
             if not text:
                 continue
-            item = gtk.MenuItem(text)
+            item = Gtk.MenuItem(text)
             item.connect('activate', self.on_insert, text)
             self.menu.append(item)
         self.menu.show_all()
+        self.menu.attach_to_widget(self.button, None)
 
     def disconnect_from_chat_control(self):
         actions_hbox = self.chat_control.xml.get_object('actions_hbox')
@@ -127,22 +129,22 @@ class QuickRepliesPluginConfigDialog(GajimPluginConfigDialog):
 
         self.GTK_BUILDER_FILE_PATH = self.plugin.local_file_path(
             'config_dialog.ui')
-        self.xml = gtk.Builder()
+        self.xml = Gtk.Builder()
         self.xml.set_translation_domain('gajim_plugins')
         self.xml.add_objects_from_file(self.GTK_BUILDER_FILE_PATH, ['table1'])
         hbox = self.xml.get_object('table1')
-        self.child.pack_start(hbox)
+        self.get_child().pack_start(hbox, True, True, 0)
         self.xml.connect_signals(self)
 
     def on_run(self):
 
-        for count in xrange(1, 11):
+        for count in range(1, 11):
             self.xml.get_object('entry' + str(count)).set_text(
                 self.plugin.config['entry' + str(count)])
 
     def entry_changed(self, widget):
 
-        name = gtk.Buildable.get_name(widget)
+        name = Gtk.Buildable.get_name(widget)
         self.plugin.config[name] = widget.get_text()
         for control in self.plugin.controls:
             control.create_menu()
