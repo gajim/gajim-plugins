@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import gobject
+import os
 
 from common import gajim
 from plugins import GajimPlugin
@@ -18,6 +19,10 @@ class WicdPlugin(GajimPlugin):
 
     def test_activatable(self):
         self.available_text = ''
+        if os.name == 'nt':
+            self.available_text = _('Plugin can\'t be run under Windows.')
+            self.activatable = False
+            return
         if not dbus_support.supported:
             self.activatable = False
             self.available_text += _('python-dbus is missing! '

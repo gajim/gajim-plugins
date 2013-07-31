@@ -2,6 +2,7 @@
 
 import gtk
 import gobject
+import os
 
 from common import gajim
 from plugins import GajimPlugin
@@ -26,6 +27,9 @@ class Mpris2Plugin(GajimPlugin):
         self.config_dialog = None
         self.artist = self.title = self.source = ''
         self.listener = MusicTrackListener().get()
+        if os.name == 'nt':
+            self.available_text = _('Plugin can\'t be run under Windows.')
+            self.activatable = False
 
     @log_calls('NowListenPlugin')
     def activate(self):

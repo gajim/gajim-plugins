@@ -2,6 +2,7 @@
 
 import gtk
 import gobject
+import os
 
 from common import gajim
 from plugins import GajimPlugin
@@ -30,6 +31,9 @@ class NowListenPlugin(GajimPlugin):
         self.controls = []
         self.first_run = True
         self.music_track_changed_signal = None
+        if os.name == 'nt':
+            self.available_text = _('Plugin can\'t be run under Windows.')
+            self.activatable = False
 
     @log_calls('NowListenPlugin')
     def connect_with_chat_control(self, chat_control):
