@@ -3,6 +3,8 @@
 import dbus
 import datetime as dt
 from gi.repository import GObject
+import os
+
 from common import gajim
 from common import ged
 from common import dbus_support
@@ -29,6 +31,9 @@ class HamsterIntegrationPlugin(GajimPlugin):
         'and http://projecthamster.wordpress.com/about/')
         self.config_dialog = None
         self.events_handlers = {}
+        if os.name == 'nt':
+            self.available_text = _('Plugin can\'t be run under Windows.')
+            self.activatable = False
 
     @log_calls('HamsterIntegrationPlugin')
     def activate(self):
