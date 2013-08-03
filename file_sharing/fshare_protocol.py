@@ -10,6 +10,7 @@ except ImportError:
 # Namespace for file sharing
 NS_FILE_SHARING = 'urn:xmpp:fis'
 
+
 class Protocol():
     '''
     Creates and extracts information from stanzas
@@ -29,25 +30,19 @@ class Protocol():
             query.setAttr('node', path)
         return iq
 
-    def buildReply(self, typ, stanza):
-        iq = nbxmpp.Iq(typ, to=stanza.getFrom(), frm=stanza.getTo(),
-            attrs={'id': stanza.getID()})
-        iq.addChild(name='match', namespace=NS_FILE_SHARING)
-        return iq
-
     def buildFileNode(self, file_info):
         node = nbxmpp.Node(tag='file')
         node.setNamespace(nbxmpp.NS_JINGLE_FILE_TRANSFER)
-        if not file_info['name']:
+        if not 'name' in file_info:
             raise Exception("Child name is required.")
         node.addChild(name='name').setData(file_info['name'])
-        if file_info['date']:
+        if 'date' in file_info:
             node.addChild(name='date').setData(file_info['date'])
-        if file_info['desc']:
+        if 'desc' in file_info:
             node.addChild(name='desc').setData(file_info['desc'])
-        if file_info['size']:
+        if 'size' in file_info:
             node.addChild(name='size').setData(file_info['size'])
-        if file_info['hash']:
+        if 'hash' in file_info:
             h = Hashes()
             h.addHash(file_info['hash'], 'sha-1')
             node.addChild(node=h)
@@ -90,29 +85,28 @@ class ProtocolDispatcher():
         self.fsw = fsw
 
 
-    def set_window(self, window):
-        self.fsw = window
-
-
-    def handler(self, stanza):
+    def handler(self, stanza, fjid):
         # handles incoming match stanza
-        if stanza.getTag('match').getTag('offer'):
-            self.on_offer(stanza)
-        elif stanza.getTag('match').getTag('request'):
-            self.on_request(stanza)
+        # TODO: Stanza checking
+        if stanza.getType() == 'get':
+            self.on_request(stanza, fjid)
+        elif stanza.getType() == 'result':
+            return self.on_offer(stanza, fjid)
         else:
             # TODO: reply with malformed stanza error
             pass
 
-    def on_request(self, stanza):
+    def on_request(self, stanza, fjid):
+        '''
         try:
             fjid = helpers.get_full_jid_from_iq(stanza)
         except helpers.InvalidFormat:
             # A message from a non-valid JID arrived, it has been ignored.
-            return
+            return -1
+        '''
         if stanza.getTag('error'):
             # TODO: better handle this
-            return
+            return -1
         jid = gajim.get_jid_without_resource(fjid)
         req = stanza.getTag('match').getTag('request')
         if req.getTag('directory') and not \
@@ -126,44 +120,24 @@ class ProtocolDispatcher():
             files = self.plugin.database.get_files_from_dir(self.account, jid, dir_)
             response = self.offer(stanza.getID(), fjid, files)
             self.conn.connection.send(response)
+        return 0
 
-    def on_offer(self, stanza):
-        # We just got a stanza offering files
-        fjid = helpers.get_full_jid_from_iq(stanza)
-        info = get_files_info(stanza)
-        if fjid not in self.fsw.browse_jid or not info:
-            # We weren't expecting anything from this contact, do nothing
-            # Or we didn't receive any offering files
-            return
-        flist = []
-        for f in info[0]:
-            flist.append(f['name'])
-        flist.extend(info[1])
-        self.fsw.browse_fref = self.fsw.add_file_list(flist, self.fsw.ts_search,
-                                              self.fsw.browse_fref,
-                                              self.fsw.browse_jid[fjid]
-                                             )
-        for f in info[0]:
-            iter_ = self.fsw.browse_fref[f['name']]
-            path = self.fsw.ts_search.get_path(iter_)
-            self.fsw.brw_file_info[path] = (f['name'], f['date'], f['size'],
-                                            f['hash'], f['desc'])
-
-        # TODO: add tooltip
-        '''
-        for f in info[0]:
-            r = self.fsw.browse_fref[f['name']]
-            path = self.fsw.ts_search.get_path(r)
-            # AM HERE WORKING ON THE TOOLTIP
-            tooltip.set_text('noooo')
-            self.fsw.tv_search.set_tooltip_row(tooltip, path)
-        '''
-        for dir_ in info[1]:
-            if dir_ not in self.fsw.empty_row_child:
-                parent = self.fsw.browse_fref[dir_]
-                row = self.fsw.ts_search.append(parent, ('',))
-                self.fsw.empty_row_child[dir_] = row
-
+    def on_offer(self, stanza, fjid):
+        offered = []
+        query = stanza.getQuery()
+        for child in query.getChildren():
+            if child.getName() == 'directory':
+                offered.append({'name' : child.getAttr('name'),
+                                'type' : 'directory'})
+            elif child.getName() == 'file':
+                attrs = {'type' : 'file'}
+                grandchildren = child.getChildren()
+                for grandchild in grandchildren:
+                    attrs[grandchild.getName()] = grandchild.getData()
+                offered.append(attrs)
+            else:
+                print 'File sharing. Cant handle unknown type: ' + str(child)
+        return offered
 
 
 def get_files_info(stanza):
