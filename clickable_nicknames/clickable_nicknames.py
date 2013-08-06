@@ -122,15 +122,12 @@ class Base(object):
             if nick.startswith('* '):
                 nick = nick.lstrip('* ').split(' ')[0]
             nick = nick.lstrip(gajim.config.get('before_nickname'))
+            nick = nick.lstrip(u'\u200E').rstrip(u'\u200E')
+            nick = nick.lstrip(u'\u200F').rstrip(u'\u200F')
             nicks = gajim.contacts.get_nick_list(self.chat_control.account,
                 self.chat_control.room_jid)
-            if u'\u200E' in nick or u'\u200F' in nick:
-                if nick[1:] not in nicks:
-                    return
-            else:
-                if nick not in nicks:
-                    return
-
+            if nick not in nicks:
+-               return
             message_buffer = self.chat_control.msg_textview.get_buffer()
             if message_buffer.get_char_count() < 1:
                 nick = nick + gajim.config.get('gc_refer_to_nick_char')
