@@ -56,7 +56,7 @@ class Base(object):
         self.create_buttons()
 
     def create_buttons(self):
-        # create juick button
+        # create /me button
         actions_hbox = self.chat_control.xml.get_object('actions_hbox')
         self.button = Gtk.Button(label=None, stock=None, use_underline=True)
         self.button.set_property('relief', Gtk.ReliefStyle.NONE)
