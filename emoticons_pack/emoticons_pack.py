@@ -347,8 +347,14 @@ class EmoticonsPackPlugin(GajimPlugin):
             else:
                 desc = desc.replace('preview.image', ('file:' + os.path.join(
                     self.tmp_dir, set_name, 'preview.png')))
-            self.emoticons_description_textview.tv.display_html(
-                desc, self.emoticons_description_textview)
+            ##  FixMe
+            try:
+                self.emoticons_description_textview.tv.display_html(
+                    desc, self.emoticons_description_textview.tv, None)
+            except TypeError:
+                self.emoticons_description_textview.tv.display_html(
+                    desc, self.emoticons_description_textview)
+
             self.emoticons_description_textview.tv.set_property('sensitive', True)
         else:
             self.set_name.set_text('')
