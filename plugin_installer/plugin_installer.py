@@ -34,7 +34,7 @@ import zipfile
 from common import gajim
 from plugins import GajimPlugin
 from plugins.helpers import log_calls, log
-from conversation_textview import ConversationTextview
+from htmltextview import HtmlTextView
 from dialogs import WarningDialog, HigDialog, YesNoDialog
 from plugins.gui import GajimPluginConfigDialog
 
@@ -250,9 +250,9 @@ class PluginInstaller(GajimPlugin):
 
         self._clear_available_plugin_info()
 
-        self.plugin_description_textview = ConversationTextview(None)
+        self.plugin_description_textview = HtmlTextView()
         sw = self.xml.get_object('scrolledwindow1')
-        sw.add(self.plugin_description_textview.tv)
+        sw.add(self.plugin_description_textview)
 
         self.xml.connect_signals(self)
         self.window.show_all()
@@ -360,9 +360,9 @@ class PluginInstaller(GajimPlugin):
     def available_plugins_treeview_selection_changed(self, treeview_selection):
         model, iter = treeview_selection.get_selected()
         self.xml.get_object('scrolledwindow1').get_children()[0].destroy()
-        self.plugin_description_textview = ConversationTextview(None)
+        self.plugin_description_textview = HtmlTextView()
         sw = self.xml.get_object('scrolledwindow1')
-        sw.add(self.plugin_description_textview.tv)
+        sw.add(self.plugin_description_textview)
         sw.show_all()
         if iter:
             self.plugin_name_label1.set_text(model.get_value(iter, C_NAME))
@@ -379,9 +379,9 @@ class PluginInstaller(GajimPlugin):
                 desc = '<body  xmlns=\'http://www.w3.org/1999/xhtml\'>' + \
                     desc + ' </body>'
                 desc = desc.replace('\n', '<br/>')
-            self.plugin_description_textview.tv.display_html(
-                desc, self.plugin_description_textview)
-            self.plugin_description_textview.tv.set_property('sensitive', True)
+            self.plugin_description_textview.display_html(desc,
+                self.plugin_description_textview, None)
+            self.plugin_description_textview.set_property('sensitive', True)
         else:
             self._clear_available_plugin_info()
 
