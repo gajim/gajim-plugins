@@ -502,7 +502,7 @@ class Ftp(threading.Thread):
             gobject.idle_add(self.progressbar.set_text,
                 _('Connecting to server'))
             self.ftp = self.plugin.ftp_connect()
-            self.ftp.cwd('plugins')
+            self.ftp.cwd('plugins_0.15')
             if not self.remote_dirs:
                 gobject.idle_add(self.progressbar.set_text,
                     _('Scan files on the server'))
