@@ -18,8 +18,6 @@ class NowListenPlugin(GajimPlugin):
 
     @log_calls('NowListenPlugin')
     def init(self):
-        self.description = _('Copy tune info to conversation input box '
-            '(alt + n) at cursor position')
         self.config_dialog = NowListenPluginConfigDialog(self)
         self.gui_extension_points = {'chat_control_base':
             (self.connect_with_chat_control, self.disconnect_from_chat_control)}

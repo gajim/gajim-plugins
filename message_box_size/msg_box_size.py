@@ -11,8 +11,6 @@ from plugins.gui import GajimPluginConfigDialog
 class MsgBoxSizePlugin(GajimPlugin):
     @log_calls('MsgBoxSizePlugin')
     def init(self):
-        self.description = _('Allows you to adjust the height'
-            ' of the new message input field.')
         self.config_dialog = MsgBoxSizePluginConfigDialog(self)
         self.gui_extension_points = {
                 'chat_control_base': (self.connect_with_chat_control,

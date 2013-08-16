@@ -35,7 +35,6 @@ class AntiSpamPlugin(GajimPlugin):
 
     @log_calls('AntiSpamPlugin')
     def init(self):
-        self.description = _('Allows to block some kind of incoming messages')
         self.config_dialog = AntiSpamPluginConfigDialog(self)
 
         self.gui_extension_points = {

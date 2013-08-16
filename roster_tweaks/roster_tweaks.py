@@ -16,12 +16,6 @@ class RosterTweaksPlugin(GajimPlugin):
 
     @log_calls('RosterTweaksPlugin')
     def init(self):
-        self.description = _('Allows user to tweak roster window appearance '
-            '(eg. make it compact).<br/>Based on <a href='
-            '"http://trac.gajim.org/ticket/3340">ticket #3340</a>.<br/>'
-            'Added ability to quickly change the status message '
-            'to all connected accounts.<br/>Based on <a href='
-            '"http://trac.gajim.org/ticket/5085">ticket #5085</a>.')
         self.config_default_values = {'hide_status_combo': (False, ''),
                                       'use_ctr_m': (False, ''),
                                       'menu_visible': (True, ''),

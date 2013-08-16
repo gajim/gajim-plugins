@@ -22,8 +22,6 @@ class MusicTrackInfo(object):
 class Mpris2Plugin(GajimPlugin):
     @log_calls('Mpris2Plugin')
     def init(self):
-        self.description = _('MPRIS2 support. Allows to update status message '
-        'according to the music you\'re listening via the MPRIS2 D-Bus API.')
         self.config_dialog = None
         self.artist = self.title = self.source = ''
         self.listener = MusicTrackListener().get()

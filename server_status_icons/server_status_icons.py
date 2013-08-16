@@ -17,8 +17,6 @@ class ServerStatusIconsPlugin(GajimPlugin):
 
     @log_calls('ServerStatusIconsPlugin')
     def init(self):
-        self.description = _('Replace standard Gajim status icons with server'
-            ' specific for known XMPP server accounts (vk.com, ...)')
         self.pos_list = [_('after statusicon'), _('before avatar')]
         self.gui_extension_points = {
             'roster_draw_contact': (self.connect_with_roster_draw_contact,

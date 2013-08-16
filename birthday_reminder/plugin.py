@@ -19,7 +19,6 @@ class BirthDayPlugin(GajimPlugin):
     def init(self):
 
         self.config_dialog = None
-        self.description = ('Birthday reminder plugin')
         self.events_handlers = {
             'roster-received': (ged.GUI2, self.roster_received)}
         configpath = configpaths.ConfigPaths()
@@ -118,4 +117,3 @@ class BirthDayPlugin(GajimPlugin):
         if obj.conn.name not in self.showed_accounts:
             self.check_birthdays(obj.conn.name)
             self.showed_accounts.append(obj.conn.name)
-

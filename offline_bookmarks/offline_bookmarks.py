@@ -17,11 +17,6 @@ class OfflineBookmarksPlugin(GajimPlugin):
 
     @log_calls('OfflineBookmarksPlugin')
     def init(self):
-        self.description = _('Saving bookmarks inside the plugin configuration '
-        'file. Allows the use of locally stored bookmarks if the server '
-        'does not support the storage of bookmarks (eg talk.google.com).<br/>'
-        'Support to import bookmarks from one account to another.')
-
         self.events_handlers = {
         'bookmarks-received': (ged.POSTGUI, self.bookmarks_received),
         'signed-in': (ged.POSTGUI, self.handle_event_signed_in),}

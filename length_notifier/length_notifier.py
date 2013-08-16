@@ -36,8 +36,6 @@ class LengthNotifierPlugin(GajimPlugin):
 
     @log_calls('LengthNotifierPlugin')
     def init(self):
-        self.description = _('Highlights message entry field in chat window '
-            'when given length of message is exceeded.')
         self.config_dialog = LengthNotifierPluginConfigDialog(self)
 
         self.gui_extension_points = {

@@ -51,7 +51,6 @@ NS_GAMES_TICTACTOE = NS_GAMES + '/tictactoe'
 class TictactoePlugin(GajimPlugin):
     @log_calls('TictactoePlugin')
     def init(self):
-        self.description = _('Play Tictactoe.')
         self.config_dialog = TictactoePluginConfigDialog(self)
         self.events_handlers = {
             'decrypted-message-received': (ged.GUI1,

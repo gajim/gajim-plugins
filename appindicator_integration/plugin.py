@@ -4,7 +4,7 @@ Appindicator integration plugin.
 
 Rewriten from Ubuntu Ayatana Integration plugin
 2013 Denis Borenko <borenko@rambler.ru>
-:license: GPLv3     
+:license: GPLv3
 """
 # Python
 import os
@@ -28,9 +28,6 @@ class AppindicatorIntegrationPlugin(GajimPlugin):
 
     @log_calls("AppindicatorIntegrationPlugin")
     def init(self):
-        self.description = _('This plugin integrates Gajim with the appindicator.<br/>'
-            'You must have python-appindicator (and Gajim obviously) '
-            'installed to enable this plugin.\n')
         self.config_dialog = None
         self.test_activatable()
         self.events_handlers = {'our-show': (ged.GUI2, self.set_indicator_icon)}
@@ -93,8 +90,8 @@ class AppindicatorIntegrationPlugin(GajimPlugin):
             if gajim.config.get_per('accounts', account,
             'sync_with_global_status'):
                 gajim.connections[account].change_status('online','online')
-    
-        
+
+
     def set_indicator_icon(self, obj=''):
         is_connected = 0
         for account in gajim.connections:

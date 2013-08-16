@@ -17,9 +17,6 @@ EXTENSIONS = ('.png','.jpg','.jpeg','.gif','.raw','.svg')
 class UrlImagePreviewPlugin(GajimPlugin):
     @log_calls('UrlImagePreviewPlugin')
     def init(self):
-        self.description = _('Url image preview in chatbox.<br/>'
-            'Based on patch in <a href='
-            '"http://trac.gajim.org/attachment/ticket/5300">ticket #5300</a>.')
         self.config_dialog = UrlImagePreviewPluginConfigDialog(self)
         self.gui_extension_points = {
                 'chat_control_base': (self.connect_with_chat_control,

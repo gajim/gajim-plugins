@@ -26,8 +26,6 @@ class FileSharePlugin(GajimPlugin):
     @log_calls('FileSharePlugin')
     def init(self):
         self.activated = False
-        self.description = _('This plugin allows you to share folders'
-            ' with a peer using jingle file transfer.')
         self.config_dialog = FileSharePluginConfigDialog(self)
         home_path = os.path.expanduser('~/')
         self.config_default_values = {'incoming_dir': (home_path, '')}
@@ -176,7 +174,7 @@ class FileSharePluginConfigDialog(GajimPluginConfigDialog):
     def on_run(self):
         widget = self.xml.get_object('dl_folder')
         widget.set_text(str(self.plugin.config['incoming_dir']))
-        
+
     def on_hide(self, widget):
         widget = self.xml.get_object('dl_folder')
         self.plugin.config['incoming_dir'] = widget.get_text()

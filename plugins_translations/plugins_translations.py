@@ -14,8 +14,6 @@ class PluginsTranslationsPlugin(GajimPlugin):
 
     @log_calls('PluginsTranslationsPlugin')
     def init(self):
-        self.description = _('This plugin contains translation files '
-            'for Gajim plugins')
         self.config_dialog = None
         self.config_default_values = {'last_version': '0'}
         self.locale_dir = os.path.join(gajim.PLUGINS_DIRS[1], 'locale')

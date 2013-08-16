@@ -11,7 +11,6 @@ class GuiForMe(GajimPlugin):
 
     @log_calls('GuiForMePlugin')
     def init(self):
-        self.description = _('Gui for the \'/me\' command.')
         self.config_dialog = None  # GuiForMePluginConfigDialog(self)
         self.gui_extension_points = {
             'chat_control_base': (self.connect_with_chat_control,

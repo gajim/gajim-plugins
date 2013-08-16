@@ -36,7 +36,6 @@ class Triggers(GajimPlugin):
 
     @log_calls('TriggersPlugin')
     def init(self):
-        self.description = _('Configure Gajim\'s behaviour for each contact')
         self.config_dialog = TriggersPluginConfigDialog(self)
         self.config_default_values = {}
 

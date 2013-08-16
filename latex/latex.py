@@ -281,8 +281,6 @@ class LatexPluginConfiguration(GajimPluginConfigDialog):
 
 class LatexPlugin(GajimPlugin):
     def init(self):
-        self.description = _('Invoke Latex to render $$foobar$$ sourrounded ' \
-            'Latex equations. Needs latex and dvipng or ImageMagick.')
         self.config_dialog = LatexPluginConfiguration(self)
         self.config_default_values = {'png_dpi': ('108', '')}
 
@@ -383,7 +381,7 @@ class LatexPlugin(GajimPlugin):
 
             for pair in split_list(points):
                 tb.apply_tag_by_name('latex', pair[0][1], pair[1][0])
-        
+
         end_iter = tb.get_end_iter()
         eol_tag = tb.get_tag_table().lookup('eol')
         it = end_iter.copy()
@@ -423,4 +421,3 @@ class LatexPlugin(GajimPlugin):
 
         tv.get_buffer().disconnect(d['h_id'])
         self.latex_tag.disconnect(d['tag_id'])
-

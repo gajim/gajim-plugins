@@ -44,11 +44,6 @@ class SnarlNotificationsPlugin(GajimPlugin):
 
     @log_calls('SnarlNotificationsPlugin')
     def init(self):
-        self.description = _('Shows events notification using <a href='
-            '"http://www.fullphat.net/">Snarl</a> under Windows. '
-            'Snarl needs to be installed in system.<br/>'
-            '<a href="http://code.google.com/p/pysnarl/">PySnarl bindings</a> '
-            'are used.')
         self.config_dialog = None
         self.h = SnarlActionHandler
         self.snarl_win = pySnarl.SnarlApp(
