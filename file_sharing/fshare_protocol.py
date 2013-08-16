@@ -97,13 +97,12 @@ class ProtocolDispatcher():
             pass
 
     def on_request(self, stanza, fjid):
-        '''
-        try:
-            fjid = helpers.get_full_jid_from_iq(stanza)
-        except helpers.InvalidFormat:
-            # A message from a non-valid JID arrived, it has been ignored.
-            return -1
-        '''
+        node = stanza.getQuery().getAttr('node')
+        jid = gajim.get_jid_without_resource(fjid)
+        result = self.plugin.database.get_file(self.account, jid, None, node)
+        return
+
+
         if stanza.getTag('error'):
             # TODO: better handle this
             return -1
@@ -115,12 +114,13 @@ class ProtocolDispatcher():
             files = self.plugin.database.get_toplevel_files(self.account, jid)
             response = self.offer(stanza.getID(), fjid, files)
             self.conn.connection.send(response)
+            return response
         elif req.getTag('directory') and req.getTag('directory').getTag('name'):
             dir_ = req.getTag('directory').getTag('name').getData()[1:]
             files = self.plugin.database.get_files_from_dir(self.account, jid, dir_)
             response = self.offer(stanza.getID(), fjid, files)
             self.conn.connection.send(response)
-        return 0
+            return response
 
     def on_offer(self, stanza, fjid):
         offered = []
