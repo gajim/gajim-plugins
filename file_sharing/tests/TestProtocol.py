@@ -64,15 +64,15 @@ fshare_protocol.helpers = Mock()
 class TestProtocolDispatcher(unittest.TestCase):
 
     def setUp(self):
-        account = 'test@gajim.org/test'
-        testc = {account : Mock()}
+        self.account = 'test@gajim.org/test'
+        self.protocol = fshare_protocol.Protocol(self.account)
+        testc = {self.account : Mock()}
         fshare_protocol.gajim.connections = testc
         self.dispatcher = fshare_protocol.ProtocolDispatcher(
-                account, Mock())
+                self.account, Mock())
 
     def test_handler(self):
-        protocol = fshare_protocol.Protocol('test@gajim.org/test')
-        iq = protocol.request('peer@gajim.org/test', '1234', 
+        iq = self.protocol.request('peer@gajim.org/test', '1234', 
                 'documents/test2.txt')
         #offer = self.dispatcher.on_offer
         request = self.dispatcher.on_request
@@ -82,8 +82,7 @@ class TestProtocolDispatcher(unittest.TestCase):
         assert(self.dispatcher.on_request.called)
         self.dispatcher.on_request = request 
 
-    def test_offer(self):
-        from fshare_protocol import OfferHandled
+    def test_on_offer(self):
         items = [ {'name' : 'test2.text',
                    'type' : 'file'
                   },
@@ -92,16 +91,25 @@ class TestProtocolDispatcher(unittest.TestCase):
                    'type' : 'directory'
                   }
                 ]
-        protocol = fshare_protocol.Protocol('test@gajim.org/test')
-        iq = protocol.offer('1234', 'peer@gajim.org/test', 
+        iq = self.protocol.offer('1234', 'peer@gajim.org/test', 
                 'documents', items)
         offered_files = self.dispatcher.on_offer(iq, 'peer@gajim.org/test')
         self.assertEqual(len(offered_files), 2)
 
 
-    def test_request(self):
+    def test_on_request(self):
+        iq = self.protocol.request('peer@gajim.org/test', '1234', 
+                'documents')
+        response = self.dispatcher.on_request(iq, 'peer@gajim.org/test')
+        self.assertEqual(response.getType(), 'result')
+        self.assertNotEqual(response.getID(), None)
+        self.assertEqual(response.getQuery().getName(), 'query')
+        self.assertEqual(response.getQuery().getNamespace(), fshare_protocol.NS_FILE_SHARING)
+        self.assertEqual(response.getQuery().getAttr('node'), 'documents')
+        node = response.getQuery()
+        self.assertEqual(len(node.getChildren()), 0)
 
-        pass
+
 
 if __name__ == '__main__':
     unittest.main()
