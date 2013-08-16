@@ -115,7 +115,7 @@ class PluginInstaller(GajimPlugin):
             try:
                 to_update = []
                 con = self.ftp_connect()
-                con.cwd('plugins')
+                con.cwd('plugins_0.16')
                 con.retrbinary('RETR manifests.zip', ftp.handleDownload)
                 zip_file = zipfile.ZipFile(ftp.buffer_)
                 manifest_list = zip_file.namelist()
@@ -502,7 +502,7 @@ class Ftp(threading.Thread):
             gobject.idle_add(self.progressbar.set_text,
                 _('Connecting to server'))
             self.ftp = self.plugin.ftp_connect()
-            self.ftp.cwd('plugins')
+            self.ftp.cwd('plugins_0.16')
             if not self.remote_dirs:
                 gobject.idle_add(self.progressbar.set_text,
                     _('Scan files on the server'))
