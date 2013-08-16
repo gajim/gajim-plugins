@@ -31,10 +31,11 @@ class ChatstatePlugin(GajimPlugin):
 
     @log_calls('ChatstatePlugin')
     def init(self):
-        self.description = _('Chat State Notifications in roster.'
-'Font color of the contact varies depending on the chat state.\n'
-'The plugin does not work if you use custom font color for contacts in roster.\n'
-'http://trac.gajim.org/ticket/3628.\nhttp://xmpp.org/extensions/xep-0085.html')
+        self.description = _('Chat State Notifications in roster.<br/>'
+'Font color of the contact varies depending on the chat state.<br/>'
+'The plugin does not work if you use custom font color for contacts in roster.'
+'<br/>See <a href="http://trac.gajim.org/ticket/3628">ticket #3628</a> and '
+'<a href="http://xmpp.org/extensions/xep-0085.html">XEP-0085</a>.')
         self.config_dialog = None  # ChatstatePluginConfigDialog(self)
         self.events_handlers = {'chatstate-received':
                                     (ged.GUI2, self.chatstate_received), }

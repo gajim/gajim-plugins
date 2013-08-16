@@ -25,9 +25,10 @@ class HamsterIntegrationPlugin(GajimPlugin):
 
     @log_calls('HamsterIntegrationPlugin')
     def init(self):
-        self.description = _('Integration with project hamster\n'
-        'see https://trac.gajim.org/ticket/6993\n'
-        'and http://projecthamster.wordpress.com/about/')
+        self.description = _('Integration with project hamster<br/>'
+            'see <a href="https://trac.gajim.org/ticket/6993">ticket #6993</a>'
+            'and <a href="http://projecthamster.wordpress.com/about/">hamster '
+            'project</a>')
         self.config_dialog = None
         self.events_handlers = {}
         if os.name == 'nt':

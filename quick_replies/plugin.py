@@ -12,7 +12,7 @@ class QuickRepliesPlugin(GajimPlugin):
     @log_calls('QuickRepliesPlugin')
     def init(self):
 
-        self.description = _('Plugin for quick replies')
+        self.description = _('Plugin for quick insert template message and add your own template messages')
         self.config_dialog = QuickRepliesPluginConfigDialog(self)
         self.chat_control = None
         self.gui_extension_points = {

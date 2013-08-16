@@ -38,7 +38,7 @@ class RegexFilterPlugin(GajimPlugin):
 
     @log_calls('RegexFilterPlugin')
     def init(self):
-        self.description = _('Regex Filter Plugin.')
+        self.description = _('Filter incoming messages using regex.')
         self.config_dialog = None
 
         self.events_handlers = {

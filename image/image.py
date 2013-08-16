@@ -17,9 +17,10 @@ class ImagePlugin(GajimPlugin):
     @log_calls('ImagePlugin')
     def init(self):
         self.description = _('This plugin is designed to send '
-            'a small(0 - 40 kb) graphic image to your contact.\n'
-            'Client on the other side must support XEP-0071: XHTML-IM'
-            ' and maintain the scheme data: URI.\n'
+            'a small(0 - 40 kb) graphic image to your contact.<br/>'
+            'Client on the other side must support <a href='
+            '"http://xmpp.org/extensions/xep-0071.html">XEP-0071: XHTML-IM</a>'
+            ' and maintain the scheme data: URI.<br/>'
             'Psi+ and Jabbim supported this.')
         self.config_dialog = None  # ImagePluginConfigDialog(self)
         self.controls = []

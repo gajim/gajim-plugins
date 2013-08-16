@@ -13,7 +13,7 @@ class WicdPlugin(GajimPlugin):
     @log_calls('WicdPlugin')
     def init(self):
         self.description = _('Support for autodetection of network status '
-        'for Wicd Network Manager.\nRequires wicd and python-dbus.')
+        'for Wicd Network Manager.<br/>Requires wicd and python-dbus.')
         self.config_dialog = None
         self.test_activatable()
 

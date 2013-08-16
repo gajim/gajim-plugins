@@ -17,14 +17,11 @@ class UrlShortenerPlugin(GajimPlugin):
     @log_calls('UrlShortenerPlugin')
     def init(self):
         self.description = _('Plugin that allows users to shorten a long URL '
- 'in received messages.\n'
- 'For example, you can turn this link:\n'
- 'http://maps.google.com/maps?f=d&saddr=New+York+Penn+Station&daddr='
- '9th+Ave+%26+14th+St,+New+York,+NY&hl=en&geocode=&mra=ls&dirflg=r&date='
- '11%2F12%2F08&time=4:13pm&ttype=dep&noexp=0&noal=0&sort=&sll='
- '40.746175,-73.998395&sspn=0.014468,0.036392&ie=UTF8&z=14\n'
- 'Into this link:\n'
- 'http://bit.ly/CUjV')
+ 'in received messages.<br/>'
+ 'For example, you can turn this link:<br/>'
+ '<a href="%s">%s</a><br/>'
+ 'Into this link:<br/>'
+ '<a href="http://bit.ly/CUjV">http://bit.ly/CUjV</a>') % ('http://maps.google.com/maps?f=d&amp;saddr=New+York+Penn+Station&amp;daddr=9th+Ave+%26+14th+St,+New+York,+NY&amp;hl=en&amp;geocode=&amp;mra=ls&amp;dirflg=r&amp;date=11%2F12%2F08&amp;time=4:13pm&amp;ttype=dep&amp;noexp=0&amp;noal=0&amp;sort=&amp;sll=40.746175,-73.998395&amp;sspn=0.014468,0.036392&amp;ie=UTF8&amp;z=14', 'http://maps.google.com/maps?f=d&amp;saddr=New+York+Penn+Station&amp;daddr=9th+Ave+%26+14th+St,+New+York,+NY&amp;hl=en&amp;geocode=&amp;mra=ls&amp;dirflg=r&amp;date=11%2F12%2F08&amp;time=4:13pm&amp;ttype=dep&amp;noexp=0&amp;noal=0&amp;sort=&amp;sll=40.746175,-73.998395&amp;sspn=0.014468,0.036392&amp;ie=UTF8&amp;z=14')
         self.config_dialog = UrlShortenerPluginConfigDialog(self)
         self.gui_extension_points = {
                 'chat_control_base': (self.connect_with_chat_control,

@@ -43,9 +43,9 @@ class UbuntuIntegrationPlugin(GajimPlugin):
         Does nothing.
         """
         self.description = _('This plugin integrates Gajim '
-            'with the Ubuntu Messaging Menu.\n\n'
+            'with the Ubuntu Messaging Menu.<br/><br/>'
             'You must have python-indicate and python-xdg (and Gajim obviously)'
-            ' installed to enable this plugin.\n\n'
+            ' installed to enable this plugin.<br/><br/>'
             'Many thanks to the guys from gajim@conference.gajim.org for '
             'answering my questions :)')
         self.config_dialog = None

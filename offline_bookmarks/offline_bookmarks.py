@@ -19,7 +19,7 @@ class OfflineBookmarksPlugin(GajimPlugin):
     def init(self):
         self.description = _('Saving bookmarks inside the plugin configuration '
         'file. Allows the use of locally stored bookmarks if the server '
-        'does not support the storage of bookmarks (eg talk.google.com).\n'
+        'does not support the storage of bookmarks (eg talk.google.com).<br/>'
         'Support to import bookmarks from one account to another.')
 
         self.events_handlers = {

@@ -28,7 +28,7 @@ class AppindicatorIntegrationPlugin(GajimPlugin):
 
     @log_calls("AppindicatorIntegrationPlugin")
     def init(self):
-        self.description = _('This plugin integrates Gajim with the appindicator.\n'
+        self.description = _('This plugin integrates Gajim with the appindicator.<br/>'
             'You must have python-appindicator (and Gajim obviously) '
             'installed to enable this plugin.\n')
         self.config_dialog = None
@@ -40,8 +40,7 @@ class AppindicatorIntegrationPlugin(GajimPlugin):
         self.available_text = ''
         if not appindicator:
             self.activatable = False
-            self.available_text += _('\n\n Error: python-appindicator is missing! \n'
-                'Please install it.\n')
+            self.available_text += _('<br/><br/> Error: python-appindicator is missing!<br/>Please install it.')
 
     @log_calls("AppindicatorIntegrationPlugin")
     def activate(self):

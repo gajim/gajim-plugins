@@ -19,7 +19,7 @@ class SetLocationPlugin(GajimPlugin):
     @log_calls('SetLocationPlugin')
     def init(self):
         self.description = _('Set information about the current geographical '
-            'or physical location.\n'
+            'or physical location.<br/>'
             'To be able to specify a location on the built-in card, '
             'you must install python-osmgpsmap > 0.5')
         self.config_dialog = SetLocationPluginConfigDialog(self)

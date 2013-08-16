@@ -258,7 +258,8 @@ class OtrPlugin(GajimPlugin):
     otr = None
     def init(self):
 
-        self.description = _('See http://www.cypherpunks.ca/otr/')
+        self.description = _('Provide OTR encryption. See <a href='
+            '"http://www.cypherpunks.ca/otr/">Author website</a>')
         self.us = {}
 
 
