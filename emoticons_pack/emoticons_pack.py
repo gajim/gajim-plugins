@@ -136,8 +136,8 @@ class EmoticonsPackPlugin(GajimPlugin):
         name = model.get_value(iter, C_NAME)
 
         label = self.xml.get_object('label2')
-        if label.get_text() == 'Legend':
-            label.set_text('Description')
+        if label.get_text() == _('Legend'):
+            label.set_text(_('Description'))
             sys.path.append(os.path.join(self.tmp_dir, name))
 
             import emoticons
@@ -176,7 +176,7 @@ class EmoticonsPackPlugin(GajimPlugin):
             sw = self.xml.get_object('scrolledwindow1')
             sw.add(self.emoticons_description_textview.tv)
             sw.show_all()
-            label.set_text('Legend')
+            label.set_text(_('Legend'))
             desc = _(model.get_value(iter, C_DESCRIPTION))
             if not desc.startswith('<body  '):
                 desc = '<body  xmlns=\'http://www.w3.org/1999/xhtml\'>' + \
@@ -184,7 +184,8 @@ class EmoticonsPackPlugin(GajimPlugin):
             desc = desc.replace('preview.image', ('file:' + os.path.join(
                     self.tmp_dir, name, 'preview.png'))).replace('\n', '<br/>')
             self.emoticons_description_textview.tv.display_html(
-                desc, self.emoticons_description_textview)
+                desc, self.emoticons_description_textview.tv,
+                self.emoticons_description_textview)
             self.emoticons_description_textview.tv.set_property('sensitive', True)
 
     def dict_to_html(self, dict_):
