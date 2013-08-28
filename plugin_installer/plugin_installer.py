@@ -506,7 +506,8 @@ class Ftp(threading.Thread):
             if not self.remote_dirs:
                 gobject.idle_add(self.progressbar.set_text,
                     _('Scan files on the server'))
-                self.ftp.retrbinary('RETR manifests_images.zip', self.handleDownload)
+                self.ftp.retrbinary('RETR manifests_images.zip',
+                    self.handleDownload)
                 zip_file = zipfile.ZipFile(self.buffer_)
                 manifest_list = zip_file.namelist()
                 progress_step = 1.0 / len(manifest_list)
