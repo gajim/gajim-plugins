@@ -604,7 +604,7 @@ class Ftp(threading.Thread):
                     else:
                         files.append(i[1:])
             dirs, files = [], []
-            nlstr('/%s/%s' + (self.plugin.server_folder, remote_dir))
+            nlstr('/%s/%s' % (self.plugin.server_folder, remote_dir))
 
             base_dir, user_dir = gajim.PLUGINS_DIRS
             if not os.path.isdir(user_dir):
