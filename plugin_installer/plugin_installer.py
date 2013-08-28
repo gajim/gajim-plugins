@@ -74,6 +74,12 @@ class PluginInstaller(GajimPlugin):
         icon = gtk.Image()
         self.def_icon = icon.render_icon(gtk.STOCK_PREFERENCES,
             gtk.ICON_SIZE_MENU)
+        if gajim.version.startswith('0.15'):
+            self.server_folder = 'plugins_0.15'
+        elif gajim.version.startswith('0.16.10'):
+            self.server_folder = 'plugins_gtk3'
+        else:
+            self.server_folder = 'plugins_0.16'
 
     @log_calls('PluginInstallerPlugin')
     def activate(self):
@@ -114,7 +120,7 @@ class PluginInstaller(GajimPlugin):
             try:
                 to_update = []
                 con = self.ftp_connect()
-                con.cwd('plugins_0.16')
+                con.cwd(self.server_folder)
                 con.retrbinary('RETR manifests.zip', ftp.handleDownload)
                 zip_file = zipfile.ZipFile(ftp.buffer_)
                 manifest_list = zip_file.namelist()
@@ -501,7 +507,7 @@ class Ftp(threading.Thread):
             gobject.idle_add(self.progressbar.set_text,
                 _('Connecting to server'))
             self.ftp = self.plugin.ftp_connect()
-            self.ftp.cwd('plugins_0.16')
+            self.ftp.cwd(self.plugin.server_folder)
             if not self.remote_dirs:
                 gobject.idle_add(self.progressbar.set_text,
                     _('Scan files on the server'))
