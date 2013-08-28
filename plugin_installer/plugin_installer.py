@@ -606,7 +606,7 @@ class Ftp(threading.Thread):
                     else:
                         files.append(i[1:])
             dirs, files = [], []
-            nlstr('/plugins/' + remote_dir)
+            nlstr('/%s/%s' + (self.plugin.server_folder, remote_dir))
 
             base_dir, user_dir = gajim.PLUGINS_DIRS
             if not os.path.isdir(user_dir):
@@ -626,7 +626,8 @@ class Ftp(threading.Thread):
             for filename in files:
                 gobject.idle_add(self.progressbar.set_text,
                     _('Downloading "%s"') % filename)
-                full_filename = os.path.join(local_dir, filename)
+                full_filename = os.path.join(local_dir, filename.replace(
+                    self.plugin.server_folder, 'plugins'))
                 try:
                     self.ftp.retrbinary('RETR /%s' % filename,
                         open(full_filename, 'wb').write)
