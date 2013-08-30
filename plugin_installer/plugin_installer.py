@@ -619,6 +619,7 @@ class Ftp(threading.Thread):
 
             # creating dirs
             for dir_ in dirs:
+                dir_ = dir_.replace(self.plugin.server_folder, 'plugins')
                 try:
                     os.mkdir(os.path.join(local_dir, dir_))
                 except OSError as e:
