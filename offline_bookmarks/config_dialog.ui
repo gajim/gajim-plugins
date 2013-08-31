@@ -11,6 +11,7 @@
     <child>
       <object class="GtkVBox" id="vbox86">
         <property name="visible">True</property>
+        <property name="border_width">9</property>
         <property name="orientation">vertical</property>
         <property name="spacing">12</property>
         <child>
@@ -414,9 +415,6 @@
                   </packing>
                 </child>
                 <child>
-                  <placeholder/>
-                </child>
-                <child>
                   <object class="GtkComboBox" id="import_to">
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
@@ -437,6 +435,9 @@
                     <property name="x_options">GTK_FILL</property>
                     <property name="y_options">GTK_FILL</property>
                   </packing>
+                </child>
+                <child>
+                  <placeholder/>
                 </child>
               </object>
               <packing>

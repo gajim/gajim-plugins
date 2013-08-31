@@ -1,28 +1,25 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0"?>
 <interface>
   <requires lib="gtk+" version="2.24"/>
   <!-- interface-naming-policy project-wide -->
   <object class="GtkWindow" id="window1">
-    <property name="can_focus">False</property>
     <property name="default_width">140</property>
     <property name="default_height">100</property>
     <child>
       <object class="GtkTable" id="table1">
         <property name="visible">True</property>
-        <property name="can_focus">False</property>
+        <property name="border_width">9</property>
         <property name="n_rows">10</property>
         <property name="n_columns">2</property>
         <child>
           <object class="GtkLabel" id="label1">
             <property name="visible">True</property>
-            <property name="can_focus">False</property>
             <property name="label">1 </property>
           </object>
         </child>
         <child>
           <object class="GtkLabel" id="label2">
             <property name="visible">True</property>
-            <property name="can_focus">False</property>
             <property name="label">2 </property>
           </object>
           <packing>
@@ -33,7 +30,6 @@
         <child>
           <object class="GtkLabel" id="label3">
             <property name="visible">True</property>
-            <property name="can_focus">False</property>
             <property name="label">3 </property>
           </object>
           <packing>
@@ -45,12 +41,10 @@
           <object class="GtkEntry" id="entry1">
             <property name="visible">True</property>
             <property name="can_focus">True</property>
-            <property name="invisible_char">●</property>
-            <property name="primary_icon_activatable">False</property>
-            <property name="secondary_icon_activatable">False</property>
+            <property name="invisible_char">&#x25CF;</property>
             <property name="primary_icon_sensitive">True</property>
             <property name="secondary_icon_sensitive">True</property>
-            <signal name="changed" handler="entry_changed" swapped="no"/>
+            <signal name="changed" handler="entry_changed"/>
           </object>
           <packing>
             <property name="left_attach">1</property>
@@ -61,12 +55,10 @@
           <object class="GtkEntry" id="entry2">
             <property name="visible">True</property>
             <property name="can_focus">True</property>
-            <property name="invisible_char">●</property>
-            <property name="primary_icon_activatable">False</property>
-            <property name="secondary_icon_activatable">False</property>
+            <property name="invisible_char">&#x25CF;</property>
             <property name="primary_icon_sensitive">True</property>
             <property name="secondary_icon_sensitive">True</property>
-            <signal name="changed" handler="entry_changed" swapped="no"/>
+            <signal name="changed" handler="entry_changed"/>
           </object>
           <packing>
             <property name="left_attach">1</property>
@@ -79,12 +71,10 @@
           <object class="GtkEntry" id="entry3">
             <property name="visible">True</property>
             <property name="can_focus">True</property>
-            <property name="invisible_char">●</property>
-            <property name="primary_icon_activatable">False</property>
-            <property name="secondary_icon_activatable">False</property>
+            <property name="invisible_char">&#x25CF;</property>
             <property name="primary_icon_sensitive">True</property>
             <property name="secondary_icon_sensitive">True</property>
-            <signal name="changed" handler="entry_changed" swapped="no"/>
+            <signal name="changed" handler="entry_changed"/>
           </object>
           <packing>
             <property name="left_attach">1</property>
@@ -97,12 +87,10 @@
           <object class="GtkEntry" id="entry4">
             <property name="visible">True</property>
             <property name="can_focus">True</property>
-            <property name="invisible_char">●</property>
-            <property name="primary_icon_activatable">False</property>
-            <property name="secondary_icon_activatable">False</property>
+            <property name="invisible_char">&#x25CF;</property>
             <property name="primary_icon_sensitive">True</property>
             <property name="secondary_icon_sensitive">True</property>
-            <signal name="changed" handler="entry_changed" swapped="no"/>
+            <signal name="changed" handler="entry_changed"/>
           </object>
           <packing>
             <property name="left_attach">1</property>
@@ -115,12 +103,10 @@
           <object class="GtkEntry" id="entry5">
             <property name="visible">True</property>
             <property name="can_focus">True</property>
-            <property name="invisible_char">●</property>
-            <property name="primary_icon_activatable">False</property>
-            <property name="secondary_icon_activatable">False</property>
+            <property name="invisible_char">&#x25CF;</property>
             <property name="primary_icon_sensitive">True</property>
             <property name="secondary_icon_sensitive">True</property>
-            <signal name="changed" handler="entry_changed" swapped="no"/>
+            <signal name="changed" handler="entry_changed"/>
           </object>
           <packing>
             <property name="left_attach">1</property>
@@ -133,13 +119,11 @@
           <object class="GtkEntry" id="entry6">
             <property name="visible">True</property>
             <property name="can_focus">True</property>
-            <property name="invisible_char">●</property>
+            <property name="invisible_char">&#x25CF;</property>
             <property name="overwrite_mode">True</property>
-            <property name="primary_icon_activatable">False</property>
-            <property name="secondary_icon_activatable">False</property>
             <property name="primary_icon_sensitive">True</property>
             <property name="secondary_icon_sensitive">True</property>
-            <signal name="changed" handler="entry_changed" swapped="no"/>
+            <signal name="changed" handler="entry_changed"/>
           </object>
           <packing>
             <property name="left_attach">1</property>
@@ -152,12 +136,10 @@
           <object class="GtkEntry" id="entry7">
             <property name="visible">True</property>
             <property name="can_focus">True</property>
-            <property name="invisible_char">●</property>
-            <property name="primary_icon_activatable">False</property>
-            <property name="secondary_icon_activatable">False</property>
+            <property name="invisible_char">&#x25CF;</property>
             <property name="primary_icon_sensitive">True</property>
             <property name="secondary_icon_sensitive">True</property>
-            <signal name="changed" handler="entry_changed" swapped="no"/>
+            <signal name="changed" handler="entry_changed"/>
           </object>
           <packing>
             <property name="left_attach">1</property>
@@ -170,12 +152,10 @@
           <object class="GtkEntry" id="entry8">
             <property name="visible">True</property>
             <property name="can_focus">True</property>
-            <property name="invisible_char">●</property>
-            <property name="primary_icon_activatable">False</property>
-            <property name="secondary_icon_activatable">False</property>
+            <property name="invisible_char">&#x25CF;</property>
             <property name="primary_icon_sensitive">True</property>
             <property name="secondary_icon_sensitive">True</property>
-            <signal name="changed" handler="entry_changed" swapped="no"/>
+            <signal name="changed" handler="entry_changed"/>
           </object>
           <packing>
             <property name="left_attach">1</property>
@@ -188,12 +168,10 @@
           <object class="GtkEntry" id="entry9">
             <property name="visible">True</property>
             <property name="can_focus">True</property>
-            <property name="invisible_char">●</property>
-            <property name="primary_icon_activatable">False</property>
-            <property name="secondary_icon_activatable">False</property>
+            <property name="invisible_char">&#x25CF;</property>
             <property name="primary_icon_sensitive">True</property>
             <property name="secondary_icon_sensitive">True</property>
-            <signal name="changed" handler="entry_changed" swapped="no"/>
+            <signal name="changed" handler="entry_changed"/>
           </object>
           <packing>
             <property name="left_attach">1</property>
@@ -206,12 +184,10 @@
           <object class="GtkEntry" id="entry10">
             <property name="visible">True</property>
             <property name="can_focus">True</property>
-            <property name="invisible_char">●</property>
-            <property name="primary_icon_activatable">False</property>
-            <property name="secondary_icon_activatable">False</property>
+            <property name="invisible_char">&#x25CF;</property>
             <property name="primary_icon_sensitive">True</property>
             <property name="secondary_icon_sensitive">True</property>
-            <signal name="changed" handler="entry_changed" swapped="no"/>
+            <signal name="changed" handler="entry_changed"/>
           </object>
           <packing>
             <property name="left_attach">1</property>
@@ -223,7 +199,6 @@
         <child>
           <object class="GtkLabel" id="label4">
             <property name="visible">True</property>
-            <property name="can_focus">False</property>
             <property name="label">4 </property>
           </object>
           <packing>
@@ -234,7 +209,6 @@
         <child>
           <object class="GtkLabel" id="label5">
             <property name="visible">True</property>
-            <property name="can_focus">False</property>
             <property name="label">5 </property>
           </object>
           <packing>
@@ -245,7 +219,6 @@
         <child>
           <object class="GtkLabel" id="label6">
             <property name="visible">True</property>
-            <property name="can_focus">False</property>
             <property name="label">6 </property>
           </object>
           <packing>
@@ -256,7 +229,6 @@
         <child>
           <object class="GtkLabel" id="label7">
             <property name="visible">True</property>
-            <property name="can_focus">False</property>
             <property name="label">7 </property>
           </object>
           <packing>
@@ -267,7 +239,6 @@
         <child>
           <object class="GtkLabel" id="label8">
             <property name="visible">True</property>
-            <property name="can_focus">False</property>
             <property name="label">8 </property>
           </object>
           <packing>
@@ -278,7 +249,6 @@
         <child>
           <object class="GtkLabel" id="label9">
             <property name="visible">True</property>
-            <property name="can_focus">False</property>
             <property name="label">9 </property>
           </object>
           <packing>
@@ -289,7 +259,6 @@
         <child>
           <object class="GtkLabel" id="label10">
             <property name="visible">True</property>
-            <property name="can_focus">False</property>
             <property name="label">10 </property>
           </object>
           <packing>
