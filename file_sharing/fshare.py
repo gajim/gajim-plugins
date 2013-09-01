@@ -29,7 +29,7 @@ class FileSharePlugin(GajimPlugin):
         self.config_dialog = FileSharePluginConfigDialog(self)
         home_path = os.path.expanduser('~/')
         self.config_default_values = {'incoming_dir': (home_path, '')}
-        self.database = database.FilesharingDatabase(self)
+        self.database = database.FilesharingDatabase(self.config.FILE_PATH)
         # Create one protocol handler per account
         accounts = gajim.contacts.get_accounts()
         for account in gajim.contacts.get_accounts():

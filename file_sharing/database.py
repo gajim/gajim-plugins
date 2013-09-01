@@ -1,12 +1,19 @@
 import sqlite3
-from common import gajim
 import sys
 import os
 
+'''
+TODO:
+ 1-) Modify the database class to use models instead of method arguments
+ 2-) Normalize the database. Don't save dirs and files in the same table
+'''
+
 class FilesharingDatabase:
-    def __init__(self, plugin):
-        self.plugin = plugin
-        path_l = os.path.split(plugin.config.FILE_PATH)
+
+    def __init__(self, FILE_PATH=None):
+        if not FILE_PATH:
+            return
+        path_l = os.path.split(FILE_PATH)
         path = os.path.join(path_l[0], 'shared_files.db')
         db_exist = os.path.exists(path)
         self.conn = sqlite3.connect(path)
@@ -31,13 +38,13 @@ class FilesharingDatabase:
         self.conn.commit()
         c.close()
 
-    def get_toplevel_files(self, account, requester):
+    def get_toplevel_dirs(self, account, requester):
         c = self.conn.cursor()
         data = (account, requester)
         c.execute("SELECT relative_path, hash_sha1, size, description, " +
             "mod_date, is_dir FROM (files JOIN permissions ON" +
             " files.fid=permissions.fid) WHERE account=? AND requester=?" +
-            " AND relative_path NOT LIKE '%/%'", data)
+            " AND is_dir=1 AND relative_path NOT LIKE '%/%'", data)
         result = c.fetchall()
         c.close()
         return result
@@ -88,16 +95,15 @@ class FilesharingDatabase:
         else:
             data = (account, requester, name)
             sql = "SELECT relative_path, hash_sha1, size, description, " + \
-                "mod_date, file_path FROM (files JOIN permissions ON" + \
+                "mod_date, file_path, is_dir FROM (files JOIN permissions ON" + \
                 " files.fid=permissions.fid) WHERE account=? AND requester=?" +\
                 " AND relative_path=?"
         c.execute(sql, data)
         result = c.fetchall()
         c.close()
-        if result == []:
-            return None
-        else:
+        if result != []:
             return result[0]
+        return result
 
     def get_files_name(self, account, requester):
         result = self.get_files(account, requester)
@@ -115,7 +121,8 @@ class FilesharingDatabase:
         >>> _delete_file(1)
         """
         self._check_duplicate(account, requester, file_)
-        requester = gajim.get_jid_without_resource(requester)
+        if requester.find('/') != -1:
+            raise Exception('The requester must be given without a resource attached')
         c = self.conn.cursor()
         c.execute("INSERT INTO files (file_path, " +
             "relative_path, hash_sha1, size, description, mod_date, " +
@@ -138,7 +145,7 @@ class FilesharingDatabase:
             data = (account, requester, file_[2])
             c.execute("SELECT * FROM (files JOIN permissions ON" +
                 " files.fid=permissions.fid) WHERE account=? AND requester=?" +
-                " AND hash_sha1=?)", data)
+                " AND hash_sha1=?", data)
             result.extend(c.fetchall())
         if len(result) > 0:
             raise Exception('Duplicated entry')

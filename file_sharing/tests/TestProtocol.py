@@ -22,6 +22,15 @@ class TestProtocol(unittest.TestCase):
         self.assertEqual(iq.getQuery().getNamespace(), fshare_protocol.NS_FILE_SHARING)
         self.assertEqual(iq.getQuery().getAttr('node'), 'documents/test2.txt')
 
+    def test_convert_dbformat(self):
+        file_ = [(u'relative_path', u'hash', 999, u'description', 
+                u'date', u'file_path', 0)]
+        formatted = self.protocol.convert_dbformat(file_)
+        self.assertNotEqual(len(formatted), 0)
+        for item in formatted:
+            self.assertEqual(type(item), type({}))
+        self.assertEqual(formatted[0]['type'], 'file')
+
     def test_buildFileNode(self):
         file_info = {'name' : 'test2.text',
                      'desc' : 'test',
@@ -58,18 +67,33 @@ class TestProtocol(unittest.TestCase):
 
 
 # Mock modules
-fshare_protocol.gajim = Mock()
+gajim = Mock()
+attr = {'get_jid_from_account.return_value': 'test@gajim.org/test'}
+gajim.configure_mock(**attr)
+fshare_protocol.gajim = gajim
 fshare_protocol.helpers = Mock()
 
 class TestProtocolDispatcher(unittest.TestCase):
 
     def setUp(self):
-        self.account = 'test@gajim.org/test'
+        self.account = 'test@gajim.org'
         self.protocol = fshare_protocol.Protocol(self.account)
         testc = {self.account : Mock()}
         fshare_protocol.gajim.connections = testc
+        database = Mock()
+        top_dirs = [(u'relative_path1', None, None, None, None, 1), 
+                (u'relative_path2', None, None, None, None, 1)]
+        file_ = (u'file1', u'hash', 999, u'description', 
+                u'date', u'file_path', 0)
+        attr = {'get_toplevel_dirs.return_value': top_dirs,
+                'get_file.return_value': file_,
+                'get_files_from_dir.return_value' : [file_, top_dirs[0]]
+               }
+        database.configure_mock(**attr)
+        plugin = Mock()
+        plugin.database = database
         self.dispatcher = fshare_protocol.ProtocolDispatcher(
-                self.account, Mock())
+                self.account, plugin)
 
     def test_handler(self):
         iq = self.protocol.request('peer@gajim.org/test', '1234', 
@@ -96,18 +120,40 @@ class TestProtocolDispatcher(unittest.TestCase):
         offered_files = self.dispatcher.on_offer(iq, 'peer@gajim.org/test')
         self.assertEqual(len(offered_files), 2)
 
-
-    def test_on_request(self):
+    def test_on_dir_request(self):
         iq = self.protocol.request('peer@gajim.org/test', '1234', 
                 'documents')
-        response = self.dispatcher.on_request(iq, 'peer@gajim.org/test')
+        response = self.dispatcher.on_dir_request(iq, 'peer@gajim.org/test',
+                                    'peer@gajim.org', 'documents')
         self.assertEqual(response.getType(), 'result')
         self.assertNotEqual(response.getID(), None)
         self.assertEqual(response.getQuery().getName(), 'query')
         self.assertEqual(response.getQuery().getNamespace(), fshare_protocol.NS_FILE_SHARING)
         self.assertEqual(response.getQuery().getAttr('node'), 'documents')
         node = response.getQuery()
-        self.assertEqual(len(node.getChildren()), 0)
+        self.assertEqual(len(node.getChildren()), 2)
+
+    def test_on_request(self):
+        iq = self.protocol.request('peer@gajim.org/test', '1234', 
+                'documents/file1.txt')
+        response = self.dispatcher.on_request(iq, 'peer@gajim.org/test')
+        self.assertEqual(response.getType(), 'result')
+        self.assertNotEqual(response.getID(), None)
+        self.assertEqual(response.getQuery().getName(), 'query')
+        self.assertEqual(response.getQuery().getNamespace(), fshare_protocol.NS_FILE_SHARING)
+        self.assertEqual(response.getQuery().getAttr('node'), 'documents/file1.txt')
+        node = response.getQuery()
+        self.assertEqual(len(node.getChildren()), 1)
+
+    def test_on_toplevel_request(self):
+        iq = self.protocol.request('peer@gajim.org/test', '1234')
+        response = self.dispatcher.on_toplevel_request(iq, 'peer@gajim.org')
+        self.assertEqual(response.getType(), 'result')
+        self.assertNotEqual(response.getID(), None)
+        self.assertEqual(response.getQuery().getName(), 'query')
+        self.assertEqual(response.getQuery().getNamespace(), fshare_protocol.NS_FILE_SHARING)
+        node = response.getQuery()
+        self.assertEqual(len(node.getChildren()), 2)
 
 
 

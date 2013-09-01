@@ -21,6 +21,27 @@ class Protocol():
         # set our jid with resource
         self.ourjid = ourjid
 
+
+    def convert_dbformat(self, records):
+        # Converts db output format to the one expected by the Protocol methods
+        formatted = []
+        for record in records:
+            r = {'name' : record[0]}
+            if record[-1] == 0:
+                r['type'] = 'file'
+                if record[1] != None or record[1] != '':
+                    r['hash'] = record[1]
+                if record[2] != None or record[2] != '':
+                    r['size'] = record[2]
+                if record[3] != None or record[3] != '':
+                    r['desc'] = record[3]
+                if record[4] != None or record[4] != '':
+                    r['date'] = record[4]
+            else:
+                r['type'] = 'directory'
+            formatted.append(r)
+        return formatted
+
     def request(self, contact, stanzaID, path=None):
         iq = nbxmpp.Iq(typ='get', to=contact, frm=self.ourjid)
         iq.setID(stanzaID)
@@ -66,7 +87,7 @@ class Protocol():
                 raise Exception("Unexpected Type")
         return iq
 
-class ProtocolDispatcher():
+class ProtocolDispatcher(Protocol):
     '''
     Sends and receives stanzas
     '''
@@ -77,7 +98,8 @@ class ProtocolDispatcher():
         self.plugin = plugin
         self.conn = gajim.connections[self.account]
         # get our jid with resource
-        self.ourjid = gajim.get_jid_from_account(self.account)
+        ourjid = gajim.get_jid_from_account(self.account)
+        Protocol.__init__(self, ourjid)
         self.fsw = None
 
 
@@ -96,31 +118,48 @@ class ProtocolDispatcher():
             # TODO: reply with malformed stanza error
             pass
 
+
+    def on_toplevel_request(self, stanza, jid):
+        roots = self.plugin.database.get_toplevel_dirs(self.account, jid)
+        items = []
+        for root in roots:
+            items.append({'type' : 'directory',
+                          'name' : root[0]
+                        })
+        return self.offer(stanza.getID(), jid, None, items)
+
+    def on_dir_request(self, stanza, fjid, jid, dir_):
+        result = self.plugin.database.get_files_from_dir(self.account, jid, dir_)
+        result = self.convert_dbformat(result)
+        return self.offer(stanza.getID(), fjid, dir_, result)
+
     def on_request(self, stanza, fjid):
-        node = stanza.getQuery().getAttr('node')
-        jid = gajim.get_jid_without_resource(fjid)
-        result = self.plugin.database.get_file(self.account, jid, None, node)
-        return
-
-
+        jid = get_jid_without_resource(fjid)
         if stanza.getTag('error'):
             # TODO: better handle this
             return -1
-        jid = gajim.get_jid_without_resource(fjid)
-        req = stanza.getTag('match').getTag('request')
-        if req.getTag('directory') and not \
-                req.getTag('directory').getChildren():
-            # We just received a toplevel directory request
-            files = self.plugin.database.get_toplevel_files(self.account, jid)
-            response = self.offer(stanza.getID(), fjid, files)
-            self.conn.connection.send(response)
-            return response
-        elif req.getTag('directory') and req.getTag('directory').getTag('name'):
-            dir_ = req.getTag('directory').getTag('name').getData()[1:]
-            files = self.plugin.database.get_files_from_dir(self.account, jid, dir_)
-            response = self.offer(stanza.getID(), fjid, files)
-            self.conn.connection.send(response)
-            return response
+        node = stanza.getQuery().getAttr('node')
+        if node is None:
+            return self.on_toplevel_request(stanza, jid)
+        result = self.plugin.database.get_file(self.account, jid, None, node)
+        if result == []:
+            return self.offer(stanza.getID(), fjid, node, result)
+        if result[-1] == 1:
+            # The peer asked for the content of a dir
+            reply = self.on_dir_request(self, stanza, fjid)
+        else:
+            # The peer asked for more information on a file
+            # TODO: Refactor, make method to convert db format to expect file
+            # format
+            file_ = [{'type' : 'file',
+                     'name' : result[0].split('/')[-1],
+                     'hash' : result[1],
+                     'size' : result[2],
+                     'desc' : result[3],
+                     'date' : result[4],
+                    }]
+            reply = self.offer(stanza.getID(), fjid, node, file_)
+        return reply
 
     def on_offer(self, stanza, fjid):
         offered = []
@@ -139,6 +178,10 @@ class ProtocolDispatcher():
                 print 'File sharing. Cant handle unknown type: ' + str(child)
         return offered
 
+
+
+def get_jid_without_resource(jid):
+    return jid.split('/')[0]
 
 def get_files_info(stanza):
     # Crawls the stanza in search for file and dir structure.
