@@ -14,7 +14,7 @@ from fileshare_window import FileShareWindow
 import fshare_protocol
 from common import ged
 from common import caps_cache
-from common import xmpp
+from common import nbxmpp
 from plugins.gui import GajimPluginConfigDialog
 
 
@@ -34,7 +34,7 @@ class FileSharePlugin(GajimPlugin):
         accounts = gajim.contacts.get_accounts()
         for account in gajim.contacts.get_accounts():
             FileSharePlugin.prohandler[account] = \
-                fshare_protocol.Protocol(account, self)
+                fshare_protocol.ProtocolDispatcher(account, self)
         self.events_handlers = {
             'raw-iq-received': (ged.CORE, self._nec_raw_iq)
             }
@@ -79,12 +79,13 @@ class FileSharePlugin(GajimPlugin):
                     gajim.connections[a].status)
 
     def _nec_raw_iq(self, obj):
-        if obj.stanza.getTag('match',
+        if obj.stanza.getTag('query',
                 namespace=fshare_protocol.NS_FILE_SHARING) and self.activated:
             account = obj.conn.name
             pro = FileSharePlugin.prohandler[account]
-            pro.handler(obj.stanza)
-            raise xmpp.NodeProcessed
+            peerjid = obj.stanza.getFrom()
+            pro.handler(obj.stanza, str(peerjid))
+            raise nbxmpp.NodeProcessed
 
     def __get_contact_menu(self, contact, account):
         raise NotImplementedError

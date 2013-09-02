@@ -15,9 +15,8 @@ class TestProtocol(unittest.TestCase):
         self.protocol = fshare_protocol.Protocol('test@gajim.org/test')
 
     def test_request(self):
-        iq = self.protocol.request('peer@gajim.org/test', '1234', 'documents/test2.txt')
+        iq = self.protocol.request('peer@gajim.org/test', 'documents/test2.txt')
         self.assertEqual(iq.getType(), 'get')
-        self.assertNotEqual(iq.getID(), None)
         self.assertEqual(iq.getQuery().getName(), 'query')
         self.assertEqual(iq.getQuery().getNamespace(), fshare_protocol.NS_FILE_SHARING)
         self.assertEqual(iq.getQuery().getAttr('node'), 'documents/test2.txt')
@@ -96,7 +95,7 @@ class TestProtocolDispatcher(unittest.TestCase):
                 self.account, plugin)
 
     def test_handler(self):
-        iq = self.protocol.request('peer@gajim.org/test', '1234', 
+        iq = self.protocol.request('peer@gajim.org/test', 
                 'documents/test2.txt')
         #offer = self.dispatcher.on_offer
         request = self.dispatcher.on_request
@@ -121,12 +120,10 @@ class TestProtocolDispatcher(unittest.TestCase):
         self.assertEqual(len(offered_files), 2)
 
     def test_on_dir_request(self):
-        iq = self.protocol.request('peer@gajim.org/test', '1234', 
-                'documents')
+        iq = self.protocol.request('peer@gajim.org/test', 'documents')
         response = self.dispatcher.on_dir_request(iq, 'peer@gajim.org/test',
                                     'peer@gajim.org', 'documents')
         self.assertEqual(response.getType(), 'result')
-        self.assertNotEqual(response.getID(), None)
         self.assertEqual(response.getQuery().getName(), 'query')
         self.assertEqual(response.getQuery().getNamespace(), fshare_protocol.NS_FILE_SHARING)
         self.assertEqual(response.getQuery().getAttr('node'), 'documents')
@@ -134,11 +131,9 @@ class TestProtocolDispatcher(unittest.TestCase):
         self.assertEqual(len(node.getChildren()), 2)
 
     def test_on_request(self):
-        iq = self.protocol.request('peer@gajim.org/test', '1234', 
-                'documents/file1.txt')
+        iq = self.protocol.request('peer@gajim.org/test','documents/file1.txt')
         response = self.dispatcher.on_request(iq, 'peer@gajim.org/test')
         self.assertEqual(response.getType(), 'result')
-        self.assertNotEqual(response.getID(), None)
         self.assertEqual(response.getQuery().getName(), 'query')
         self.assertEqual(response.getQuery().getNamespace(), fshare_protocol.NS_FILE_SHARING)
         self.assertEqual(response.getQuery().getAttr('node'), 'documents/file1.txt')
@@ -146,10 +141,9 @@ class TestProtocolDispatcher(unittest.TestCase):
         self.assertEqual(len(node.getChildren()), 1)
 
     def test_on_toplevel_request(self):
-        iq = self.protocol.request('peer@gajim.org/test', '1234')
+        iq = self.protocol.request('peer@gajim.org/test')
         response = self.dispatcher.on_toplevel_request(iq, 'peer@gajim.org')
         self.assertEqual(response.getType(), 'result')
-        self.assertNotEqual(response.getID(), None)
         self.assertEqual(response.getQuery().getName(), 'query')
         self.assertEqual(response.getQuery().getNamespace(), fshare_protocol.NS_FILE_SHARING)
         node = response.getQuery()

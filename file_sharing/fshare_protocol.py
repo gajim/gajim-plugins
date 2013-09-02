@@ -8,7 +8,7 @@ except ImportError:
     print "Import Error: Ignore if we are testing"
 
 # Namespace for file sharing
-NS_FILE_SHARING = 'urn:xmpp:fis'
+NS_FILE_SHARING = 'urn:xmpp:fis:0'
 
 
 class Protocol():
@@ -42,9 +42,8 @@ class Protocol():
             formatted.append(r)
         return formatted
 
-    def request(self, contact, stanzaID, path=None):
+    def request(self, contact, path=None):
         iq = nbxmpp.Iq(typ='get', to=contact, frm=self.ourjid)
-        iq.setID(stanzaID)
         query = iq.setQuery()
         query.setNamespace(NS_FILE_SHARING)
         if path:
@@ -108,16 +107,16 @@ class ProtocolDispatcher(Protocol):
 
 
     def handler(self, stanza, fjid):
-        # handles incoming match stanza
+        # handles incoming stanza
         # TODO: Stanza checking
         if stanza.getType() == 'get':
-            self.on_request(stanza, fjid)
+            offer = self.on_request(stanza, fjid)
+            self.conn.connection.send(offer)
         elif stanza.getType() == 'result':
             return self.on_offer(stanza, fjid)
         else:
             # TODO: reply with malformed stanza error
             pass
-
 
     def on_toplevel_request(self, stanza, jid):
         roots = self.plugin.database.get_toplevel_dirs(self.account, jid)
@@ -179,30 +178,6 @@ class ProtocolDispatcher(Protocol):
         return offered
 
 
-
 def get_jid_without_resource(jid):
     return jid.split('/')[0]
-
-def get_files_info(stanza):
-    # Crawls the stanza in search for file and dir structure.
-    files = []
-    dirs = []
-    children = stanza.getTag('match').getTag('offer').getChildren()
-    for c in children:
-        if c.getName() == 'file':
-            f = {'name' : \
-                    c.getTag('name').getData()[1:] if c.getTag('name') else '',
-                 'size' : c.getTag('size').getData() if c.getTag('size') else '',
-                 'date' : c.getTag('date').getData() if c.getTag('date') else '',
-                 'desc' : c.getTag('desc').getData() if c.getTag('desc') else '',
-                 # TODO: handle different hash algo
-                 'hash' : c.getTag('hash').getData() if c.getTag('hash') else '',
-                }
-            files.append(f)
-        else:
-            dirname = c.getTag('name')
-            if dirname is None:
-                return None
-            dirs.append(dirname.getData()[1:])
-    return (files, dirs)
 
