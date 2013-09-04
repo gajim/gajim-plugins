@@ -104,6 +104,8 @@ class Base(object):
         self.chat_control.handlers[self.id_] = self.textview.tv
 
     def print_special_text(self, special_text, other_tags, graphics=True):
+        if not self.plugin.active:
+            return
         is_xhtml_link = None
         text_is_valid_uri = False
         buffer_ = self.textview.tv.get_buffer()
