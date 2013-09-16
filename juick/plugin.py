@@ -88,14 +88,16 @@ class JuickPlugin(GajimPlugin):
         if self.conn:
             self.conn.close()
 
-    def print_special_text(self, tv, special_text, other_tags, graphics=True):
+    def print_special_text(self, tv, special_text, other_tags, graphics=True,
+    iter_=None):
         for control in self.controls:
             if control.chat_control.conv_textview != tv:
                 continue
-            control.print_special_text(special_text, other_tags, graphics=True)
+            control.print_special_text(special_text, other_tags, graphics,
+                iter_)
 
     def print_special_text1(self, chat_control, special_text, other_tags=None,
-        graphics=True):
+        graphics=True, iter_=None):
         for control in self.controls:
             if control.chat_control == chat_control:
                 control.disconnect_from_chat_control()
@@ -327,20 +329,21 @@ class Base(object):
             if kind == 'juick_nick':
                 self.on_insert(widget, 'PM %s' % word.rstrip(':'))
 
-    def print_special_text(self, special_text, other_tags, graphics=True):
+    def print_special_text(self, special_text, other_tags, graphics=True,
+    iter__=None):
         if gajim.interface.sharp_slash_re.match(special_text):
             # insert post num #123456//
             buffer_, iter_, tag = self.get_iter_and_tag('sharp_slash')
-            buffer_.insert_with_tags(iter_, special_text, tag)
+            buffer_.insert_with_tags(iter__, special_text, tag)
             self.last_juick_num = special_text
             self.textview.plugin_modified = True
             return
         if gajim.interface.juick_nick_re.match(special_text):
             # insert juick nick @nickname////
             buffer_, iter_, tag = self.get_iter_and_tag('juick_nick')
-            mark = buffer_.create_mark(None, iter_, True)
+            mark = buffer_.create_mark(None, iter__, True)
             nick = special_text[1:].rstrip(':')
-            buffer_.insert_with_tags(iter_, special_text, tag)
+            buffer_.insert_with_tags(iter__, special_text, tag)
             # insert avatars
             if not self.plugin.config['SHOW_AVATARS']:
                 self.textview.plugin_modified = True
@@ -391,8 +394,8 @@ class Base(object):
             self.plugin.config['SHOW_PREVIEW']:
             # show pics preview
             buffer_, iter_, tag = self.get_iter_and_tag('url')
-            mark = buffer_.create_mark(None, iter_, True)
-            buffer_.insert_with_tags(iter_, special_text, tag)
+            mark = buffer_.create_mark(None, iter__, True)
+            buffer_.insert_with_tags(iter__, special_text, tag)
             uid = special_text.split('/')[-1]
             url = "http://i.juick.com/photos-512/%s" % uid
             gajim.thread_interface(self.insert_pic_preview, [mark, special_text,

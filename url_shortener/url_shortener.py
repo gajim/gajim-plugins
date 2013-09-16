@@ -79,14 +79,15 @@ class UrlShortenerPlugin(GajimPlugin):
             control.disconnect_from_chat_control()
         self.controls = []
 
-    def print_special_text(self, tv, special_text, other_tags, graphics=True):
+    def print_special_text(self, tv, special_text, other_tags, graphics=True,
+    iter_=None):
         for control in self.controls:
             if control.chat_control.conv_textview != tv:
                 continue
             control.print_special_text(special_text, other_tags, graphics=True)
 
     def print_special_text1(self, chat_control, special_text, other_tags=None,
-        graphics=True):
+        graphics=True, iter_=None):
         for control in self.controls:
             if control.chat_control == chat_control:
                 control.disconnect_from_chat_control()
@@ -103,7 +104,8 @@ class Base(object):
         self.on_textview_motion_notify_event)
         self.chat_control.handlers[self.id_] = self.textview.tv
 
-    def print_special_text(self, special_text, other_tags, graphics=True):
+    def print_special_text(self, special_text, other_tags, graphics=True,
+    iter_=None):
         if not self.plugin.active:
             return
         is_xhtml_link = None

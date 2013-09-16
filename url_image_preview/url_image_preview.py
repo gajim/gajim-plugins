@@ -41,11 +41,13 @@ class UrlImagePreviewPlugin(GajimPlugin):
             control.disconnect_from_chat_control()
         self.controls = []
 
-    def print_special_text(self, tv, special_text, other_tags, graphics=True):
+    def print_special_text(self, tv, special_text, other_tags, graphics=True,
+    iter_=None):
         for control in self.controls:
             if control.chat_control.conv_textview != tv:
                 continue
-            control.print_special_text(special_text, other_tags, graphics=True)
+            control.print_special_text(special_text, other_tags, graphics=True,
+                iter_=None)
 
     def print_special_text1(self, chat_control, special_text, other_tags=None,
         graphics=True):
@@ -60,7 +62,8 @@ class Base(object):
         self.chat_control = chat_control
         self.textview = self.chat_control.conv_textview
 
-    def print_special_text(self, special_text, other_tags, graphics=True):
+    def print_special_text(self, special_text, other_tags, graphics=True,
+    iter_=None):
         if not gajim.interface.basic_pattern_re.match(special_text):
             return
         # remove qip bbcode
