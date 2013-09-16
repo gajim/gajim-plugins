@@ -1,0 +1,1 @@
+from theme_switcher import ThemeSwitcherPlugin
