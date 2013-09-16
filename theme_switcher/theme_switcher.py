@@ -42,12 +42,13 @@ class ThemeSwitcherPluginConfigDialog(GajimPluginConfigDialog):
         self.child.pack_start(hbox)
         self.xml.connect_signals(self)
 
-        self.preset_combo = self.xml.get_object('theme_combobox')
-        self.preset_liststore = gtk.ListStore(str)
-        self.preset_combo.set_model(self.preset_liststore)
+        theme_combo = self.xml.get_object('theme_combobox')
+        self.theme_liststore = gtk.ListStore(str)
+        theme_combo.set_model(self.theme_liststore)
         cellrenderer = gtk.CellRendererText()
-        self.preset_combo.pack_start(cellrenderer, True)
-        self.preset_combo.add_attribute(cellrenderer, 'text', 0)
+        theme_combo.pack_start(cellrenderer, True)
+        theme_combo.add_attribute(cellrenderer, 'text', 0)
+        self._id = theme_combo.connect('changed', self.on_theme_combobox_changed)
 
     @log_calls('ThemeSwitcherPluginConfigDialog')
     def on_run(self):
@@ -55,6 +56,10 @@ class ThemeSwitcherPluginConfigDialog(GajimPluginConfigDialog):
         from os.path import join
         theme_d = gtk.rc_get_theme_dir()
         theme_names = []
+        theme_combo = self.xml.get_object('theme_combobox')
+        theme_combo.handler_block(self._id)
+        self.theme_liststore.clear()
+        theme_combo.handler_unblock(self._id)
         for theme in listdir(theme_d):
             try:
                 if "gtk-2.0" in listdir(join(theme_d, theme)):
@@ -64,7 +69,7 @@ class ThemeSwitcherPluginConfigDialog(GajimPluginConfigDialog):
 
         theme_names = sorted(theme_names)
         for name in theme_names:
-            self.preset_liststore.append((name,))
+            self.theme_liststore.append((name,))
 
     def on_reset_theme_button_clicked(self, widget):
         settings = gtk.settings_get_default()

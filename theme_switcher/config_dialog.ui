@@ -27,7 +27,6 @@
             <child>
               <object class="GtkComboBox" id="theme_combobox">
                 <property name="visible">True</property>
-                <signal name="changed" handler="on_theme_combobox_changed"/>
               </object>
               <packing>
                 <property name="position">1</property>
