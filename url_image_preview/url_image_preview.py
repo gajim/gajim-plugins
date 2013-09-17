@@ -50,7 +50,7 @@ class UrlImagePreviewPlugin(GajimPlugin):
                 iter_=None)
 
     def print_special_text1(self, chat_control, special_text, other_tags=None,
-        graphics=True):
+        graphics=True, iter_=None):
         for control in self.controls:
             if control.chat_control == chat_control:
                 control.disconnect_from_chat_control()

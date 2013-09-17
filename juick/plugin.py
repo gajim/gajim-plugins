@@ -378,32 +378,36 @@ class Base(object):
                 if not pixbuf:
                     self.textview.plugin_modified = True
                     return
-                end_iter = buffer_.get_iter_at_mark(mark)
-                anchor = buffer_.create_child_anchor(end_iter)
-                img = TextViewImage(anchor, nick)
-                img.set_from_pixbuf(pixbuf)
-                img.show()
-                self.textview.tv.add_child_at_anchor(img, anchor)
+                gobject.idle_add(self.set_avatar, mark, nick, pixbuf)
                 self.textview.plugin_modified = True
                 return
             else:
                 # nick not in the db
                 gobject.idle_add(self.get_new_avatar, mark, nick)
+                self.textview.plugin_modified = True
                 return
         if gajim.interface.juick_pic_re.match(special_text) and \
             self.plugin.config['SHOW_PREVIEW']:
             # show pics preview
             buffer_, iter_, tag = self.get_iter_and_tag('url')
-            mark = buffer_.create_mark(None, iter__, True)
-            buffer_.insert_with_tags(iter__, special_text, tag)
+            mark = buffer_.create_mark(None, buffer_.get_end_iter(), True)
             uid = special_text.split('/')[-1]
             url = "http://i.juick.com/photos-512/%s" % uid
             gajim.thread_interface(self.insert_pic_preview, [mark, special_text,
-                url])
+                url, tag])
             self.textview.plugin_modified = True
             return
 
-    def insert_pic_preview(self, mark, special_text, url):
+    def set_avatar(self, mark, nick, pixbuf):
+        buffer_ = mark.get_buffer()
+        end_iter = buffer_.get_iter_at_mark(mark)
+        anchor = buffer_.create_child_anchor(end_iter)
+        img = TextViewImage(anchor, nick)
+        img.set_from_pixbuf(pixbuf)
+        img.show()
+        self.textview.tv.add_child_at_anchor(img, anchor)
+
+    def insert_pic_preview(self, mark, special_text, url, tag):
         pixbuf = self.get_pixbuf_from_url( url, self.plugin.config[
             'PREVIEW_SIZE'])
         if pixbuf:
@@ -415,6 +419,9 @@ class Base(object):
             img.set_from_pixbuf(pixbuf)
             img.show()
             self.textview.tv.add_child_at_anchor(img, anchor)
+        buffer_ = mark.get_buffer()
+        end_iter = buffer_.get_iter_at_mark(mark)
+        buffer_.insert_with_tags(end_iter, special_text, tag)
 
     def get_iter_and_tag(self, tag_name):
         buffer_ = self.textview.tv.get_buffer()
@@ -430,16 +437,14 @@ class Base(object):
             _id = str(j[0]['uid'])
         except urllib2.HTTPError, e:
             return
+        pixbuf = self.get_avatar(_id, nick)
         buffer_ = mark.get_buffer()
         end_iter = buffer_.get_iter_at_mark(mark)
-        pixbuf = self.get_avatar(_id, nick)
         anchor = buffer_.create_child_anchor(end_iter)
         img = TextViewImage(anchor, nick)
         img.set_from_pixbuf(pixbuf)
         img.show()
         self.textview.tv.add_child_at_anchor(img, anchor)
-
-
 
     def get_avatar(self, uid, nick, need_check=None):
         # search avatar in cache or download from juick.com
