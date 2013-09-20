@@ -183,7 +183,8 @@ class PluginInstaller(GajimPlugin):
         self.GTK_BUILDER_FILE_PATH = self.local_file_path('config_dialog.ui')
         self.xml = gtk.Builder()
         self.xml.set_translation_domain('gajim_plugins')
-        self.xml.add_objects_from_file(self.GTK_BUILDER_FILE_PATH, ['hpaned2'])
+        self.xml.add_objects_from_file(self.GTK_BUILDER_FILE_PATH, ['hpaned2',
+            'image1'])
         self.hpaned = self.xml.get_object('hpaned2')
         self.page_num = self.notebook.append_page(self.hpaned,
             gtk.Label(_('Available')))

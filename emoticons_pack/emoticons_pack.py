@@ -76,7 +76,8 @@ class EmoticonsPackPlugin(GajimPlugin):
         self.Gtk_BUILDER_FILE_PATH = self.local_file_path('config_dialog.ui')
         self.xml = gtk.Builder()
         self.xml.set_translation_domain('gajim_plugins')
-        self.xml.add_objects_from_file(self.Gtk_BUILDER_FILE_PATH, ['hpaned2'])
+        self.xml.add_objects_from_file(self.Gtk_BUILDER_FILE_PATH,
+            ['hpaned2', 'image1', 'image2'])
         self.hpaned = self.xml.get_object('hpaned2')
         self.page_num = self.notebook.append_page(self.hpaned, gtk.Label(_(
             'Emoticons')))
@@ -135,9 +136,9 @@ class EmoticonsPackPlugin(GajimPlugin):
         model, iter = treeview_selection.get_selected()
         name = model.get_value(iter, C_NAME)
 
-        label = self.xml.get_object('label2')
-        if label.get_text() == _('Legend'):
-            label.set_text(_('Description'))
+        button = self.xml.get_object('legend_button')
+        if button.get_label() == _('Legend'):
+            button.set_label(_('Description'))
             sys.path.append(os.path.join(self.tmp_dir, name))
 
             import emoticons
@@ -176,7 +177,7 @@ class EmoticonsPackPlugin(GajimPlugin):
             sw = self.xml.get_object('scrolledwindow1')
             sw.add(self.emoticons_description_textview.tv)
             sw.show_all()
-            label.set_text(_('Legend'))
+            button.set_label(_('Legend'))
             desc = _(model.get_value(iter, C_DESCRIPTION))
             if not desc.startswith('<body  '):
                 desc = '<body  xmlns=\'http://www.w3.org/1999/xhtml\'>' + \
@@ -307,8 +308,8 @@ class EmoticonsPackPlugin(GajimPlugin):
 
     def available_emoticons_treeview_selection_changed(self, treeview_selection):
         model, iter = treeview_selection.get_selected()
-        label = self.xml.get_object('label2')
-        label.set_text(_('Legend'))
+        button = self.xml.get_object('legend_button')
+        button.set_label(_('Legend'))
         if iter:
             set_name = model.get_value(iter, C_NAME)
             if os.path.isdir(self.tmp_dir):

@@ -80,7 +80,7 @@ class SetLocationPluginConfigDialog(GajimPluginConfigDialog):
         self.xml = gtk.Builder()
         self.xml.set_translation_domain('gajim_plugins')
         self.xml.add_objects_from_file(self.GTK_BUILDER_FILE_PATH,
-                ['hbox1'])
+            ['hbox1', 'image1', 'image2'])
         hbox = self.xml.get_object('hbox1')
         self.child.pack_start(hbox)
         self.xml.connect_signals(self)
