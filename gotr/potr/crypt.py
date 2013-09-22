@@ -22,8 +22,8 @@ import logging
 import struct
 
 
-from potr.compatcrypto import SHA256, SHA1, HMAC, SHA1HMAC, SHA256HMAC, \
-        SHA256HMAC160, Counter, AESCTR, RNG, PK, generateDefaultKey
+from potr.compatcrypto import SHA256, SHA1, SHA1HMAC, SHA256HMAC, \
+        SHA256HMAC160, Counter, AESCTR, PK, random
 from potr.utils import bytes_to_long, long_to_bytes, pack_mpi, read_mpi
 from potr import proto
 
@@ -36,32 +36,31 @@ STATE_AWAITING_SIG = 4
 STATE_V1_SETUP = 5
 
 
-DH1536_MODULUS = 2410312426921032588552076022197566074856950548502459942654116941958108831682612228890093858261341614673227141477904012196503648957050582631942730706805009223062734745341073406696246014589361659774041027169249453200378729434170325843778659198143763193776859869524088940195577346119843545301547043747207749969763750084308926339295559968882457872412993810129130294592999947926365264059284647209730384947211681434464714438488520940127459844288859336526896320919633919
-DH1536_MODULUS_2 = DH1536_MODULUS-2
-DH1536_GENERATOR = 2
-SM_ORDER = (DH1536_MODULUS - 1) // 2
+DH_MODULUS = 2410312426921032588552076022197566074856950548502459942654116941958108831682612228890093858261341614673227141477904012196503648957050582631942730706805009223062734745341073406696246014589361659774041027169249453200378729434170325843778659198143763193776859869524088940195577346119843545301547043747207749969763750084308926339295559968882457872412993810129130294592999947926365264059284647209730384947211681434464714438488520940127459844288859336526896320919633919
+DH_MODULUS_2 = DH_MODULUS-2
+DH_GENERATOR = 2
+DH_BITS = 1536
+DH_MAX = 2**DH_BITS
+SM_ORDER = (DH_MODULUS - 1) // 2
 
 def check_group(n):
-    return 2 <= n <= DH1536_MODULUS_2
+    return 2 <= n <= DH_MODULUS_2
 def check_exp(n):
     return 1 <= n < SM_ORDER
 
 class DH(object):
-    __slots__ = ['priv', 'pub']
     @classmethod
     def set_params(cls, prime, gen):
         cls.prime = prime
         cls.gen = gen
 
     def __init__(self):
-        self.priv = bytes_to_long(RNG.read(40))
+        self.priv = random.randrange(2, 2**320)
         self.pub = pow(self.gen, self.priv, self.prime)
 
-DH.set_params(DH1536_MODULUS, DH1536_GENERATOR)
+DH.set_params(DH_MODULUS, DH_GENERATOR)
 
 class DHSession(object):
-    __slots__ = ['sendenc', 'sendmac', 'rcvenc', 'rcvmac', 'sendctr', 'rcvctr',
-            'sendmacused', 'rcvmacused']
     def __init__(self, sendenc, sendmac, rcvenc, rcvmac):
         self.sendenc = sendenc
         self.sendmac = sendmac
@@ -79,7 +78,7 @@ class DHSession(object):
 
     @classmethod
     def create(cls, dh, y):
-        s = pow(y, dh.priv, DH1536_MODULUS)
+        s = pow(y, dh.priv, DH_MODULUS)
         sb = pack_mpi(s)
 
         if dh.pub > y:
@@ -96,9 +95,6 @@ class DHSession(object):
         return cls(sendenc, sendmac, rcvenc, rcvmac)
 
 class CryptEngine(object):
-    __slots__ = ['ctx', 'ake', 'sessionId', 'sessionIdHalf', 'theirKeyid',
-            'theirY', 'theirOldY', 'ourOldDHKey', 'ourDHKey', 'ourKeyid',
-            'sessionkeys', 'theirPubkey', 'savedMacKeys', 'smp']
     def __init__(self, ctx):
         self.ctx = ctx
         self.ake = None
@@ -118,6 +114,7 @@ class CryptEngine(object):
         self.savedMacKeys = []
 
         self.smp = None
+        self.extraKey = None
 
     def revealMacs(self, ours=True):
         if ours:
@@ -174,7 +171,7 @@ class CryptEngine(object):
         if msg.mac != SHA1HMAC(sesskey.rcvmac, msg.getMacedData()):
             logger.error('HMACs don\'t match')
             raise InvalidParameterError
-        sesskey.rcvmacused = 1
+        sesskey.rcvmacused = True
 
         newCtrPrefix = bytes_to_long(msg.ctr)
         if newCtrPrefix <= sesskey.rcvctr.prefix:
@@ -223,10 +220,13 @@ class CryptEngine(object):
             self.smp = SMPHandler(self)
         self.smp.abort(appdata=appdata)
 
-    def createDataMessage(self, message, flags=0, tlvs=[]):
+    def createDataMessage(self, message, flags=0, tlvs=None):
         # check MSGSTATE
         if self.theirKeyid == 0:
             raise InvalidParameterError
+
+        if tlvs is None:
+            tlvs = []
 
         sess = self.sessionkeys[1][0]
         sess.sendctr.inc()
@@ -303,12 +303,15 @@ class CryptEngine(object):
         self.ourKeyid = ake.ourKeyid
         self.theirY = ake.gy
         self.theirOldY = None
+        self.extraKey = ake.extraKey
 
         if self.ourKeyid != ake.ourKeyid + 1 or self.ourOldDHKey != ake.dh.pub:
-            # XXX is this really ok?
             self.ourDHKey = ake.dh
             self.sessionkeys[0][0] = DHSession.create(self.ourDHKey, self.theirY)
             self.rotateDHKeys()
+
+        # we don't need the AKE anymore, free the reference
+        self.ake = None
 
         self.ctx._wentEncrypted()
         logger.info('went encrypted with {0}'.format(self.theirPubkey))
@@ -317,10 +320,6 @@ class CryptEngine(object):
         self.smp = None
 
 class AuthKeyExchange(object):
-    __slots__ = ['privkey', 'state', 'r', 'encgx', 'hashgx', 'ourKeyid',
-            'theirPubkey', 'theirKeyid', 'enc_c', 'enc_cp', 'mac_m1',
-            'mac_m1p', 'mac_m2', 'mac_m2p', 'sessionId', 'dh', 'onSuccess',
-            'gy', 'lastmsg', 'sessionIdHalf']
     def __init__(self, privkey, onSuccess):
         self.privkey = privkey
         self.state = STATE_NONE
@@ -341,9 +340,11 @@ class AuthKeyExchange(object):
         self.dh = DH()
         self.onSuccess = onSuccess
         self.gy = None
+        self.extraKey = None
+        self.lastmsg = None
 
     def startAKE(self):
-        self.r = RNG.read(16)
+        self.r = long_to_bytes(random.getrandbits(128))
 
         gxmpi = pack_mpi(self.dh.pub)
 
@@ -444,15 +445,17 @@ class AuthKeyExchange(object):
         self.state = STATE_NONE
 
     def createAuthKeys(self):
-        s = pow(self.gy, self.dh.priv, DH1536_MODULUS)
+        s = pow(self.gy, self.dh.priv, DH_MODULUS)
         sbyte = pack_mpi(s)
-        self.sessionId = SHA256(b'\0' + sbyte)[:8]
-        enc = SHA256(b'\1' + sbyte)
-        self.enc_c, self.enc_cp = enc[:16], enc[16:]
-        self.mac_m1 = SHA256(b'\2' + sbyte)
-        self.mac_m2 = SHA256(b'\3' + sbyte)
-        self.mac_m1p = SHA256(b'\4' + sbyte)
-        self.mac_m2p = SHA256(b'\5' + sbyte)
+        self.sessionId = SHA256(b'\x00' + sbyte)[:8]
+        enc = SHA256(b'\x01' + sbyte)
+        self.enc_c = enc[:16]
+        self.enc_cp = enc[16:]
+        self.mac_m1 = SHA256(b'\x02' + sbyte)
+        self.mac_m2 = SHA256(b'\x03' + sbyte)
+        self.mac_m1p = SHA256(b'\x04' + sbyte)
+        self.mac_m2p = SHA256(b'\x05' + sbyte)
+        self.extraKey = SHA256(b'\xff' + sbyte)
 
     def calculatePubkeyAuth(self, key, mackey):
         pubkey = self.privkey.serializePublicKey()
@@ -490,14 +493,15 @@ SMPPROG_FAILED = -1
 SMPPROG_SUCCEEDED = 1
 
 class SMPHandler:
-    __slots__ = ['crypto', 'questionReceived', 'prog', 'state', 'g1', 'g3o',
-            'x2', 'x3', 'g2', 'g3', 'pab', 'qab', 'secret', 'p', 'q']
-
     def __init__(self, crypto):
         self.crypto = crypto
         self.state = 1
-        self.g1 = DH1536_GENERATOR
+        self.g1 = DH_GENERATOR
+        self.g2 = None
+        self.g3 = None
         self.g3o = None
+        self.x2 = None
+        self.x3 = None
         self.prog = SMPPROG_OK
         self.pab = None
         self.qab = None
@@ -539,11 +543,11 @@ class SMPHandler:
 
             self.g3o = msg[3]
 
-            self.x2 = bytes_to_long(RNG.read(192))
-            self.x3 = bytes_to_long(RNG.read(192))
+            self.x2 = random.randrange(2, DH_MAX)
+            self.x3 = random.randrange(2, DH_MAX)
 
-            self.g2 = pow(msg[0], self.x2, DH1536_MODULUS)
-            self.g3 = pow(msg[3], self.x3, DH1536_MODULUS)
+            self.g2 = pow(msg[0], self.x2, DH_MODULUS)
+            self.g3 = pow(msg[3], self.x3, DH_MODULUS)
 
             self.prog = SMPPROG_OK
             self.state = 0
@@ -568,29 +572,29 @@ class SMPHandler:
                 return
 
             self.g3o = msg[3]
-            self.g2 = pow(msg[0], self.x2, DH1536_MODULUS)
-            self.g3 = pow(msg[3], self.x3, DH1536_MODULUS)
+            self.g2 = pow(msg[0], self.x2, DH_MODULUS)
+            self.g3 = pow(msg[3], self.x3, DH_MODULUS)
 
             if not self.check_equal_coords(msg[6:11], 5):
                 logger.error('invalid SMP2TLV received')
                 self.abort(appdata=appdata)
                 return
 
-            r = bytes_to_long(RNG.read(192))
-            self.p = pow(self.g3, r, DH1536_MODULUS)
+            r = random.randrange(2, DH_MAX)
+            self.p = pow(self.g3, r, DH_MODULUS)
             msg = [self.p]
-            qa1 = pow(self.g1, r, DH1536_MODULUS)
-            qa2 = pow(self.g2, self.secret, DH1536_MODULUS)
-            self.q = qa1*qa2 % DH1536_MODULUS
+            qa1 = pow(self.g1, r, DH_MODULUS)
+            qa2 = pow(self.g2, self.secret, DH_MODULUS)
+            self.q = qa1*qa2 % DH_MODULUS
             msg.append(self.q)
             msg += self.proof_equal_coords(r, 6)
 
             inv = invMod(mp)
-            self.pab = self.p * inv % DH1536_MODULUS
+            self.pab = self.p * inv % DH_MODULUS
             inv = invMod(mq)
-            self.qab = self.q * inv % DH1536_MODULUS
+            self.qab = self.q * inv % DH_MODULUS
 
-            msg.append(pow(self.qab, self.x3, DH1536_MODULUS))
+            msg.append(pow(self.qab, self.x3, DH_MODULUS))
             msg += self.proof_equal_logs(7)
 
             self.state = 4
@@ -613,9 +617,9 @@ class SMPHandler:
                 return
 
             inv = invMod(self.p)
-            self.pab = msg[0] * inv % DH1536_MODULUS
+            self.pab = msg[0] * inv % DH_MODULUS
             inv = invMod(self.q)
-            self.qab = msg[1] * inv % DH1536_MODULUS
+            self.qab = msg[1] * inv % DH_MODULUS
 
             if not self.check_equal_logs(msg[5:8], 7):
                 logger.error('invalid SMP3TLV received')
@@ -623,10 +627,10 @@ class SMPHandler:
                 return
 
             md = msg[5]
-            msg = [pow(self.qab, self.x3, DH1536_MODULUS)]
+            msg = [pow(self.qab, self.x3, DH_MODULUS)]
             msg += self.proof_equal_logs(8)
 
-            rab = pow(md, self.x3, DH1536_MODULUS)
+            rab = pow(md, self.x3, DH_MODULUS)
             self.prog = SMPPROG_SUCCEEDED if self.pab == rab else SMPPROG_FAILED
 
             if self.prog != SMPPROG_SUCCEEDED:
@@ -654,7 +658,7 @@ class SMPHandler:
                 self.abort(appdata=appdata)
                 return
 
-            rab = pow(msg[0], self.x3, DH1536_MODULUS)
+            rab = pow(msg[0], self.x3, DH_MODULUS)
 
             self.prog = SMPPROG_SUCCEEDED if self.pab == rab else SMPPROG_FAILED
 
@@ -679,12 +683,12 @@ class SMPHandler:
 
             self.secret = bytes_to_long(combSecret)
 
-            self.x2 = bytes_to_long(RNG.read(192))
-            self.x3 = bytes_to_long(RNG.read(192))
+            self.x2 = random.randrange(2, DH_MAX)
+            self.x3 = random.randrange(2, DH_MAX)
 
-            msg = [pow(self.g1, self.x2, DH1536_MODULUS)]
+            msg = [pow(self.g1, self.x2, DH_MODULUS)]
             msg += proof_known_log(self.g1, self.x2, 1)
-            msg.append(pow(self.g1, self.x3, DH1536_MODULUS))
+            msg.append(pow(self.g1, self.x3, DH_MODULUS))
             msg += proof_known_log(self.g1, self.x3, 2)
 
             self.prog = SMPPROG_OK
@@ -700,19 +704,19 @@ class SMPHandler:
 
             self.secret = bytes_to_long(combSecret)
 
-            msg = [pow(self.g1, self.x2, DH1536_MODULUS)]
+            msg = [pow(self.g1, self.x2, DH_MODULUS)]
             msg += proof_known_log(self.g1, self.x2, 3)
-            msg.append(pow(self.g1, self.x3, DH1536_MODULUS))
+            msg.append(pow(self.g1, self.x3, DH_MODULUS))
             msg += proof_known_log(self.g1, self.x3, 4)
 
-            r = bytes_to_long(RNG.read(192))
+            r = random.randrange(2, DH_MAX)
 
-            self.p = pow(self.g3, r, DH1536_MODULUS)
+            self.p = pow(self.g3, r, DH_MODULUS)
             msg.append(self.p)
 
-            qb1 = pow(self.g1, r, DH1536_MODULUS)
-            qb2 = pow(self.g2, self.secret, DH1536_MODULUS)
-            self.q = qb1 * qb2 % DH1536_MODULUS
+            qb1 = pow(self.g1, r, DH_MODULUS)
+            qb2 = pow(self.g2, self.secret, DH_MODULUS)
+            self.q = qb1 * qb2 % DH_MODULUS
             msg.append(self.q)
 
             msg += self.proof_equal_coords(r, 5)
@@ -721,11 +725,11 @@ class SMPHandler:
             self.sendTLV(proto.SMP2TLV(msg), appdata=appdata)
 
     def proof_equal_coords(self, r, v):
-        r1 = bytes_to_long(RNG.read(192))
-        r2 = bytes_to_long(RNG.read(192))
-        temp2 = pow(self.g1, r1, DH1536_MODULUS) \
-                * pow(self.g2, r2, DH1536_MODULUS) % DH1536_MODULUS
-        temp1 = pow(self.g3, r1, DH1536_MODULUS)
+        r1 = random.randrange(2, DH_MAX)
+        r2 = random.randrange(2, DH_MAX)
+        temp2 = pow(self.g1, r1, DH_MODULUS) \
+                * pow(self.g2, r2, DH_MODULUS) % DH_MODULUS
+        temp1 = pow(self.g3, r1, DH_MODULUS)
 
         cb = SHA256(struct.pack(b'B', v) + pack_mpi(temp1) + pack_mpi(temp2))
         c = bytes_to_long(cb)
@@ -739,21 +743,21 @@ class SMPHandler:
 
     def check_equal_coords(self, coords, v):
         (p, q, c, d1, d2) = coords
-        temp1 = pow(self.g3, d1, DH1536_MODULUS) * pow(p, c, DH1536_MODULUS) \
-                % DH1536_MODULUS
+        temp1 = pow(self.g3, d1, DH_MODULUS) * pow(p, c, DH_MODULUS) \
+                % DH_MODULUS
 
-        temp2 = pow(self.g1, d1, DH1536_MODULUS) \
-                * pow(self.g2, d2, DH1536_MODULUS) \
-                * pow(q, c, DH1536_MODULUS) % DH1536_MODULUS
+        temp2 = pow(self.g1, d1, DH_MODULUS) \
+                * pow(self.g2, d2, DH_MODULUS) \
+                * pow(q, c, DH_MODULUS) % DH_MODULUS
 
         cprime = SHA256(struct.pack(b'B', v) + pack_mpi(temp1) + pack_mpi(temp2))
 
-        return long_to_bytes(c) == cprime
+        return long_to_bytes(c, 32) == cprime
 
     def proof_equal_logs(self, v):
-        r = bytes_to_long(RNG.read(192))
-        temp1 = pow(self.g1, r, DH1536_MODULUS)
-        temp2 = pow(self.qab, r, DH1536_MODULUS)
+        r = random.randrange(2, DH_MAX)
+        temp1 = pow(self.g1, r, DH_MODULUS)
+        temp2 = pow(self.qab, r, DH_MODULUS)
 
         cb = SHA256(struct.pack(b'B', v) + pack_mpi(temp1) + pack_mpi(temp2))
         c = bytes_to_long(cb)
@@ -763,29 +767,29 @@ class SMPHandler:
 
     def check_equal_logs(self, logs, v):
         (r, c, d) = logs
-        temp1 = pow(self.g1, d, DH1536_MODULUS) \
-                * pow(self.g3o, c, DH1536_MODULUS) % DH1536_MODULUS
+        temp1 = pow(self.g1, d, DH_MODULUS) \
+                * pow(self.g3o, c, DH_MODULUS) % DH_MODULUS
 
-        temp2 = pow(self.qab, d, DH1536_MODULUS) \
-                * pow(r, c, DH1536_MODULUS) % DH1536_MODULUS
+        temp2 = pow(self.qab, d, DH_MODULUS) \
+                * pow(r, c, DH_MODULUS) % DH_MODULUS
 
         cprime = SHA256(struct.pack(b'B', v) + pack_mpi(temp1) + pack_mpi(temp2))
-        return long_to_bytes(c) == cprime
+        return long_to_bytes(c, 32) == cprime
 
 def proof_known_log(g, x, v):
-    r = bytes_to_long(RNG.read(192))
-    c = bytes_to_long(SHA256(struct.pack(b'B', v) + pack_mpi(pow(g, r, DH1536_MODULUS))))
+    r = random.randrange(2, DH_MAX)
+    c = bytes_to_long(SHA256(struct.pack(b'B', v) + pack_mpi(pow(g, r, DH_MODULUS))))
     temp = x * c % SM_ORDER
     return c, (r-temp) % SM_ORDER
 
 def check_known_log(c, d, g, x, v):
-    gd = pow(g, d, DH1536_MODULUS)
-    xc = pow(x, c, DH1536_MODULUS)
-    gdxc = gd * xc % DH1536_MODULUS
-    return SHA256(struct.pack(b'B', v) + pack_mpi(gdxc)) == long_to_bytes(c)
+    gd = pow(g, d, DH_MODULUS)
+    xc = pow(x, c, DH_MODULUS)
+    gdxc = gd * xc % DH_MODULUS
+    return SHA256(struct.pack(b'B', v) + pack_mpi(gdxc)) == long_to_bytes(c, 32)
 
 def invMod(n):
-    return pow(n, DH1536_MODULUS_2, DH1536_MODULUS)
+    return pow(n, DH_MODULUS_2, DH_MODULUS)
 
 class InvalidParameterError(RuntimeError):
     pass
