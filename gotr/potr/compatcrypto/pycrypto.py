@@ -15,18 +15,16 @@
 #    You should have received a copy of the GNU Lesser General Public License
 #    along with this library.  If not, see <http://www.gnu.org/licenses/>.
 
-from Crypto import Cipher, Random
+from Crypto import Cipher
 from Crypto.Hash import SHA256 as _SHA256
-from Crypto.Hash import SHA as _SHA1                                                                                                                                                                                                      
+from Crypto.Hash import SHA as _SHA1
 from Crypto.Hash import HMAC as _HMAC
 from Crypto.PublicKey import DSA
+from Crypto.Random import random
 from numbers import Number
 
 from potr.compatcrypto import common
-from potr.utils import pack_mpi, read_mpi, bytes_to_long, long_to_bytes
-
-# XXX atfork?
-RNG = Random.new()
+from potr.utils import read_mpi, bytes_to_long, long_to_bytes
 
 def SHA256(data):
     return _SHA256.new(data).digest()
@@ -54,7 +52,6 @@ def AESCTR(key, counter=0):
     return Cipher.AES.new(key, Cipher.AES.MODE_CTR, counter=counter)
 
 class Counter(object):
-    __slots__ = ['prefix', 'val']
     def __init__(self, prefix):
         self.prefix = prefix
         self.val = 0
@@ -72,17 +69,15 @@ class Counter(object):
         return '<Counter(p={p!r},v={v!r})>'.format(p=self.prefix, v=self.val)
 
     def byteprefix(self):
-        return long_to_bytes(self.prefix).rjust(8, b'\0')
+        return long_to_bytes(self.prefix, 8)
 
     def __call__(self):
-        val = long_to_bytes(self.val)
-        prefix = long_to_bytes(self.prefix)
+        bytesuffix = long_to_bytes(self.val, 8)
         self.val += 1
-        return self.byteprefix() + val.rjust(8, b'\0')
+        return self.byteprefix() + bytesuffix
 
 @common.registerkeytype
 class DSAKey(common.PK):
-    __slots__ = ['priv', 'pub']
     keyType = 0x0000
 
     def __init__(self, key=None, private=False):
@@ -111,10 +106,10 @@ class DSAKey(common.PK):
         return SHA1(self.getSerializedPublicPayload())
 
     def sign(self, data):
-        # 2 <= K <= q = 160bit = 20 byte
-        K = bytes_to_long(RNG.read(19)) + 2
+        # 2 <= K <= q
+        K = random.randrange(2, self.priv.q)
         r, s = self.priv.sign(data, K)
-        return long_to_bytes(r) + long_to_bytes(s)
+        return long_to_bytes(r, 20) + long_to_bytes(s, 20)
 
     def verify(self, data, sig):
         r, s = bytes_to_long(sig[:20]), bytes_to_long(sig[20:])
