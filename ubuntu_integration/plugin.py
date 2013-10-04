@@ -60,6 +60,10 @@ class UbuntuIntegrationPlugin(GajimPlugin):
             self.available_text += _('python-indicate is missing! '
                 'Install python-indicate.')
 
+    def show_roster_window(a, b, c):
+        roster = gajim.interface.roster.window
+        roster.present()
+
     @log_calls("UbuntuIntegrationPlugin")
     def activate(self):
         """
@@ -81,6 +85,8 @@ class UbuntuIntegrationPlugin(GajimPlugin):
         if not dfile:
             raise GajimPluginException("Can't locate gajim.desktop!")
         self.server.set_desktop_file(dfile)
+        roster = gajim.interface.roster.window
+        self.server.connect('server-display', self.show_roster_window)
         self.server.show()
 
         gajim.events.event_added_subscribe(self.on_event_added)
