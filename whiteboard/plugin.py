@@ -34,7 +34,6 @@ from plugins import GajimPlugin
 from plugins.plugin import GajimPluginException
 from plugins.helpers import log_calls, log
 from common import gajim
-ver = list(gajim.config.get('version').split('.'))
 from common.xmpp import Message
 import gtk
 import chat_control
