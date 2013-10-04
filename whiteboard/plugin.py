@@ -35,10 +35,7 @@ from plugins.plugin import GajimPluginException
 from plugins.helpers import log_calls, log
 from common import gajim
 ver = list(gajim.config.get('version').split('.'))
-if ver < [0, 15, 3, 0]:
-    from common.xmpp import Message
-else:
-    from nbxmpp import Message
+from common.xmpp import Message
 import gtk
 import chat_control
 from common import ged
