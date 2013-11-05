@@ -118,14 +118,15 @@ class ProtocolDispatcher(Protocol):
             # TODO: reply with malformed stanza error
             pass
 
-    def on_toplevel_request(self, stanza, jid):
+    def on_toplevel_request(self, stanza, fjid):
+        jid = get_jid_without_resource(fjid)
         roots = self.plugin.database.get_toplevel_dirs(self.account, jid)
         items = []
         for root in roots:
             items.append({'type' : 'directory',
                           'name' : root[0]
                         })
-        return self.offer(stanza.getID(), jid, None, items)
+        return self.offer(stanza.getID(), fjid, None, items)
 
     def on_dir_request(self, stanza, fjid, jid, dir_):
         result = self.plugin.database.get_files_from_dir(self.account, jid, dir_)
@@ -139,7 +140,7 @@ class ProtocolDispatcher(Protocol):
             return -1
         node = stanza.getQuery().getAttr('node')
         if node is None:
-            return self.on_toplevel_request(stanza, jid)
+            return self.on_toplevel_request(stanza, fjid)
         result = self.plugin.database.get_file(self.account, jid, None, node)
         if result == []:
             return self.offer(stanza.getID(), fjid, node, result)
