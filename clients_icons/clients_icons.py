@@ -25,7 +25,6 @@ clients = {
     'http://bombusmod.net.ru': ['bombusmod.png', 'Bombusmod'],
     'http://ex-im.name/caps': ['bombusmod.png', 'Bombusmod'],
     'http://bombusmod.eu,http://bombus.pl': ['bombuspl.png', 'Bombusmod'],
-    'http://mcabber.com/caps': ['mcabber.png', 'MCabber'],
     'http://miranda-im.org/caps': ['miranda.png', 'Miranda'],
     'http://www.asterisk.org/xmpp/client/caps': ['asterisk.png', 'Asterisk'],
     'http://www.google.com/xmpp/client/caps': ['talkonaut.png', 'Talkonaut'],
@@ -39,11 +38,10 @@ clients = {
     'http://exodus.jabberstudio.org/caps': ['exodus.png', 'Exodus'],
     'http://bitlbee.org/xmpp/caps': ['bitlbee.png', 'Bitlbee'],
     'http://coccinella.sourceforge.net/protocol/caps': ['coccinella.png', 'Coccinella'],
-    'http://mcabber.lilotux.net/caps': ['mcabber.png', 'MCabber'],
     'http://dev.jabbim.cz/jabbim/caps': ['jabbim.png', 'Jabbim'],
     'http://palringo.com/caps': ['palringo.png', 'Palringo'],
-    'http://vacuum-im.googlecode.com': ['vacuum.png', 'Vacuum'],
-    'http://code.google.com/p/vacuum-im/': ['vacuum.png', 'Vacuum'],
+    'http://vacuum-im.googlecode.com': ['vacuum.png', 'Vacuum-im'],
+    'http://code.google.com/p/vacuum-im/': ['vacuum.png', 'Vacuum-im'],
     'http://jajc.jrudevels.org/caps': ['jajc.png', 'JAJC'],
     'http://gaim.sf.net/caps': ['gaim.png', 'Gaim'],
     'http://mchat.mgslab.com/': ['mchat.png', 'Mchat'],
@@ -54,8 +52,8 @@ clients = {
     'http://bluendo.com/protocol/caps': ['lampiro.png', 'Lampiro'],
     'nimbuzz:caps': ['nimbuzz.png', 'Nimbuzz'],
     'http://nimbuzz.com/caps': ['nimbuzz.png', 'Nimbuzz'],
-    'http://isida.googlecode.com': ['isida-bot.png', 'Isida'],
-    'http://isida-bot.com': ['isida-bot.png', 'Isida'],
+    'http://isida.googlecode.com': ['isida-bot.png', 'iSida Jabber Bot'],
+    'http://isida-bot.com': ['isida-bot.png', 'iSida Jabber Bot'],
     'http://apps.radio-t.com/caps': ['radio-t.png', 'Radio-t'],
     'http://pda.qip.ru/caps': ['qippda.png', 'Qip-PDA'],
     'http://kopete.kde.org/jabber/caps': ['kopete.png', 'Kopete'],
@@ -133,7 +131,6 @@ clients = {
     'http://jasmineicq.ru/caps': ['jasmine.png', 'Jasmine'],
     'http://tomclaw.com/mandarin_im/caps': ['mandarin.png', 'Mandarin'],
     'http://gabber.sourceforge.net': ['gabber.png', 'Gabber'],
-    'http://www.igniterealtime.org/projects/smack/': ['xabber.png', 'Xabber'],
     'http://megafonvolga.ru/': ['megafon.png', 'Megafon'],
     'rss@isida-bot.com': ['osiris.png', 'Osiris'],
     'libpurple': ['libpurple.png', 'Libpurple'],
@@ -144,9 +141,15 @@ clients = {
     'http://opensource.palm.com/packages.html': ['palm.png', 'Palm'],
     'http://spectrum.im/': ['spectrum.png', 'Spectrum'],
     'http://tigase.org/messenger': ['tigase.png', 'Tigase'],
-    'httр://sleekxmpp.com/ver/1.1.11': ['poezio.png', 'Poezio'],
     'http://jitsi.org' :['jitsi.png', 'Jitsi'],
     'http://miranda-ng.org/caps' :['miranda_ng.png', 'Miranda NG'],
+    'http://monal.im/caps': ['monal.png', 'Monal'],
+    #
+    'Poezio' :['poezio.png', 'Poezio'],
+    'Emacs' :['emacs.png', ''],
+    'mcabber' :['mcabber.png', ''],
+    'yaxim' :['yaxim.png', ''],
+    'Xabber' :['xabber.png', ''],
 }
 libpurple_clients ={
     'adium': 'http://www.adium.im/',
@@ -165,10 +168,10 @@ class ClientsIconsPlugin(GajimPlugin):
     @log_calls('ClientsIconsPlugin')
     def init(self):
         self.pos_list = [_('after statusicon'), _('before avatar')]
-        self.events_handlers = {'presence-received':
+        self.events_handlers = {'caps-presence-received':
                                     (ged.POSTGUI, self.presence_received),
-                                'gc-presence-received':
-                                    (ged.POSTGUI, self.gc_presence_received), }
+                                'caps-disco-received':
+                                    (ged.POSTGUI, self.caps_disco_received), }
         self.gui_extension_points = {
             'groupchat_control': (self.connect_with_groupchat_control,
                                     self.disconnect_from_groupchat_control),
@@ -205,6 +208,10 @@ class ClientsIconsPlugin(GajimPlugin):
 
         caps = contact.client_caps._node
         caps_image , client_name = self.get_icon(caps, contact)
+        identities = contact.client_caps._lookup_in_cache(
+            gajim.caps_cache.capscache).identities
+        if identities and client_name == _('Unknown'):
+            client_name = identities[0].get('name', _('Unknown'))
         caps_image.set_alignment(0, 0)
         self.table.attach(caps_image, 1, 2, vcard_current_row,
             vcard_current_row + 1, 0, 0, 0, 0)
@@ -255,18 +262,25 @@ class ClientsIconsPlugin(GajimPlugin):
                 else:
                     contacts_dict[contact.priority] = [contact]
         contact_keys = sorted(contacts_dict.keys())
+        if not contact_keys:
+            # contact have not resource
+            contacts_dict[0] = [contact]
+            contact_keys = sorted(contacts_dict.keys())
         contact_keys.reverse()
 
         #fill clients table
         self.table = gtk.Table(4, 1)
         self.table.set_property('column-spacing', 2)
         first_place = vcard_current_row = vcard_table.get_property('n-rows')
-
         vcard_current_row = 0
         for priority in contact_keys:
             for acontact in contacts_dict[priority]:
                 caps = acontact.client_caps._node
                 caps_image , client_name = self.get_icon(caps, acontact)
+                identities = acontact.client_caps._lookup_in_cache(
+                    gajim.caps_cache.capscache).identities
+                if identities and client_name == _('Unknown'):
+                    client_name = identities[0].get('name', _('Unknown'))
                 caps_image.set_alignment(0, 0)
                 self.table.attach(caps_image, 1, 2, vcard_current_row,
                     vcard_current_row + 1, gtk.FILL, gtk.FILL, 0, 0)
@@ -312,9 +326,6 @@ class ClientsIconsPlugin(GajimPlugin):
                 if client in contact.resource.lower():
                     caps = libpurple_clients[client]
 
-        if 'sleekxmpp.com'in caps:
-            caps = 'httр://sleekxmpp.com/ver/1.1.11'
-
         caps_from_jid = self.check_jid(contact.jid)
         if caps_from_jid:
             caps = caps_from_jid
@@ -325,6 +336,12 @@ class ClientsIconsPlugin(GajimPlugin):
             client_name = clients.get(caps_[0].split()[0], ('', _('Unknown')))[1]
         else:
             client_icon = None
+        if client_name == _('Unknown'):
+            identities = contact.client_caps._lookup_in_cache(
+                gajim.caps_cache.capscache).identities
+            if identities:
+                client_name = identities[0].get('name', _('Unknown'))
+                client_icon = clients.get(client_name.split()[0], (None,))[0]
 
         if not client_icon:
             return gtk.image_new_from_pixbuf(self.default_pixbuf), _('Unknown')
@@ -350,7 +367,7 @@ class ClientsIconsPlugin(GajimPlugin):
             caps = 'facebook.com'
         elif '@vk.com' in jid and self.config['show_facebook']:
             caps = 'vk.com'
-        elif jid == 'juick@juick.com':
+        elif 'juick.com' in jid:
             caps = 'http://juick.com/caps'
         elif jid == 'psto@psto.net':
             caps = 'psto@psto.net'
@@ -374,7 +391,7 @@ class ClientsIconsPlugin(GajimPlugin):
                 if not caps:
                     caps = self.check_jid(jid)
                 self.set_icon(roster.model, iter_, self.renderer_num,
-                    caps)
+                    caps, contact)
 
     @log_calls('ClientsIconsPlugin')
     def connect_with_groupchat_control(self, chat_control):
@@ -418,7 +435,7 @@ class ClientsIconsPlugin(GajimPlugin):
                 continue
             caps = gc_contact.client_caps._node
             self.set_icon(chat_control.model, iter_, self.muc_renderer_num,
-                caps)
+                caps, contact)
         chat_control.draw_all_roles()
         # Recalculate column width for ellipsizin
         chat_control.list_treeview.columns_autosize()
@@ -495,14 +512,51 @@ class ClientsIconsPlugin(GajimPlugin):
             self.renderer_num + 1:]
         roster.setup_and_draw_roster()
 
-    def presence_received(self, iq_obj):
-        if not self.config['show_in_roster']:
-            return
+    def caps_disco_received(self, iq_obj):
         roster = gajim.interface.roster
-        contact = gajim.contacts.get_contact_with_highest_priority(
-            iq_obj.conn.name, iq_obj.jid)
+        contact = gajim.contacts.get_contact_from_full_jid(iq_obj.conn.name,
+            iq_obj.jid)
+        if contact is None:
+            room_jid, nick = gajim.get_room_and_nick_from_fjid(iq_obj.fjid)
+            contact = gajim.contacts.get_gc_contact(iq_obj.conn.name, room_jid,
+                nick)
+            if contact:
+                gc_control = gajim.interface.msg_win_mgr.get_gc_control(
+                    iq_obj.jid, iq_obj.conn.name)
+                #gc_control.draw_contact(nick)
+                return
         if not contact:
             return
+        child_iters = roster._get_contact_iter(iq_obj.jid, iq_obj.conn.name,
+            contact, roster.model)
+        if not child_iters:
+            return
+        for iter_ in child_iters:
+            caps = contact.client_caps._node
+            caps_ = self.check_jid(iq_obj.jid)
+            if caps_:
+                caps = caps_
+            self.set_icon(roster.model, iter_, self.renderer_num,
+                caps, contact)
+
+    def presence_received(self, iq_obj):
+        roster = gajim.interface.roster
+        contact = gajim.contacts.get_contact_from_full_jid(iq_obj.conn.name,
+            iq_obj.jid)
+        if contact is None:
+            room_jid, nick = gajim.get_room_and_nick_from_fjid(iq_obj.fjid)
+            contact = gajim.contacts.get_gc_contact(iq_obj.conn.name, room_jid,
+                nick)
+            if contact:
+                self.gc_presence_received(iq_obj, contact)
+                return
+        if not contact:
+            return
+
+        if not self.config['show_in_roster']:
+            return
+        contact = gajim.contacts.get_contact_with_highest_priority(
+            iq_obj.conn.name, iq_obj.jid)
 
         if iq_obj.resource == 'local':
             # zeroconf
@@ -513,15 +567,16 @@ class ClientsIconsPlugin(GajimPlugin):
         iter_ = iters[0]
 
         if contact.show == 'error':
-            self.set_icon(roster.model, iter_, self.renderer_num, None)
+            self.set_icon(roster.model, iter_, self.renderer_num, None, contact)
             return
 
-        if contact != iq_obj.contact:
+        if contact.get_full_jid() != iq_obj.fjid:
             # higest contact changed
             if roster.model[iter_][self.renderer_num] is not None:
                 caps = contact.client_caps._node
                 if caps:
-                    self.set_icon(roster.model, iter_, self.renderer_num, caps)
+                    self.set_icon(roster.model, iter_, self.renderer_num,
+                        caps, contact)
                     return
         caps = None
         tag = iq_obj.stanza.getTags('c')
@@ -533,48 +588,47 @@ class ClientsIconsPlugin(GajimPlugin):
                     for client in libpurple_clients:
                         if client in contact.resource.lower():
                             caps = libpurple_clients[client]
-                if 'sleekxmpp.com'in caps:
-                    caps = 'httр://sleekxmpp.com/ver/1.1.11'
 
         caps_from_jid = self.check_jid(iq_obj.jid)
         if caps_from_jid:
             caps = caps_from_jid
 
         for iter_ in iters:
-            self.set_icon(roster.model, iter_, self.renderer_num, caps)
+            self.set_icon(roster.model, iter_, self.renderer_num, caps, contact)
 
-    def gc_presence_received(self, iq_obj):
+    def gc_presence_received(self, iq_obj, contact):
         if not self.config['show_in_groupchats']:
             return
-        contact = gajim.contacts.get_gc_contact(iq_obj.conn.name,
-            iq_obj.presence_obj.jid, iq_obj.nick.decode('utf-8'))
-        if not contact:
-            return
+
         caps = None
         tag = iq_obj.stanza.getTags('c')
         if tag:
             caps = tag[0].getAttr('node')
             if 'pidgin.im/' in caps:
                 caps = 'libpurple'
-            if 'sleekxmpp.com' in caps:
-                caps = 'httр://sleekxmpp.com/ver/1.1.11'
-        iter_ = iq_obj.gc_control.get_contact_iter(iq_obj.nick.decode('utf-8'))
-        model = iq_obj.gc_control.model
+
+        gc_control = gajim.interface.msg_win_mgr.get_gc_control(iq_obj.jid,
+            iq_obj.conn.name)
+        iter_ = gc_control.get_contact_iter(iq_obj.resource.decode('utf-8'))
+        model = gc_control.model
         if model[iter_][self.muc_renderer_num] is not None:
             return
-        self.set_icon(model, iter_, self.muc_renderer_num, caps)
+        self.set_icon(model, iter_, self.muc_renderer_num, caps, contact)
 
-    def set_icon(self, model, iter_, pos, caps):
-        if not caps:
-            if self.config['show_unknown_icon']:
-                model[iter_][pos] = self.default_pixbuf
-            return
-
-        caps_ = caps.split('#')[0].split()
-        if caps_:
-            client_icon = clients.get(caps_[0].split()[0], (None,))[0]
+    def set_icon(self, model, iter_, pos, caps, contact):
+        if caps:
+            caps_ = caps.split('#')[0].split()
+            if caps_:
+                client_icon = clients.get(caps_[0].split()[0], (None,))[0]
         else:
             client_icon = None
+
+        if not client_icon:
+            identities = contact.client_caps._lookup_in_cache(
+                gajim.caps_cache.capscache).identities
+            if identities:
+                client_name = identities[0].get('name', _('Unknown'))
+                client_icon = clients.get(client_name.split()[0], (None,))[0]
 
         if not client_icon:
             if self.config['show_unknown_icon']:
