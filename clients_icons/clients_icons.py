@@ -119,7 +119,7 @@ clients = {
     'http://sim-im.org/caps': ['sim.png', 'Sim'],
     'http://www.igniterealtime.org/project/spark/caps': ['spark.png', 'Spark'],
     'http://emess.eqx.su/caps': ['emess.png', 'Emess'],
-    'https://www.jappix.com/': ['jappix.png', 'Jappix'],
+    'http://jappix.org/': ['jappix.png', 'Jappix'],
     'http://japyt.googlecode.com': ['japyt.png', 'Japyt'],
     'http://www.xfire.com/': ['xfire.png', 'Xfire'],
     'http://www.xfire.com/caps': ['xfire.png', 'Xfire'],
@@ -279,6 +279,8 @@ class ClientsIconsPlugin(GajimPlugin):
                 caps_image , client_name = self.get_icon(caps, acontact)
                 identities = acontact.client_caps._lookup_in_cache(
                     gajim.caps_cache.capscache).identities
+                print acontact.name, dir(acontact.client_caps._lookup_in_cache(
+                    gajim.caps_cache.capscache))
                 if identities and client_name == _('Unknown'):
                     client_name = identities[0].get('name', _('Unknown'))
                 caps_image.set_alignment(0, 0)
