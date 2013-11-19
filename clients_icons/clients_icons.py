@@ -436,8 +436,10 @@ class ClientsIconsPlugin(GajimPlugin):
             if not self.config['show_in_groupchats']:
                 continue
             caps = gc_contact.client_caps._node
+            identities = gc_contact.client_caps._lookup_in_cache(
+                gajim.caps_cache.capscache).identities
             self.set_icon(chat_control.model, iter_, self.muc_renderer_num,
-                caps, contact)
+                caps, gc_contact)
         chat_control.draw_all_roles()
         # Recalculate column width for ellipsizin
         chat_control.list_treeview.columns_autosize()
@@ -525,7 +527,11 @@ class ClientsIconsPlugin(GajimPlugin):
             if contact:
                 gc_control = gajim.interface.msg_win_mgr.get_gc_control(
                     iq_obj.jid, iq_obj.conn.name)
-                #gc_control.draw_contact(nick)
+                iter_ = gc_control.get_contact_iter(nick)
+                identities = contact.client_caps._lookup_in_cache(
+                    gajim.caps_cache.capscache).identities
+                self.set_icon(gc_control.model, iter_, self.muc_renderer_num,
+                    None, contact)
                 return
         if not contact:
             return
