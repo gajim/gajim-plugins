@@ -279,8 +279,6 @@ class ClientsIconsPlugin(GajimPlugin):
                 caps_image , client_name = self.get_icon(caps, acontact)
                 identities = acontact.client_caps._lookup_in_cache(
                     gajim.caps_cache.capscache).identities
-                print acontact.name, dir(acontact.client_caps._lookup_in_cache(
-                    gajim.caps_cache.capscache))
                 if identities and client_name == _('Unknown'):
                     client_name = identities[0].get('name', _('Unknown'))
                 caps_image.set_alignment(0, 0)
