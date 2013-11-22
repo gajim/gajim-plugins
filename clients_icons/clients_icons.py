@@ -513,6 +513,8 @@ class ClientsIconsPlugin(GajimPlugin):
         roster.setup_and_draw_roster()
 
     def caps_disco_received(self, iq_obj):
+        if not self.config['show_in_roster']:
+            return
         roster = gajim.interface.roster
         contact = gajim.contacts.get_contact_from_full_jid(iq_obj.conn.name,
             iq_obj.jid)
