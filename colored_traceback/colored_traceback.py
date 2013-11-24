@@ -30,6 +30,7 @@ class ColoredTracebackPlugin(GajimPlugin):
             self.available_text = _('Pygments are not available. '
                 'Install python-pygments.')
             self.activatable = False
+        self._excepthook_save = None
 
     @log_calls('ColoredTracebackPlugin')
     def activate(self):
@@ -41,7 +42,8 @@ class ColoredTracebackPlugin(GajimPlugin):
 
     @log_calls('ColoredTracebackPlugin')
     def deactivate(self):
-        sys.excepthook = self._excepthook_save
+        if self._excepthook_save:
+            sys.excepthook = self._excepthook_save
 
     def _info(self, type_, value, tb):
         if not self._exception_in_progress.acquire(False):
