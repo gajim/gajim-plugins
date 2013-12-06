@@ -109,3 +109,4 @@ class FlashingKeyboardPluginConfigDialog(GajimPluginConfigDialog):
         self.plugin.config['flash'] = not widget.get_active()
         if self.isactive:
             gajim.plugin_manager.activate_plugin(self.plugin)
+        self.hide()
