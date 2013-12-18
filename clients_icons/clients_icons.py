@@ -31,8 +31,6 @@ clients = {
     'http://talkgadget.google.com/client/caps': ['google.png', 'GTalk'],
     'http://oneteam.im/caps': ['oneteamiphone.png', 'OneTeam'],
     'http://tkabber.jabber.ru/': ['tkabber.png', 'Tkabber'],
-    'http://pidgin.im/': ['pidgin.png', 'Pidgin'],
-    'http://pidgin.im/caps': ['pidgin.png', 'Pidgin'],
     'http://qutim.org': ['qutim.png', 'QutIM'],
     'http://qutim.org/': ['qutim.png', 'QutIM'],
     'http://exodus.jabberstudio.org/caps': ['exodus.png', 'Exodus'],
@@ -133,7 +131,6 @@ clients = {
     'http://gabber.sourceforge.net': ['gabber.png', 'Gabber'],
     'http://megafonvolga.ru/': ['megafon.png', 'Megafon'],
     'rss@isida-bot.com': ['osiris.png', 'Osiris'],
-    'libpurple': ['libpurple.png', 'Libpurple'],
     'http://www.adium.im/': ['adium.png', 'Adium'],
     'http://eqo.com/': ['libpurple.png', 'Eqo'],
     'http://instantbird.com/': ['instantbird.png', 'Instantbird'],
@@ -150,18 +147,10 @@ clients = {
     'mcabber' :['mcabber.png', ''],
     'yaxim' :['yaxim.png', ''],
     'Xabber' :['xabber.png', ''],
+    'Adium' :['adium.png', ''],
+    'Pidgin': ['pidgin.png', ''],
 }
-libpurple_clients ={
-    'adium': 'http://www.adium.im/',
-    'eqo': 'http://eqo.com/',
-    'finch': 'http://pidgin.im/',
-    'instantbird': 'http://instantbird.com/',
-    'meebo': 'https://www.meebo.com/',
-    'palm': 'http://opensource.palm.com/packages.html',
-    'pidgin': 'http://pidgin.im/',
-    'spectrum': 'http://spectrum.im/',
-    'telepathy-haze': 'http://pidgin.im/'
-}
+
 
 class ClientsIconsPlugin(GajimPlugin):
 
@@ -319,12 +308,6 @@ class ClientsIconsPlugin(GajimPlugin):
     def get_icon(self, caps, contact=None):
         if not caps:
             return gtk.image_new_from_pixbuf(self.default_pixbuf), _('Unknown')
-
-        if 'pidgin.im/' in caps:
-            caps = 'libpurple'
-            for client in libpurple_clients:
-                if client in contact.resource.lower():
-                    caps = libpurple_clients[client]
 
         caps_from_jid = self.check_jid(contact.jid)
         if caps_from_jid:
@@ -586,12 +569,6 @@ class ClientsIconsPlugin(GajimPlugin):
         tag = iq_obj.stanza.getTags('c')
         if tag:
             caps = tag[0].getAttr('node')
-            if caps:
-                if 'pidgin.im/' in caps:
-                    caps = 'libpurple'
-                    for client in libpurple_clients:
-                        if client in contact.resource.lower():
-                            caps = libpurple_clients[client]
 
         caps_from_jid = self.check_jid(iq_obj.jid)
         if caps_from_jid:
@@ -608,8 +585,6 @@ class ClientsIconsPlugin(GajimPlugin):
         tag = iq_obj.stanza.getTags('c')
         if tag:
             caps = tag[0].getAttr('node')
-            if 'pidgin.im/' in caps:
-                caps = 'libpurple'
 
         gc_control = gajim.interface.msg_win_mgr.get_gc_control(iq_obj.jid,
             iq_obj.conn.name)
