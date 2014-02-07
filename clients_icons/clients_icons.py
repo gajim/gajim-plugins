@@ -309,6 +309,7 @@ class ClientsIconsPlugin(GajimPlugin):
         if not caps:
             return gtk.image_new_from_pixbuf(self.default_pixbuf), _('Unknown')
 
+        client_name = _('Unknown')
         caps_from_jid = self.check_jid(contact.jid)
         if caps_from_jid:
             caps = caps_from_jid
