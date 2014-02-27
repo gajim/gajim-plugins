@@ -141,6 +141,7 @@ clients = {
     'http://jitsi.org' :['jitsi.png', 'Jitsi'],
     'http://miranda-ng.org/caps' :['miranda_ng.png', 'Miranda NG'],
     'http://monal.im/caps': ['monal.png', 'Monal'],
+    'http://leechcraft.org/': ['leechcraft.png', 'Leechcraft'],
     #
     'Poezio' :['poezio.png', 'Poezio'],
     'Emacs' :['emacs.png', ''],
@@ -149,6 +150,7 @@ clients = {
     'Xabber' :['xabber.png', ''],
     'Adium' :['adium.png', ''],
     'Pidgin': ['pidgin.png', ''],
+    'Leechcraft': ['leechcraft.png', ''],
 }
 
 
