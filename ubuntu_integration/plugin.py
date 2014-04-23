@@ -182,7 +182,7 @@ class UbuntuIntegrationPlugin(GajimPlugin):
 
             key = (event.account, event.jid)
 
-            if key not in self.events and \
+            if key in self.events and \
             event in self.events[key][1]:
                 self.events[key][1].remove(event)
 
