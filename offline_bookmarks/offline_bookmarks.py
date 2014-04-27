@@ -215,7 +215,8 @@ class OfflineBookmarksPluginConfigDialog(GajimPluginConfigDialog,
         self.server_entry = self.xml.get_object('server_entry')
         self.server_entry.connect('changed', self.on_server_entry_changed)
         self.room_entry = self.xml.get_object('room_entry')
-        self.room_entry.connect('changed', self.on_room_entry_changed)
+        self.room_entry_changed_id = self.room_entry.connect('changed',
+            self.on_room_entry_changed)
         self.pass_entry = self.xml.get_object('pass_entry')
         self.pass_entry.connect('changed', self.on_pass_entry_changed)
         self.autojoin_checkbutton = self.xml.get_object('autojoin_checkbutton')
