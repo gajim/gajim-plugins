@@ -33,14 +33,13 @@ from plugins import GajimPlugin
 from plugins.plugin import GajimPluginException
 from plugins.helpers import log_calls, log
 from plugins.gui import GajimPluginConfigDialog
-import common.xmpp
+import nbxmpp
 import gtk
 from gtk import gdk
 import cairo
 import chat_control
 from common import ged
 import dialogs
-from common import xmpp
 from common import caps_cache
 from common import stanza_session
 from common.connection_handlers_events import InformationEvent
@@ -255,7 +254,7 @@ class TicTacToeSession(stanza_session.StanzaSession):
         self.received = self.wait_for_invite_response
 
     def send_invitation(self):
-        msg = xmpp.Message()
+        msg = nbxmpp.Message()
 
         invite = msg.NT.invite
         invite.setNamespace(NS_GAMES)
@@ -264,7 +263,7 @@ class TicTacToeSession(stanza_session.StanzaSession):
         game = invite.NT.game
         game.setAttr('var', NS_GAMES_TICTACTOE)
 
-        x = xmpp.DataForm(typ='submit')
+        x = nbxmpp.DataForm(typ='submit')
         f = x.setField('role')
         f.setType('list-single')
         f.setValue('x')
@@ -287,7 +286,7 @@ class TicTacToeSession(stanza_session.StanzaSession):
         game = invite.getTag('game')
         x = game.getTag('x', namespace='jabber:x:data')
 
-        form = xmpp.DataForm(node=str(x))
+        form = nbxmpp.DataForm(node=str(x))
 
         if form.getField('role'):
             self.role_o = form.getField('role').getValues()[0]
@@ -321,7 +320,7 @@ class TicTacToeSession(stanza_session.StanzaSession):
         self.board = TicTacToeBoard(self, self.rows, self.cols)
 
         # accept the invitation, join the game
-        response = xmpp.Message()
+        response = nbxmpp.Message()
 
         join = response.NT.join
         join.setNamespace(NS_GAMES)
@@ -358,7 +357,7 @@ class TicTacToeSession(stanza_session.StanzaSession):
                 self.base.button.set_active(False)
 
     def decline_invitation(self):
-        msg = xmpp.Message()
+        msg = nbxmpp.Message()
 
         terminate = msg.NT.decline
         terminate.setNamespace(NS_GAMES)
@@ -452,7 +451,7 @@ class TicTacToeSession(stanza_session.StanzaSession):
 
     # sends a move message
     def send_move(self, row, column):
-        msg = xmpp.Message()
+        msg = nbxmpp.Message()
         msg.setType('chat')
 
         turn = msg.NT.turn
@@ -469,7 +468,7 @@ class TicTacToeSession(stanza_session.StanzaSession):
 
     # sends a termination message and ends the game
     def end_game(self, reason):
-        msg = xmpp.Message()
+        msg = nbxmpp.Message()
 
         terminate = msg.NT.terminate
         terminate.setNamespace(NS_GAMES)
