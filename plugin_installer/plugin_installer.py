@@ -386,8 +386,18 @@ class PluginInstaller(GajimPlugin):
                 desc = '<body  xmlns=\'http://www.w3.org/1999/xhtml\'>' + \
                     desc + ' </body>'
                 desc = desc.replace('\n', '<br/>')
-            self.plugin_description_textview.tv.display_html(desc,
-                self.plugin_description_textview)
+            import inspect
+            args = inspect.getargspec(
+                self.plugin_description_textview.tv.display_html)
+            gajim_version = list(gajim.version.split('-', 1)[0].split('.'))
+            if (gajim_version >= [0, 16]):
+                # Gajim_0.16
+                self.plugin_description_textview.tv.display_html(desc,
+                    self.plugin_description_textview.tv,
+                    self.plugin_description_textview)
+            else:
+                self.plugin_description_textview.tv.display_html(desc,
+                    self.plugin_description_textview)
             self.plugin_description_textview.tv.set_property('sensitive', True)
         else:
             self._clear_available_plugin_info()
