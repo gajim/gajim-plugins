@@ -151,6 +151,9 @@ clients = {
     'Adium' :['adium.png', ''],
     'Pidgin': ['pidgin.png', ''],
     'Leechcraft': ['leechcraft.png', ''],
+    'Conversations': ['conversations.png', 'Conversations'],
+    'ChatSecure': ['chatsecure.png', 'ChatSecure'],
+    'SecuGab': ['secugab.png', 'Secugab'],
 }
 
 
