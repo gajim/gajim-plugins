@@ -142,6 +142,7 @@ clients = {
     'http://miranda-ng.org/caps' :['miranda_ng.png', 'Miranda NG'],
     'http://monal.im/caps': ['monal.png', 'Monal'],
     'http://leechcraft.org/': ['leechcraft.png', 'Leechcraft'],
+    'http://sawim.ru/caps': ['sawim.png', 'Sawim'],
     #
     'Poezio' :['poezio.png', 'Poezio'],
     'Emacs' :['emacs.png', ''],
