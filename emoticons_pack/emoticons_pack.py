@@ -250,6 +250,8 @@ class EmoticonsPackPlugin(GajimPlugin):
     def on_win_destroy(self, widget):
         if hasattr(self, 'page_num'):
             del self.page_num
+        if os.path.isdir(self.tmp_dir):
+            rmtree(self.tmp_dir, True)
 
     def available_emoticons_toggled_cb(self, cell, path):
         is_active = self.model[path][C_UPGRADE]
