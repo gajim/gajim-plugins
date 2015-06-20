@@ -36,16 +36,22 @@ class Triggers(GajimPlugin):
 
     @log_calls('TriggersPlugin')
     def init(self):
+        self.description = _('Configure Gajim\'s behaviour for each contact')
         self.config_dialog = TriggersPluginConfigDialog(self)
         self.config_default_values = {}
 
         self.events_handlers = {'notification': (ged.PREGUI, self._nec_notif),
             'decrypted-message-received': (ged.PREGUI2,
             self._nec_decrypted_message_received),
+            'gc-message-received': (ged.PREGUI2, self._nec_gc_message_received),
             'presence-received': (ged.PREGUI, self._nec_presence_received)}
 
     def _check_rule_recipients(self, obj, rule):
         rule_recipients = [t.strip() for t in rule['recipients'].split(',')]
+        if rule['recipient_type'] == 'groupchat':
+            if obj.jid in rule_recipients:
+                return True
+            return False
         if rule['recipient_type'] == 'contact' and obj.jid not in \
         rule_recipients:
             return False
@@ -107,7 +113,7 @@ class Triggers(GajimPlugin):
     def check_rule_apply_notif(self, obj, rule):
         # Check notification type
         notif_type = ''
-        if obj.notif_type == 'msg':
+        if obj.notif_type in ('msg', 'gc-msg'):
             notif_type = 'message_received'
         elif obj.notif_type == 'pres':
             if obj.base_event.old_show < 2 and obj.base_event.new_show > 1:
@@ -210,6 +216,10 @@ class Triggers(GajimPlugin):
         self._nec_all(obj, self.check_rule_apply_decrypted_msg,
             self.apply_rule_decrypted_message)
 
+    def _nec_gc_message_received(self, obj):
+        self._nec_all(obj, self.check_rule_apply_decrypted_msg,
+            self.apply_rule_decrypted_message)
+
     def _nec_presence_received(self, obj):
         if obj.old_show < 2 and obj.new_show > 1:
             check_func = self.check_rule_apply_connected
@@ -232,7 +242,7 @@ class TriggersPluginConfigDialog(GajimPluginConfigDialog):
             'use_roster_cb', 'disable_roster_cb']
         #, 'gc_msg_highlight': [], 'gc_msg': []}
     }
-    recipient_types_list = ['contact', 'group', 'all']
+    recipient_types_list = ['contact', 'group', 'groupchat', 'all']
     config_options = ['event', 'recipient_type', 'recipients', 'status',
         'tab_opened', 'sound', 'sound_file', 'popup', 'auto_open',
         'run_command', 'command', 'systray', 'roster', 'urgency_hint',
