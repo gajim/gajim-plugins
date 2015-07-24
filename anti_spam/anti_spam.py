@@ -44,6 +44,8 @@ class AntiSpamPlugin(GajimPlugin):
             'atom-entry-received': (ged.POSTCORE,
                 self._nec_atom_entry_received),
             'message-received': (ged.PRECORE,
+                self._nec_message_received_received),
+            'decrypted-message-received': (ged.PRECORE,
                 self._nec_decrypted_message_received_received),
             'subscribe-presence-received': (ged.POSTCORE,
                 self._nec_subscribe_presence_received),
@@ -54,6 +56,7 @@ class AntiSpamPlugin(GajimPlugin):
             'disable_xhtml_muc': (False, ''),
             'disable_xhtml_pm': (False, ''),
             'block_subscription_requests': (False, ''),
+            'msgtxt_limit': (-1, ''),
         }
 
     @log_calls('AntiSpamPlugin')
@@ -63,12 +66,21 @@ class AntiSpamPlugin(GajimPlugin):
             return True
 
     @log_calls('AntiSpamPlugin')
-    def _nec_decrypted_message_received_received(self, obj):
+    def _nec_message_received_received(self, obj):
         if self.config['disable_xhtml_muc'] and obj.mtype == 'groupchat':
             self.remove_xhtml(obj)
         if self.config['disable_xhtml_pm'] and obj.gc_control and \
         obj.resource and obj.mtype == 'chat':
             self.remove_xhtml(obj)
+        return False
+
+    @log_calls('AntiSpamPlugin')
+    def _nec_decrypted_message_received_received(self, obj):
+        if not obj.msgtxt:
+            return False
+        limit = self.config['msgtxt_limit']
+        if limit > -1 and len(obj.msgtxt) > limit:
+            return True
         return False
 
     @log_calls('AntiSpamPlugin')
@@ -109,6 +121,8 @@ class AntiSpamPluginConfigDialog(GajimPluginConfigDialog):
         widget.set_active(self.plugin.config['disable_xhtml_pm'])
         widget = self.xml.get_object('block_subscription_requests_checkbutton')
         widget.set_active(self.plugin.config['block_subscription_requests'])
+        widget = self.xml.get_object('message_size_limit_entry')
+        widget.set_text(str(self.plugin.config['msgtxt_limit']))
 
     def on_block_pubsub_messages_checkbutton_toggled(self, button):
         self.plugin.config['block_pubsub_messages'] = button.get_active()
@@ -121,3 +135,9 @@ class AntiSpamPluginConfigDialog(GajimPluginConfigDialog):
 
     def on_block_subscription_requests_checkbutton_toggled(self, button):
         self.plugin.config['block_subscription_requests'] = button.get_active()
+
+    def on_message_size_limit_entry_changed(self, entry):
+        try:
+            self.plugin.config['msgtxt_limit'] = int(entry.get_text())
+        except Exception:
+            pass
