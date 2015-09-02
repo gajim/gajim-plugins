@@ -124,19 +124,21 @@ class Base(object):
         self.button = gtk.Button(label=None, stock=None, use_underline=True)
         self.button.set_property('relief', gtk.RELIEF_NONE)
         self.button.set_property('can-focus', False)
-        self.image_button = gtk.Button(label=None, stock=None, use_underline=True)
-        self.image_button.set_property('relief', gtk.RELIEF_NONE)
-        self.image_button.set_property('can-focus', False)
+        self.button.set_sensitive(False)
         img = gtk.Image()
         img.set_from_file(os.path.join(gajim.gajimpaths.data_root, 
                                        u'plugins', u'httpupload', u'httpupload.png'))
         self.button.set_image(img)
-        self.button.set_tooltip_text('Send file via http upload')
+        self.button.set_tooltip_text(_('Your server does not support http uploads'))
+        self.image_button = gtk.Button(label=None, stock=None, use_underline=True)
+        self.image_button.set_property('relief', gtk.RELIEF_NONE)
+        self.image_button.set_property('can-focus', False)
+        self.image_button.set_sensitive(False)
         img = gtk.Image()
         img.set_from_file(os.path.join(gajim.gajimpaths.data_root, 
                                        u'plugins', u'httpupload', u'image.png'))
         self.image_button.set_image(img)
-        self.image_button.set_tooltip_text('Send file via http upload')
+        self.image_button.set_tooltip_text(_('Your server does not support http uploads'))
         send_button = chat_control.xml.get_object('send_button')
         send_button_pos = actions_hbox.child_get_property(send_button,
             'position')
@@ -228,6 +230,7 @@ class Base(object):
             
             slot = stanza.getTag("slot")
             if not slot:
+                progress_window.close_dialog()
                 log.error("got unexpected stanza: "+str(stanza))
                 error = stanza.getTag("error")
                 if error and error.getTag("text"):
@@ -238,16 +241,15 @@ class Base(object):
                     ErrorDialog(_('Could not request upload slot'), 
                                 _('Got unexpected response from server (protocol mismatch??)'),
                                 transient_for=self.chat_control.parent_win.window)
-                progress_window.close_dialog()
                 return
             put = slot.getTag("put")
             get = slot.getTag("get")
             if not put or not get:
+                progress_window.close_dialog()
                 log.error("got unexpected stanza: " + str(stanza))
                 ErrorDialog(_('Could not request upload slot'), 
                             _('Got unexpected response from server (protocol mismatch??)'),
                             transient_for=self.chat_control.parent_win.window)
-                progress_window.close_dialog()
                 return
             
             def upload_complete(response_code):
@@ -285,6 +287,7 @@ class Base(object):
                     self.chat_control.send_message(message=get.getData(), xhtml=xhtml)
                     self.chat_control.msg_textview.grab_focus()
                 else:
+                    progress_window.close_dialog()
                     log.error("got unexpected http upload response code: " + str(response_code))
                     ErrorDialog(_('Could not upload file'),
                                 _('Got unexpected http response code from server: ') + str(response_code),
@@ -304,20 +307,22 @@ class Base(object):
                 except UploadAbortedException:
                     log.info("Upload aborted")
                 except:
+                    progress_window.close_dialog()
                     ErrorDialog(_('Could not upload file'),
                                 _('Got unexpected exception while uploading file (see error log for more information)'),
                                 transient_for=self.chat_control.parent_win.window)
                     raise       # fill error log with useful information
                 return 0
 
-            log.info("Uploading to: " + str(put.getData()))
-            log.info("Please download from: " + str(get.getData()) + "later")
+            log.info("Uploading file to " + str(put.getData()))
+            log.info("Please download from " + str(get.getData()) + " later")
             
             gajim.thread_interface(uploader, [], upload_complete)
         
         is_supported = gajim.get_jid_from_account(self.chat_control.account) in jid_to_servers and \
                     gajim.connections[self.chat_control.account].connection != None
         if not is_supported:
+            progress_window.close_dialog()
             log.error("upload component vanished, account got disconnected??")
             ErrorDialog(_('Your server does not support http uploads or you just got disconnected'),
                 transient_for=self.chat_control.parent_win.window)
@@ -349,7 +354,7 @@ class Base(object):
         content_type.addData(mime_type)
         
         # send slot request and register callback
-        log.debug("sending slot request iq...")
+        log.debug("sending httpupload slot request iq...")
         iq_ids_to_callbacks[str(id_)] = upload_file
         gajim.connections[self.chat_control.account].connection.send(iq)
         
