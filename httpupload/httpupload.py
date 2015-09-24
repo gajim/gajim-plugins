@@ -450,7 +450,7 @@ class ProgressWindow:
         pct = (float(seen) / total) * 100.0
         self.progressbar.set_fraction(float(seen) / total)
         self.progressbar.set_text(str(int(pct)) + "%")
-        log.debug('upload progress: %.2f% (%d of %d bytes)' % (pct, seen, total))
+        log.debug('upload progress: %.2f%% (%d of %d bytes)' % (pct, seen, total))
     
     def close_dialog(self):
         self.on_cancel(None)
