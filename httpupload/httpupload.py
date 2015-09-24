@@ -28,7 +28,8 @@ from plugins.helpers import log_calls, log
 from dialogs import FileChooserDialog, ImageChooserDialog, ErrorDialog
 import nbxmpp
 
-NS_HTTPUPLOAD = 'eu:siacs:conversations:http:upload'             # XEP-0363 (http://xmpp.org/extensions/xep-0363.html)
+#NS_HTTPUPLOAD = 'eu:siacs:conversations:http:upload'         # old namespace before XEP publication
+NS_HTTPUPLOAD = 'urn:xmpp:http:upload'                        # XEP-0363 (http://xmpp.org/extensions/xep-0363.html)
 
 jid_to_servers = {}
 iq_ids_to_callbacks = {}
@@ -449,7 +450,7 @@ class ProgressWindow:
         pct = (float(seen) / total) * 100.0
         self.progressbar.set_fraction(float(seen) / total)
         self.progressbar.set_text(str(int(pct)) + "%")
-        log.debug('upload progress: %.2f (%d of %d bytes)' % (pct, seen, total))
+        log.debug('upload progress: %.2f% (%d of %d bytes)' % (pct, seen, total))
     
     def close_dialog(self):
         self.on_cancel(None)
