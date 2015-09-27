@@ -5,6 +5,7 @@ import re
 import os
 import urllib2
 import base64
+from urlparse import urlparse
 
 from common import gajim
 from common import helpers
@@ -67,8 +68,6 @@ class Base(object):
 
     def print_special_text(self, special_text, other_tags, graphics=True,
     iter_=None):
-        if not gajim.interface.basic_pattern_re.match(special_text):
-            return
         # remove qip bbcode
         special_text = special_text.rsplit('[/img]')[0]
 
@@ -76,7 +75,13 @@ class Base(object):
             special_text = 'http://' + special_text
         if special_text.startswith('ftp.'):
             special_text = 'ftp://' + special_text
-
+        
+        parts = urlparse(special_text)
+        if not parts.scheme in ["https", "http", "ftp", "ftps"] or \
+            not parts.netloc:
+            log.info("Not accepting URL for image preview: %s" % special_text)
+            return
+        
         buffer_ = self.textview.tv.get_buffer()
         if not iter_:
             iter_ = buffer_.get_end_iter()
