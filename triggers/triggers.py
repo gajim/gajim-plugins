@@ -90,6 +90,24 @@ class Triggers(GajimPlugin):
 
         return True
 
+    def _check_rule_has_focus(self, obj, rule):
+        if rule['has_focus'] == 'both':
+            return True
+        if rule['tab_opened'] == 'no':
+            # Does not apply in this case
+            return True
+        ctrl = gajim.interface.msg_win_mgr.get_control(obj.jid, obj.conn.name)
+        if not ctrl:
+            # Does not apply in this case
+            return True
+        has_focus = ctrl.parent_win.window.has_focus
+        if has_focus and rule['has_focus'] == 'no':
+            return False
+        elif not has_focus and rule['has_focus'] == 'yes':
+            return False
+
+        return True
+
     def check_rule_all(self, event, obj, rule):
         # Check notification type
         if rule['event'] != event:
@@ -105,6 +123,10 @@ class Triggers(GajimPlugin):
 
         # our_status is ok. Now check opened chat window
         if not self._check_rule_tab_opened(obj, rule):
+            return False
+
+        # tab_opened is ok. Now check opened chat window
+        if not self._check_rule_has_focus(obj, rule):
             return False
 
         # All is ok
@@ -244,7 +266,7 @@ class TriggersPluginConfigDialog(GajimPluginConfigDialog):
     }
     recipient_types_list = ['contact', 'group', 'groupchat', 'all']
     config_options = ['event', 'recipient_type', 'recipients', 'status',
-        'tab_opened', 'sound', 'sound_file', 'popup', 'auto_open',
+        'tab_opened', 'has_focus', 'sound', 'sound_file', 'popup', 'auto_open',
         'run_command', 'command', 'systray', 'roster', 'urgency_hint',
         'one_shot']
 
@@ -268,10 +290,10 @@ class TriggersPluginConfigDialog(GajimPluginConfigDialog):
         'status_hbox', 'use_sound_cb', 'disable_sound_cb', 'use_popup_cb',
         'disable_popup_cb', 'use_auto_open_cb', 'disable_auto_open_cb',
         'use_systray_cb', 'disable_systray_cb', 'use_roster_cb',
-        'disable_roster_cb', 'tab_opened_cb', 'not_tab_opened_cb',
-        'sound_entry', 'sound_file_hbox', 'up_button', 'down_button',
-        'run_command_cb', 'command_entry', 'one_shot_cb', 'use_urgency_hint_cb',
-        'disable_urgency_hint_cb'):
+        'disable_roster_cb', 'tab_opened_cb', 'not_tab_opened_cb', 'focus_hbox',
+        'has_focus_cb', 'not_has_focus_cb', 'sound_entry', 'sound_file_hbox',
+        'up_button', 'down_button', 'run_command_cb', 'command_entry',
+        'one_shot_cb', 'use_urgency_hint_cb', 'disable_urgency_hint_cb'):
             self.__dict__[w] = self.xml.get_object(w)
 
         self.config = {}
@@ -378,6 +400,17 @@ class TriggersPluginConfigDialog(GajimPluginConfigDialog):
         elif value == 'yes':
             self.not_tab_opened_cb.set_active(False)
 
+        # has_focus
+        if 'has_focus' not in self.config[self.active_num]:
+            self.config[self.active_num]['has_focus'] = 'both'
+        value = self.config[self.active_num]['has_focus']
+        self.has_focus_cb.set_active(True)
+        self.not_has_focus_cb.set_active(True)
+        if value == 'no':
+            self.has_focus_cb.set_active(False)
+        elif value == 'yes':
+            self.not_has_focus_cb.set_active(False)
+
         # sound_file
         value = self.config[self.active_num]['sound_file']
         self.sound_entry.set_text(value)
@@ -453,9 +486,9 @@ class TriggersPluginConfigDialog(GajimPluginConfigDialog):
         num = self.conditions_treeview.get_model().iter_n_children(None)
         self.config[num] = {'event': '', 'recipient_type': 'all',
             'recipients': '', 'status': 'all', 'tab_opened': 'both',
-            'sound': '', 'sound_file': '', 'popup': '', 'auto_open': '',
-            'run_command': False, 'command': '', 'systray': '', 'roster': '',
-            'one_shot': False, 'urgency_hint': False}
+            'has_focus': 'both', 'sound': '', 'sound_file': '', 'popup': '',
+            'auto_open': '', 'run_command': False, 'command': '', 'systray': '',
+            'roster': '', 'one_shot': False, 'urgency_hint': False}
         iter_ = model.append((num, ''))
         path = model.get_path(iter_)
         self.conditions_treeview.set_cursor(path)
@@ -589,11 +622,13 @@ class TriggersPluginConfigDialog(GajimPluginConfigDialog):
         if self.active_num < 0:
             return
         if self.tab_opened_cb.get_active():
+            self.focus_hbox.set_sensitive(True)
             if self.not_tab_opened_cb.get_active():
                 self.config[self.active_num]['tab_opened'] = 'both'
             else:
                 self.config[self.active_num]['tab_opened'] = 'yes'
         else:
+            self.focus_hbox.set_sensitive(False)
             self.not_tab_opened_cb.set_active(True)
             self.config[self.active_num]['tab_opened'] = 'no'
 
@@ -608,6 +643,31 @@ class TriggersPluginConfigDialog(GajimPluginConfigDialog):
         else:
             self.tab_opened_cb.set_active(True)
             self.config[self.active_num]['tab_opened'] = 'yes'
+
+    # has_focus OR (not xor) not_has_focus must be active
+    def on_has_focus_cb_toggled(self, widget):
+        if self.active_num < 0:
+            return
+        if self.has_focus_cb.get_active():
+            if self.not_has_focus_cb.get_active():
+                self.config[self.active_num]['has_focus'] = 'both'
+            else:
+                self.config[self.active_num]['has_focus'] = 'yes'
+        else:
+            self.not_has_focus_cb.set_active(True)
+            self.config[self.active_num]['has_focus'] = 'no'
+
+    def on_not_has_focus_cb_toggled(self, widget):
+        if self.active_num < 0:
+            return
+        if self.not_has_focus_cb.get_active():
+            if self.has_focus_cb.get_active():
+                self.config[self.active_num]['has_focus'] = 'both'
+            else:
+                self.config[self.active_num]['has_focus'] = 'no'
+        else:
+            self.has_focus_cb.set_active(True)
+            self.config[self.active_num]['has_focus'] = 'yes'
 
     def on_use_it_toggled(self, widget, oposite_widget, option):
         if widget.get_active():
