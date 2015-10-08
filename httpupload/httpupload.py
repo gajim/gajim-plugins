@@ -3,20 +3,23 @@
 
 from common import demandimport
 demandimport.enable()
-demandimport.ignore += ['builtins', '__builtin__']
+demandimport.ignore += ['builtins', '__builtin__', 'PIL']
 
 import gtk
 import gobject
 import os
+import time
 import base64
+import tempfile
 import urllib2
 import mimetypes        # better use the magic packet, but that's not a standard lib
 import gtkgui_helpers
 from Queue import Queue
 try:
     from PIL import Image
+    pil_available = True
 except:
-    pass
+    pil_available = False
 import StringIO
 import base64
 
@@ -28,15 +31,16 @@ from plugins.helpers import log_calls, log
 from dialogs import FileChooserDialog, ImageChooserDialog, ErrorDialog
 import nbxmpp
 
-#NS_HTTPUPLOAD = 'eu:siacs:conversations:http:upload'         # old namespace before XEP publication
 NS_HTTPUPLOAD = 'urn:xmpp:http:upload'                        # XEP-0363 (http://xmpp.org/extensions/xep-0363.html)
 
 jid_to_servers = {}
 iq_ids_to_callbacks = {}
+last_info_query = {}
 max_thumbnail_size = 2048
 max_thumbnail_dimension = 160
 
 class HttpuploadPlugin(GajimPlugin):
+    
     @log_calls('HttpuploadPlugin')
     def init(self):
         self.config_dialog = None  # HttpuploadPluginConfigDialog(self)
@@ -73,10 +77,40 @@ class HttpuploadPlugin(GajimPlugin):
             # update all buttons
             for base in self.controls:
                 self.update_button_state(base.chat_control)
-        
+    
     @log_calls('HttpuploadPlugin')
     def connect_with_chat_control(self, control):
+        global jid_to_servers
+        global iq_ids_to_callbacks
+        global last_info_query
         self.chat_control = control
+        # query info at most every 300 seconds (5 minutes) in case something goes wrong
+        if (not self.chat_control.account in last_info_query or \
+            last_info_query[self.chat_control.account] + 300 < time.time()) and \
+            not gajim.get_jid_from_account(self.chat_control.account) in jid_to_servers and \
+            gajim.account_is_connected(self.chat_control.account):
+            log.info("Account %s: Using dicovery to find jid of httpupload component" % self.chat_control.account)
+            id_ = gajim.get_an_id()
+            iq = nbxmpp.Iq(
+                typ='get',
+                to=gajim.get_server_from_jid(gajim.get_jid_from_account(self.chat_control.account)),
+                queryNS="http://jabber.org/protocol/disco#items"
+            )
+            iq.setID(id_)
+            def query_info(stanza):
+                global last_info_query
+                for item in stanza.getTag("query").getTags("item"):
+                    id_ = gajim.get_an_id()
+                    iq = nbxmpp.Iq(
+                        typ='get',
+                        to=item.getAttr("jid"),
+                        queryNS="http://jabber.org/protocol/disco#info"
+                    )
+                    iq.setID(id_)
+                    gajim.connections[control.account].connection.send(iq)
+                    last_info_query[self.chat_control.account] = time.time()
+            iq_ids_to_callbacks[str(id_)] = query_info
+            gajim.connections[self.chat_control.account].connection.send(iq)
         base = Base(self, self.chat_control)
         self.controls.append(base)
         if self.first_run:
@@ -85,6 +119,7 @@ class HttpuploadPlugin(GajimPlugin):
                 gtk.keysyms.u, gtk.gdk.MOD1_MASK, 'mykeypress',
                 int, gtk.keysyms.u, gtk.gdk.ModifierType, gtk.gdk.MOD1_MASK)
             self.first_run = False
+        self.update_button_state(self.chat_control)
 
     @log_calls('HttpuploadPlugin')
     def disconnect_from_chat_control(self, chat_control):
@@ -98,7 +133,10 @@ class HttpuploadPlugin(GajimPlugin):
             if base.chat_control == chat_control:
                 if gajim.connections[chat_control.account].connection == None and \
                     gajim.get_jid_from_account(chat_control.account) in jid_to_servers:
+                    # maybe don't delete this and detect vanished upload components when actually trying to upload something
+                    log.info("Deleting %s from jid_to_servers (disconnected)" % gajim.get_jid_from_account(chat_control.account))
                     del jid_to_servers[gajim.get_jid_from_account(chat_control.account)]
+                    #pass
                 is_supported = gajim.get_jid_from_account(chat_control.account) in jid_to_servers and \
                     gajim.connections[chat_control.account].connection != None
                 if not is_supported:
@@ -181,7 +219,8 @@ class Base(object):
         actions_hbox = self.chat_control.xml.get_object('actions_hbox')
         actions_hbox.remove(self.button)
         actions_hbox.remove(self.image_button)
-        if self.chat_control.handlers[self.keypress_id].handler_is_connected(self.keypress_id):
+        if self.keypress_id in self.chat_control.handlers and \
+            self.chat_control.handlers[self.keypress_id].handler_is_connected(self.keypress_id):
             self.chat_control.handlers[self.keypress_id].disconnect(self.keypress_id)
             del self.chat_control.handlers[self.keypress_id]
 
@@ -263,27 +302,57 @@ class Base(object):
                     if (not isinstance(self.chat_control, chat_control.ChatControl) or not self.chat_control.gpg_is_active) and \
                         self.dialog_type == 'image' and is_image:
                         progress_messages.put(_('Calculating (possible) image thumbnail...'))
-                        try:
-                            quality_steps = (100, 80, 60, 50, 40, 30, 25, 23, 20, 18, 15, 13, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1)
-                            for quality in quality_steps:
-                                thumb = Image.open(path_to_file)
-                                thumb.thumbnail((max_thumbnail_dimension, max_thumbnail_dimension), Image.ANTIALIAS)
-                                output = StringIO.StringIO()
-                                thumb.save(output, format='JPEG', quality=quality, optimize=True)
-                                thumb = output.getvalue()
-                                output.close()
-                                thumb = urllib2.quote(base64.standard_b64encode(thumb), '')
-                                log.debug("thumbnail jpeg quality %d produces an image of size %d..." % (quality, len(thumb)))
-                                if len(thumb) < max_thumbnail_size:
-                                    break
-                            if len(thumb) > max_thumbnail_size:
-                                log.info("Couldn't compress image enough, not sending any thumbnail")
-                            else:
-                                log.info("Using thumbnail jpeg quality %d (image size: %d bytes)" % (quality, len(thumb)))
-                                xhtml = '<body><br/><a href="%s"> <img alt="%s" src="data:image/png;base64,%s"/> </a></body>' % \
-                                    (get.getData(), get.getData(), thumb)
-                        except:
-                           pass
+                        thumb = None
+                        quality_steps = (100, 80, 60, 50, 40, 35, 30, 25, 23, 20, 18, 15, 13, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1)
+                        if pil_available:
+                            log.info("PIL available, using it for image downsampling")
+                            try:
+                                for quality in quality_steps:
+                                    thumb = Image.open(path_to_file)
+                                    thumb.thumbnail((max_thumbnail_dimension, max_thumbnail_dimension), Image.ANTIALIAS)
+                                    output = StringIO.StringIO()
+                                    thumb.save(output, format='JPEG', quality=quality, optimize=True)
+                                    thumb = output.getvalue()
+                                    output.close()
+                                    thumb = urllib2.quote(base64.standard_b64encode(thumb), '')
+                                    log.debug("thumbnail jpeg quality %d produces an image of size %d..." % (quality, len(thumb)))
+                                    if len(thumb) < max_thumbnail_size:
+                                        break
+                            except:
+                                thumb = None
+                        else:
+                            log.info("PIL not available, using GTK for image downsampling")
+                            temp_file = None
+                            try:
+                                with open(path_to_file, 'rb') as content_file:
+                                    thumb = content_file.read()
+                                loader = gtk.gdk.PixbufLoader()
+                                loader.write(thumb)
+                                loader.close()
+                                pixbuf = loader.get_pixbuf()
+                                scaled_pb = self.get_pixbuf_of_size(pixbuf, max_thumbnail_dimension)
+                                handle, temp_file = tempfile.mkstemp(suffix='.jpeg', prefix='gajim_httpupload_scaled_tmp', dir=gajim.TMP)
+                                log.debug("Saving temporary jpeg image to '%s'..." % temp_file)
+                                os.close(handle)
+                                for quality in quality_steps:
+                                    scaled_pb.save(temp_file, "jpeg", {"quality": str(quality)})
+                                    with open(temp_file, 'rb') as content_file:
+                                        thumb = content_file.read()
+                                    thumb = urllib2.quote(base64.standard_b64encode(thumb), '')
+                                    log.debug("thumbnail jpeg quality %d produces an image of size %d..." % (quality, len(thumb)))
+                                    if len(thumb) < max_thumbnail_size:
+                                        break
+                            except:
+                                thumb = None
+                            finally:
+                                if temp_file:
+                                    os.unlink(temp_file)
+                        if thumb and len(thumb) > max_thumbnail_size:
+                            log.info("Couldn't compress image enough, not sending any thumbnail")
+                        else:
+                            log.info("Using thumbnail jpeg quality %d (image size: %d bytes)" % (quality, len(thumb)))
+                            xhtml = '<body><br/><a href="%s"> <img alt="%s" src="data:image/png;base64,%s"/> </a></body>' % \
+                                (get.getData(), get.getData(), thumb)
                     progress_window.close_dialog()
                     self.chat_control.send_message(message=get.getData(), xhtml=xhtml)
                     self.chat_control.msg_textview.grab_focus()
@@ -322,10 +391,11 @@ class Base(object):
         
         is_supported = gajim.get_jid_from_account(self.chat_control.account) in jid_to_servers and \
                     gajim.connections[self.chat_control.account].connection != None
+        log.debug("jid_to_servers of %s: %s ; connection: %s" % (gajim.get_jid_from_account(self.chat_control.account), str(jid_to_servers[gajim.get_jid_from_account(self.chat_control.account)]), str(gajim.connections[self.chat_control.account].connection)))
         if not is_supported:
             progress_window.close_dialog()
             log.error("upload component vanished, account got disconnected??")
-            ErrorDialog(_('Your server does not support http uploads or you just got disconnected'),
+            ErrorDialog(_('Your server does not support http uploads or you just got disconnected.\nPlease try to reconnect or reopen the chat window to fix this.'),
                 transient_for=self.chat_control.parent_win.window)
             return
         
@@ -371,6 +441,26 @@ class Base(object):
     def on_image_button_clicked(self, widget):
         self.dialog_type = 'image'
         self.dlg = ImageChooserDialog(on_response_ok=self.on_file_dialog_ok, on_response_cancel=None)
+    
+    def get_pixbuf_of_size(self, pixbuf, size):
+        # Creates a pixbuf that fits in the specified square of sizexsize
+        # while preserving the aspect ratio
+        # Returns scaled_pixbuf
+        image_width = pixbuf.get_width()
+        image_height = pixbuf.get_height()
+
+        if image_width > image_height:
+            if image_width > size:
+                image_height = int(size / float(image_width) * image_height)
+                image_width = int(size)
+        else:
+            if image_height > size:
+                image_width = int(size / float(image_height) * image_width)
+                image_height = int(size)
+
+        crop_pixbuf = pixbuf.scale_simple(image_width, image_height,
+            gtk.gdk.INTERP_BILINEAR)
+        return crop_pixbuf
 
 
 class StreamFileWithProgress(file):
