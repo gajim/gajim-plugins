@@ -4,7 +4,6 @@ import gtk
 import re
 import os
 import urllib2
-import base64
 from urlparse import urlparse
 
 from common import gajim
@@ -115,7 +114,7 @@ class Base(object):
             return
         # Check if file size is acceptable
         if file_size > self.plugin.config['MAX_FILE_SIZE'] or file_size == 0:
-            log.info('File size to big or unknown for URL: %s' % url)
+            log.info('File size too big or unknown for URL: %s' % url)
             # URL is already displayed
             return
 
@@ -131,21 +130,28 @@ class Base(object):
                 loader.write(mem)
                 loader.close()
                 pixbuf = loader.get_pixbuf()
-                w, h = self.get_thumb_size(pixbuf, self.plugin.config['PREVIEW_SIZE'])
-                imgb64 = base64.b64encode(mem)
-                xhtml = '<body xmlns=\'http://www.w3.org/1999/xhtml\'><br/>'
-                xhtml += '<a href="%s">' % url
-                xhtml += '<img src="data:%s;base64,%s" width="%s" height="%s"/> ' % \
-                (file_mime, imgb64, w, h)
-                xhtml += '</a></body>'
+                pixbuf, w, h = self.get_pixbuf_of_size(pixbuf, 
+                    self.plugin.config['PREVIEW_SIZE'])
                 buffer_ = repl_start.get_buffer()
                 iter_ = buffer_.get_iter_at_mark(repl_start)
+                buffer_.insert(iter_, "\n")
+                anchor = buffer_.create_child_anchor(iter_)
+                # Use url as tooltip for image
+                img = TextViewImage(anchor, url)
+                img.set_from_pixbuf(pixbuf)
+                eb = gtk.EventBox()
+                eb.connect('button-press-event', self.on_button_press_event,
+                    url)
+                eb.connect('enter-notify-event', self.on_enter_event)
+                eb.connect('leave-notify-event', self.on_leave_event)
+                eb.add(img)
+                eb.show_all()
                 buffer_.delete(iter_, buffer_.get_iter_at_mark(repl_end))
-                self.textview.tv.display_html(xhtml.encode('utf-8'), self.textview.tv, 
-                    self.textview, iter_=iter_)
+                self.textview.tv.add_child_at_anchor(eb, anchor)
             except Exception:
                 # URL is already displayed
                 log.error('Could not display image for URL: %s' % url)
+                raise
         else:
             # If image could not be downloaded, URL is already displayed
             log.error('Could not download image for URL: %s' % url)
@@ -237,7 +243,27 @@ class Base(object):
                 pass    
         return (ctype, clen)
 
-    def get_thumb_size(self, pixbuf, size):
+
+
+    # Change mouse pointer to HAND2 when mouse enter the eventbox with the image
+    def on_enter_event (self, eb, event):
+        self.textview.tv.get_window(gtk.TEXT_WINDOW_TEXT).set_cursor(
+                gtk.gdk.Cursor(gtk.gdk.HAND2))
+
+    # Change mouse pointer to default when mouse leaves the eventbox
+    def on_leave_event (self, eb, event):
+        self.textview.tv.get_window(gtk.TEXT_WINDOW_TEXT).set_cursor(
+                gtk.gdk.Cursor(gtk.gdk.XTERM))
+
+    def on_button_press_event(self, eb, event, url):
+        if event.button == 1: # left click
+                        # Open URL in browser
+            helpers.launch_browser_mailer('url', url)
+
+    def get_pixbuf_of_size(self, pixbuf, size): 
+           # Creates a pixbuf that fits in the specified square of sizexsize 
+           # while preserving the aspect ratio 
+           # Returns tuple: (scaled_pixbuf, actual_width, actual_height)
         image_width = pixbuf.get_width()
         image_height = pixbuf.get_height()
 
@@ -250,7 +276,9 @@ class Base(object):
                 image_width = int(size / float(image_height) * image_width)
                 image_height = int(size)
 
-        return (image_width, image_height)
+        crop_pixbuf = pixbuf.scale_simple(image_width, image_height, 
+            gtk.gdk.INTERP_BILINEAR) 
+        return (crop_pixbuf, image_width, image_height) 
 
     def disconnect_from_chat_control(self):
         pass
