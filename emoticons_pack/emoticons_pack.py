@@ -282,24 +282,27 @@ class EmoticonsPackPlugin(GajimPlugin):
             conf.readfp(_file)
         for section in conf.sections():
             # get icon
-            filename = conf.get(section, 'icon')
-            filename = os.path.join(section, filename)
-            zip_file = os.path.join(self.__path__, 'emoticons_pack.zip')
-            with zipfile.ZipFile(zip_file, 'r') as myzip:
-                icon_file = myzip.open(filename, mode='r')
-                data = icon_file.read()
-            pbl = gtk.gdk.PixbufLoader()
-            pbl.set_size(16, 16)
-            pbl.write(data)
-            pbl.close()
-            icon = pbl.get_pixbuf()
+            try:
+                filename = conf.get(section, 'icon')
+                filename = section + '/' + filename
+                zip_file = os.path.join(self.__path__, 'emoticons_pack.zip')
+                with zipfile.ZipFile(zip_file, 'r') as myzip:
+                    icon_file = myzip.open(filename, mode='r')
+                    data = icon_file.read()
+                pbl = gtk.gdk.PixbufLoader()
+                pbl.set_size(16, 16)
+                pbl.write(data)
+                pbl.close()
+                icon = pbl.get_pixbuf()
+            except Exception:
+                continue
 
             authors = _('Unknown')
             converter = _('Unknown')
             if conf.has_option(section, 'authors'):
                 authors = conf.get(section, 'authors')
             if conf.has_option(section, 'converter'):
-                authors = conf.get(section, 'converter')
+                converter = conf.get(section, 'converter')
 
             self.model.append(
                 [icon, section,
