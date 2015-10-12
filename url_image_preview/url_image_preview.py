@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import gtk
+import gobject
 import re
 import os
 import urllib2
@@ -110,17 +111,17 @@ class Base(object):
         # Check if mime type is acceptable
         if file_mime.lower() not in ACCEPTED_MIME_TYPES:
             # URL is already displayed
-            log.info('Not accepted mime type for URL: %s' % url)
+            log.info("Not accepted mime type '%s' for URL: '%s'" % (file_mime.lower(), url))
             return
         # Check if file size is acceptable
         if file_size > self.plugin.config['MAX_FILE_SIZE'] or file_size == 0:
-            log.info('File size too big or unknown for URL: %s' % url)
+            log.info("File size too big or unknown for URL: '%s'" % url)
             # URL is already displayed
             return
 
         # Start downloading image
         gajim.thread_interface(helpers.download_image, [ self.textview.account, {
-                'src': url, 'max_size':self.plugin.config['MAX_FILE_SIZE'] } ], 
+                'src': url, 'max_size': self.plugin.config['MAX_FILE_SIZE'] } ], 
                 self._update_img, [url, file_mime, repl_start, repl_end])
 
     def _update_img(self, (mem, alt), url, file_mime, repl_start, repl_end):
@@ -132,22 +133,26 @@ class Base(object):
                 pixbuf = loader.get_pixbuf()
                 pixbuf, w, h = self.get_pixbuf_of_size(pixbuf, 
                     self.plugin.config['PREVIEW_SIZE'])
-                buffer_ = repl_start.get_buffer()
-                iter_ = buffer_.get_iter_at_mark(repl_start)
-                buffer_.insert(iter_, "\n")
-                anchor = buffer_.create_child_anchor(iter_)
-                # Use url as tooltip for image
-                img = TextViewImage(anchor, url)
-                img.set_from_pixbuf(pixbuf)
                 eb = gtk.EventBox()
                 eb.connect('button-press-event', self.on_button_press_event,
                     url)
                 eb.connect('enter-notify-event', self.on_enter_event)
                 eb.connect('leave-notify-event', self.on_leave_event)
-                eb.add(img)
-                eb.show_all()
-                buffer_.delete(iter_, buffer_.get_iter_at_mark(repl_end))
-                self.textview.tv.add_child_at_anchor(eb, anchor)
+                # this is threadsafe (gtk textview is NOT threadsafe by itself!!)
+                def add_to_textview():
+                    buffer_ = repl_start.get_buffer()
+                    iter_ = buffer_.get_iter_at_mark(repl_start)
+                    buffer_.insert(iter_, "\n")
+                    anchor = buffer_.create_child_anchor(iter_)
+                    # Use url as tooltip for image
+                    img = TextViewImage(anchor, url)
+                    img.set_from_pixbuf(pixbuf)
+                    eb.add(img)
+                    eb.show_all()
+                    self.textview.tv.add_child_at_anchor(eb, anchor)
+                    buffer_.delete(iter_, buffer_.get_iter_at_mark(repl_end))
+                    return False
+                gobject.idle_add(add_to_textview)
             except Exception:
                 # URL is already displayed
                 log.error('Could not display image for URL: %s' % url)
