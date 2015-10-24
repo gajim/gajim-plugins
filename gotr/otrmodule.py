@@ -69,7 +69,6 @@ from pprint import pformat
 from distutils.version import StrictVersion
 
 import common.xmpp
-from common import defs
 from common import gajim
 from common import ged
 from common.connection_handlers_events import MessageOutgoingEvent
@@ -288,7 +287,7 @@ class OtrPlugin(GajimPlugin):
                 self.handle_incoming_msg)
         self.events_handlers['before-change-show'] = (ged.PRECORE,
                 self.handle_change_show)
-        if StrictVersion(defs.version) < StrictVersion(MINVERSION_OUTGOING_MSG_STAZA):
+        if StrictVersion(gajim.config.get('version')) < StrictVersion(MINVERSION_OUTGOING_MSG_STAZA):
             self.events_handlers['message-outgoing'] = (ged.OUT_PRECORE,
                     self.handle_outgoing_msg)
         else:
