@@ -109,13 +109,17 @@ class Base(object):
 
     def _check_mime_size(self, (file_mime, file_size), url, repl_start, repl_end):
         # Check if mime type is acceptable
+        if file_mime == '' and file_size == 0:
+            # URL is already displayed
+            log.info("Failed to load HEAD Request for URL: '%s' (see debug log for more info)" % url)
+            return
         if file_mime.lower() not in ACCEPTED_MIME_TYPES:
             # URL is already displayed
             log.info("Not accepted mime type '%s' for URL: '%s'" % (file_mime.lower(), url))
             return
         # Check if file size is acceptable
         if file_size > self.plugin.config['MAX_FILE_SIZE'] or file_size == 0:
-            log.info("File size too big or unknown for URL: '%s'" % url)
+            log.info("File size (%s) too big or unknown (zero) for URL: '%s'" % (str(file_size), url))
             # URL is already displayed
             return
 
@@ -159,7 +163,7 @@ class Base(object):
                 raise
         else:
             # If image could not be downloaded, URL is already displayed
-            log.error('Could not download image for URL: %s' % url)
+            log.error('Could not download image for URL: %s -- %s' % (url, alt))
 
     def _get_http_head (self, account, url):
         # Check if proxy is used
@@ -177,14 +181,15 @@ class Base(object):
             f = urllib2.urlopen(req)
         except Exception, ex:
             log.debug('Could not get head response for URL: %s' % url)
+            log.debug("%s" % str(ex))
             return ('', 0)
         url_headers = f.info()
         ctype = ''
         ctype_list = url_headers.getheaders('Content-Type')
         if ctype_list:
             ctype = ctype_list[0]
-        clen_list = url_headers.getheaders('Content-Length')
         clen = 0
+        clen_list = url_headers.getheaders('Content-Length')
         if  clen_list:
             try:
                 clen = int(clen_list[0])
@@ -233,6 +238,7 @@ class Base(object):
             headers = b.getvalue()
         except pycurl.error, ex:
             log.debug('Could not get head response for URL: %s' % url)
+            log.debug("%s" % str(ex))
             return ('', 0)
 
         ctype = ''
