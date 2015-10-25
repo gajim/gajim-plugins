@@ -80,37 +80,7 @@ class HttpuploadPlugin(GajimPlugin):
     
     @log_calls('HttpuploadPlugin')
     def connect_with_chat_control(self, control):
-        global jid_to_servers
-        global iq_ids_to_callbacks
-        global last_info_query
         self.chat_control = control
-        # query info at most every 300 seconds (5 minutes) in case something goes wrong
-        if (not self.chat_control.account in last_info_query or \
-            last_info_query[self.chat_control.account] + 300 < time.time()) and \
-            not gajim.get_jid_from_account(self.chat_control.account) in jid_to_servers and \
-            gajim.account_is_connected(self.chat_control.account):
-            log.info("Account %s: Using dicovery to find jid of httpupload component" % self.chat_control.account)
-            id_ = gajim.get_an_id()
-            iq = nbxmpp.Iq(
-                typ='get',
-                to=gajim.get_server_from_jid(gajim.get_jid_from_account(self.chat_control.account)),
-                queryNS="http://jabber.org/protocol/disco#items"
-            )
-            iq.setID(id_)
-            def query_info(stanza):
-                global last_info_query
-                for item in stanza.getTag("query").getTags("item"):
-                    id_ = gajim.get_an_id()
-                    iq = nbxmpp.Iq(
-                        typ='get',
-                        to=item.getAttr("jid"),
-                        queryNS="http://jabber.org/protocol/disco#info"
-                    )
-                    iq.setID(id_)
-                    gajim.connections[control.account].connection.send(iq)
-                    last_info_query[self.chat_control.account] = time.time()
-            iq_ids_to_callbacks[str(id_)] = query_info
-            gajim.connections[self.chat_control.account].connection.send(iq)
         base = Base(self, self.chat_control)
         self.controls.append(base)
         if self.first_run:
@@ -129,16 +99,60 @@ class HttpuploadPlugin(GajimPlugin):
 
     @log_calls('HttpuploadPlugin')
     def update_button_state(self, chat_control):
+        global jid_to_servers
+        global iq_ids_to_callbacks
+        global last_info_query
+        
+        if gajim.connections[chat_control.account].connection == None and \
+            gajim.get_jid_from_account(chat_control.account) in jid_to_servers:
+            # maybe don't delete this and detect vanished upload components when actually trying to upload something
+            log.info("Deleting %s from jid_to_servers (disconnected)" % gajim.get_jid_from_account(chat_control.account))
+            del jid_to_servers[gajim.get_jid_from_account(chat_control.account)]
+            #pass
+        
+        # query info at most every 60 seconds in case something goes wrong
+        if (not chat_control.account in last_info_query or \
+            last_info_query[chat_control.account] + 60 < time.time()) and \
+            not gajim.get_jid_from_account(chat_control.account) in jid_to_servers and \
+            gajim.account_is_connected(chat_control.account):
+            log.info("Account %s: Using dicovery to find jid of httpupload component" % chat_control.account)
+            id_ = gajim.get_an_id()
+            iq = nbxmpp.Iq(
+                typ='get',
+                to=gajim.get_server_from_jid(gajim.get_jid_from_account(chat_control.account)),
+                queryNS="http://jabber.org/protocol/disco#items"
+            )
+            iq.setID(id_)
+            def query_info(stanza):
+                global last_info_query
+                for item in stanza.getTag("query").getTags("item"):
+                    id_ = gajim.get_an_id()
+                    iq = nbxmpp.Iq(
+                        typ='get',
+                        to=item.getAttr("jid"),
+                        queryNS="http://jabber.org/protocol/disco#info"
+                    )
+                    iq.setID(id_)
+                    last_info_query[chat_control.account] = time.time()
+                    gajim.connections[chat_control.account].connection.send(iq)
+            iq_ids_to_callbacks[str(id_)] = query_info
+            gajim.connections[chat_control.account].connection.send(iq)
+            #send disco query to main server jid
+            id_ = gajim.get_an_id()
+            iq = nbxmpp.Iq(
+                typ='get',
+                to=gajim.get_server_from_jid(gajim.get_jid_from_account(chat_control.account)),
+                queryNS="http://jabber.org/protocol/disco#info"
+            )
+            iq.setID(id_)
+            last_info_query[chat_control.account] = time.time()
+            gajim.connections[chat_control.account].connection.send(iq)
+        
         for base in self.controls:
             if base.chat_control == chat_control:
-                if gajim.connections[chat_control.account].connection == None and \
-                    gajim.get_jid_from_account(chat_control.account) in jid_to_servers:
-                    # maybe don't delete this and detect vanished upload components when actually trying to upload something
-                    log.info("Deleting %s from jid_to_servers (disconnected)" % gajim.get_jid_from_account(chat_control.account))
-                    del jid_to_servers[gajim.get_jid_from_account(chat_control.account)]
-                    #pass
                 is_supported = gajim.get_jid_from_account(chat_control.account) in jid_to_servers and \
                     gajim.connections[chat_control.account].connection != None
+                log.info("Account %s: httpupload is_supported: %s" % (str(chat_control.account), str(is_supported)))
                 if not is_supported:
                     text = _('Your server does not support http uploads')
                     image_text = text
@@ -354,6 +368,9 @@ class Base(object):
                             xhtml = '<body><br/><a href="%s"> <img alt="%s" src="data:image/png;base64,%s"/> </a></body>' % \
                                 (get.getData(), get.getData(), thumb)
                     progress_window.close_dialog()
+                    id_ = gajim.get_an_id()
+                    def add_oob_tag():
+                        pass
                     self.chat_control.send_message(message=get.getData(), xhtml=xhtml)
                     self.chat_control.msg_textview.grab_focus()
                 else:
@@ -391,7 +408,7 @@ class Base(object):
         
         is_supported = gajim.get_jid_from_account(self.chat_control.account) in jid_to_servers and \
                     gajim.connections[self.chat_control.account].connection != None
-        log.debug("jid_to_servers of %s: %s ; connection: %s" % (gajim.get_jid_from_account(self.chat_control.account), str(jid_to_servers[gajim.get_jid_from_account(self.chat_control.account)]), str(gajim.connections[self.chat_control.account].connection)))
+        log.info("jid_to_servers of %s: %s ; connection: %s" % (gajim.get_jid_from_account(self.chat_control.account), str(jid_to_servers[gajim.get_jid_from_account(self.chat_control.account)]), str(gajim.connections[self.chat_control.account].connection)))
         if not is_supported:
             progress_window.close_dialog()
             log.error("upload component vanished, account got disconnected??")
