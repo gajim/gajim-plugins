@@ -25,13 +25,7 @@ try:
     HAS_GOOCANVAS = True
 except:
     HAS_GOOCANVAS = False
-from common import gajim
-ver = list(gajim.config.get('version').split('.'))
-if ver < [0, 15, 3, 0]:
-    from common.xmpp import Node
-else:
-    from nbxmpp import Node
-
+from nbxmpp import Node
 from dialogs import FileChooserDialog
 
 '''

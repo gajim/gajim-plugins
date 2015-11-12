@@ -21,13 +21,6 @@ from plugins.gui import GajimPluginConfigDialog
 from conversation_textview import TextViewImage
 import gtkgui_helpers
 
-nb_xmpp = False
-import common.xmpp
-if not dir(common.xmpp):
-    import nbxmpp
-    nb_xmpp = True
-
-
 class JuickPlugin(GajimPlugin):
     @log_calls('JuickPlugin')
     def init(self):
