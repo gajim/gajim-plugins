@@ -66,7 +66,7 @@ import pickle
 import time
 import sys
 from pprint import pformat
-from distutils.version import StrictVersion
+from distutils.version import LooseVersion
 
 from common import gajim
 from common import ged
@@ -279,7 +279,7 @@ class OtrPlugin(GajimPlugin):
                 self.handle_incoming_msg)
         self.events_handlers['before-change-show'] = (ged.PRECORE,
                 self.handle_change_show)
-        if StrictVersion(gajim.config.get('version')) < StrictVersion(MINVERSION_OUTGOING_MSG_STAZA):
+        if LooseVersion(gajim.config.get('version')) < LooseVersion(MINVERSION_OUTGOING_MSG_STAZA):
             self.events_handlers['message-outgoing'] = (ged.OUT_PRECORE,
                     self.handle_outgoing_msg)
         else:
