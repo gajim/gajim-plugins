@@ -272,6 +272,21 @@ class Base(object):
         progress_messages = Queue(8)
         progress_window = ProgressWindow(_('HTTP Upload'), _('Requesting HTTP Upload Slot...'), progress_messages)
         def upload_file(stanza):
+            slot = stanza.getTag("slot")
+            if not slot:
+                progress_window.close_dialog()
+                log.error("got unexpected stanza: "+str(stanza))
+                error = stanza.getTag("error")
+                if error and error.getTag("text"):
+                    ErrorDialog(_('Could not request upload slot'), 
+                                _('Got unexpected response from server: %s') % str(error.getTagData("text")),
+                                transient_for=self.chat_control.parent_win.window)
+                else:
+                    ErrorDialog(_('Could not request upload slot'), 
+                                _('Got unexpected response from server (protocol mismatch??)'),
+                                transient_for=self.chat_control.parent_win.window)
+                return
+            
             try:
                 open(path_to_file, "rb").read(1)     # check for open/read errors (maybe this is not needed anymore)
                 data = StreamFileWithProgress(path_to_file, "rb", progress_window.update_progress)
@@ -282,20 +297,6 @@ class Base(object):
                             transient_for=self.chat_control.parent_win.window)
                 raise       # fill error log with useful information
             
-            slot = stanza.getTag("slot")
-            if not slot:
-                progress_window.close_dialog()
-                log.error("got unexpected stanza: "+str(stanza))
-                error = stanza.getTag("error")
-                if error and error.getTag("text"):
-                    ErrorDialog(_('Could not request upload slot'), 
-                                _('Got unexpected response from server: ') + str(error.getTagData("text")),
-                                transient_for=self.chat_control.parent_win.window)
-                else:
-                    ErrorDialog(_('Could not request upload slot'), 
-                                _('Got unexpected response from server (protocol mismatch??)'),
-                                transient_for=self.chat_control.parent_win.window)
-                return
             put = slot.getTag("put")
             get = slot.getTag("get")
             if not put or not get:
@@ -318,7 +319,12 @@ class Base(object):
                         progress_messages.put(_('Calculating (possible) image thumbnail...'))
                         thumb = None
                         quality_steps = (100, 80, 60, 50, 40, 35, 30, 25, 23, 20, 18, 15, 13, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1)
-                        if pil_available:
+                        with open(path_to_file, 'rb') as content_file:
+                            thumb = urllib2.quote(base64.standard_b64encode(content_file.read()), '')
+                        if thumb and len(thumb) < max_thumbnail_size:
+                            quality = 100
+                            log.info("Image small enough (%d bytes), not resampling" % len(thumb))
+                        elif pil_available:
                             log.info("PIL available, using it for image downsampling")
                             try:
                                 for quality in quality_steps:
@@ -388,7 +394,7 @@ class Base(object):
                     request = urllib2.Request(put.getData().encode("utf-8"), data=data, headers=headers)
                     request.get_method = lambda: 'PUT'
                     log.debug("opening urllib2 upload request...")
-                    transfer = urllib2.urlopen(request)
+                    transfer = urllib2.urlopen(request, timeout=30)
                     log.debug("urllib2 upload request done, response code: " + str(transfer.getcode()))
                     return transfer.getcode()
                 except UploadAbortedException:
@@ -401,8 +407,8 @@ class Base(object):
                     raise       # fill error log with useful information
                 return 0
 
-            log.info("Uploading file to " + str(put.getData()))
-            log.info("Please download from " + str(get.getData()) + " later")
+            log.info("Uploading file to '%s'..." % str(put.getData()))
+            log.info("Please download from '%s' later..." % str(get.getData()))
             
             gajim.thread_interface(uploader, [], upload_complete)
         
