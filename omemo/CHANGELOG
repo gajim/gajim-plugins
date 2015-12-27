@@ -1,0 +1,4 @@
+# 2015-12-27 
+- Fix crash, if jid is not in list (Thanks Mic92)
+- Fix clear_device_list, if account is not connected  (Thanks Mic92)
+- Provide python-axolotl installation instructions in README and manifest.ini
