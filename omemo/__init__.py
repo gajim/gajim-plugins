@@ -130,7 +130,7 @@ class OmemoPlugin(GajimPlugin):
             account = msg.conn.name
             from_jid = str(msg.stanza.getAttr('from'))
             jid = gajim.get_jid_without_resource(from_jid)
-            gui = self.ui_list[account][jid]
+            gui = self.ui_list[account].get(jid, None)
             if gui and gui.encryption_active():
                 gui.plain_warning()
 
@@ -381,7 +381,10 @@ class OmemoPlugin(GajimPlugin):
 
         log.info(state.name + ' ⇒ Clearing devices_list ' + str(devices_list))
         iq = DeviceListAnnouncement(devices_list)
-        gajim.connections[state.name].connection.send(iq)
+        connection = gajim.connections[state.name].connection
+        if not connection:  # not connected
+            return
+        connection.send(iq)
         id_ = str(iq.getAttr('id'))
         iq_ids_to_callbacks[id_] = lambda event: log.info(event)
 
