@@ -13,7 +13,7 @@ You can install this plugin via the Gajim PluginManager or by cloning the git re
 ```shell
 mkdir ~/.local/share/gajim/plugins -p
 cd ~/.local/share/gajim/plugins
-git clone git@github.com:kalkin/gajim-omemo.git
+git clone https://github.com/kalkin/gajim-omemo
 ```
 
 ### Dependencies
