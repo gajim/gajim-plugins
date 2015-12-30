@@ -49,7 +49,7 @@ time working on it and on free software generally.
 
 My Bitcoin Address is: `1CnNM3Mree9hU8eRjCXrfCWV mX6oBnEfV1`
 
-[![Support Me via Flattr](http://api.flattr.com/button/flattr-badge-large.png)](https://flattr.com/submit/auto?user_id=_kalkin&url=https://github.com/kalkin/gajim-omemo&title=gajim-omemo&language=en_US&tags=github&category=people)
+[![Support Me via Flattr](http://api.flattr.com/button/flattr-badge-large.png)](https://flattr.com/thing/5038679)
 
 ## I found a bug
 Please report it to the [issue
