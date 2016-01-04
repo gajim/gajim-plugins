@@ -29,7 +29,7 @@ hg update gajim-0.16.5 --clean
 #### Python libraries
 You *have* to install `python-axolotl` via `pip`. Depending on your setup you might
 want to use `pip2` as Gajim is using python2.7. If you are using the official repository,
-do not forget to install the `nxmpp` dependency via pip or you package manager.
+do not forget to install the `nbxmpp` dependency via pip or you package manager.
 
 ## Running
 Enable *OMEMO Multi-End Message and Object Encryption* in the Plugin-Manager.
