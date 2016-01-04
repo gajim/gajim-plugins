@@ -18,12 +18,12 @@ git clone https://github.com/kalkin/gajim-omemo
 
 ### Dependencies
 #### Gajim
-You need Gajim version 0.16.4. If your package manager does not provide an up to date 
-version you can install it from the official Mercurial repository. 
+You need Gajim version 0.16.5. If your package manager does not provide an up to date 
+version you can install it from the official Mercurial repository. *DO NOT USE* gajim 0.16.4 it contains a vulnerability, which is fixed in 0.16.5.
 ```shell
 hg clone https://hg.gajim.org/gajim
 cd gajim
-hg update gajim-0.16.4 --clean
+hg update gajim-0.16.5 --clean
 ```
 
 #### Python libraries
