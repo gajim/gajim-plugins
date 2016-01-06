@@ -21,7 +21,8 @@
 import logging
 
 import gtk
-from message_control import TYPE_CHAT, MessageControl
+
+from message_control import TYPE_CHAT
 
 log = logging.getLogger('gajim.plugin_system.omemo')
 
