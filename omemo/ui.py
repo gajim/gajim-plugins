@@ -92,7 +92,7 @@ class Ui(object):
 
     last_msg_plain = True
 
-    def __init__(self, plugin, chat_control):
+    def __init__(self, plugin, chat_control, enabled):
         contact = chat_control.contact
         self.prekey_button = PreKeyButton(plugin, contact)
         self.checkbox = Checkbox(plugin, chat_control)
@@ -101,7 +101,7 @@ class Ui(object):
         available = plugin.has_omemo(contact)
         self.toggle_omemo(available)
 
-        self.checkbox.set_active(plugin.is_omemo_enabled(contact))
+        self.checkbox.set_active(enabled)
         self.chat_control = chat_control
 
         _add_widget(self.prekey_button, chat_control)

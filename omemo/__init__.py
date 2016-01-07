@@ -214,7 +214,9 @@ class OmemoPlugin(GajimPlugin):
         jid = chat_control.contact.jid
         if account not in self.ui_list:
             self.ui_list[account] = {}
-        self.ui_list[account][jid] = Ui(self, chat_control)
+        state = self.get_omemo_state(account)
+        omemo_enabled = jid in state.omemo_enabled
+        self.ui_list[account][jid] = Ui(self, chat_control, omemo_enabled)
 
     def are_keys_missing(self, contact):
         """ Used by the ui to set the state of the PreKeyButton. """
@@ -419,12 +421,6 @@ class OmemoPlugin(GajimPlugin):
             log.debug(account + ' → ' + str(event.msg_iq))
         except:
             return True
-
-    @log_calls('OmemoPlugin')
-    def is_omemo_enabled(self, contact):
-        account = contact.account.name
-        state = self.get_omemo_state(account)
-        return contact.jid in state.omemo_enabled
 
     @log_calls('OmemoPlugin')
     def omemo_enable_for(self, contact):
