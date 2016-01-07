@@ -91,11 +91,10 @@ def _add_widget(widget, chat_control):
     send_button_pos = actions_hbox.child_get_property(send_button, 'position')
     actions_hbox.add_with_properties(widget, 'position', send_button_pos - 2,
                                      'expand', False)
+    widget.show_all()
 
 
 class Ui(object):
-
-    last_msg_plain = True
 
     def __init__(self, plugin, chat_control, enabled):
         contact = chat_control.contact
@@ -103,23 +102,12 @@ class Ui(object):
         self.checkbox = Checkbox(plugin, chat_control)
         self.clear_button = ClearDevicesButton(plugin, contact)
 
-        available = plugin.has_omemo(contact)
-        self.toggle_omemo(available)
-
         self.checkbox.set_active(enabled)
         self.chat_control = chat_control
 
         _add_widget(self.prekey_button, chat_control)
         _add_widget(self.checkbox, chat_control)
         _add_widget(self.clear_button, chat_control)
-
-    def toggle_omemo(self, available):
-        if available:
-            self.checkbox.set_no_show_all(False)
-            self.checkbox.show()
-        else:
-            self.checkbox.set_no_show_all(True)
-            self.checkbox.hide()
 
     def encryption_active(self):
         return self.checkbox.get_active()
@@ -132,10 +120,9 @@ class Ui(object):
             self.checkbox.set_active(True)
 
     def plain_warning(self):
-        if not self.last_msg_plain:
-            self.chat_control.print_conversation_line(
-                'Received plaintext message!', 'status', '', None)
-        self.last_msg_plain = True
+        self.chat_control.print_conversation_line(
+            'Received plaintext message! ' +
+            'Your next message will still be encrypted!', 'status', '', None)
 
     def update_prekeys(self):
         self.prekey_button.refresh()

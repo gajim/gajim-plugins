@@ -166,10 +166,10 @@ class OmemoPlugin(GajimPlugin):
         devices_list = unpack_device_list_update(event)
         if len(devices_list) == 0:
             return False
-        account = event.conn.name
+        account_name = event.conn.name
         contact_jid = gajim.get_jid_without_resource(event.fjid)
-        state = self.get_omemo_state(account)
-        my_jid = gajim.get_jid_from_account(account)
+        state = self.get_omemo_state(account_name)
+        my_jid = gajim.get_jid_from_account(account_name)
 
         if contact_jid == my_jid:
             log.debug(state.name + ' ⇒ Received own device_list:' + str(
@@ -185,14 +185,19 @@ class OmemoPlugin(GajimPlugin):
                 devices_list.append(state.own_device_id)
                 self.publish_own_devices_list(state)
         else:
-            log.debug(account + ' ⇒ Received device_list for ' + contact_jid +
-                    ':' + str(devices_list))
+            log.debug(account_name + ' ⇒ Received device_list for ' +
+                      contact_jid + ':' + str(devices_list))
             state.add_devices(contact_jid, devices_list)
-            if account in self.ui_list and contact_jid in self.ui_list[
-                    account]:
-                self.ui_list[account][contact_jid].toggle_omemo(True)
+            if account_name in self.ui_list and contact_jid not in self.ui_list[
+                    account_name]:
 
-        self.update_prekeys(account, contact_jid)
+                chat_control = gajim.interface.msg_win_mgr.get_control(
+                    contact_jid, account_name)
+
+                if chat_control is not None:
+                    self.connect_ui(chat_control)
+
+        self.update_prekeys(account_name, contact_jid)
 
         return True
 
@@ -210,13 +215,18 @@ class OmemoPlugin(GajimPlugin):
 
     @log_calls('OmemoPlugin')
     def connect_ui(self, chat_control):
-        account = chat_control.contact.account.name
-        jid = chat_control.contact.jid
-        if account not in self.ui_list:
-            self.ui_list[account] = {}
-        state = self.get_omemo_state(account)
-        omemo_enabled = jid in state.omemo_enabled
-        self.ui_list[account][jid] = Ui(self, chat_control, omemo_enabled)
+        account_name = chat_control.contact.account.name
+        contact_jid = chat_control.contact.jid
+        if account_name not in self.ui_list:
+            self.ui_list[account_name] = {}
+        state = self.get_omemo_state(account_name)
+        if contact_jid in state.device_ids:
+            log.debug(account_name + " ⇒ Adding OMEMO ui for " + contact_jid)
+            omemo_enabled = contact_jid in state.omemo_enabled
+            self.ui_list[account_name][contact_jid] = Ui(self, chat_control,
+                                                         omemo_enabled)
+        else:
+            log.debug(account_name + " ⇒ No OMEMO dev_keys for " + contact_jid)
 
     def are_keys_missing(self, contact):
         """ Used by the ui to set the state of the PreKeyButton. """
@@ -226,6 +236,8 @@ class OmemoPlugin(GajimPlugin):
         result = 0
         result += len(state.devices_without_sessions(str(contact.jid)))
         result += len(state.own_devices_without_sessions(my_jid))
+        log.debug(account + " ⇒ Missing keys for " + contact.jid + ": " + str(
+            result))
         return result
 
     @log_calls('OmemoPlugin')
@@ -269,8 +281,8 @@ class OmemoPlugin(GajimPlugin):
             device_id : int
                 The device_id for which we are missing an axolotl session
         """
-        log.debug(state.name + '→ Fetch bundle device ' + str(device_id) + '#' +
-                jid)
+        log.debug(state.name + '→ Fetch bundle device ' + str(device_id) + '#'
+                  + jid)
         iq = BundleInformationQuery(jid, device_id)
         iq_id = str(iq.getAttr('id'))
         iq_ids_to_callbacks[iq_id] = \
@@ -436,22 +448,6 @@ class OmemoPlugin(GajimPlugin):
         account = contact.account.name
         state = self.get_omemo_state(account)
         state.omemo_enabled.remove(contact.jid)
-
-    @log_calls('OmemoPlugin')
-    def has_omemo(self, contact):
-        """ Used by the ui to find out if omemo controls should be displayed for
-            the given contact.
-
-            Returns
-            -------
-            bool
-                True if there are known device_ids/clients supporting OMEMO
-        """
-        account = contact.account.name
-        state = self.get_omemo_state(account)
-        if state.device_ids_for(contact):
-            return True
-        return False
 
 
 @log_calls('OmemoPlugin')
