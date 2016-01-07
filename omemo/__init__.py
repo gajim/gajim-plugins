@@ -186,7 +186,7 @@ class OmemoPlugin(GajimPlugin):
                 self.publish_own_devices_list(state)
         else:
             log.debug(account + ' ⇒ Received device_list for ' + contact_jid +
-                    ':' + devices_list)
+                    ':' + str(devices_list))
             state.add_devices(contact_jid, devices_list)
             if account in self.ui_list and contact_jid in self.ui_list[
                     account]:
@@ -267,8 +267,8 @@ class OmemoPlugin(GajimPlugin):
             device_id : int
                 The device_id for which we are missing an axolotl session
         """
-        log.debug(state.name + '→ Fetch bundle information for dev ' + str(
-            device_id) + ' and jid ' + jid)
+        log.debug(state.name + '→ Fetch bundle device ' + str(device_id) + '#' +
+                jid)
         iq = BundleInformationQuery(jid, device_id)
         iq_id = str(iq.getAttr('id'))
         iq_ids_to_callbacks[iq_id] = \
