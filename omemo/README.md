@@ -35,6 +35,15 @@ device keys.  It uses trust on first use. This will be added in near future.
 To see OMEMO related debug output start Gajim with the parameter `-l
 gajim.plugin_system.omemo=DEBUG`.
 
+## Hacking
+This repository contains the current development version. If you want to
+contribute clone the git repository into your Gajim's plugin directory. 
+```shell
+mkdir ~/.local/share/gajim/plugins -p
+cd ~/.local/share/gajim/plugins
+git clone https://github.com/kalkin/gajim-omemo
+```
+
 ## Support this project
 I develop this project in my free time. Your donation allows me to spend more
 time working on it and on free software generally.
