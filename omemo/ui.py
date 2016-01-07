@@ -76,11 +76,10 @@ class Checkbox(gtk.CheckButton):
         log.info('Clicked ' + str(enabled))
         if enabled:
             self.plugin.omemo_enable_for(self.contact)
-            self.chat_control._show_lock_image(True, 'OMEMO', True, True, True)
+            self.chat_control._show_lock_image(True, 'OMEMO', True, True, False)
         else:
             self.plugin.omemo_disable_for(self.contact)
-            self.chat_control._show_lock_image(False, 'OMEMO', False, True,
-                                               False)
+            self.chat_control._show_lock_image(False, 'OMEMO', False, True, False)
 
 
 def _add_widget(widget, chat_control):
