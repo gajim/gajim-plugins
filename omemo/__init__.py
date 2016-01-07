@@ -54,7 +54,7 @@ class OmemoPlugin(GajimPlugin):
             (ged.PRECORE, self.handle_outgoing_msgs),
         }
         self.config_dialog = None
-        self.gui_extension_points = {'chat_control_base':
+        self.gui_extension_points = {'chat_control':
                                      (self.connect_ui, None)}
         SUPPORTED_PERSONAL_USER_EVENTS.append(DevicelistPEP)
 
