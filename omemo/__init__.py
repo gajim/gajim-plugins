@@ -433,13 +433,14 @@ class OmemoPlugin(GajimPlugin):
     @log_calls('OmemoPlugin')
     def omemo_disable_for(self, contact):
         """ Used by the ui to disable omemo for a specified contact """
+        # TODO Migrate this
         account = contact.account.name
         state = self.get_omemo_state(account)
         state.omemo_enabled.remove(contact.jid)
 
     @log_calls('OmemoPlugin')
     def has_omemo(self, contact):
-        """ Used by the ui to find out if omemo controls shoudl be displayed for
+        """ Used by the ui to find out if omemo controls should be displayed for
             the given contact.
 
             Returns
