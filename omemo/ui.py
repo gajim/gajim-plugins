@@ -75,9 +75,14 @@ class Checkbox(gtk.CheckButton):
         if enabled:
             self.plugin.omemo_enable_for(self.contact)
             self.chat_control._show_lock_image(True, 'OMEMO', True, True, False)
+            self.chat_control.print_conversation_line(
+                u'\U0001F512 OMEMO encryption enabled ', 'status', '', None)
         else:
             self.plugin.omemo_disable_for(self.contact)
-            self.chat_control._show_lock_image(False, 'OMEMO', False, True, False)
+            self.chat_control._show_lock_image(False, 'OMEMO', False, True,
+                                               False)
+            self.chat_control.print_conversation_line(
+                u'\U0001F513 OMEMO encryption disabled', 'status', '', None)
 
 
 def _add_widget(widget, chat_control):
@@ -124,14 +129,7 @@ class Ui(object):
 
     def activate_omemo(self):
         if not self.checkbox.get_active():
-            self.chat_control.print_conversation_line(
-                'OMEMO encryption activated', 'status', '', None)
-            self.chat_control._show_lock_image(True, 'OMEMO', True, True, True)
             self.checkbox.set_active(True)
-        elif self.last_msg_plain:
-            self.chat_control.print_conversation_line(
-                'OMEMO encryption activated', 'status', '', None)
-            self.last_msg_plain = False
 
     def plain_warning(self):
         if not self.last_msg_plain:
