@@ -8,25 +8,17 @@ distributed under the GNU General Public License version 3 or any later version.
 **DO NOT rely on this plugin to protect sensitive information!** 
 
 ## Installation
-You can install this plugin via the Gajim PluginManager or by cloning the git repository into Gajim's plugin directory.
-
-```shell
-mkdir ~/.local/share/gajim/plugins -p
-cd ~/.local/share/gajim/plugins
-git clone https://github.com/kalkin/gajim-omemo
-```
-
-### Dependencies
-#### Gajim
-You need Gajim version 0.16.5. If your package manager does not provide an up to date 
-version you can install it from the official Mercurial repository. *DO NOT USE* gajim 0.16.4 it contains a vulnerability, which is fixed in 0.16.5.
+Install the current stable version via the Gajim PluginManager. You *need* Gajim
+version *0.16.5*. If your package manager does not provide an up to date version
+you can install it from the official Mercurial repository. *DO NOT USE* gajim
+0.16.4 it contains a vulnerability, which is fixed in 0.16.5.
 ```shell
 hg clone https://hg.gajim.org/gajim
 cd gajim
 hg update gajim-0.16.5 --clean
 ```
 
-#### Python libraries
+### Python libraries
 You *have* to install `python-axolotl` via `pip`. Depending on your setup you might
 want to use `pip2` as Gajim is using python2.7. If you are using the official repository,
 do not forget to install the `nbxmpp` dependency via pip or you package manager.
