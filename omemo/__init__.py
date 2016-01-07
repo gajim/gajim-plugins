@@ -60,12 +60,18 @@ class OmemoPlugin(GajimPlugin):
 
     @log_calls('OmemoPlugin')
     def get_omemo_state(self, account):
+        """ Returns the the OmemoState for specified account. Creates the
+            OmemoState if it does not exist yet.
+        """
         if account not in self.omemo_states:
             self.omemo_states[account] = OmemoState(account)
         return self.omemo_states[account]
 
     @log_calls('OmemoPlugin')
     def signed_in(self, show):
+        """
+            On sign in announce OMEMO support for each account.
+        """
         account = show.conn.name
         state = self.get_omemo_state(account)
         self.announce_support(state)
