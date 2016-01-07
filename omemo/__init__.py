@@ -171,10 +171,8 @@ class OmemoPlugin(GajimPlugin):
         state = self.get_omemo_state(account)
         my_jid = gajim.get_jid_from_account(account)
 
-        log.debug(account + ' ⇒ Received OMEMO pep for jid ' + contact_jid)
-
         if contact_jid == my_jid:
-            log.debug(state.name + ' ⇒ Received own device_list ' + str(
+            log.debug(state.name + ' ⇒ Received own device_list:' + str(
                 devices_list))
             state.add_own_devices(devices_list)
 
@@ -187,6 +185,8 @@ class OmemoPlugin(GajimPlugin):
                 devices_list.append(state.own_device_id)
                 self.publish_own_devices_list(state)
         else:
+            log.debug(account + ' ⇒ Received device_list for ' + contact_jid +
+                    ':' + devices_list)
             state.add_devices(contact_jid, devices_list)
             if account in self.ui_list and contact_jid in self.ui_list[
                     account]:
