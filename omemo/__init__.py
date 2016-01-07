@@ -239,10 +239,13 @@ class OmemoPlugin(GajimPlugin):
                 del iq_ids_to_callbacks[id_]
 
     @log_calls('OmemoPlugin')
-    def query_prekey(self, contact):
-        account = contact.account.name
+    def query_prekey(self, recipient):
+        """ Calls OmemoPlugin.fetch_device_bundle_information() for each own or
+            recipient device key missing.
+        """
+        account = recipient.account.name
         state = self.get_omemo_state(account)
-        to_jid = contact.jid
+        to_jid = recipient.jid
         my_jid = gajim.get_jid_from_account(account)
         for device_id in state.devices_without_sessions(to_jid):
             self.fetch_device_bundle_information(state, to_jid, device_id)
