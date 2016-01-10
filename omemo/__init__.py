@@ -25,7 +25,6 @@ from common.pep import SUPPORTED_PERSONAL_USER_EVENTS
 from plugins import GajimPlugin
 from plugins.helpers import log_calls
 
-from .state import OmemoState
 from .ui import Ui
 from .xmpp import (
     NS_NOTIFY, NS_OMEMO, BundleInformationAnnouncement, BundleInformationQuery,
@@ -34,7 +33,15 @@ from .xmpp import (
 
 iq_ids_to_callbacks = {}
 
+AXOLOTL_MISSING = 'Please install python-axolotl.'
+
 log = logging.getLogger('gajim.plugin_system.omemo')
+try:
+    from .state import OmemoState
+    HAS_AXOLOTL = True
+except ImportError:
+    log.error(AXOLOTL_MISSING)
+    HAS_AXOLOTL = False
 
 
 class OmemoPlugin(GajimPlugin):
@@ -45,6 +52,10 @@ class OmemoPlugin(GajimPlugin):
 
     @log_calls('OmemoPlugin')
     def init(self):
+        if not HAS_AXOLOTL:
+            self.activatable = False
+            self.available_text = _(AXOLOTL_MISSING)
+            return
         self.events_handlers = {
             'message-received': (ged.PRECORE, self.message_received),
             'pep-received': (ged.PRECORE, self.handle_device_list_update),
