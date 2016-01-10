@@ -1,3 +1,15 @@
+0.3 / 2016-01-10
+==================
+  * Save if OMEMO is enabled between restarts - #17
+  * Disable OMEMO if dependencies are missing - #9
+  * Make logging less verbose
+  * Add Arch Linux PKGBUILD file (Thanks Tommaso Sardelli)
+  * Extend README
+  * Fix hiding OMEMO controls in muc
+  * Fix "'ChatControl' object has no attribute 'lock_image'" bug - #16
+  * Ui clearly displays which message is encrypted (and how) - #15
+  * Plaintext messages are now always marked - #15
+
 # 2015-12-27 
 - Fix crash, if jid is not in list (Thanks Mic92)
 - Fix clear_device_list, if account is not connected  (Thanks Mic92)
