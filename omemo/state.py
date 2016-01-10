@@ -45,7 +45,7 @@ log = logging.getLogger('gajim.plugin_system.omemo')
 
 class OmemoState:
     session_ciphers = {}
-    omemo_enabled = set()
+    encryption = None
 
     device_ids = {}
     own_devices = []
@@ -55,6 +55,7 @@ class OmemoState:
         db_name = 'omemo_' + name + '.db'
         db_file = os.path.join(DB_DIR, db_name)
         self.store = LiteAxolotlStore(db_file)
+        self.encryption = self.store.encryptionStore
 
     def build_session(self, recipient_id, device_id, bundle_dict):
         sessionBuilder = SessionBuilder(self.store, self.store, self.store,
@@ -94,18 +95,6 @@ class OmemoState:
 
     def own_device_id_published(self):
         return self.own_device_id in self.own_devices
-
-    def device_ids_for(self, contact):
-        account = contact.account.name
-        log.debug(account + ' ⇒ Searching device_ids for contact ' +
-                  contact.jid)
-        if contact.jid not in self.device_ids:
-            log.debug(contact.jid + '¬∈ devices_ids[' + account + ']')
-            return None
-
-        log.debug(account + ' ⇒ found device_ids ' + str(self.device_ids[
-            contact.jid]))
-        return self.device_ids[contact.jid]
 
     @property
     def bundle(self):
@@ -179,10 +168,12 @@ class OmemoState:
             return
 
         my_other_devices = set(self.own_devices) - set({self.own_device_id})
+        # Encrypt the message key with for each of our own devices
         for dev in my_other_devices:
             cipher = self.get_session_cipher(from_jid, dev)
             encrypted_keys[dev] = cipher.encrypt(key).serialize()
 
+        # Encrypt the message key with for each of receivers devices
         for rid, cipher in session_ciphers.items():
             try:
                 encrypted_keys[rid] = cipher.encrypt(key).serialize()
@@ -196,8 +187,6 @@ class OmemoState:
             raise NoValidSessions(log_msg)
 
         payload = aes_encrypt(key, iv, plaintext)
-        log.info('Payload')
-        log.info(payload)
 
         result = {'sid': self.own_device_id,
                   'keys': encrypted_keys,
@@ -231,8 +220,9 @@ class OmemoState:
         missing_devices = [dev
                            for dev in known_devices
                            if not self.store.containsSession(jid, dev)]
-        log.debug(self.name + ' → Missing device sessions: ' + str(
-            missing_devices))
+        if missing_devices:
+            log.debug(self.name + ' → Missing device sessions: ' + str(
+                      missing_devices))
         return missing_devices
 
     def own_devices_without_sessions(self, own_jid):
@@ -252,8 +242,9 @@ class OmemoState:
         missing_devices = [dev
                            for dev in known_devices
                            if not self.store.containsSession(own_jid, dev)]
-        log.debug(self.name + ' → Missing device sessions: ' + str(
-            missing_devices))
+        if missing_devices:
+            log.debug(self.name + ' → Missing device sessions: ' + str(
+                missing_devices))
         return missing_devices
 
     def get_session_cipher(self, jid, device_id):

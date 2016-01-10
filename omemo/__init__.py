@@ -25,7 +25,6 @@ from common.pep import SUPPORTED_PERSONAL_USER_EVENTS
 from plugins import GajimPlugin
 from plugins.helpers import log_calls
 
-from .state import OmemoState
 from .ui import Ui
 from .xmpp import (
     NS_NOTIFY, NS_OMEMO, BundleInformationAnnouncement, BundleInformationQuery,
@@ -34,7 +33,15 @@ from .xmpp import (
 
 iq_ids_to_callbacks = {}
 
+AXOLOTL_MISSING = 'Please install python-axolotl.'
+
 log = logging.getLogger('gajim.plugin_system.omemo')
+try:
+    from .state import OmemoState
+    HAS_AXOLOTL = True
+except ImportError:
+    log.error(AXOLOTL_MISSING)
+    HAS_AXOLOTL = False
 
 
 class OmemoPlugin(GajimPlugin):
@@ -45,6 +52,10 @@ class OmemoPlugin(GajimPlugin):
 
     @log_calls('OmemoPlugin')
     def init(self):
+        if not HAS_AXOLOTL:
+            self.activatable = False
+            self.available_text = _(AXOLOTL_MISSING)
+            return
         self.events_handlers = {
             'message-received': (ged.PRECORE, self.message_received),
             'pep-received': (ged.PRECORE, self.handle_device_list_update),
@@ -54,18 +65,24 @@ class OmemoPlugin(GajimPlugin):
             (ged.PRECORE, self.handle_outgoing_msgs),
         }
         self.config_dialog = None
-        self.gui_extension_points = {'chat_control_base':
+        self.gui_extension_points = {'chat_control':
                                      (self.connect_ui, None)}
         SUPPORTED_PERSONAL_USER_EVENTS.append(DevicelistPEP)
 
     @log_calls('OmemoPlugin')
     def get_omemo_state(self, account):
+        """ Returns the the OmemoState for specified account. Creates the
+            OmemoState if it does not exist yet.
+        """
         if account not in self.omemo_states:
             self.omemo_states[account] = OmemoState(account)
         return self.omemo_states[account]
 
     @log_calls('OmemoPlugin')
     def signed_in(self, show):
+        """
+            On sign in announce OMEMO support for each account.
+        """
         account = show.conn.name
         state = self.get_omemo_state(account)
         self.announce_support(state)
@@ -160,15 +177,13 @@ class OmemoPlugin(GajimPlugin):
         devices_list = unpack_device_list_update(event)
         if len(devices_list) == 0:
             return False
-        account = event.conn.name
+        account_name = event.conn.name
         contact_jid = gajim.get_jid_without_resource(event.fjid)
-        state = self.get_omemo_state(account)
-        my_jid = gajim.get_jid_from_account(account)
-
-        log.debug(account + ' ⇒ Received OMEMO pep for jid ' + contact_jid)
+        state = self.get_omemo_state(account_name)
+        my_jid = gajim.get_jid_from_account(account_name)
 
         if contact_jid == my_jid:
-            log.debug(state.name + ' ⇒ Received own device_list ' + str(
+            log.info(state.name + ' ⇒ Received own device_list:' + str(
                 devices_list))
             state.add_own_devices(devices_list)
 
@@ -181,12 +196,19 @@ class OmemoPlugin(GajimPlugin):
                 devices_list.append(state.own_device_id)
                 self.publish_own_devices_list(state)
         else:
+            log.info(account_name + ' ⇒ Received device_list for ' +
+                     contact_jid + ':' + str(devices_list))
             state.add_devices(contact_jid, devices_list)
-            if account in self.ui_list and contact_jid in self.ui_list[
-                    account]:
-                self.ui_list[account][contact_jid].toggle_omemo(True)
+            if account_name in self.ui_list and contact_jid not in self.ui_list[
+                    account_name]:
 
-        self.update_prekeys(account, contact_jid)
+                chat_control = gajim.interface.msg_win_mgr.get_control(
+                    contact_jid, account_name)
+
+                if chat_control is not None:
+                    self.connect_ui(chat_control)
+
+        self.update_prekeys(account_name, contact_jid)
 
         return True
 
@@ -204,11 +226,18 @@ class OmemoPlugin(GajimPlugin):
 
     @log_calls('OmemoPlugin')
     def connect_ui(self, chat_control):
-        account = chat_control.contact.account.name
-        jid = chat_control.contact.jid
-        if account not in self.ui_list:
-            self.ui_list[account] = {}
-        self.ui_list[account][jid] = Ui(self, chat_control)
+        account_name = chat_control.contact.account.name
+        contact_jid = chat_control.contact.jid
+        if account_name not in self.ui_list:
+            self.ui_list[account_name] = {}
+        state = self.get_omemo_state(account_name)
+        if contact_jid in state.device_ids:
+            log.debug(account_name + " ⇒ Adding OMEMO ui for " + contact_jid)
+            omemo_enabled = state.encryption.is_active(contact_jid)
+            self.ui_list[account_name][contact_jid] = Ui(self, chat_control,
+                                                         omemo_enabled)
+        else:
+            log.warn(account_name + " ⇒ No OMEMO dev_keys for " + contact_jid)
 
     def are_keys_missing(self, contact):
         """ Used by the ui to set the state of the PreKeyButton. """
@@ -218,6 +247,9 @@ class OmemoPlugin(GajimPlugin):
         result = 0
         result += len(state.devices_without_sessions(str(contact.jid)))
         result += len(state.own_devices_without_sessions(my_jid))
+        if result > 0:
+            log.warn(account + " ⇒ Missing keys for " + contact.jid + ": " +
+                     str(result))
         return result
 
     @log_calls('OmemoPlugin')
@@ -233,10 +265,13 @@ class OmemoPlugin(GajimPlugin):
                 del iq_ids_to_callbacks[id_]
 
     @log_calls('OmemoPlugin')
-    def query_prekey(self, contact):
-        account = contact.account.name
+    def query_prekey(self, recipient):
+        """ Calls OmemoPlugin.fetch_device_bundle_information() for each own or
+            recipient device key missing.
+        """
+        account = recipient.account.name
         state = self.get_omemo_state(account)
-        to_jid = contact.jid
+        to_jid = recipient.jid
         my_jid = gajim.get_jid_from_account(account)
         for device_id in state.devices_without_sessions(to_jid):
             self.fetch_device_bundle_information(state, to_jid, device_id)
@@ -258,8 +293,8 @@ class OmemoPlugin(GajimPlugin):
             device_id : int
                 The device_id for which we are missing an axolotl session
         """
-        log.debug(state.name + '→ Fetch bundle information for dev ' + str(
-            device_id) + ' and jid ' + jid)
+        log.debug(state.name + '→ Fetch bundle device ' + str(device_id) + '#'
+                  + jid)
         iq = BundleInformationQuery(jid, device_id)
         iq_id = str(iq.getAttr('id'))
         iq_ids_to_callbacks[iq_id] = \
@@ -366,12 +401,12 @@ class OmemoPlugin(GajimPlugin):
         if successful(stanza):
             log.debug(account + ' → Publishing bundle was successful')
             if not state.own_device_id_published():
-                log.debug(account + ' → Device list needs updating')
+                log.warn(account + ' → Device list needs updating')
                 self.publish_own_devices_list(state)
             else:
                 log.debug(account + ' → Device list up to date')
         else:
-            log.debug(account + ' → Publishing bundle was NOT successful')
+            log.error(account + ' → Publishing bundle was NOT successful')
 
     @log_calls('OmemoPlugin')
     def clear_device_list(self, contact):
@@ -397,7 +432,7 @@ class OmemoPlugin(GajimPlugin):
         state = self.get_omemo_state(account)
         full_jid = str(event.msg_iq.getAttr('to'))
         to_jid = gajim.get_jid_without_resource(full_jid)
-        if to_jid not in state.omemo_enabled:
+        if not state.encryption.is_active(to_jid):
             return False
         try:
             msg_dict = state.create_msg(
@@ -412,40 +447,19 @@ class OmemoPlugin(GajimPlugin):
             return True
 
     @log_calls('OmemoPlugin')
-    def is_omemo_enabled(self, contact):
-        account = contact.account.name
-        state = self.get_omemo_state(account)
-        return contact.jid in state.omemo_enabled
-
-    @log_calls('OmemoPlugin')
     def omemo_enable_for(self, contact):
         """ Used by the ui to enable omemo for a specified contact """
         account = contact.account.name
         state = self.get_omemo_state(account)
-        state.omemo_enabled |= {contact.jid}
+        state.encryption.activate(contact.jid)
 
     @log_calls('OmemoPlugin')
     def omemo_disable_for(self, contact):
         """ Used by the ui to disable omemo for a specified contact """
+        # TODO Migrate this
         account = contact.account.name
         state = self.get_omemo_state(account)
-        state.omemo_enabled.remove(contact.jid)
-
-    @log_calls('OmemoPlugin')
-    def has_omemo(self, contact):
-        """ Used by the ui to find out if omemo controls shoudl be displayed for
-            the given contact.
-
-            Returns
-            -------
-            bool
-                True if there are known device_ids/clients supporting OMEMO
-        """
-        account = contact.account.name
-        state = self.get_omemo_state(account)
-        if state.device_ids_for(contact):
-            return True
-        return False
+        state.encryption.deactivate(contact.jid)
 
 
 @log_calls('OmemoPlugin')

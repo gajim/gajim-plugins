@@ -21,7 +21,6 @@
 import logging
 
 import gtk
-from message_control import TYPE_CHAT, MessageControl
 
 log = logging.getLogger('gajim.plugin_system.omemo')
 
@@ -72,14 +71,21 @@ class Checkbox(gtk.CheckButton):
 
     def on_click(self, widget):
         enabled = self.get_active()
-        log.info('Clicked ' + str(enabled))
         if enabled:
+            log.info(self.contact.account.name + ' ⇒ Enable OMEMO for ' +
+                     self.contact.jid)
             self.plugin.omemo_enable_for(self.contact)
-            self.chat_control._show_lock_image(True, 'OMEMO', True, True, True)
+            self.chat_control._show_lock_image(True, 'OMEMO', True, True, False)
+            self.chat_control.print_conversation_line(
+                u'OMEMO encryption enabled ', 'status', '', None)
         else:
+            log.info(self.contact.account.name + ' ⇒ Disable OMEMO for ' +
+                     self.contact.jid)
             self.plugin.omemo_disable_for(self.contact)
             self.chat_control._show_lock_image(False, 'OMEMO', False, True,
                                                False)
+            self.chat_control.print_conversation_line(
+                u'OMEMO encryption disabled', 'status', '', None)
 
 
 def _add_widget(widget, chat_control):
@@ -88,37 +94,23 @@ def _add_widget(widget, chat_control):
     send_button_pos = actions_hbox.child_get_property(send_button, 'position')
     actions_hbox.add_with_properties(widget, 'position', send_button_pos - 2,
                                      'expand', False)
+    widget.show_all()
 
 
 class Ui(object):
 
-    last_msg_plain = True
-
-    def __init__(self, plugin, chat_control):
+    def __init__(self, plugin, chat_control, enabled):
         contact = chat_control.contact
         self.prekey_button = PreKeyButton(plugin, contact)
         self.checkbox = Checkbox(plugin, chat_control)
         self.clear_button = ClearDevicesButton(plugin, contact)
 
-        available = plugin.has_omemo(contact)
-        self.toggle_omemo(available)
-
-        self.checkbox.set_active(plugin.is_omemo_enabled(contact))
-
+        self.checkbox.set_active(enabled)
         self.chat_control = chat_control
 
-        if chat_control.TYPE_ID == TYPE_CHAT:
-            _add_widget(self.prekey_button, chat_control)
-            _add_widget(self.checkbox, chat_control)
-            _add_widget(self.clear_button, chat_control)
-
-    def toggle_omemo(self, available):
-        if available:
-            self.checkbox.set_no_show_all(False)
-            self.checkbox.show()
-        else:
-            self.checkbox.set_no_show_all(True)
-            self.checkbox.hide()
+        _add_widget(self.prekey_button, chat_control)
+        _add_widget(self.checkbox, chat_control)
+        _add_widget(self.clear_button, chat_control)
 
     def encryption_active(self):
         return self.checkbox.get_active()
@@ -128,20 +120,12 @@ class Ui(object):
 
     def activate_omemo(self):
         if not self.checkbox.get_active():
-            self.chat_control.print_conversation_line(
-                'OMEMO encryption activated', 'status', '', None)
-            self.chat_control._show_lock_image(True, 'OMEMO', True, True, True)
             self.checkbox.set_active(True)
-        elif self.last_msg_plain:
-            self.chat_control.print_conversation_line(
-                'OMEMO encryption activated', 'status', '', None)
-            self.last_msg_plain = False
 
     def plain_warning(self):
-        if not self.last_msg_plain:
-            self.chat_control.print_conversation_line(
-                'Received plaintext message!', 'status', '', None)
-        self.last_msg_plain = True
+        self.chat_control.print_conversation_line(
+            'Received plaintext message! ' +
+            'Your next message will still be encrypted!', 'status', '', None)
 
     def update_prekeys(self):
         self.prekey_button.refresh()
