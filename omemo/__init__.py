@@ -233,7 +233,7 @@ class OmemoPlugin(GajimPlugin):
         state = self.get_omemo_state(account_name)
         if contact_jid in state.device_ids:
             log.debug(account_name + " ⇒ Adding OMEMO ui for " + contact_jid)
-            omemo_enabled = contact_jid in state.omemo_enabled
+            omemo_enabled = state.encryption.is_active(contact_jid)
             self.ui_list[account_name][contact_jid] = Ui(self, chat_control,
                                                          omemo_enabled)
         else:
@@ -432,7 +432,7 @@ class OmemoPlugin(GajimPlugin):
         state = self.get_omemo_state(account)
         full_jid = str(event.msg_iq.getAttr('to'))
         to_jid = gajim.get_jid_without_resource(full_jid)
-        if to_jid not in state.omemo_enabled:
+        if not state.encryption.is_active(to_jid):
             return False
         try:
             msg_dict = state.create_msg(
@@ -451,7 +451,7 @@ class OmemoPlugin(GajimPlugin):
         """ Used by the ui to enable omemo for a specified contact """
         account = contact.account.name
         state = self.get_omemo_state(account)
-        state.omemo_enabled |= {contact.jid}
+        state.encryption.activate(contact.jid)
 
     @log_calls('OmemoPlugin')
     def omemo_disable_for(self, contact):
@@ -459,7 +459,7 @@ class OmemoPlugin(GajimPlugin):
         # TODO Migrate this
         account = contact.account.name
         state = self.get_omemo_state(account)
-        state.omemo_enabled.remove(contact.jid)
+        state.encryption.deactivate(contact.jid)
 
 
 @log_calls('OmemoPlugin')
