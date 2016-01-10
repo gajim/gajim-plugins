@@ -172,7 +172,7 @@ class OmemoPlugin(GajimPlugin):
         my_jid = gajim.get_jid_from_account(account_name)
 
         if contact_jid == my_jid:
-            log.debug(state.name + ' ⇒ Received own device_list:' + str(
+            log.info(state.name + ' ⇒ Received own device_list:' + str(
                 devices_list))
             state.add_own_devices(devices_list)
 
@@ -185,8 +185,8 @@ class OmemoPlugin(GajimPlugin):
                 devices_list.append(state.own_device_id)
                 self.publish_own_devices_list(state)
         else:
-            log.debug(account_name + ' ⇒ Received device_list for ' +
-                      contact_jid + ':' + str(devices_list))
+            log.info(account_name + ' ⇒ Received device_list for ' +
+                     contact_jid + ':' + str(devices_list))
             state.add_devices(contact_jid, devices_list)
             if account_name in self.ui_list and contact_jid not in self.ui_list[
                     account_name]:
@@ -226,7 +226,7 @@ class OmemoPlugin(GajimPlugin):
             self.ui_list[account_name][contact_jid] = Ui(self, chat_control,
                                                          omemo_enabled)
         else:
-            log.debug(account_name + " ⇒ No OMEMO dev_keys for " + contact_jid)
+            log.warn(account_name + " ⇒ No OMEMO dev_keys for " + contact_jid)
 
     def are_keys_missing(self, contact):
         """ Used by the ui to set the state of the PreKeyButton. """
@@ -236,8 +236,9 @@ class OmemoPlugin(GajimPlugin):
         result = 0
         result += len(state.devices_without_sessions(str(contact.jid)))
         result += len(state.own_devices_without_sessions(my_jid))
-        log.debug(account + " ⇒ Missing keys for " + contact.jid + ": " + str(
-            result))
+        if result > 0:
+            log.warn(account + " ⇒ Missing keys for " + contact.jid + ": " +
+                     str(result))
         return result
 
     @log_calls('OmemoPlugin')
@@ -389,12 +390,12 @@ class OmemoPlugin(GajimPlugin):
         if successful(stanza):
             log.debug(account + ' → Publishing bundle was successful')
             if not state.own_device_id_published():
-                log.debug(account + ' → Device list needs updating')
+                log.warn(account + ' → Device list needs updating')
                 self.publish_own_devices_list(state)
             else:
                 log.debug(account + ' → Device list up to date')
         else:
-            log.debug(account + ' → Publishing bundle was NOT successful')
+            log.error(account + ' → Publishing bundle was NOT successful')
 
     @log_calls('OmemoPlugin')
     def clear_device_list(self, contact):
