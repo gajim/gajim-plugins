@@ -37,7 +37,7 @@ AXOLOTL_MISSING = 'Please install python-axolotl.'
 
 log = logging.getLogger('gajim.plugin_system.omemo')
 try:
-    from .state import OmemoState
+    from omemo.state import OmemoState
     HAS_AXOLOTL = True
 except ImportError:
     log.error(AXOLOTL_MISSING)
