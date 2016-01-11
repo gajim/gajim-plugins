@@ -41,7 +41,7 @@ contribute clone the git repository into your Gajim's plugin directory.
 ```shell
 mkdir ~/.local/share/gajim/plugins -p
 cd ~/.local/share/gajim/plugins
-git clone https://github.com/kalkin/gajim-omemo
+git clone https://github.com/omemo/gajim-omemo
 ```
 
 ## Support this project
@@ -54,7 +54,7 @@ My Bitcoin Address is: `1CnNM3Mree9hU8eRjCXrfCWV mX6oBnEfV1`
 
 ## I found a bug
 Please report it to the [issue
-tracker](https://github.com/kalkin/gajim-omemo/issues). If you are experiencing
+tracker](https://github.com/omemo/gajim-omemo/issues). If you are experiencing
 misbehaviour please provide detailed steps to reproduce and debugging output.
 Always mention the exact Gajim version. 
 
