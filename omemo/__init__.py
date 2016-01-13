@@ -19,6 +19,8 @@
 #
 
 import logging
+import os
+import sqlite3
 
 from common import caps_cache, gajim, ged
 from common.pep import SUPPORTED_PERSONAL_USER_EVENTS
@@ -42,6 +44,8 @@ try:
 except ImportError:
     log.error(AXOLOTL_MISSING)
     HAS_AXOLOTL = False
+
+DB_DIR = gajim.gajimpaths.data_root
 
 
 class OmemoPlugin(GajimPlugin):
@@ -75,7 +79,9 @@ class OmemoPlugin(GajimPlugin):
             OmemoState if it does not exist yet.
         """
         if account not in self.omemo_states:
-            self.omemo_states[account] = OmemoState(account)
+            db_path = os.path.join(DB_DIR, 'omemo_' + account + '.db')
+            conn = sqlite3.connect(db_path, check_same_thread=False)
+            self.omemo_states[account] = OmemoState(conn)
         return self.omemo_states[account]
 
     @log_calls('OmemoPlugin')
