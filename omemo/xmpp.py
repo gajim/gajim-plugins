@@ -55,6 +55,8 @@ class PubsubNode(Node):
 
 class DeviceListAnnouncement(Iq):
     def __init__(self, device_list):
+        assert isinstance(device_list, list)
+        assert len(device_list) > 0
         id_ = gajim.get_an_id()
         attrs = {'id': id_}
         Iq.__init__(self, typ='set', attrs=attrs)
@@ -85,6 +87,7 @@ class OmemoMessage(Node):
 
 class BundleInformationQuery(Iq):
     def __init__(self, contact_jid, device_id):
+        assert isinstance(device_id, int)
         id_ = gajim.get_an_id()
         attrs = {'id': id_}
         Iq.__init__(self, typ='get', attrs=attrs, to=contact_jid)
