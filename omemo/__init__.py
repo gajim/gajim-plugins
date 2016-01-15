@@ -418,7 +418,7 @@ class OmemoPlugin(GajimPlugin):
             log.debug(account + ' → Publishing bundle was successful')
             if not state.own_device_id_published():
                 log.warn(account + ' → Device list needs updating')
-                self.publish_own_devices_list(state)
+                self.publish_own_devices_list(account, state)
             else:
                 log.debug(account + ' → Device list up to date')
         else:
