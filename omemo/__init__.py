@@ -190,7 +190,7 @@ class OmemoPlugin(GajimPlugin):
         if contact_jid == my_jid:
             log.info(account_name + ' ⇒ Received own device_list:' + str(
                 devices_list))
-            state.add_own_devices(devices_list)
+            state.add_own_devices(my_jid, devices_list)
 
             if not state.own_device_id_published() or anydup(
                     state.own_devices):
@@ -236,7 +236,8 @@ class OmemoPlugin(GajimPlugin):
         if account_name not in self.ui_list:
             self.ui_list[account_name] = {}
         state = self.get_omemo_state(account_name)
-        if contact_jid in state.device_ids:
+        my_jid = gajim.get_jid_from_account(account_name)
+        if contact_jid in state.device_ids or contact_jid == my_jid:
             log.debug(account_name + " ⇒ Adding OMEMO ui for " + contact_jid)
             omemo_enabled = state.encryption.is_active(contact_jid)
             self.ui_list[account_name][contact_jid] = Ui(self, chat_control,
