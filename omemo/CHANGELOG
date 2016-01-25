@@ -1,3 +1,16 @@
+0.4 / 2016-01-21
+==================
+
+  * Update README.md
+  * Fix #32: Add own devices as possible OMEMO partners.
+  * Fix one of the errors in #26
+  * Fix sqlite db intialization
+  * Use the standalone python-omemo library
+  * FIx LOG_DB errors / lost messages
+  * Move all OMEMO related parts to own dir
+  * Rename all links from kalkin/.. to omemo/...
+  * Update archlinux PKGBUILD to 0.3
+
 0.3 / 2016-01-10
 ==================
   * Save if OMEMO is enabled between restarts - #17
