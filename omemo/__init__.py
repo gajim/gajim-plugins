@@ -19,6 +19,8 @@
 #
 
 import logging
+import os
+import sqlite3
 
 from common import caps_cache, gajim, ged
 from common.pep import SUPPORTED_PERSONAL_USER_EVENTS
@@ -37,11 +39,13 @@ AXOLOTL_MISSING = 'Please install python-axolotl.'
 
 log = logging.getLogger('gajim.plugin_system.omemo')
 try:
-    from .state import OmemoState
+    from omemo.state import OmemoState
     HAS_AXOLOTL = True
 except ImportError:
     log.error(AXOLOTL_MISSING)
     HAS_AXOLOTL = False
+
+DB_DIR = gajim.gajimpaths.data_root
 
 
 class OmemoPlugin(GajimPlugin):
@@ -75,7 +79,9 @@ class OmemoPlugin(GajimPlugin):
             OmemoState if it does not exist yet.
         """
         if account not in self.omemo_states:
-            self.omemo_states[account] = OmemoState(account)
+            db_path = os.path.join(DB_DIR, 'omemo_' + account + '.db')
+            conn = sqlite3.connect(db_path, check_same_thread=False)
+            self.omemo_states[account] = OmemoState(conn)
         return self.omemo_states[account]
 
     @log_calls('OmemoPlugin')
@@ -84,8 +90,7 @@ class OmemoPlugin(GajimPlugin):
             On sign in announce OMEMO support for each account.
         """
         account = show.conn.name
-        state = self.get_omemo_state(account)
-        self.announce_support(state)
+        self.announce_support(account)
 
     @log_calls('OmemoPlugin')
     def activate(self):
@@ -183,9 +188,9 @@ class OmemoPlugin(GajimPlugin):
         my_jid = gajim.get_jid_from_account(account_name)
 
         if contact_jid == my_jid:
-            log.info(state.name + ' ⇒ Received own device_list:' + str(
+            log.info(account_name + ' ⇒ Received own device_list:' + str(
                 devices_list))
-            state.add_own_devices(devices_list)
+            state.add_own_devices(my_jid, devices_list)
 
             if not state.own_device_id_published() or anydup(
                     state.own_devices):
@@ -194,7 +199,7 @@ class OmemoPlugin(GajimPlugin):
                 # also remove duplicates
                 devices_list = list(set(state.own_devices))
                 devices_list.append(state.own_device_id)
-                self.publish_own_devices_list(state)
+                self.publish_own_devices_list(account_name, state)
         else:
             log.info(account_name + ' ⇒ Received device_list for ' +
                      contact_jid + ':' + str(devices_list))
@@ -213,14 +218,14 @@ class OmemoPlugin(GajimPlugin):
         return True
 
     @log_calls('OmemoPlugin')
-    def publish_own_devices_list(self, state):
+    def publish_own_devices_list(self, account_name, state):
         devices_list = state.own_devices
         devices_list += [state.own_device_id]
 
-        log.debug(state.name + ' ⇒ Publishing own devices_list ' + str(
+        log.debug(account_name + ' ⇒ Publishing own devices_list ' + str(
             devices_list))
         iq = DeviceListAnnouncement(devices_list)
-        gajim.connections[state.name].connection.send(iq)
+        gajim.connections[account_name].connection.send(iq)
         id_ = str(iq.getAttr('id'))
         iq_ids_to_callbacks[id_] = lambda event: log.debug(event)
 
@@ -231,7 +236,8 @@ class OmemoPlugin(GajimPlugin):
         if account_name not in self.ui_list:
             self.ui_list[account_name] = {}
         state = self.get_omemo_state(account_name)
-        if contact_jid in state.device_ids:
+        my_jid = gajim.get_jid_from_account(account_name)
+        if contact_jid in state.device_ids or contact_jid == my_jid:
             log.debug(account_name + " ⇒ Adding OMEMO ui for " + contact_jid)
             omemo_enabled = state.encryption.is_active(contact_jid)
             self.ui_list[account_name][contact_jid] = Ui(self, chat_control,
@@ -274,18 +280,23 @@ class OmemoPlugin(GajimPlugin):
         to_jid = recipient.jid
         my_jid = gajim.get_jid_from_account(account)
         for device_id in state.devices_without_sessions(to_jid):
-            self.fetch_device_bundle_information(state, to_jid, device_id)
+            self.fetch_device_bundle_information(account, state, to_jid,
+                                                 device_id)
 
         for device_id in state.own_devices_without_sessions(my_jid):
-            self.fetch_device_bundle_information(state, my_jid, device_id)
+            self.fetch_device_bundle_information(account, state, my_jid,
+                                                 device_id)
 
     @log_calls('OmemoPlugin')
-    def fetch_device_bundle_information(self, state, jid, device_id):
+    def fetch_device_bundle_information(self, account_name, state, jid,
+                                        device_id):
         """ Fetch bundle information for specified jid, key, and create axolotl
             session on success.
 
             Parameters
             ----------
+            account_name : str
+                The account name
             state : (OmemoState)
                 The OmemoState which is missing device bundle information
             jid : str
@@ -293,18 +304,19 @@ class OmemoPlugin(GajimPlugin):
             device_id : int
                 The device_id for which we are missing an axolotl session
         """
-        log.debug(state.name + '→ Fetch bundle device ' + str(device_id) + '#'
+        log.debug(account_name + '→ Fetch bundle device ' + str(device_id) + '#'
                   + jid)
         iq = BundleInformationQuery(jid, device_id)
         iq_id = str(iq.getAttr('id'))
         iq_ids_to_callbacks[iq_id] = \
-            lambda stanza: self.session_from_prekey_bundle(state, stanza,
-                                                           jid, device_id)
-        gajim.connections[state.name].connection.send(iq)
+            lambda stanza: self.session_from_prekey_bundle(account_name, state,
+                                                           stanza, jid,
+                                                           device_id)
+        gajim.connections[account_name].connection.send(iq)
 
     @log_calls('OmemoPlugin')
-    def session_from_prekey_bundle(self, state, stanza, recipient_id,
-                                   device_id):
+    def session_from_prekey_bundle(self, account_name, state, stanza,
+                                   recipient_id, device_id):
         """ Starts a session when a bundle information announcement is received.
 
 
@@ -325,6 +337,8 @@ class OmemoPlugin(GajimPlugin):
 
             Parameters:
             -----------
+            account_name : str
+                The account name
             state : (OmemoState)
                 The OmemoState used
             stanza
@@ -341,7 +355,7 @@ class OmemoPlugin(GajimPlugin):
             return
 
         if state.build_session(recipient_id, device_id, bundle_dict):
-            self.update_prekeys(state.name, recipient_id)
+            self.update_prekeys(account_name, recipient_id)
 
     @log_calls('OmemoPlugin')
     def update_prekeys(self, account, recipient_id):
@@ -368,23 +382,23 @@ class OmemoPlugin(GajimPlugin):
             Parameters
             ----------
             account : str
-                The account name
+                the account name
 
             See also
             --------
             4.3 Announcing bundle information:
                 http://conversations.im/xeps/multi-end.html#usecases-announcing
         """
-        state = self.get_omemo_state(account.name)
+        state = self.get_omemo_state(account)
         iq = BundleInformationAnnouncement(state.bundle, state.own_device_id)
-        gajim.connections[state.name].connection.send(iq)
+        gajim.connections[account].connection.send(iq)
         id_ = str(iq.getAttr("id"))
-        log.debug(account.name + " → Announcing OMEMO support via PEP")
+        log.debug(account + " → Announcing OMEMO support via PEP")
         iq_ids_to_callbacks[id_] = lambda stanza: \
-            self.handle_announcement_result(stanza, state)
+            self.handle_announcement_result(account, stanza, state)
 
     @log_calls('OmemoPlugin')
-    def handle_announcement_result(self, stanza, state):
+    def handle_announcement_result(self, account, stanza, state):
         """ Updates own device list if announcement was successfull.
 
             If the OMEMO support announcement was successfull update own device
@@ -392,17 +406,20 @@ class OmemoPlugin(GajimPlugin):
 
             Parameters
             ----------
+            account : str
+                the account name
             stanza
                 The stanza object received from callback
+            state : (OmemoState)
+                The OmemoState used
         """
 
-        account = state.name
         state = self.get_omemo_state(account)
         if successful(stanza):
             log.debug(account + ' → Publishing bundle was successful')
             if not state.own_device_id_published():
                 log.warn(account + ' → Device list needs updating')
-                self.publish_own_devices_list(state)
+                self.publish_own_devices_list(account, state)
             else:
                 log.debug(account + ' → Device list up to date')
         else:
@@ -414,9 +431,9 @@ class OmemoPlugin(GajimPlugin):
         state = self.get_omemo_state(account)
         devices_list = [state.own_device_id]
 
-        log.info(state.name + ' ⇒ Clearing devices_list ' + str(devices_list))
+        log.info(account + ' ⇒ Clearing devices_list ' + str(devices_list))
         iq = DeviceListAnnouncement(devices_list)
-        connection = gajim.connections[state.name].connection
+        connection = gajim.connections[account].connection
         if not connection:  # not connected
             return
         connection.send(iq)
@@ -435,8 +452,8 @@ class OmemoPlugin(GajimPlugin):
         if not state.encryption.is_active(to_jid):
             return False
         try:
-            msg_dict = state.create_msg(
-                gajim.get_jid_from_account(account), to_jid, plaintext)
+            msg_dict = state.create_msg(gajim.get_jid_from_account(account),
+                                        to_jid, plaintext)
             if not msg_dict:
                 return True
             encrypted_node = OmemoMessage(msg_dict)

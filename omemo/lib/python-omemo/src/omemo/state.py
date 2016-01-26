@@ -18,14 +18,14 @@
 #
 
 import logging
-import os
 from base64 import b64encode
 
 from axolotl.ecc.djbec import DjbECPublicKey
 from axolotl.identitykey import IdentityKey
+from axolotl.duplicatemessagexception import DuplicateMessageException
 from axolotl.invalidmessageexception import InvalidMessageException
-from axolotl.invalidversionexception import (InvalidVersionException,
-                                             NoSessionException)
+from axolotl.invalidversionexception import InvalidVersionException
+from axolotl.nosessionexception import NoSessionException
 from axolotl.protocol.prekeywhispermessage import PreKeyWhisperMessage
 from axolotl.protocol.whispermessage import WhisperMessage
 from axolotl.sessionbuilder import SessionBuilder
@@ -34,27 +34,26 @@ from axolotl.state.prekeybundle import PreKeyBundle
 from axolotl.util.keyhelper import KeyHelper
 from Crypto.Random import get_random_bytes
 
-from common import gajim
-
 from .aes_gcm import NoValidSessions, aes_decrypt, aes_encrypt
-from .store.liteaxolotlstore import LiteAxolotlStore
+from .liteaxolotlstore import LiteAxolotlStore
 
-DB_DIR = gajim.gajimpaths.data_root
+#log = logging.getLogger('omemo')
 log = logging.getLogger('gajim.plugin_system.omemo')
-
 
 class OmemoState:
     session_ciphers = {}
     encryption = None
 
     device_ids = {}
+    own_name = ''
     own_devices = []
 
-    def __init__(self, name):
-        self.name = name
-        db_name = 'omemo_' + name + '.db'
-        db_file = os.path.join(DB_DIR, db_name)
-        self.store = LiteAxolotlStore(db_file)
+    def __init__(self, connection):
+        """ Instantiates an OmemoState object.
+
+            :param connection: an :py:class:`sqlite3.Connection`
+        """
+        self.store = LiteAxolotlStore(connection)
         self.encryption = self.store.encryptionStore
 
     def build_session(self, recipient_id, device_id, bundle_dict):
@@ -79,10 +78,29 @@ class OmemoState:
         return self.get_session_cipher(recipient_id, device_id)
 
     def add_devices(self, name, devices):
+        """ Return a an.
+
+            Parameters
+            ----------
+            jid : string
+                The contacts jid
+
+            devices: [int]
+                A list of devices
+        """
         log.debug('Saving devices for ' + name + ' → ' + str(devices))
         self.device_ids[name] = devices
 
-    def add_own_devices(self, devices):
+    def add_own_devices(self, name, devices):
+        """ Overwrite the current :py:attribute:`OmemoState.own_devices` with
+            the given devices.
+
+            Parameters
+            ----------
+            devices : [int]
+                A list of device_ids
+        """
+        self.own_name = name
         self.own_devices = devices
 
     @property
@@ -94,6 +112,9 @@ class OmemoState:
         return ((reg_id % 2147483646) + 1)
 
     def own_device_id_published(self):
+        """ Return `True` only if own device id was added via
+            :py:method:`OmemoState.add_own_devices()`.
+        """
         return self.own_device_id in self.own_devices
 
     @property
@@ -145,8 +166,21 @@ class OmemoState:
                 log.error('sender_jid →  ' + str(sender_jid) + ' sid =>' + str(
                     sid))
                 return
+            except (DuplicateMessageException) as e:
+                log.error('Duplicate message found ' + str(e.args))
+                log.error('sender_jid → ' + str(sender_jid) + ' sid => ' +str(sid))
+                return
+            except (Exception) as e:
+                log.error('Duplicate message found ' + str(e.args))
+                log.error('sender_jid → ' + str(sender_jid) + ' sid => ' +str(sid))
+                return
 
-        result = aes_decrypt(key, iv, payload)
+        except (DuplicateMessageException):
+            log.error('Duplicate message found ' + e.message)
+            log.error('sender_jid → ' + str(sender_jid) + ' sid => ' +str(sid))
+            return
+
+        result = unicode(aes_decrypt(key, iv, payload))
         log.debug("Decrypted msg ⇒ " + result)
         return result
 
@@ -157,7 +191,7 @@ class OmemoState:
 
         devices_list = self.device_list_for(jid)
         if len(devices_list) == 0:
-            log.error(self.name + ' → No known devices')
+            log.error('No known devices')
             return
 
         for dev in devices_list:
@@ -178,7 +212,7 @@ class OmemoState:
             try:
                 encrypted_keys[rid] = cipher.encrypt(key).serialize()
             except:
-                log.warn(self.name + ' → Failed to find key for device ' + str(
+                log.warn('Failed to find key for device ' + str(
                     rid))
 
         if len(encrypted_keys) == 0:
@@ -199,6 +233,15 @@ class OmemoState:
         return result
 
     def device_list_for(self, jid):
+        """ Return a list of known device ids for the specified jid.
+
+            Parameters
+            ----------
+            jid : string
+                The contacts jid
+        """
+        if jid == self.own_name:
+            return set(self.own_devices) - set({self.own_device_id})
         if jid not in self.device_ids:
             return set()
         return set(self.device_ids[jid])
@@ -221,7 +264,7 @@ class OmemoState:
                            for dev in known_devices
                            if not self.store.containsSession(jid, dev)]
         if missing_devices:
-            log.debug(self.name + ' → Missing device sessions: ' + str(
+            log.debug('Missing device sessions: ' + str(
                       missing_devices))
         return missing_devices
 
@@ -243,7 +286,7 @@ class OmemoState:
                            for dev in known_devices
                            if not self.store.containsSession(own_jid, dev)]
         if missing_devices:
-            log.debug(self.name + ' → Missing device sessions: ' + str(
+            log.debug('Missing device sessions: ' + str(
                 missing_devices))
         return missing_devices
 
