@@ -452,14 +452,17 @@ class OmemoPlugin(GajimPlugin):
         if not state.encryption.is_active(to_jid):
             return False
         try:
-            msg_dict = state.create_msg(gajim.get_jid_from_account(account),
-                                        to_jid, plaintext)
-            if not msg_dict:
-                return True
-            encrypted_node = OmemoMessage(msg_dict)
-            event.msg_iq.delChild('body')
-            event.msg_iq.addChild(node=encrypted_node)
-            log.debug(account + ' → ' + str(event.msg_iq))
+            from_jid = gajim.get_jid_from_account(account)
+            def _encrypt_thread(from_jid, to_jid, plaintext):
+                msg_dict = state.create_msg(from_jid,
+                                            to_jid, plaintext)
+                if not msg_dict:
+                    return True
+                encrypted_node = OmemoMessage(msg_dict)
+                event.msg_iq.delChild('body')
+                event.msg_iq.addChild(node=encrypted_node)
+                log.debug(account + ' → ' + str(event.msg_iq))
+            gajim.thread_interface(_encrypt_thread, [from_jid, to_jid, plaintext])
         except:
             return True
 
