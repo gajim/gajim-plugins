@@ -468,7 +468,8 @@ class PluginInstaller(GajimPlugin):
             selection = self.available_treeview.get_selection()
             if selection.count_selected_rows() == 0:
                 root_iter = self.available_plugins_model.get_iter_root()
-                selection.select_iter(root_iter)
+                if root_iter:
+                    selection.select_iter(root_iter)
         scr_win = self.xml.get_object('scrolledwindow2')
         vadjustment = scr_win.get_vadjustment()
         if vadjustment:
