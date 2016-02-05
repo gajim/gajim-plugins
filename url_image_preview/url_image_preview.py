@@ -7,7 +7,9 @@ import os
 import urllib2
 from urlparse import urlparse
 
+import nbxmpp
 from common import gajim
+from common import ged
 from common import helpers
 from plugins import GajimPlugin
 from plugins.helpers import log_calls, log
@@ -21,6 +23,9 @@ class UrlImagePreviewPlugin(GajimPlugin):
     @log_calls('UrlImagePreviewPlugin')
     def init(self):
         self.config_dialog = UrlImagePreviewPluginConfigDialog(self)
+        self.events_handlers = {}
+        self.events_handlers['message-received'] = (ged.PRECORE,
+                self.handle_message_received)
         self.gui_extension_points = {
                 'chat_control_base': (self.connect_with_chat_control,
                                        self.disconnect_from_chat_control),
@@ -32,6 +37,18 @@ class UrlImagePreviewPlugin(GajimPlugin):
         self.chat_control = None
         self.controls = []
 
+    # remove oob tag if oob url == message text
+    def handle_message_received(self, event):
+        oob_node = event.stanza.getTag('x', namespace=nbxmpp.NS_X_OOB)
+        oob_url = None
+        oob_desc = None
+        if oob_node:
+            oob_url = oob_node.getTagData('url')
+            oob_desc = oob_node.getTagData('desc')
+            if oob_url and oob_url == event.msgtxt and (not oob_desc or oob_desc == ""):
+                log.debug("Detected oob tag containing same url as the message text, deleting oob tag...")
+                event.stanza.delChild(oob_node)
+    
     @log_calls('UrlImagePreviewPlugin')
     def connect_with_chat_control(self, chat_control):
 
