@@ -7,6 +7,7 @@ import os
 import urllib2
 from urlparse import urlparse
 
+import logging
 import nbxmpp
 from common import gajim
 from common import ged
@@ -15,6 +16,9 @@ from plugins import GajimPlugin
 from plugins.helpers import log_calls, log
 from plugins.gui import GajimPluginConfigDialog
 from conversation_textview import TextViewImage
+from .aes_gcm import aes_decrypt
+
+log = logging.getLogger('gajim.plugin_system.url_image_preview')
 
 ACCEPTED_MIME_TYPES = ('image/png','image/jpeg','image/gif','image/raw',
                         'image/svg+xml')
@@ -140,12 +144,54 @@ class Base(object):
             # URL is already displayed
             return
 
-        # Start downloading image
-        gajim.thread_interface(helpers.download_image, [ self.textview.account, {
-                'src': url, 'max_size': self.plugin.config['MAX_FILE_SIZE'] } ], 
-                self._update_img, [url, file_mime, repl_start, repl_end])
+        # check for encryption (conversations mode)
+        urlparts = urlparse(url)
+        key = ''
+        iv = ''
+        if len(urlparts.fragment):
+            fragment = []
+            for i in range(0, len(urlparts.fragment), 2):
+                fragment.append( chr( int (urlparts.fragment[i:i+2], 16 ) ) )
+            fragment = ''.join(fragment)
+            key = fragment[16:]
+            iv = fragment[:16]
+        
+        # decrypt if the encryption parameters are correct
+        if len(urlparts.fragment) and len(key)==32 and len(iv)==16:
+            def _decryptor((mem, alt), url, file_mime, repl_start, repl_end, key, iv):
+                if not mem:
+                    log.error('Could not download image for URL: %s -- %s' % (url, alt))
+                    return
+                # start self._decrypt_url() in own thread and self._update_img() afterwards
+                gajim.thread_interface(self._decrypt_url,
+                        [(mem, alt), key, iv],
+                        self._update_img,
+                        [url, file_mime, repl_start, repl_end, True])
+            
+            # Start downloading image (_decryptor is callback when download has finished)
+            gajim.thread_interface(helpers.download_image, [ self.textview.account, {
+                    'src': url, 'max_size': self.plugin.config['MAX_FILE_SIZE'] } ], 
+                    _decryptor, [url, file_mime, repl_start, repl_end, key, iv])
+        else:
+            # Start downloading image (self._update_img() is callback when download has finished)
+            gajim.thread_interface(helpers.download_image, [ self.textview.account, {
+                    'src': url, 'max_size': self.plugin.config['MAX_FILE_SIZE'] } ], 
+                    self._update_img, [url, file_mime, repl_start, repl_end])
 
-    def _update_img(self, (mem, alt), url, file_mime, repl_start, repl_end):
+    def _decrypt_url(self, (mem, alt), key, iv):
+        try:
+            log.info("Before decrypt image")
+            mem = aes_decrypt(key, iv, mem)
+            log.info("After decrypt image")
+        except Exception:
+            log.error('Could not decrypt image for URL (exception raised): %s' % url)
+            raise
+        if not mem or not len(mem):
+            log.error('Could not decrypt image for URL: %s' % url)
+            return (None, alt)
+        return (mem, alt)
+        
+    def _update_img(self, (mem, alt), url, file_mime, repl_start, repl_end, decrypted=False):
         if mem:
             try:
                 loader = gtk.gdk.PixbufLoader()
@@ -179,8 +225,9 @@ class Base(object):
                 log.error('Could not display image for URL: %s' % url)
                 raise
         else:
-            # If image could not be downloaded, URL is already displayed
-            log.error('Could not download image for URL: %s -- %s' % (url, alt))
+            if not decrypted:
+                # If image could not be downloaded, URL is already displayed
+                log.error('Could not download image for URL: %s -- %s' % (url, alt))
 
     def _get_http_head (self, account, url):
         # Check if proxy is used
@@ -345,4 +392,3 @@ class UrlImagePreviewPluginConfigDialog(GajimPluginConfigDialog):
     def max_size_value_changed(self, widget):
         self.plugin.config['MAX_FILE_SIZE'] =  self.max_file_size[
             self.max_size_combobox.get_active()]
-        
