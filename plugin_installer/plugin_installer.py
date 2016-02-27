@@ -357,7 +357,10 @@ class PluginInstaller(GajimPlugin):
                 plugin.activatable = False
             max_row = [plugin, plugin.name, is_active, plugin.activatable, icon]
             # support old plugin system
-            row_len = len(self.installed_plugins_model[0])
+            if len(self.installed_plugins_model):
+                row_len = len(self.installed_plugins_model[0])
+            else:
+                row_len = 5
             row = max_row[0: row_len]
             self.installed_plugins_model.append(row)
 
