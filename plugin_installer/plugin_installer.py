@@ -81,7 +81,7 @@ class PluginInstaller(GajimPlugin):
         if gajim.version.startswith('0.15'):
             self.server_folder = 'plugins_0.15'
         elif gajim.version.startswith('0.16.10'):
-            self.server_folder = 'plugins_gtk3'
+            self.server_folder = 'plugins_1'
         else:
             self.server_folder = 'plugins_0.16'
 
@@ -586,29 +586,7 @@ class Ftp(threading.Thread):
         self.pulse = GLib.timeout_add(150, self.progressbar_pulse)
         GLib.idle_add(self.progressbar.set_text, _('Creating a list of files'))
         for remote_dir in self.remote_dirs:
-
-            def nlstr(dir_, subdir=None):
-                if subdir:
-                    dir_ = dir_ + '/' + subdir
-                list_ = self.ftp.nlst(dir_)
-                for i in list_:
-                    name = i.split('/')[-1]
-                    if '.' not in name:
-                        try:
-                            if i == self.ftp.nlst(i)[0]:
-                                files.append(i[1:])
-                                del dirs[i[1:]]
-                        except Exception as e:
-                            # empty dir or file
-                            continue
-                        dirs.append(i[1:])
-                        subdirs = name
-                        nlstr(dir_, subdirs)
-                    else:
-                        files.append(i[1:])
-            dirs, files = [], []
-            nlstr('/%s/%s' % (self.plugin.server_folder, remote_dir))
-
+            filename = remote_dir + '.zip'
             base_dir, user_dir = gajim.PLUGINS_DIRS
             if not os.path.isdir(user_dir):
                 os.mkdir(user_dir)
@@ -617,34 +595,21 @@ class Ftp(threading.Thread):
                 os.mkdir(local_dir)
             local_dir = os.path.split(user_dir)[0]
 
-            # creating dirs
-            for dir_ in dirs:
-                dir_ = dir_.replace(self.plugin.server_folder, 'plugins')
-                try:
-                    os.mkdir(os.path.join(local_dir, dir_))
-                except OSError as e:
-                    if str(e).startswith('[Errno 17]'):
-                        continue
-                    raise
+            # downloading zip file
+            GLib.idle_add(self.progressbar.set_text,
+                _('Downloading "%s"') % filename)
+            full_filename = os.path.join(local_dir, 'plugins', filename)
+            self.buffer_ = io.BytesIO()
+            try:
+                self.ftp.retrbinary('RETR %s' % filename, self.handleDownload)
+            except ftplib.all_errors as e:
+                print (str(e))
 
-            # downloading files
-            for filename in files:
-                GLib.idle_add(self.progressbar.set_text,
-                    _('Downloading "%s"') % filename)
-                full_filename = os.path.join(local_dir, filename.replace(
-                    self.plugin.server_folder, 'plugins'))
-                try:
-                    file_ = open(full_filename, 'wb')
-
-                    self.ftp.retrbinary('RETR /%s' % filename,
-                        file_.write)
-                    file_.close()
-                except ftplib.all_errors as e:
-                    print (str(e))
-                    os.unlink(filename)
+        with zipfile.ZipFile(self.buffer_) as zip_file:
+            zip_file.extractall(os.path.join(local_dir, 'plugins'))
+        
         self.ftp.quit()
-        GLib.idle_add(self.window.emit, 'plugin_downloaded',
-            self.remote_dirs)
+        GLib.idle_add(self.window.emit, 'plugin_downloaded', self.remote_dirs)
         GLib.source_remove(self.pulse)
 
 
