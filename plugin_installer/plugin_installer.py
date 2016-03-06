@@ -37,7 +37,7 @@ import zipfile
 from common import gajim
 from plugins import GajimPlugin
 from plugins.helpers import log_calls, log
-from conversation_textview import ConversationTextview
+from htmltextview import HtmlTextView
 from dialogs import WarningDialog, HigDialog, YesNoDialog
 from plugins.gui import GajimPluginConfigDialog
 
@@ -192,7 +192,7 @@ class PluginInstaller(GajimPlugin):
         self.xml.add_objects_from_file(self.Gtk_BUILDER_FILE_PATH, ['hpaned2'])
         self.hpaned = self.xml.get_object('hpaned2')
         self.page_num = self.notebook.append_page(self.hpaned,
-            Gtk.Label(_('Available')))
+            Gtk.Label.new(_('Available')))
 
         widgets_to_extract = ('plugin_name_label1',
         'available_treeview', 'progressbar', 'inslall_upgrade_button',
@@ -237,10 +237,10 @@ class PluginInstaller(GajimPlugin):
 
         if GObject.signal_lookup('error_signal', self.window) is 0:
             GObject.signal_new('error_signal', self.window,
-                GObject.SIGNAL_RUN_LAST, GObject.TYPE_STRING,
+                GObject.SignalFlags.RUN_LAST, GObject.TYPE_STRING,
                 (GObject.TYPE_STRING,))
             GObject.signal_new('plugin_downloaded', self.window,
-                GObject.SIGNAL_RUN_LAST, GObject.TYPE_STRING,
+                GObject.SignalFlags.RUN_LAST, GObject.TYPE_STRING,
                 (GObject.TYPE_PYOBJECT,))
 
         id_ = self.window.connect('error_signal', self.on_some_ftp_error)
@@ -256,9 +256,9 @@ class PluginInstaller(GajimPlugin):
 
         self._clear_available_plugin_info()
 
-        self.plugin_description_textview = ConversationTextview(None)
+        self.plugin_description_textview = HtmlTextView()
         sw = self.xml.get_object('scrolledwindow1')
-        sw.add(self.plugin_description_textview.tv)
+        sw.add(self.plugin_description_textview)
 
         self.xml.connect_signals(self)
         self.window.show_all()
@@ -363,9 +363,9 @@ class PluginInstaller(GajimPlugin):
     def available_plugins_treeview_selection_changed(self, treeview_selection):
         model, iter = treeview_selection.get_selected()
         self.xml.get_object('scrolledwindow1').get_children()[0].destroy()
-        self.plugin_description_textview = ConversationTextview(None)
+        self.plugin_description_textview = HtmlTextView()
         sw = self.xml.get_object('scrolledwindow1')
-        sw.add(self.plugin_description_textview.tv)
+        sw.add(self.plugin_description_textview)
         sw.show_all()
         if iter:
             self.plugin_name_label1.set_text(model.get_value(iter, C_NAME))
@@ -382,9 +382,9 @@ class PluginInstaller(GajimPlugin):
                 desc = '<body  xmlns=\'http://www.w3.org/1999/xhtml\'>' + \
                     desc + ' </body>'
                 desc = desc.replace('\n', '<br/>')
-            self.plugin_description_textview.tv.display_html(
-                desc, self.plugin_description_textview)
-            self.plugin_description_textview.tv.set_property('sensitive', True)
+            self.plugin_description_textview.display_html(
+                desc, self.plugin_description_textview, None)
+            self.plugin_description_textview.set_property('sensitive', True)
         else:
             self._clear_available_plugin_info()
 
