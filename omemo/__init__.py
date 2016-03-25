@@ -122,6 +122,7 @@ class OmemoPlugin(GajimPlugin):
     def message_received(self, msg):
         if msg.stanza.getTag('encrypted', namespace=NS_OMEMO):
             account = msg.conn.name
+            my_jid = gajim.get_jid_from_account(account)
             log.debug(account + ' ⇒ OMEMO msg received')
 
             state = self.get_omemo_state(account)
@@ -137,6 +138,11 @@ class OmemoPlugin(GajimPlugin):
 
             if not plaintext:
                 return
+
+            if my_jid == msg_dict['sender_jid']:
+                state.add_own_device(msg['sid'])
+            else:
+                state.add_device(msg_dict['sender_jid'], msg_dict['sid'])
 
             msg.msgtxt = plaintext
             msg.stanza.setBody(msg.msgtxt)
