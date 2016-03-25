@@ -190,7 +190,7 @@ class OmemoPlugin(GajimPlugin):
         if contact_jid == my_jid:
             log.info(account_name + ' ⇒ Received own device_list:' + str(
                 devices_list))
-            state.add_own_devices(my_jid, devices_list)
+            state.set_own_devices(my_jid, devices_list)
 
             if not state.own_device_id_published() or anydup(
                     state.own_devices):
@@ -203,7 +203,7 @@ class OmemoPlugin(GajimPlugin):
         else:
             log.info(account_name + ' ⇒ Received device_list for ' +
                      contact_jid + ':' + str(devices_list))
-            state.add_devices(contact_jid, devices_list)
+            state.set_devices(contact_jid, devices_list)
             if account_name in self.ui_list and contact_jid not in self.ui_list[
                     account_name]:
 

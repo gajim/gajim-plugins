@@ -77,7 +77,7 @@ class OmemoState:
         sessionBuilder.processPreKeyBundle(prekey_bundle)
         return self.get_session_cipher(recipient_id, device_id)
 
-    def add_devices(self, name, devices):
+    def set_devices(self, name, devices):
         """ Return a an.
 
             Parameters
@@ -91,7 +91,7 @@ class OmemoState:
         log.debug('Saving devices for ' + name + ' → ' + str(devices))
         self.device_ids[name] = devices
 
-    def add_own_devices(self, name, devices):
+    def set_own_devices(self, name, devices):
         """ Overwrite the current :py:attribute:`OmemoState.own_devices` with
             the given devices.
 
@@ -113,7 +113,7 @@ class OmemoState:
 
     def own_device_id_published(self):
         """ Return `True` only if own device id was added via
-            :py:method:`OmemoState.add_own_devices()`.
+            :py:method:`OmemoState.set_own_devices()`.
         """
         return self.own_device_id in self.own_devices
 
