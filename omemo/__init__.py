@@ -81,7 +81,10 @@ class OmemoPlugin(GajimPlugin):
         if account not in self.omemo_states:
             db_path = os.path.join(DB_DIR, 'omemo_' + account + '.db')
             conn = sqlite3.connect(db_path, check_same_thread=False)
-            self.omemo_states[account] = OmemoState(conn)
+
+            my_jid = gajim.get_jid_from_account(account)
+
+            self.omemo_states[account] = OmemoState(my_jid, conn)
         return self.omemo_states[account]
 
     @log_calls('OmemoPlugin')
@@ -196,7 +199,7 @@ class OmemoPlugin(GajimPlugin):
         if contact_jid == my_jid:
             log.info(account_name + ' ⇒ Received own device_list:' + str(
                 devices_list))
-            state.set_own_devices(my_jid, devices_list)
+            state.set_own_devices(devices_list)
 
             if not state.own_device_id_published() or anydup(
                     state.own_devices):
