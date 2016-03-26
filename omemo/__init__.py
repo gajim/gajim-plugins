@@ -142,11 +142,6 @@ class OmemoPlugin(GajimPlugin):
             if not plaintext:
                 return
 
-            if my_jid == msg_dict['sender_jid']:
-                state.add_own_device(msg_dict['sid'])
-            else:
-                state.add_device(msg_dict['sender_jid'], msg_dict['sid'])
-
             msg.msgtxt = plaintext
             msg.stanza.setBody(msg.msgtxt)
 
