@@ -41,14 +41,14 @@ log = logging.getLogger('gajim.plugin_system.omemo')
 
 class PublishNode(Node):
     def __init__(self, node_str, data):
-        assert node_str is not None and data is Node
+        assert node_str is not None and isinstance(data, Node)
         Node.__init__(self, tag='publish', attrs={'node': node_str})
         self.addChild('item').addChild(node=data)
 
 
 class PubsubNode(Node):
     def __init__(self, data):
-        assert data is Node
+        assert isinstance(data, Node)
         Node.__init__(self, tag='pubsub', attrs={'xmlns': NS_PUBSUB})
         self.addChild(node=data)
 
