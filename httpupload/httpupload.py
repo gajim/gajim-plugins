@@ -20,7 +20,7 @@ try:
     pil_available = True
 except:
     pil_available = False
-import StringIO
+from io import BytesIO
 import base64
 
 from common import gajim
@@ -330,17 +330,19 @@ class Base(object):
                                 for quality in quality_steps:
                                     thumb = Image.open(path_to_file)
                                     thumb.thumbnail((max_thumbnail_dimension, max_thumbnail_dimension), Image.ANTIALIAS)
-                                    output = StringIO.StringIO()
+                                    output = BytesIO()
                                     thumb.save(output, format='JPEG', quality=quality, optimize=True)
                                     thumb = output.getvalue()
                                     output.close()
                                     thumb = urllib2.quote(base64.standard_b64encode(thumb), '')
-                                    log.debug("thumbnail jpeg quality %d produces an image of size %d..." % (quality, len(thumb)))
+                                    log.debug("pil thumbnail jpeg quality %d produces an image of size %d..." % (quality, len(thumb)))
                                     if len(thumb) < max_thumbnail_size:
                                         break
                             except:
                                 thumb = None
                         else:
+                            thumb = None
+                        if not thumb:
                             log.info("PIL not available, using GTK for image downsampling")
                             temp_file = None
                             try:
@@ -359,7 +361,7 @@ class Base(object):
                                     with open(temp_file, 'rb') as content_file:
                                         thumb = content_file.read()
                                     thumb = urllib2.quote(base64.standard_b64encode(thumb), '')
-                                    log.debug("thumbnail jpeg quality %d produces an image of size %d..." % (quality, len(thumb)))
+                                    log.debug("gtk thumbnail jpeg quality %d produces an image of size %d..." % (quality, len(thumb)))
                                     if len(thumb) < max_thumbnail_size:
                                         break
                             except:
@@ -367,12 +369,13 @@ class Base(object):
                             finally:
                                 if temp_file:
                                     os.unlink(temp_file)
-                        if thumb and len(thumb) > max_thumbnail_size:
-                            log.info("Couldn't compress image enough, not sending any thumbnail")
-                        else:
-                            log.info("Using thumbnail jpeg quality %d (image size: %d bytes)" % (quality, len(thumb)))
-                            xhtml = '<body><br/><a href="%s"> <img alt="%s" src="data:image/png;base64,%s"/> </a></body>' % \
-                                (get.getData(), get.getData(), thumb)
+                        if thumb:
+                            if len(thumb) > max_thumbnail_size:
+                                log.info("Couldn't compress image enough, not sending any thumbnail")
+                            else:
+                                log.info("Using thumbnail jpeg quality %d (image size: %d bytes)" % (quality, len(thumb)))
+                                xhtml = '<body><br/><a href="%s"> <img alt="%s" src="data:image/png;base64,%s"/> </a></body>' % \
+                                    (get.getData(), get.getData(), thumb)
                     progress_window.close_dialog()
                     id_ = gajim.get_an_id()
                     def add_oob_tag():
