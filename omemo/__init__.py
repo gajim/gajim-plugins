@@ -22,6 +22,7 @@ import logging
 import os
 import sqlite3
 
+# pylint: disable=import-error
 from common import caps_cache, gajim, ged
 from common.pep import SUPPORTED_PERSONAL_USER_EVENTS
 from plugins import GajimPlugin
@@ -32,6 +33,7 @@ from .xmpp import (
     NS_NOTIFY, NS_OMEMO, BundleInformationAnnouncement, BundleInformationQuery,
     DeviceListAnnouncement, DevicelistPEP, OmemoMessage, successful,
     unpack_device_bundle, unpack_device_list_update, unpack_message)
+
 
 iq_ids_to_callbacks = {}
 
@@ -49,6 +51,7 @@ DB_DIR = gajim.gajimpaths.data_root
 
 
 class OmemoPlugin(GajimPlugin):
+    # pylint: disable=no-init
 
     omemo_states = {}
 
@@ -69,8 +72,7 @@ class OmemoPlugin(GajimPlugin):
             (ged.PRECORE, self.handle_outgoing_msgs),
         }
         self.config_dialog = None
-        self.gui_extension_points = {'chat_control':
-                                     (self.connect_ui, None)}
+        self.gui_extension_points = {'chat_control': (self.connect_ui, None)}
         SUPPORTED_PERSONAL_USER_EVENTS.append(DevicelistPEP)
 
     @log_calls('OmemoPlugin')
@@ -307,8 +309,8 @@ class OmemoPlugin(GajimPlugin):
             device_id : int
                 The device_id for which we are missing an axolotl session
         """
-        log.debug(account_name + '→ Fetch bundle device ' + str(device_id) + '#'
-                  + jid)
+        log.debug(account_name + '→ Fetch bundle device ' + str(device_id) +
+                  '#' + jid)
         iq = BundleInformationQuery(jid, device_id)
         iq_id = str(iq.getAttr('id'))
         iq_ids_to_callbacks[iq_id] = \
@@ -455,8 +457,8 @@ class OmemoPlugin(GajimPlugin):
         if not state.encryption.is_active(to_jid):
             return False
         try:
-            msg_dict = state.create_msg(gajim.get_jid_from_account(account),
-                                        to_jid, plaintext)
+            msg_dict = state.create_msg(
+                gajim.get_jid_from_account(account), to_jid, plaintext)
             if not msg_dict:
                 return True
             encrypted_node = OmemoMessage(msg_dict)
