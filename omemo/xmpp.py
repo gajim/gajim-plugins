@@ -28,9 +28,11 @@ from base64 import b64decode, b64encode
 from nbxmpp.protocol import NS_PUBSUB, Iq
 from nbxmpp.simplexml import Node
 
-from common import gajim
-from common.pep import AbstractPEP
-from plugins.helpers import log_calls
+from common import gajim  # pylint: disable=import-error
+from common.pep import AbstractPEP  # pylint: disable=import-error
+from plugins.helpers import log_calls  # pylint: disable=import-error
+
+NS_PUBSUB_EVENT = NS_PUBSUB + '#event'
 
 NS_OMEMO = 'eu.siacs.conversations.axolotl'
 NS_DEVICE_LIST = NS_OMEMO + '.devicelist'
@@ -154,7 +156,7 @@ def unpack_device_bundle(bundle, device_id):
         log.warn('OMEMO device bundle has no items node')
         return
 
-    item = items.getTag('item')
+    item = items.getTag('item', namespace=NS_PUBSUB)
     if not item:
         log.warn('OMEMO device bundle has no item node')
         return
@@ -164,7 +166,8 @@ def unpack_device_bundle(bundle, device_id):
         log.warn('OMEMO device bundle has no bundle node')
         return
 
-    signed_prekey_node = bundle.getTag('signedPreKeyPublic')
+    signed_prekey_node = bundle.getTag('signedPreKeyPublic',
+                                       namespace=NS_OMEMO)
     if not signed_prekey_node:
         log.warn('OMEMO device bundle has no signedPreKeyPublic node')
         return
@@ -181,7 +184,8 @@ def unpack_device_bundle(bundle, device_id):
     result['signedPreKeyId'] = int(signed_prekey_node.getAttr(
         'signedPreKeyId'))
 
-    signed_signature_node = bundle.getTag('signedPreKeySignature')
+    signed_signature_node = bundle.getTag('signedPreKeySignature',
+                                          namespace=NS_OMEMO)
     if not signed_signature_node:
         log.warn('OMEMO device bundle has no signedPreKeySignature node')
         return
@@ -191,7 +195,7 @@ def unpack_device_bundle(bundle, device_id):
         log.warn('OMEMO device bundle has no signedPreKeySignature data')
         return
 
-    identity_key_node = bundle.getTag('identityKey')
+    identity_key_node = bundle.getTag('identityKey', namespace=NS_OMEMO)
     if not identity_key_node:
         log.warn('OMEMO device bundle has no identityKey node')
         return
@@ -201,7 +205,7 @@ def unpack_device_bundle(bundle, device_id):
         log.warn('OMEMO device bundle has no identityKey data')
         return
 
-    prekeys = bundle.getTag('prekeys')
+    prekeys = bundle.getTag('prekeys', namespace=NS_OMEMO)
     if not prekeys or len(prekeys.getChildren()) == 0:
         log.warn('OMEMO device bundle has no prekys')
         return
@@ -227,7 +231,7 @@ def unpack_encrypted(encrypted_node):
         log.warn("Encrypted node with wrong NS")
         return
 
-    header_node = encrypted_node.getTag('header')
+    header_node = encrypted_node.getTag('header', namespace=NS_OMEMO)
     if not header_node:
         log.warn("OMEMO message without header")
         return
@@ -238,7 +242,7 @@ def unpack_encrypted(encrypted_node):
 
     sid = int(header_node.getAttr('sid'))
 
-    iv_node = header_node.getTag('iv')
+    iv_node = header_node.getTag('iv', namespace=NS_OMEMO)
     if not iv_node:
         log.warn("OMEMO message without iv")
         return
@@ -247,7 +251,7 @@ def unpack_encrypted(encrypted_node):
     if not iv:
         log.warn("OMEMO message without iv data")
 
-    payload_node = encrypted_node.getTag('payload')
+    payload_node = encrypted_node.getTag('payload', namespace=NS_OMEMO)
     payload = None
     if payload_node:
         payload = decode_data(payload_node)
@@ -287,7 +291,7 @@ def unpack_device_list_update(event):
         [int]
             List of device ids or empty list if nothing found
     """
-    event_node = event.stanza.getTag('event')
+    event_node = event.stanza.getTag('event', namespace=NS_PUBSUB_EVENT)
     account = event.conn.name
     result = []
 
@@ -299,12 +303,11 @@ def unpack_device_list_update(event):
     if not items or len(items.getChildren()) != 1:
         log.debug(
             account +
-            ' → Device list update items node empty or not omemo device update'
-            )
+            ' → Device list update items node empty or not omemo device update')
         return result
 
     list_node = items.getChildren()[0].getTag('list')
-    if not items or len(items.getChildren()) == 0:
+    if not list_node or len(list_node.getChildren()) == 0:
         log.warn(account + ' → Device list update list node empty!')
         return result
 
