@@ -125,7 +125,6 @@ class OmemoPlugin(GajimPlugin):
     def message_received(self, msg):
         if msg.stanza.getTag('encrypted', namespace=NS_OMEMO):
             account = msg.conn.name
-            my_jid = gajim.get_jid_from_account(account)
             log.debug(account + ' ⇒ OMEMO msg received')
 
             state = self.get_omemo_state(account)
