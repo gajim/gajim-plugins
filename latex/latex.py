@@ -407,7 +407,7 @@ class LatexPlugin(GajimPlugin):
         self.latex_tag = gtk.TextTag('latex')
         self.latex_tag.set_property('foreground', 'blue')
         self.latex_tag.set_property('underline', 'single')
-        d['tag_id'] = self.latex_tag.connect('event', self.textview_event_after)
+        self.latex_tag.connect('event', self.textview_event_after)
         tb.get_tag_table().add(self.latex_tag)
 
         d['h_id'] = tb.connect('changed', self.textbuffer_live_latex_expander)
@@ -418,6 +418,10 @@ class LatexPlugin(GajimPlugin):
     def disconnect_from_chat_control_base(self, chat_control):
         d = chat_control.latexs_expander_plugin_data
         tv = chat_control.conv_textview.tv
+        tb = tv.get_buffer()
 
         tv.get_buffer().disconnect(d['h_id'])
-        self.latex_tag.disconnect(d['tag_id'])
+        tag_table = tb.get_tag_table()
+        tt = tag_table.lookup('latex')
+        if tt:
+            tag_table.remove(tt)
