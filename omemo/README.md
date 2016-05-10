@@ -9,6 +9,10 @@ distributed under the GNU General Public License version 3 or any later version.
 
 ## Installation
 
+### Windows
+
+See [Windows Wiki](https://github.com/omemo/gajim-omemo/wiki/Installing-and-Using-on-Windows)
+
 ### Via Package Manager
 #### Arch
 See [Arch Wiki](https://wiki.archlinux.org/index.php/Gajim#OMEMO_Support)
