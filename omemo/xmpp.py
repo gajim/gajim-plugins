@@ -38,6 +38,7 @@ NS_OMEMO = 'eu.siacs.conversations.axolotl'
 NS_DEVICE_LIST = NS_OMEMO + '.devicelist'
 NS_NOTIFY = NS_DEVICE_LIST + '+notify'
 NS_BUNDLES = NS_OMEMO + '.bundles:'
+NS_HINTS = 'urn:xmpp:hints'
 log = logging.getLogger('gajim.plugin_system.omemo')
 
 
@@ -85,6 +86,8 @@ class OmemoMessage(Node):
         header.addChild('iv').addData(b64encode(msg_dict['iv']))
         self.addChild(node=header)
         self.addChild('payload').addData(b64encode(msg_dict['payload']))
+        store = Node('store', attrs={'xmlns' : NS_HINTS})
+        self.addChild(node=store)
 
 
 class BundleInformationQuery(Iq):
