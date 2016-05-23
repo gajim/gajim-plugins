@@ -28,6 +28,8 @@ from common.pep import SUPPORTED_PERSONAL_USER_EVENTS
 from plugins import GajimPlugin
 from plugins.helpers import log_calls
 
+from nbxmpp.simplexml import Node
+
 from .ui import Ui
 from .xmpp import (
     NS_NOTIFY, NS_OMEMO, BundleInformationAnnouncement, BundleInformationQuery,
@@ -38,6 +40,8 @@ from .xmpp import (
 iq_ids_to_callbacks = {}
 
 AXOLOTL_MISSING = 'Please install python-axolotl.'
+
+NS_HINTS = 'urn:xmpp:hints'
 
 log = logging.getLogger('gajim.plugin_system.omemo')
 try:
@@ -464,6 +468,8 @@ class OmemoPlugin(GajimPlugin):
             encrypted_node = OmemoMessage(msg_dict)
             event.msg_iq.delChild('body')
             event.msg_iq.addChild(node=encrypted_node)
+            store = Node('store', attrs={'xmlns' : NS_HINTS})
+            event.msg_iq.addChild(node=store)
             log.debug(account + ' → ' + str(event.msg_iq))
         except:
             return True
