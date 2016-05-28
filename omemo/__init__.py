@@ -21,6 +21,7 @@
 import logging
 import os
 import sqlite3
+import ui
 
 # pylint: disable=import-error
 from common import caps_cache, gajim, ged
@@ -29,6 +30,7 @@ from plugins import GajimPlugin
 from plugins.helpers import log_calls
 
 from nbxmpp.simplexml import Node
+
 
 from .ui import Ui
 from .xmpp import (
@@ -75,7 +77,7 @@ class OmemoPlugin(GajimPlugin):
             'stanza-message-outgoing':
             (ged.PRECORE, self.handle_outgoing_msgs),
         }
-        self.config_dialog = None
+        self.config_dialog = ui.OMEMOConfigDialog(self)
         self.gui_extension_points = {'chat_control': (self.connect_ui, None)}
         SUPPORTED_PERSONAL_USER_EVENTS.append(DevicelistPEP)
 
@@ -216,8 +218,8 @@ class OmemoPlugin(GajimPlugin):
             log.info(account_name + ' ⇒ Received device_list for ' +
                      contact_jid + ':' + str(devices_list))
             state.set_devices(contact_jid, devices_list)
-            if account_name in self.ui_list and contact_jid not in self.ui_list[
-                    account_name]:
+            if (account_name in self.ui_list and
+                    contact_jid not in self.ui_list[account_name]):
 
                 chat_control = gajim.interface.msg_win_mgr.get_control(
                     contact_jid, account_name)

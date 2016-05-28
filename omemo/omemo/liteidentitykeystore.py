@@ -74,3 +74,20 @@ class LiteIdentityKeyStore(IdentityKeyStore):
 
     def isTrustedIdentity(self, recipientId, identityKey):
         return True
+
+    def getAllFingerprints(self):
+        q = "SELECT _id, recipient_id, public_key, trust FROM identities " + \
+            "WHERE recipient_id != -1 ORDER BY recipient_id ASC"
+        c = self.dbConn.cursor()
+
+        result = []
+        for row in c.execute(q):
+            result.append((row[0], row[1], row[2], row[3]))
+        return result
+
+    def setTrust(self, _id, trust):
+        q = "UPDATE identities SET trust = '" + str(trust) + "'" + \
+            "WHERE _id = '" + str(_id) + "'"
+        c = self.dbConn.cursor()
+        c.execute(q)
+        self.dbConn.commit()
