@@ -129,7 +129,8 @@ class OmemoPlugin(GajimPlugin):
 
     @log_calls('OmemoPlugin')
     def message_received(self, msg):
-        if msg.stanza.getTag('encrypted', namespace=NS_OMEMO):
+        if msg.stanza.getTag('encrypted', namespace=NS_OMEMO) and \
+                msg.stanza.getType() == 'chat':
             account = msg.conn.name
             log.debug(account + ' ⇒ OMEMO msg received')
 
@@ -157,7 +158,8 @@ class OmemoPlugin(GajimPlugin):
                     contact_jid in self.ui_list[account]:
                 self.ui_list[account][contact_jid].activate_omemo()
             return False
-        elif msg.stanza.getTag('body'):
+        elif msg.stanza.getTag('body') and \
+                msg.stanza.getType() == 'chat':
             account = msg.conn.name
             from_jid = str(msg.stanza.getAttr('from'))
             jid = gajim.get_jid_without_resource(from_jid)
@@ -468,7 +470,7 @@ class OmemoPlugin(GajimPlugin):
             encrypted_node = OmemoMessage(msg_dict)
             event.msg_iq.delChild('body')
             event.msg_iq.addChild(node=encrypted_node)
-            store = Node('store', attrs={'xmlns' : NS_HINTS})
+            store = Node('store', attrs={'xmlns': NS_HINTS})
             event.msg_iq.addChild(node=store)
             log.debug(account + ' → ' + str(event.msg_iq))
         except:

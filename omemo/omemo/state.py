@@ -37,8 +37,9 @@ from Crypto.Random import get_random_bytes
 from .aes_gcm import NoValidSessions, aes_decrypt, aes_encrypt
 from .liteaxolotlstore import LiteAxolotlStore
 
-#log = logging.getLogger('omemo')
+# log = logging.getLogger('omemo')
 log = logging.getLogger('gajim.plugin_system.omemo')
+
 
 class OmemoState:
     def __init__(self, own_jid, connection):
@@ -56,7 +57,9 @@ class OmemoState:
             if jid != own_jid:
                 self.add_device(jid, device_id)
 
-        log.debug(self.own_jid + ': devices after boot:'+str(self.device_ids))
+        log.debug(self.own_jid + ': devices after boot:' +
+                  str(self.device_ids))
+
     def build_session(self, recipient_id, device_id, bundle_dict):
         sessionBuilder = SessionBuilder(self.store, self.store, self.store,
                                         self.store, recipient_id, device_id)
@@ -89,14 +92,14 @@ class OmemoState:
             devices: [int]
                 A list of devices
         """
-        log.debug('Saving devices for ' + name + ' → ' + str(devices))
+        log.debug('Saving devices for ' + name + ' => ' + str(devices))
         self.device_ids[name] = devices
 
     def add_device(self, name, device_id):
-       if name not in self.device_ids:
-           self.device_ids[name] = [device_id]
-       elif device_id not in self.device_ids[name]:
-           self.device_ids[name].append(device_id)
+        if name not in self.device_ids:
+            self.device_ids[name] = [device_id]
+        elif device_id not in self.device_ids[name]:
+            self.device_ids[name].append(device_id)
 
     def set_own_devices(self, devices):
         """ Overwrite the current :py:attribute:`OmemoState.own_devices` with
@@ -178,16 +181,19 @@ class OmemoState:
                 return
             except (DuplicateMessageException) as e:
                 log.error('Duplicate message found ' + str(e.args))
-                log.error('sender_jid → ' + str(sender_jid) + ' sid => ' +str(sid))
+                log.error('sender_jid => ' + str(sender_jid) +
+                          ' sid => ' + str(sid))
                 return
             except (Exception) as e:
                 log.error('Duplicate message found ' + str(e.args))
-                log.error('sender_jid → ' + str(sender_jid) + ' sid => ' +str(sid))
+                log.error('sender_jid => ' + str(sender_jid) +
+                          ' sid => ' + str(sid))
                 return
 
         except (DuplicateMessageException):
             log.error('Duplicate message found ' + e.message)
-            log.error('sender_jid → ' + str(sender_jid) + ' sid => ' +str(sid))
+            log.error('sender_jid => ' + str(sender_jid) +
+                      ' sid => ' + str(sid))
             return
 
         result = unicode(aes_decrypt(key, iv, payload))
@@ -197,7 +203,7 @@ class OmemoState:
         else:
             self.add_device(sender_jid, sid)
 
-        log.debug("Decrypted msg ⇒ " + result)
+        log.debug("Decrypted msg => " + result)
         return result
 
     def create_msg(self, from_jid, jid, plaintext):
@@ -321,12 +327,12 @@ class OmemoState:
         preKeyWhisperMessage = PreKeyWhisperMessage(serialized=key)
         sessionCipher = self.get_session_cipher(recipient_id, device_id)
         key = sessionCipher.decryptPkmsg(preKeyWhisperMessage)
-        log.debug('PreKeyWhisperMessage -> ' + str(key))
+        log.debug('PreKeyWhisperMessage => ' + str(key))
         return key
 
     def handleWhisperMessage(self, recipient_id, device_id, key):
         whisperMessage = WhisperMessage(serialized=key)
         sessionCipher = self.get_session_cipher(recipient_id, device_id)
         key = sessionCipher.decryptMsg(whisperMessage)
-        log.debug('WhisperMessage -> ' + str(key))
+        log.debug('WhisperMessage => ' + str(key))
         return key
