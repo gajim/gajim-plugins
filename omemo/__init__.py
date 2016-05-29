@@ -34,7 +34,7 @@ from .ui import Ui
 from .xmpp import (
     NS_NOTIFY, NS_OMEMO, BundleInformationAnnouncement, BundleInformationQuery,
     DeviceListAnnouncement, DevicelistPEP, OmemoMessage, successful,
-    unpack_device_bundle, unpack_device_list_update, unpack_message)
+    unpack_device_bundle, unpack_device_list_update, unpack_encrypted)
 
 
 iq_ids_to_callbacks = {}
@@ -141,7 +141,8 @@ class OmemoPlugin(GajimPlugin):
             else:
                 from_jid = str(msg.stanza.getAttr('from'))
 
-            msg_dict = unpack_message(msg.stanza)
+            msg_dict = unpack_encrypted(msg.stanza.getTag
+                                        ('encrypted', namespace=NS_OMEMO))
             msg_dict['sender_jid'] = gajim.get_jid_without_resource(from_jid)
             plaintext = state.decrypt_msg(msg_dict)
 

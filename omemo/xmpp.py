@@ -137,15 +137,6 @@ class DevicelistPEP(AbstractPEP):
 
 
 @log_calls('OmemoPlugin')
-def unpack_message(msg):
-    encrypted_node = msg.getTag('encrypted', namespace=NS_OMEMO)
-    if not encrypted_node:
-        log.debug('Message does not have encrypted node')
-
-    return unpack_encrypted(encrypted_node)
-
-
-@log_calls('OmemoPlugin')
 def unpack_device_bundle(bundle, device_id):
     pubsub = bundle.getTag('pubsub', namespace=NS_PUBSUB)
     if not pubsub:
