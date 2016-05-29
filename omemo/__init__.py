@@ -164,11 +164,24 @@ class OmemoPlugin(GajimPlugin):
         elif msg.stanza.getTag('body') and \
                 msg.stanza.getType() == 'chat':
             account = msg.conn.name
+
             from_jid = str(msg.stanza.getAttr('from'))
             jid = gajim.get_jid_without_resource(from_jid)
-            gui = self.ui_list[account].get(jid, None)
-            if gui and gui.encryption_active():
-                gui.plain_warning()
+            state = self.get_omemo_state(account)
+            omemo_enabled = state.encryption.is_active(jid)
+
+            if omemo_enabled:
+                plaintext = msg.stanza.getBody()
+                msg.msgtxt = '**Unencrypted** ' + plaintext
+                msg.stanza.setBody(msg.msgtxt)
+
+                try:
+                    gui = self.ui_list[account].get(jid, None)
+                    if gui and gui.encryption_active():
+                        gui.plain_warning()
+                except:
+                    log.debug('No Ui present for ' + jid +
+                              ', Ui Warning not shown')
 
     @log_calls('OmemoPlugin')
     def handle_device_list_update(self, event):

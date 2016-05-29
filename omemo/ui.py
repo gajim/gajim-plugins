@@ -105,23 +105,34 @@ def _add_widget(widget, chat_control):
 class Ui(object):
 
     def __init__(self, plugin, chat_control, enabled):
-        contact = chat_control.contact
-        self.prekey_button = PreKeyButton(plugin, contact)
-        self.checkbox = Checkbox(plugin, chat_control)
-        self.clear_button = ClearDevicesButton(plugin, contact)
-
-        self.checkbox.set_active(enabled)
+        self.contact = chat_control.contact
         self.chat_control = chat_control
+        self.prekey_button = PreKeyButton(plugin, self.contact)
+        self.checkbox = Checkbox(plugin, chat_control)
+        self.clear_button = ClearDevicesButton(plugin, self.contact)
 
-        _add_widget(self.prekey_button, chat_control)
-        _add_widget(self.checkbox, chat_control)
-        _add_widget(self.clear_button, chat_control)
+        if enabled:
+            self.checkbox.set_active(True)
+        else:
+            self.encryption_disable()
+
+        _add_widget(self.prekey_button, self.chat_control)
+        _add_widget(self.checkbox, self.chat_control)
+        _add_widget(self.clear_button, self.chat_control)
 
     def encryption_active(self):
         return self.checkbox.get_active()
 
     def encryption_disable(self):
-        return self.checkbox.set_active(False)
+        if self.checkbox.get_active():
+            self.checkbox.set_active(False)
+        else:
+            log.info(self.contact.account.name + ' ⇒ Disable OMEMO for ' +
+                     self.contact.jid)
+            self.chat_control._show_lock_image(False, 'OMEMO', False, True,
+                                               False)
+            self.chat_control.print_conversation_line(
+                u'OMEMO encryption disabled', 'status', '', None)
 
     def activate_omemo(self):
         if not self.checkbox.get_active():
