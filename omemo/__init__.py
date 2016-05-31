@@ -70,6 +70,7 @@ class OmemoPlugin(GajimPlugin):
             self.available_text = _(AXOLOTL_MISSING)
             return
         self.events_handlers = {
+            'mam-message-received': (ged.PRECORE, self.mam_message_received),
             'message-received': (ged.PRECORE, self.message_received),
             'pep-received': (ged.PRECORE, self.handle_device_list_update),
             'raw-iq-received': (ged.PRECORE, self.handle_iq_received),
@@ -130,18 +131,68 @@ class OmemoPlugin(GajimPlugin):
                                                    gajim.connections[a].status)
 
     @log_calls('OmemoPlugin')
+    def mam_message_received(self, msg):
+        if msg.msg_.getTag('encrypted', namespace=NS_OMEMO):
+            account = msg.conn.name
+            log.debug(account + ' ⇒ OMEMO MAM msg received')
+            log.debug(msg.msg_)
+            state = self.get_omemo_state(account)
+
+            from_jid = str(msg.msg_.getAttr('from'))
+            from_jid = gajim.get_jid_without_resource(from_jid)
+
+            msg_dict = unpack_encrypted(msg.msg_.getTag
+                                        ('encrypted', namespace=NS_OMEMO))
+            msg_dict['sender_jid'] = from_jid
+            plaintext = state.decrypt_msg(msg_dict)
+
+            if not plaintext:
+                return
+
+            msg.msgtxt = plaintext
+            # msg.msg_.setBody(plaintext)
+
+            # self.update_prekeys(account, msg_dict['sender_jid'])
+
+            contact_jid = msg.with_
+
+            if account in self.ui_list and \
+                    contact_jid in self.ui_list[account]:
+                self.ui_list[account][contact_jid].activate_omemo()
+            return False
+
+        elif msg.msg_.getTag('body'):
+            account = msg.conn.name
+
+            jid = msg.with_
+            state = self.get_omemo_state(account)
+            omemo_enabled = state.encryption.is_active(jid)
+
+            if omemo_enabled:
+                msg.msgtxt = '**Unencrypted** ' + msg.msgtxt
+                # msg.msg_.setBody(msg.msgtxt)  # why do i need this?
+
+                try:
+                    gui = self.ui_list[account].get(jid, None)
+                    if gui and gui.encryption_active():
+                        gui.plain_warning()
+                except:
+                    log.debug('No Ui present for ' + jid +
+                              ', Ui Warning not shown')
+
+    @log_calls('OmemoPlugin')
     def message_received(self, msg):
         if msg.stanza.getTag('encrypted', namespace=NS_OMEMO) and \
-                msg.stanza.getType() == 'chat':
+                msg.mtype == 'chat':
             account = msg.conn.name
             log.debug(account + ' ⇒ OMEMO msg received')
 
             state = self.get_omemo_state(account)
             if msg.forwarded and msg.sent:
-                from_jid = str(msg.stanza.getAttr('to'))  # why gajim? why?
+                from_jid = str(msg.stanza.getTo())  # why gajim? why?
                 log.debug('message was forwarded doing magic')
             else:
-                from_jid = str(msg.stanza.getAttr('from'))
+                from_jid = str(msg.stanza.getFrom())
 
             msg_dict = unpack_encrypted(msg.stanza.getTag
                                         ('encrypted', namespace=NS_OMEMO))
@@ -152,28 +203,28 @@ class OmemoPlugin(GajimPlugin):
                 return
 
             msg.msgtxt = plaintext
-            msg.stanza.setBody(msg.msgtxt)
+            # bug? there must be a body or the message gets dropped from history
+            msg.stanza.setBody(plaintext)
 
             self.update_prekeys(account, msg_dict['sender_jid'])
 
-            contact_jid = gajim.get_jid_without_resource(msg.fjid)
+            contact_jid = gajim.get_jid_without_resource(from_jid)
             if account in self.ui_list and \
                     contact_jid in self.ui_list[account]:
                 self.ui_list[account][contact_jid].activate_omemo()
             return False
-        elif msg.stanza.getTag('body') and \
-                msg.stanza.getType() == 'chat':
+
+        elif msg.stanza.getTag('body') and msg.mtype == 'chat':
             account = msg.conn.name
 
-            from_jid = str(msg.stanza.getAttr('from'))
+            from_jid = str(msg.stanza.getFrom())
             jid = gajim.get_jid_without_resource(from_jid)
             state = self.get_omemo_state(account)
             omemo_enabled = state.encryption.is_active(jid)
 
             if omemo_enabled:
-                plaintext = msg.stanza.getBody()
-                msg.msgtxt = '**Unencrypted** ' + plaintext
-                msg.stanza.setBody(msg.msgtxt)
+                msg.msgtxt = '**Unencrypted** ' + msg.msgtxt
+                # msg.stanza.setBody(msg.msgtxt)
 
                 try:
                     gui = self.ui_list[account].get(jid, None)
