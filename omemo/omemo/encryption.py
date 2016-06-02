@@ -91,5 +91,34 @@ def migrate(dbConn):
                                      PRAGMA user_version=1;
                                      END TRANSACTION;
                                  """ % (create_table))
+            # Find all double entrys and delete them
+    if user_version(dbConn) < 2:
+        delete_dupes = """ DELETE FROM identities WHERE _id not in (
+                            SELECT MIN(_id)
+                            FROM identities
+                            GROUP BY
+                            recipient_id, public_key
+                            );
+                        """
+
+        dbConn.executescript(""" BEGIN TRANSACTION;
+                                     %s
+                                     PRAGMA user_version=2;
+                                     END TRANSACTION;
+                                 """ % (delete_dupes))
+
+    if user_version(dbConn) < 3:
+        # Create a UNIQUE INDEX so every public key/recipient_id tuple
+        # can only be once in the db
+        add_index = """ CREATE UNIQUE INDEX IF NOT EXISTS
+                        public_key_index
+                        ON identities (public_key, recipient_id);
+                    """
+
+        dbConn.executescript(""" BEGIN TRANSACTION;
+                                 %s
+                                 PRAGMA user_version=3;
+                                 END TRANSACTION;
+                             """ % (add_index))
 
     return dbConn

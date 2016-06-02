@@ -22,6 +22,8 @@ from axolotl.identitykey import IdentityKey
 from axolotl.identitykeypair import IdentityKeyPair
 from axolotl.state.identitykeystore import IdentityKeyStore
 
+UNDECIDED = 2
+
 
 class LiteIdentityKeyStore(IdentityKeyStore):
     def __init__(self, dbConn):
@@ -67,10 +69,23 @@ class LiteIdentityKeyStore(IdentityKeyStore):
         self.dbConn.commit()
 
     def saveIdentity(self, recipientId, identityKey):
-        q = "INSERT INTO identities (recipient_id, public_key) VALUES(?, ?)"
+        q = "INSERT INTO identities (recipient_id, public_key, trust) VALUES(?, ?, ?)"
         c = self.dbConn.cursor()
+
+        if not self.getIdentity(recipientId, identityKey):
+            c.execute(q, (recipientId,
+                          identityKey.getPublicKey().serialize(),
+                          UNDECIDED))
+            self.dbConn.commit()
+
+    def getIdentity(self, recipientId, identityKey):
+        q = "SELECT * FROM identities WHERE recipient_id = ? AND public_key = ?"
+        c = self.dbConn.cursor()
+
         c.execute(q, (recipientId, identityKey.getPublicKey().serialize()))
-        self.dbConn.commit()
+        result = c.fetchone()
+
+        return result is not None
 
     def isTrustedIdentity(self, recipientId, identityKey):
         return True
