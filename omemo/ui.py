@@ -31,29 +31,6 @@ log = logging.getLogger('gajim.plugin_system.omemo')
 # from plugins.helpers import log
 
 
-class PreKeyButton(gtk.Button):
-    def __init__(self, plugin, contact):
-        super(PreKeyButton, self).__init__(label='Get Device Keys' + str(
-            plugin.are_keys_missing(contact)))
-        self.plugin = plugin
-        self.contact = contact
-        self.connect('clicked', self.on_click)
-        self.refresh()
-
-    def refresh(self):
-        amount = self.plugin.are_keys_missing(self.contact)
-        if amount == 0:
-            self.set_no_show_all(True)
-            self.hide()
-        else:
-            self.set_no_show_all(False)
-            self.show()
-        self.set_label('Get Device Keys ' + str(amount))
-
-    def on_click(self, widget):
-        self.plugin.query_prekey(self.contact)
-
-
 class ClearDevicesButton(gtk.Button):
     def __init__(self, plugin, contact):
         super(ClearDevicesButton, self).__init__(label='Clear Devices')
@@ -107,7 +84,6 @@ class Ui(object):
     def __init__(self, plugin, chat_control, enabled):
         self.contact = chat_control.contact
         self.chat_control = chat_control
-        self.prekey_button = PreKeyButton(plugin, self.contact)
         self.checkbox = Checkbox(plugin, chat_control)
         self.clear_button = ClearDevicesButton(plugin, self.contact)
 
@@ -116,7 +92,6 @@ class Ui(object):
         else:
             self.encryption_disable()
 
-        _add_widget(self.prekey_button, self.chat_control)
         _add_widget(self.checkbox, self.chat_control)
         _add_widget(self.clear_button, self.chat_control)
 
@@ -142,9 +117,6 @@ class Ui(object):
         self.chat_control.print_conversation_line(
             'Received plaintext message! ' +
             'Your next message will still be encrypted!', 'status', '', None)
-
-    def update_prekeys(self):
-        self.prekey_button.refresh()
 
 
 class OMEMOConfigDialog(GajimPluginConfigDialog):

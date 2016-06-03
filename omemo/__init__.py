@@ -150,9 +150,6 @@ class OmemoPlugin(GajimPlugin):
                 return
 
             msg.msgtxt = plaintext
-            # msg.msg_.setBody(plaintext)
-
-            # self.update_prekeys(account, msg_dict['sender_jid'])
 
             contact_jid = msg.with_
 
@@ -170,7 +167,6 @@ class OmemoPlugin(GajimPlugin):
 
             if omemo_enabled:
                 msg.msgtxt = '**Unencrypted** ' + msg.msgtxt
-                # msg.msg_.setBody(msg.msgtxt)  # why do i need this?
 
                 try:
                     gui = self.ui_list[account].get(jid, None)
@@ -205,8 +201,6 @@ class OmemoPlugin(GajimPlugin):
             msg.msgtxt = plaintext
             # bug? there must be a body or the message gets dropped from history
             msg.stanza.setBody(plaintext)
-
-            self.update_prekeys(account, msg_dict['sender_jid'])
 
             contact_jid = gajim.get_jid_without_resource(from_jid)
             if account in self.ui_list and \
@@ -291,7 +285,8 @@ class OmemoPlugin(GajimPlugin):
                 if chat_control is not None:
                     self.connect_ui(chat_control)
 
-        self.update_prekeys(account_name, contact_jid)
+        # Look if Device Keys are missing and fetch them
+        self.are_keys_missing(account_name, contact_jid)
 
         return True
 
@@ -323,18 +318,19 @@ class OmemoPlugin(GajimPlugin):
         else:
             log.warn(account_name + " ⇒ No OMEMO dev_keys for " + contact_jid)
 
-    def are_keys_missing(self, contact):
+    def are_keys_missing(self, account_name, contact_jid):
         """ Used by the ui to set the state of the PreKeyButton. """
-        account = contact.account.name
-        my_jid = gajim.get_jid_from_account(account)
-        state = self.get_omemo_state(account)
+
+        my_jid = gajim.get_jid_from_account(account_name)
+        state = self.get_omemo_state(account_name)
         result = 0
-        result += len(state.devices_without_sessions(str(contact.jid)))
+        result += len(state.devices_without_sessions(str(contact_jid)))
         result += len(state.own_devices_without_sessions(my_jid))
         if result > 0:
-            log.warn(account + " ⇒ Missing keys for " + contact.jid + ": " +
+            log.warn(account_name + " ⇒ Missing keys for " + contact_jid + ": " +
                      str(result))
-        return result
+            log.warn('query keys now ...')
+            self.query_prekey(account_name, contact_jid)
 
     @log_calls('OmemoPlugin')
     def handle_iq_received(self, event):
@@ -349,13 +345,13 @@ class OmemoPlugin(GajimPlugin):
                 del iq_ids_to_callbacks[id_]
 
     @log_calls('OmemoPlugin')
-    def query_prekey(self, recipient):
+    def query_prekey(self, account_name, contact_jid):
         """ Calls OmemoPlugin.fetch_device_bundle_information() for each own or
             recipient device key missing.
         """
-        account = recipient.account.name
+        account = account_name
         state = self.get_omemo_state(account)
-        to_jid = recipient.jid
+        to_jid = contact_jid
         my_jid = gajim.get_jid_from_account(account)
         for device_id in state.devices_without_sessions(to_jid):
             self.fetch_device_bundle_information(account, state, to_jid,
@@ -399,8 +395,7 @@ class OmemoPlugin(GajimPlugin):
 
 
             This method tries to build an axolotl session when a PreKey bundle
-            is fetched. If building the axolotl session is successful it tries
-            to update the ui by calling `self.update_prekeys()`.
+            is fetched.
 
             If a session can not be build it will fail silently but log the a
             warning.
@@ -433,21 +428,7 @@ class OmemoPlugin(GajimPlugin):
             return
 
         if state.build_session(recipient_id, device_id, bundle_dict):
-            self.update_prekeys(account_name, recipient_id)
-
-    @log_calls('OmemoPlugin')
-    def update_prekeys(self, account, recipient_id):
-        """ Updates the "Get Prekeys" Button in the ui.
-            Parameters:
-            ----------
-            account : str
-                The account name
-            recipient_id : str
-                The recipient jid
-        """
-        if account in self.ui_list:
-            if recipient_id in self.ui_list[account]:
-                self.ui_list[account][recipient_id].update_prekeys()
+            log.warn(recipient_id + ' => session created')
 
     @log_calls('OmemoPlugin')
     def announce_support(self, account):
