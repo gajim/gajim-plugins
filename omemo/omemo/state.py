@@ -209,6 +209,7 @@ class OmemoState:
     def create_msg(self, from_jid, jid, plaintext):
         key = get_random_bytes(16)
         iv = get_random_bytes(16)
+        trust = {None: "Not Set", 0: False, 1: True, 2: "Undecided"}
         encrypted_keys = {}
 
         devices_list = self.device_list_for(jid)
@@ -232,7 +233,11 @@ class OmemoState:
         # Encrypt the message key with for each of receivers devices
         for rid, cipher in session_ciphers.items():
             try:
-                encrypted_keys[rid] = cipher.encrypt(key).serialize()
+                if trust[self.isTrusted(cipher)] is True:
+                    encrypted_keys[rid] = cipher.encrypt(key).serialize()
+                else:
+                    log.warn('Skipped Device because Trust is: ' +
+                             str(trust[self.isTrusted(cipher)]))
             except:
                 log.warn('Failed to find key for device ' + str(
                     rid))
@@ -253,6 +258,16 @@ class OmemoState:
         log.debug('encrypted message')
         log.debug(result)
         return result
+
+    def isTrusted(self, cipher):
+        self.cipher = cipher
+        self.state = self.cipher.sessionStore. \
+            loadSession(self.cipher.recipientId, self.cipher.deviceId). \
+            getSessionState()
+        self.key = self.state.getRemoteIdentityKey()
+        self.trust = self.store.identityKeyStore. \
+            getTrust(self.cipher.recipientId, self.key)
+        return self.trust
 
     def device_list_for(self, jid):
         """ Return a list of known device ids for the specified jid.

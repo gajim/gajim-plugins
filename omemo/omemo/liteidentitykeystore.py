@@ -116,3 +116,12 @@ class LiteIdentityKeyStore(IdentityKeyStore):
         c = self.dbConn.cursor()
         c.execute(q)
         self.dbConn.commit()
+
+    def getTrust(self, recipientId, identityKey):
+        q = "SELECT trust FROM identities WHERE recipient_id = ? AND public_key = ?"
+        c = self.dbConn.cursor()
+
+        c.execute(q, (recipientId, identityKey.getPublicKey().serialize()))
+        result = c.fetchone()
+
+        return result[0] if result else None

@@ -169,15 +169,15 @@ class OMEMOConfigDialog(GajimPluginConfigDialog):
         for path in paths:
             it = mod.get_iter(path)
             _id, user, fpr = mod.get(it, 0, 1, 3)
-
+            fpr = fpr[31:-12]
             dlg = gtk.Dialog('Confirm trusting fingerprint', self,
                              gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
                              (gtk.STOCK_YES, gtk.RESPONSE_YES,
                               gtk.STOCK_NO, gtk.RESPONSE_NO))
             l = gtk.Label()
             l.set_markup('Are you sure you want to trust the following '
-                         'fingerprint for the contact %s on the account %s?'
-                         '\n\n%s' % (user, account, fpr))
+                         'fingerprint for the contact <b>%s</b> on the account <b>%s</b>?'
+                         '\n\n<tt>%s</tt>' % (user, account, fpr))
             l.set_line_wrap(True)
             dlg.vbox.pack_start(l)
             dlg.show_all()
@@ -199,15 +199,15 @@ class OMEMOConfigDialog(GajimPluginConfigDialog):
         for path in paths:
             it = mod.get_iter(path)
             _id, user, fpr = mod.get(it, 0, 1, 3)
-
+            fpr = fpr[31:-12]
             dlg = gtk.Dialog('Confirm trusting fingerprint', self,
                              gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
                              (gtk.STOCK_YES, gtk.RESPONSE_YES,
                               gtk.STOCK_NO, gtk.RESPONSE_NO))
             l = gtk.Label()
             l.set_markup('Are you sure you want to NOT trust the following '
-                         'fingerprint for the contact %s on the account %s?'
-                         '\n\n%s' % (user, account, fpr))
+                         'fingerprint for the contact <b>%s</b> on the account <b>%s</b>?'
+                         '\n\n<tt>%s</tt>' % (user, account, fpr))
             l.set_line_wrap(True)
             dlg.vbox.pack_start(l)
             dlg.show_all()
@@ -259,17 +259,36 @@ class OMEMOConfigDialog(GajimPluginConfigDialog):
 
         ownfpr = binascii.hexlify(state.store.getIdentityKeyPair()
                                   .getPublicKey().serialize())
+        ownfpr = self.human_hash(ownfpr[2:])
         self.B.get_object('fingerprint_label').set_markup('<tt>%s</tt>'
-                                                          % ownfpr[2:])
+                                                          % ownfpr)
 
         fprDB = state.store.identityKeyStore.getAllFingerprints()
         for item in fprDB:
-            _id = item[0]
-            jid = item[1]
-            fpr = binascii.hexlify(item[2])
-            self.fpr_model.append((_id, jid, trust[item[3]],
-                                   '<tt>%s</tt>' % fpr[2:]))
+            _id, jid, fpr, tr = item
+            fpr = binascii.hexlify(fpr)
+            fpr = self.human_hash(fpr[2:])
+            if trust[tr] is False:
+                self.fpr_model.append((_id, jid, trust[tr],
+                                       '<tt><span foreground="#FF0040">%s</span></tt>' % fpr))
+            elif trust[tr] is True:
+                self.fpr_model.append((_id, jid, trust[tr],
+                                       '<tt><span foreground="#2EFE2E">%s</span></tt>' % fpr))
+            elif trust[tr] == "Not Set":
+                self.fpr_model.append((_id, jid, trust[tr],
+                                       '<tt><span foreground="#FF0040">%s</span></tt>' % fpr))
+            elif trust[tr] == "Undecided":
+                self.fpr_model.append((_id, jid, trust[tr],
+                                       '<tt><span foreground="#FF8000">%s</span></tt>' % fpr))
 
+    def human_hash(self, fpr):
+        fpr = fpr.upper()
+        fplen = len(fpr)
+        wordsize = fplen // 8
+        buf = ''
+        for w in range(0, fplen, wordsize):
+            buf += '{0} '.format(fpr[w:w + wordsize])
+        return buf.rstrip()
 
 class FingerprintWindow(gtk.Dialog):
     def __init__(self, plugin, contact, parent=None):
