@@ -314,7 +314,7 @@ class OmemoPlugin(GajimPlugin):
             log.debug(account_name + " ⇒ Adding OMEMO ui for " + contact_jid)
             omemo_enabled = state.encryption.is_active(contact_jid)
             self.ui_list[account_name][contact_jid] = Ui(self, chat_control,
-                                                         omemo_enabled)
+                                                         omemo_enabled, state)
         else:
             log.warn(account_name + " ⇒ No OMEMO dev_keys for " + contact_jid)
 
@@ -429,6 +429,9 @@ class OmemoPlugin(GajimPlugin):
 
         if state.build_session(recipient_id, device_id, bundle_dict):
             log.warn(recipient_id + ' => session created')
+            # Warn User about new Fingerprints in DB if Chat Window is Open
+            if self.ui_list[account_name][recipient_id]:
+                self.ui_list[account_name][recipient_id].WarnIfUndecidedFingerprints()
 
     @log_calls('OmemoPlugin')
     def announce_support(self, account):

@@ -110,6 +110,17 @@ class LiteIdentityKeyStore(IdentityKeyStore):
             result.append((row[0], row[1], row[2], row[3]))
         return result
 
+    def getUndecidedFingerprints(self, jid):
+        q = "SELECT trust FROM identities " + \
+            "WHERE recipient_id = '" + jid + "' AND trust = '2'"
+        c = self.dbConn.cursor()
+
+        result = []
+        c.execute(q)
+        result = c.fetchone()
+
+        return result
+
     def setTrust(self, _id, trust):
         q = "UPDATE identities SET trust = '" + str(trust) + "'" + \
             "WHERE _id = '" + str(_id) + "'"

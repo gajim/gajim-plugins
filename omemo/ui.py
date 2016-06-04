@@ -46,12 +46,13 @@ class FingerprintButton(gtk.Button):
 
 
 class Checkbox(gtk.CheckButton):
-    def __init__(self, plugin, chat_control):
+    def __init__(self, plugin, chat_control, ui):
         super(Checkbox, self).__init__(label='OMEMO')
         self.chat_control = chat_control
         self.contact = chat_control.contact
         self.plugin = plugin
         self.connect('clicked', self.on_click)
+        self.ui = ui
 
     def on_click(self, widget):
         enabled = self.get_active()
@@ -59,16 +60,14 @@ class Checkbox(gtk.CheckButton):
             log.info(self.contact.account.name + ' ⇒ Enable OMEMO for ' +
                      self.contact.jid)
             self.plugin.omemo_enable_for(self.contact)
-            self.chat_control._show_lock_image(True, 'OMEMO',
-                                               True, True, False)
+            self.ui.WarnIfUndecidedFingerprints()
             self.chat_control.print_conversation_line(
                 u'OMEMO encryption enabled ', 'status', '', None)
         else:
             log.info(self.contact.account.name + ' ⇒ Disable OMEMO for ' +
                      self.contact.jid)
             self.plugin.omemo_disable_for(self.contact)
-            self.chat_control._show_lock_image(False, 'OMEMO', False, True,
-                                               False)
+            self.ui.refreshAuthLockSymbol()
             self.chat_control.print_conversation_line(
                 u'OMEMO encryption disabled', 'status', '', None)
 
@@ -84,11 +83,12 @@ def _add_widget(widget, chat_control):
 
 class Ui(object):
 
-    def __init__(self, plugin, chat_control, enabled):
+    def __init__(self, plugin, chat_control, enabled, state):
         self.contact = chat_control.contact
         self.chat_control = chat_control
-        self.checkbox = Checkbox(plugin, chat_control)
+        self.checkbox = Checkbox(plugin, chat_control, self)
         self.finger_button = FingerprintButton(plugin, self.contact)
+        self.state = state
 
         if enabled:
             self.checkbox.set_active(True)
@@ -107,8 +107,7 @@ class Ui(object):
         else:
             log.info(self.contact.account.name + ' ⇒ Disable OMEMO for ' +
                      self.contact.jid)
-            self.chat_control._show_lock_image(False, 'OMEMO', False, True,
-                                               False)
+            self.refreshAuthLockSymbol()
             self.chat_control.print_conversation_line(
                 u'OMEMO encryption disabled', 'status', '', None)
 
@@ -120,6 +119,26 @@ class Ui(object):
         self.chat_control.print_conversation_line(
             'Received plaintext message! ' +
             'Your next message will still be encrypted!', 'status', '', None)
+
+    def WarnIfUndecidedFingerprints(self):
+        if self.state.store.identityKeyStore.getUndecidedFingerprints(self.contact.jid):
+            msg = "You received a new Fingerprint. " + \
+                  "Until you make a trust decision you can only " + \
+                  "receive encrypted Messages from that Device."
+            self.chat_control.print_conversation_line(msg, 'status', '', None)
+        self.refreshAuthLockSymbol()
+
+    def refreshAuthLockSymbol(self):
+        if self.encryption_active():
+            if self.state.store.identityKeyStore.getUndecidedFingerprints(self.contact.jid):
+                self.chat_control._show_lock_image(True, 'OMEMO', True, True,
+                                                   False)
+            else:
+                self.chat_control._show_lock_image(True, 'OMEMO', True, True,
+                                                   True)
+        else:
+            self.chat_control._show_lock_image(False, 'OMEMO', False, True,
+                                               False)
 
 
 class OMEMOConfigDialog(GajimPluginConfigDialog):
@@ -184,6 +203,8 @@ class OMEMOConfigDialog(GajimPluginConfigDialog):
 
             if dlg.run() == gtk.RESPONSE_YES:
                     state.store.identityKeyStore.setTrust(_id, TRUSTED)
+                    if self.plugin.ui_list[account][user]:
+                        self.plugin.ui_list[account][user].refreshAuthLockSymbol()
             dlg.destroy()
 
         self.update_context_list()
@@ -214,6 +235,8 @@ class OMEMOConfigDialog(GajimPluginConfigDialog):
 
             if dlg.run() == gtk.RESPONSE_YES:
                     state.store.identityKeyStore.setTrust(_id, UNTRUSTED)
+                    if self.plugin.ui_list[account][user]:
+                        self.plugin.ui_list[account][user].refreshAuthLockSymbol()
             dlg.destroy()
 
         self.update_context_list()
@@ -251,7 +274,7 @@ class OMEMOConfigDialog(GajimPluginConfigDialog):
         gtk.Clipboard(selection='PRIMARY').set_text('\n'.join(fprs))
 
     def update_context_list(self):
-        trust = {None: "Not Set", 0: False, 1: True}
+        trust = {None: "Not Set", 0: False, 1: True, 2: "Undecided"}
         self.fpr_model.clear()
         active = self.B.get_object('account_combobox').get_active()
         account = self.account_store[active][0]
@@ -289,6 +312,7 @@ class OMEMOConfigDialog(GajimPluginConfigDialog):
         for w in range(0, fplen, wordsize):
             buf += '{0} '.format(fpr[w:w + wordsize])
         return buf.rstrip()
+
 
 class FingerprintWindow(gtk.Dialog):
     def __init__(self, plugin, contact, parent=None):
@@ -345,6 +369,7 @@ class FingerprintWindow(gtk.Dialog):
 
             if dlg.run() == gtk.RESPONSE_YES:
                     state.store.identityKeyStore.setTrust(_id, TRUSTED)
+                    self.plugin.ui_list[account][self.contact.jid].refreshAuthLockSymbol()
             dlg.destroy()
 
         self.update_context_list()
@@ -374,6 +399,7 @@ class FingerprintWindow(gtk.Dialog):
 
             if dlg.run() == gtk.RESPONSE_YES:
                     state.store.identityKeyStore.setTrust(_id, UNTRUSTED)
+                    self.plugin.ui_list[account][self.contact.jid].refreshAuthLockSymbol()
             dlg.destroy()
 
         self.update_context_list()
