@@ -28,18 +28,21 @@ import binascii
 
 log = logging.getLogger('gajim.plugin_system.omemo')
 
-# from plugins.helpers import log
+TRUSTED = 1
+UNTRUSTED = 0
 
 
-class ClearDevicesButton(gtk.Button):
+class FingerprintButton(gtk.Button):
     def __init__(self, plugin, contact):
-        super(ClearDevicesButton, self).__init__(label='Clear Devices')
+        super(FingerprintButton, self).__init__(label='Fingerprints')
         self.plugin = plugin
         self.contact = contact
         self.connect('clicked', self.on_click)
 
     def on_click(self, widget):
-        self.plugin.clear_device_list(self.contact)
+        dlg = FingerprintWindow(self.plugin, self.contact)
+        dlg.run()
+        dlg.destroy()
 
 
 class Checkbox(gtk.CheckButton):
@@ -85,7 +88,7 @@ class Ui(object):
         self.contact = chat_control.contact
         self.chat_control = chat_control
         self.checkbox = Checkbox(plugin, chat_control)
-        self.clear_button = ClearDevicesButton(plugin, self.contact)
+        self.finger_button = FingerprintButton(plugin, self.contact)
 
         if enabled:
             self.checkbox.set_active(True)
@@ -93,7 +96,7 @@ class Ui(object):
             self.encryption_disable()
 
         _add_widget(self.checkbox, self.chat_control)
-        _add_widget(self.clear_button, self.chat_control)
+        _add_widget(self.finger_button, self.chat_control)
 
     def encryption_active(self):
         return self.checkbox.get_active()
@@ -180,7 +183,7 @@ class OMEMOConfigDialog(GajimPluginConfigDialog):
             dlg.show_all()
 
             if dlg.run() == gtk.RESPONSE_YES:
-                    state.store.identityKeyStore.setTrust(_id, 1)
+                    state.store.identityKeyStore.setTrust(_id, TRUSTED)
             dlg.destroy()
 
         self.update_context_list()
@@ -210,7 +213,7 @@ class OMEMOConfigDialog(GajimPluginConfigDialog):
             dlg.show_all()
 
             if dlg.run() == gtk.RESPONSE_YES:
-                    state.store.identityKeyStore.setTrust(_id, 0)
+                    state.store.identityKeyStore.setTrust(_id, UNTRUSTED)
             dlg.destroy()
 
         self.update_context_list()
@@ -266,3 +269,162 @@ class OMEMOConfigDialog(GajimPluginConfigDialog):
             fpr = binascii.hexlify(item[2])
             self.fpr_model.append((_id, jid, trust[item[3]],
                                    '<tt>%s</tt>' % fpr[2:]))
+
+
+class FingerprintWindow(gtk.Dialog):
+    def __init__(self, plugin, contact, parent=None):
+        self.contact = contact
+        gtk.Dialog.__init__(self,
+                            title=('Fingerprints for %s') % contact.jid,
+                            parent=parent,
+                            flags=gtk.DIALOG_DESTROY_WITH_PARENT,
+                            buttons=(gtk.STOCK_OK, gtk.RESPONSE_ACCEPT))
+        self.plugin = plugin
+        self.GTK_BUILDER_FILE_PATH = \
+            self.plugin.local_file_path('fpr_dialog.ui')
+        self.B = gtk.Builder()
+        self.B.set_translation_domain('gajim_plugins')
+        self.B.add_from_file(self.GTK_BUILDER_FILE_PATH)
+
+        self.fpr_model = gtk.ListStore(gobject.TYPE_INT,
+                                       gobject.TYPE_STRING,
+                                       gobject.TYPE_STRING,
+                                       gobject.TYPE_STRING)
+
+        self.fpr_view = self.B.get_object('fingerprint_view')
+        self.fpr_view.set_model(self.fpr_model)
+        self.fpr_view.get_selection().set_mode(gtk.SELECTION_MULTIPLE)
+
+        self.child.pack_start(self.B.get_object('notebook1'))
+
+        self.B.connect_signals(self)
+
+        self.update_context_list()
+
+    def trust_button_clicked_cb(self, button, *args):
+        account = self.contact.account.name
+
+        state = self.plugin.get_omemo_state(account)
+
+        mod, paths = self.fpr_view.get_selection().get_selected_rows()
+
+        for path in paths:
+            it = mod.get_iter(path)
+            _id, user, fpr = mod.get(it, 0, 1, 3)
+            fpr = fpr[31:-12]
+            dlg = gtk.Dialog('Confirm trusting fingerprint', self,
+                             gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
+                             (gtk.STOCK_YES, gtk.RESPONSE_YES,
+                              gtk.STOCK_NO, gtk.RESPONSE_NO))
+            l = gtk.Label()
+            l.set_markup('Are you sure you want to trust the following '
+                         'fingerprint for the contact <b>%s</b> on the account <b>%s</b>?'
+                         '\n\n<tt>%s</tt>' % (user, account, fpr))
+            l.set_line_wrap(True)
+            dlg.vbox.pack_start(l)
+            dlg.show_all()
+
+            if dlg.run() == gtk.RESPONSE_YES:
+                    state.store.identityKeyStore.setTrust(_id, TRUSTED)
+            dlg.destroy()
+
+        self.update_context_list()
+
+    def untrust_button_clicked_cb(self, button, *args):
+        account = self.contact.account.name
+
+        state = self.plugin.get_omemo_state(account)
+
+        mod, paths = self.fpr_view.get_selection().get_selected_rows()
+
+        for path in paths:
+            it = mod.get_iter(path)
+            _id, user, fpr = mod.get(it, 0, 1, 3)
+            fpr = fpr[31:-12]
+            dlg = gtk.Dialog('Confirm trusting fingerprint', self,
+                             gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
+                             (gtk.STOCK_YES, gtk.RESPONSE_YES,
+                              gtk.STOCK_NO, gtk.RESPONSE_NO))
+            l = gtk.Label()
+            l.set_markup('Are you sure you want to NOT trust the following '
+                         'fingerprint for the contact <b>%s</b> on the account <b>%s</b>?'
+                         '\n\n<tt>%s</tt>' % (user, account, fpr))
+            l.set_line_wrap(True)
+            dlg.vbox.pack_start(l)
+            dlg.show_all()
+
+            if dlg.run() == gtk.RESPONSE_YES:
+                    state.store.identityKeyStore.setTrust(_id, UNTRUSTED)
+            dlg.destroy()
+
+        self.update_context_list()
+
+    def fpr_button_pressed_cb(self, tw, event):
+        if event.button == 3:
+            pthinfo = tw.get_path_at_pos(int(event.x), int(event.y))
+
+            if pthinfo is None:
+                # only show the popup when we right clicked on list content
+                # ie. don't show it when we click at empty rows
+                return False
+
+            # if the row under the mouse is already selected, we keep the
+            # selection, otherwise we only select the new item
+            keep_selection = tw.get_selection().path_is_selected(pthinfo[0])
+
+            pop = self.B.get_object('fprclipboard_menu')
+            pop.popup(None, None, None, event.button, event.time)
+
+            # keep_selection=True -> no further processing of click event
+            # keep_selection=False-> further processing -> GTK usually selects
+            #   the item below the cursor
+            return keep_selection
+
+    def clipboard_button_cb(self, menuitem):
+        mod, paths = self.fpr_view.get_selection().get_selected_rows()
+
+        fprs = []
+        for path in paths:
+            it = mod.get_iter(path)
+            jid, fpr = mod.get(it, 1, 3)
+            fprs.append('%s: %s' % (jid, fpr[31:-12]))
+        gtk.Clipboard().set_text('\n'.join(fprs))
+        gtk.Clipboard(selection='PRIMARY').set_text('\n'.join(fprs))
+
+    def update_context_list(self):
+        trust = {None: "Not Set", 0: False, 1: True, 2: "Undecided"}
+        self.fpr_model.clear()
+        state = self.plugin.get_omemo_state(self.contact.account.name)
+
+        ownfpr = binascii.hexlify(state.store.getIdentityKeyPair()
+                                  .getPublicKey().serialize())
+        ownfpr = self.human_hash(ownfpr[2:])
+        self.B.get_object('fingerprint_label').set_markup('<tt>%s</tt>'
+                                                          % ownfpr)
+
+        fprDB = state.store.identityKeyStore.getFingerprints(self.contact.jid)
+        for item in fprDB:
+            _id, jid, fpr, tr = item
+            fpr = binascii.hexlify(fpr)
+            fpr = self.human_hash(fpr[2:])
+            if trust[tr] is False:
+                self.fpr_model.append((_id, jid, trust[tr],
+                                       '<tt><span foreground="#FF0040">%s</span></tt>' % fpr))
+            elif trust[tr] is True:
+                self.fpr_model.append((_id, jid, trust[tr],
+                                       '<tt><span foreground="#2EFE2E">%s</span></tt>' % fpr))
+            elif trust[tr] == "Not Set":
+                self.fpr_model.append((_id, jid, trust[tr],
+                                       '<tt><span foreground="#FF0040">%s</span></tt>' % fpr))
+            elif trust[tr] == "Undecided":
+                self.fpr_model.append((_id, jid, trust[tr],
+                                       '<tt><span foreground="#FF8000">%s</span></tt>' % fpr))
+
+    def human_hash(self, fpr):
+        fpr = fpr.upper()
+        fplen = len(fpr)
+        wordsize = fplen // 8
+        buf = ''
+        for w in range(0, fplen, wordsize):
+            buf += '{0} '.format(fpr[w:w + wordsize])
+        return buf.rstrip()
