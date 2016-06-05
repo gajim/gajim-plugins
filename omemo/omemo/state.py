@@ -50,6 +50,7 @@ class OmemoState:
         self.session_ciphers = {}
         self.own_jid = own_jid
         self.device_ids = {}
+        self.trust = {None: "Not Set", 0: False, 1: True, 2: "Undecided"}
         self.own_devices = []
         self.store = LiteAxolotlStore(connection)
         self.encryption = self.store.encryptionStore
@@ -185,15 +186,17 @@ class OmemoState:
                           ' sid => ' + str(sid))
                 return
             except (Exception) as e:
-                log.error('Duplicate message found ' + str(e.args))
-                log.error('sender_jid => ' + str(sender_jid) +
-                          ' sid => ' + str(sid))
+                log.error('Exception: ' + str(e.args))
                 return
 
         except (DuplicateMessageException):
             log.error('Duplicate message found ' + e.message)
             log.error('sender_jid => ' + str(sender_jid) +
                       ' sid => ' + str(sid))
+            return
+
+        except (Exception) as e:
+            log.error('Exception: ' + str(e.args))
             return
 
         result = unicode(aes_decrypt(key, iv, payload))
@@ -209,7 +212,6 @@ class OmemoState:
     def create_msg(self, from_jid, jid, plaintext):
         key = get_random_bytes(16)
         iv = get_random_bytes(16)
-        trust = {None: "Not Set", 0: False, 1: True, 2: "Undecided"}
         encrypted_keys = {}
 
         devices_list = self.device_list_for(jid)
@@ -233,11 +235,11 @@ class OmemoState:
         # Encrypt the message key with for each of receivers devices
         for rid, cipher in session_ciphers.items():
             try:
-                if trust[self.isTrusted(cipher)] is True:
+                if self.trust[self.isTrusted(cipher)] is True:
                     encrypted_keys[rid] = cipher.encrypt(key).serialize()
                 else:
                     log.warn('Skipped Device because Trust is: ' +
-                             str(trust[self.isTrusted(cipher)]))
+                             str(self.trust[self.isTrusted(cipher)]))
             except:
                 log.warn('Failed to find key for device ' + str(
                     rid))
@@ -265,9 +267,8 @@ class OmemoState:
             loadSession(self.cipher.recipientId, self.cipher.deviceId). \
             getSessionState()
         self.key = self.state.getRemoteIdentityKey()
-        self.trust = self.store.identityKeyStore. \
+        return self.store.identityKeyStore. \
             getTrust(self.cipher.recipientId, self.key)
-        return self.trust
 
     def device_list_for(self, jid):
         """ Return a list of known device ids for the specified jid.
@@ -341,13 +342,22 @@ class OmemoState:
     def handlePreKeyWhisperMessage(self, recipient_id, device_id, key):
         preKeyWhisperMessage = PreKeyWhisperMessage(serialized=key)
         sessionCipher = self.get_session_cipher(recipient_id, device_id)
-        key = sessionCipher.decryptPkmsg(preKeyWhisperMessage)
-        log.debug('PreKeyWhisperMessage => ' + str(key))
-        return key
+        if self.trust[self.isTrusted(sessionCipher)] is not False:
+            key = sessionCipher.decryptPkmsg(preKeyWhisperMessage)
+            log.debug('PreKeyWhisperMessage => ' + str(key))
+            return key
+        else:
+            raise Exception("Received PreKeyWhisperMessage from Untrusted Fingerprint!")
+            return
 
     def handleWhisperMessage(self, recipient_id, device_id, key):
         whisperMessage = WhisperMessage(serialized=key)
         sessionCipher = self.get_session_cipher(recipient_id, device_id)
-        key = sessionCipher.decryptMsg(whisperMessage)
-        log.debug('WhisperMessage => ' + str(key))
-        return key
+        if (self.trust[self.isTrusted(sessionCipher)] is True) or \
+                (self.trust[self.isTrusted(sessionCipher)] == "Undecided"):
+            key = sessionCipher.decryptMsg(whisperMessage)
+            log.debug('WhisperMessage => ' + str(key))
+            return key
+        else:
+            raise Exception("Received WhisperMessage from Untrusted Fingerprint!")
+            return
