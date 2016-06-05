@@ -41,8 +41,10 @@ class FingerprintButton(gtk.Button):
 
     def on_click(self, widget):
         dlg = FingerprintWindow(self.plugin, self.contact)
-        dlg.run()
-        dlg.destroy()
+        if dlg.run() == gtk.RESPONSE_CLOSE:
+            dlg.destroy()
+        else:
+            dlg.destroy()
 
 
 class Checkbox(gtk.CheckButton):
@@ -194,46 +196,21 @@ class OMEMOConfigDialog(GajimPluginConfigDialog):
                              (gtk.STOCK_YES, gtk.RESPONSE_YES,
                               gtk.STOCK_NO, gtk.RESPONSE_NO))
             l = gtk.Label()
-            l.set_markup('Are you sure you want to trust the following '
+            l.set_markup('Do you want to trust the following '
                          'fingerprint for the contact <b>%s</b> on the account <b>%s</b>?'
                          '\n\n<tt>%s</tt>' % (user, account, fpr))
             l.set_line_wrap(True)
             dlg.vbox.pack_start(l)
             dlg.show_all()
 
-            if dlg.run() == gtk.RESPONSE_YES:
-                    state.store.identityKeyStore.setTrust(_id, TRUSTED)
-                    if self.plugin.ui_list[account][user]:
+            response = dlg.run()
+            if response == gtk.RESPONSE_YES:
+                state.store.identityKeyStore.setTrust(_id, TRUSTED)
+                if self.plugin.ui_list[account][user]:
                         self.plugin.ui_list[account][user].refreshAuthLockSymbol()
-            dlg.destroy()
-
-        self.update_context_list()
-
-    def untrust_button_clicked_cb(self, button, *args):
-        active = self.B.get_object('account_combobox').get_active()
-        account = self.account_store[active][0]
-
-        state = self.plugin.get_omemo_state(account)
-
-        mod, paths = self.fpr_view.get_selection().get_selected_rows()
-
-        for path in paths:
-            it = mod.get_iter(path)
-            _id, user, fpr = mod.get(it, 0, 1, 3)
-            fpr = fpr[31:-12]
-            dlg = gtk.Dialog('Confirm trusting fingerprint', self,
-                             gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
-                             (gtk.STOCK_YES, gtk.RESPONSE_YES,
-                              gtk.STOCK_NO, gtk.RESPONSE_NO))
-            l = gtk.Label()
-            l.set_markup('Are you sure you want to NOT trust the following '
-                         'fingerprint for the contact <b>%s</b> on the account <b>%s</b>?'
-                         '\n\n<tt>%s</tt>' % (user, account, fpr))
-            l.set_line_wrap(True)
-            dlg.vbox.pack_start(l)
-            dlg.show_all()
-
-            if dlg.run() == gtk.RESPONSE_YES:
+                dlg.destroy()
+            else:
+                if response == gtk.RESPONSE_NO:
                     state.store.identityKeyStore.setTrust(_id, UNTRUSTED)
                     if self.plugin.ui_list[account][user]:
                         self.plugin.ui_list[account][user].refreshAuthLockSymbol()
@@ -321,7 +298,7 @@ class FingerprintWindow(gtk.Dialog):
                             title=('Fingerprints for %s') % contact.jid,
                             parent=parent,
                             flags=gtk.DIALOG_DESTROY_WITH_PARENT,
-                            buttons=(gtk.STOCK_OK, gtk.RESPONSE_ACCEPT))
+                            buttons=(gtk.STOCK_CLOSE, gtk.RESPONSE_CLOSE))
         self.plugin = plugin
         self.GTK_BUILDER_FILE_PATH = \
             self.plugin.local_file_path('fpr_dialog.ui')
@@ -360,44 +337,19 @@ class FingerprintWindow(gtk.Dialog):
                              (gtk.STOCK_YES, gtk.RESPONSE_YES,
                               gtk.STOCK_NO, gtk.RESPONSE_NO))
             l = gtk.Label()
-            l.set_markup('Are you sure you want to trust the following '
+            l.set_markup('Do you want to trust the following '
                          'fingerprint for the contact <b>%s</b> on the account <b>%s</b>?'
                          '\n\n<tt>%s</tt>' % (user, account, fpr))
             l.set_line_wrap(True)
             dlg.vbox.pack_start(l)
             dlg.show_all()
-
-            if dlg.run() == gtk.RESPONSE_YES:
-                    state.store.identityKeyStore.setTrust(_id, TRUSTED)
-                    self.plugin.ui_list[account][self.contact.jid].refreshAuthLockSymbol()
-            dlg.destroy()
-
-        self.update_context_list()
-
-    def untrust_button_clicked_cb(self, button, *args):
-        account = self.contact.account.name
-
-        state = self.plugin.get_omemo_state(account)
-
-        mod, paths = self.fpr_view.get_selection().get_selected_rows()
-
-        for path in paths:
-            it = mod.get_iter(path)
-            _id, user, fpr = mod.get(it, 0, 1, 3)
-            fpr = fpr[31:-12]
-            dlg = gtk.Dialog('Confirm trusting fingerprint', self,
-                             gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
-                             (gtk.STOCK_YES, gtk.RESPONSE_YES,
-                              gtk.STOCK_NO, gtk.RESPONSE_NO))
-            l = gtk.Label()
-            l.set_markup('Are you sure you want to NOT trust the following '
-                         'fingerprint for the contact <b>%s</b> on the account <b>%s</b>?'
-                         '\n\n<tt>%s</tt>' % (user, account, fpr))
-            l.set_line_wrap(True)
-            dlg.vbox.pack_start(l)
-            dlg.show_all()
-
-            if dlg.run() == gtk.RESPONSE_YES:
+            response = dlg.run()
+            if response == gtk.RESPONSE_YES:
+                state.store.identityKeyStore.setTrust(_id, TRUSTED)
+                self.plugin.ui_list[account][self.contact.jid].refreshAuthLockSymbol()
+                dlg.destroy()
+            else:
+                if response == gtk.RESPONSE_NO:
                     state.store.identityKeyStore.setTrust(_id, UNTRUSTED)
                     self.plugin.ui_list[account][self.contact.jid].refreshAuthLockSymbol()
             dlg.destroy()

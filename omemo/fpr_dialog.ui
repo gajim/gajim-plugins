@@ -55,7 +55,7 @@
                           <object class="GtkLabel" id="fingerprint_label_desc">
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
-                            <property name="label" translatable="yes" comments="Descriptive label">Fingerprint:</property>
+                            <property name="label" translatable="yes" comments="Descriptive label">Own Fingerprint:</property>
                           </object>
                           <packing>
                             <property name="expand">False</property>
@@ -83,12 +83,6 @@
                         <property name="fill">True</property>
                         <property name="position">0</property>
                       </packing>
-                    </child>
-                    <child>
-                      <placeholder/>
-                    </child>
-                    <child>
-                      <placeholder/>
                     </child>
                   </object>
                 </child>
@@ -168,7 +162,7 @@
             <property name="homogeneous">True</property>
             <child>
               <object class="GtkButton" id="trust_button">
-                <property name="label" translatable="yes" comments="button">Trust Fingerprint</property>
+                <property name="label" translatable="yes" comments="button">Verify Fingerprint</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
@@ -178,20 +172,6 @@
                 <property name="expand">True</property>
                 <property name="fill">True</property>
                 <property name="position">0</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkButton" id="untrust_button">
-                <property name="label" translatable="yes" comments="button">UnTrust Fingerprint</property>
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">True</property>
-                <signal name="clicked" handler="untrust_button_clicked_cb" swapped="no"/>
-              </object>
-              <packing>
-                <property name="expand">True</property>
-                <property name="fill">True</property>
-                <property name="position">1</property>
               </packing>
             </child>
           </object>
