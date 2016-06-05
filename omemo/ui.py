@@ -206,15 +206,19 @@ class OMEMOConfigDialog(GajimPluginConfigDialog):
             response = dlg.run()
             if response == gtk.RESPONSE_YES:
                 state.store.identityKeyStore.setTrust(_id, TRUSTED)
-                if self.plugin.ui_list[account][user]:
+                try:
+                    if self.plugin.ui_list[account]:
                         self.plugin.ui_list[account][user].refreshAuthLockSymbol()
-                dlg.destroy()
+                except:
+                    dlg.destroy()
             else:
                 if response == gtk.RESPONSE_NO:
                     state.store.identityKeyStore.setTrust(_id, UNTRUSTED)
-                    if self.plugin.ui_list[account][user]:
-                        self.plugin.ui_list[account][user].refreshAuthLockSymbol()
-            dlg.destroy()
+                    try:
+                        if user in self.plugin.ui_list[account]:
+                            self.plugin.ui_list[account][user].refreshAuthLockSymbol()
+                    except:
+                        dlg.destroy()
 
         self.update_context_list()
 
