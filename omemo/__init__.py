@@ -33,7 +33,7 @@ from nbxmpp.simplexml import Node
 from .ui import Ui
 from .xmpp import (
     NS_NOTIFY, NS_OMEMO, BundleInformationAnnouncement, BundleInformationQuery,
-    DeviceListAnnouncement, DevicelistPEP, OmemoMessage, successful,
+    DeviceListAnnouncement, DevicelistQuery, DevicelistPEP, OmemoMessage, successful,
     unpack_device_bundle, unpack_device_list_update, unpack_encrypted)
 
 
@@ -191,7 +191,7 @@ class OmemoPlugin(GajimPlugin):
         if event.pep_type != 'headline':
             return False
 
-        devices_list = unpack_device_list_update(event)
+        devices_list = unpack_device_list_update(event.stanza, event.conn.name)
         if len(devices_list) == 0:
             return False
         account_name = event.conn.name
@@ -407,14 +407,14 @@ class OmemoPlugin(GajimPlugin):
         id_ = str(iq.getAttr("id"))
         log.debug(account + " → Announcing OMEMO support via PEP")
         iq_ids_to_callbacks[id_] = lambda stanza: \
-            self.handle_announcement_result(account, stanza, state)
+            self.handle_announcement_result(account, stanza)
 
     @log_calls('OmemoPlugin')
-    def handle_announcement_result(self, account, stanza, state):
-        """ Updates own device list if announcement was successfull.
+    def handle_announcement_result(self, account, stanza):
+        """ Query own device list if announcement was successfull.
 
-            If the OMEMO support announcement was successfull update own device
-            list if needed.
+            If the OMEMO support announcement was successfull own device
+            list is queried.
 
             Parameters
             ----------
@@ -422,20 +422,53 @@ class OmemoPlugin(GajimPlugin):
                 the account name
             stanza
                 The stanza object received from callback
-            state : (OmemoState)
-                The OmemoState used
         """
-
-        state = self.get_omemo_state(account)
+        my_jid = gajim.get_jid_from_account(account)
+        iq = DevicelistQuery(my_jid)
         if successful(stanza):
             log.debug(account + ' → Publishing bundle was successful')
-            if not state.own_device_id_published():
-                log.warn(account + ' → Device list needs updating')
-                self.publish_own_devices_list(account, state)
-            else:
-                log.debug(account + ' → Device list up to date')
+            gajim.connections[account].connection.send(iq)
+            log.debug(account + ' → Querry own Devicelist')
+            id_ = str(iq.getAttr("id"))
+            iq_ids_to_callbacks[id_] = lambda stanza: \
+                self.handle_devicelist_result(account, stanza)
         else:
             log.error(account + ' → Publishing bundle was NOT successful')
+
+    @log_calls('OmemoPlugin')
+    def handle_devicelist_result(self, account, stanza):
+        """ If query was successful add own device to the list.
+
+            Parameters
+            ----------
+            account : str
+                the account name
+            stanza
+                The stanza object received from callback
+        """
+
+        if successful(stanza):
+            log.debug(account + ' → Devicelistquery was successful')
+            devices_list = unpack_device_list_update(stanza, account)
+            if len(devices_list) == 0:
+                return False
+
+            my_jid = gajim.get_jid_from_account(account)
+            state = self.get_omemo_state(account)
+            contact_jid = stanza.getAttr('from')
+            if contact_jid == my_jid:
+                state.set_own_devices(devices_list)
+                if not state.own_device_id_published() or anydup(
+                        state.own_devices):
+                    # Our own device_id is not in the list, it could be
+                    # overwritten by some other client?
+                    # also remove duplicates
+                    devices_list = list(set(state.own_devices))
+                    devices_list.append(state.own_device_id)
+                    self.publish_own_devices_list(account, state)
+        else:
+            log.error(account + ' → Devicelistquery was NOT successful')
+            self.publish_own_devices_list(account, state)
 
     @log_calls('OmemoPlugin')
     def clear_device_list(self, contact):

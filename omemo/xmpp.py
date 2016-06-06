@@ -128,6 +128,16 @@ class BundleInformationAnnouncement(Iq):
         return result
 
 
+class DevicelistQuery(Iq):
+    def __init__(self, contact_jid,):
+        id_ = gajim.get_an_id()
+        attrs = {'id': id_}
+        Iq.__init__(self, typ='get', attrs=attrs, to=contact_jid)
+        items = Node('items', attrs={'node': NS_DEVICE_LIST})
+        pubsub = PubsubNode(items)
+        self.addChild(node=pubsub)
+
+
 class DevicelistPEP(AbstractPEP):
     type_ = 'headline'
     namespace = NS_DEVICE_LIST
@@ -270,20 +280,21 @@ def unpack_encrypted(encrypted_node):
     return result
 
 
-def unpack_device_list_update(event):
-    """ Unpacks the device list update received in a MessageReceivedEvent.
+def unpack_device_list_update(stanza, account):
+    """ Unpacks the device list from a stanza
 
         Parameters
         ----------
-        event : MessageReceivedEvent
-                The event received from gajim
+        stanza
+
         Returns
         -------
         [int]
             List of device ids or empty list if nothing found
     """
-    event_node = event.stanza.getTag('event', namespace=NS_PUBSUB_EVENT)
-    account = event.conn.name
+    event_node = stanza.getTag('event', namespace=NS_PUBSUB_EVENT)
+    if not event_node:
+        event_node = stanza.getTag('pubsub', namespace=NS_PUBSUB)
     result = []
 
     if not event_node:
