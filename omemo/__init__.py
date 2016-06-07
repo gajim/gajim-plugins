@@ -521,10 +521,10 @@ class OmemoPlugin(GajimPlugin):
             self.publish_own_devices_list(account, state)
 
     @log_calls('OmemoPlugin')
-    def clear_device_list(self, contact):
-        account = contact.account.name
+    def clear_device_list(self, account):
         state = self.get_omemo_state(account)
         devices_list = [state.own_device_id]
+        state.set_own_devices(devices_list)
 
         log.info(account + ' ⇒ Clearing devices_list ' + str(devices_list))
         iq = DeviceListAnnouncement(devices_list)

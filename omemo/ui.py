@@ -156,6 +156,8 @@ class OMEMOConfigDialog(GajimPluginConfigDialog):
                                        gobject.TYPE_STRING,
                                        gobject.TYPE_STRING)
 
+        self.device_model = gtk.ListStore(gobject.TYPE_STRING)
+
         self.account_store = self.B.get_object('account_store')
 
         for account in sorted(gajim.contacts.get_accounts()):
@@ -164,6 +166,9 @@ class OMEMOConfigDialog(GajimPluginConfigDialog):
         self.fpr_view = self.B.get_object('fingerprint_view')
         self.fpr_view.set_model(self.fpr_model)
         self.fpr_view.get_selection().set_mode(gtk.SELECTION_MULTIPLE)
+
+        self.device_view = self.B.get_object('deviceid_view')
+        self.device_view.set_model(self.device_model)
 
         if len(self.account_store) > 0:
             self.B.get_object('account_combobox').set_active(0)
@@ -222,6 +227,15 @@ class OMEMOConfigDialog(GajimPluginConfigDialog):
 
         self.update_context_list()
 
+    def cleardevice_button_clicked_cb(self, button, *args):
+        active = self.B.get_object('account_combobox').get_active()
+        account = self.account_store[active][0]
+        self.plugin.clear_device_list(account)
+        self.update_context_list()
+
+    def refresh_button_clicked_cb(self, button, *args):
+        self.update_context_list()
+
     def fpr_button_pressed_cb(self, tw, event):
         if event.button == 3:
             pthinfo = tw.get_path_at_pos(int(event.x), int(event.y))
@@ -257,6 +271,7 @@ class OMEMOConfigDialog(GajimPluginConfigDialog):
     def update_context_list(self):
         trust = {None: "Not Set", 0: False, 1: True, 2: "Undecided"}
         self.fpr_model.clear()
+        self.device_model.clear()
         active = self.B.get_object('account_combobox').get_active()
         account = self.account_store[active][0]
         state = self.plugin.get_omemo_state(account)
@@ -284,6 +299,9 @@ class OMEMOConfigDialog(GajimPluginConfigDialog):
             elif trust[tr] == "Undecided":
                 self.fpr_model.append((_id, jid, trust[tr],
                                        '<tt><span foreground="#FF8000">%s</span></tt>' % fpr))
+
+        for item in state.own_devices:
+            self.device_model.append([item])
 
     def human_hash(self, fpr):
         fpr = fpr.upper()
