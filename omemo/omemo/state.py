@@ -177,7 +177,7 @@ class OmemoState:
                 key = self.handleWhisperMessage(sender_jid, sid, encrypted_key)
             except (NoSessionException, InvalidMessageException) as e:
                 log.error('No Session found ' + e.message)
-                log.error('sender_jid →  ' + str(sender_jid) + ' sid =>' + str(
+                log.error('sender_jid =>  ' + str(sender_jid) + ' sid =>' + str(
                     sid))
                 return
             except (DuplicateMessageException) as e:

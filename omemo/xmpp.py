@@ -298,19 +298,19 @@ def unpack_device_list_update(stanza, account):
     result = []
 
     if not event_node:
-        log.warn(account + ' → Device list update event node empty!')
+        log.warn(account + ' => Device list update event node empty!')
         return result
 
     items = event_node.getTag('items', {'node': NS_DEVICE_LIST})
     if not items or len(items.getChildren()) != 1:
         log.debug(
             account +
-            ' → Device list update items node empty or not omemo device update')
+            ' => Device list update items node empty or not omemo device update')
         return result
 
     list_node = items.getChildren()[0].getTag('list')
     if not list_node or len(list_node.getChildren()) == 0:
-        log.warn(account + ' → Device list update list node empty!')
+        log.warn(account + ' => Device list update list node empty!')
         return result
 
     devices_nodes = list_node.getChildren()

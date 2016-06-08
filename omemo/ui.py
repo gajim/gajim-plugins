@@ -59,14 +59,14 @@ class Checkbox(gtk.CheckButton):
     def on_click(self, widget):
         enabled = self.get_active()
         if enabled:
-            log.info(self.contact.account.name + ' ⇒ Enable OMEMO for ' +
+            log.info(self.contact.account.name + ' => Enable OMEMO for ' +
                      self.contact.jid)
             self.plugin.omemo_enable_for(self.contact)
             self.ui.WarnIfUndecidedFingerprints()
             self.chat_control.print_conversation_line(
                 u'OMEMO encryption enabled ', 'status', '', None)
         else:
-            log.info(self.contact.account.name + ' ⇒ Disable OMEMO for ' +
+            log.info(self.contact.account.name + ' => Disable OMEMO for ' +
                      self.contact.jid)
             self.plugin.omemo_disable_for(self.contact)
             self.ui.refreshAuthLockSymbol()
@@ -107,7 +107,7 @@ class Ui(object):
         if self.checkbox.get_active():
             self.checkbox.set_active(False)
         else:
-            log.info(self.contact.account.name + ' ⇒ Disable OMEMO for ' +
+            log.info(self.contact.account.name + ' => Disable OMEMO for ' +
                      self.contact.jid)
             self.refreshAuthLockSymbol()
             self.chat_control.print_conversation_line(
