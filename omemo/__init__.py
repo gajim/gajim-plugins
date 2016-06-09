@@ -430,8 +430,13 @@ class OmemoPlugin(GajimPlugin):
         if state.build_session(recipient_id, device_id, bundle_dict):
             log.warn(recipient_id + ' => session created')
             # Warn User about new Fingerprints in DB if Chat Window is Open
-            if self.ui_list[account_name][recipient_id]:
-                self.ui_list[account_name][recipient_id].WarnIfUndecidedFingerprints()
+            try:
+                if self.ui_list[account_name][recipient_id]:
+                    self.ui_list[account_name][recipient_id]. \
+                        WarnIfUndecidedFingerprints()
+            except:
+                log.debug('No Ui present for ' + recipient_id +
+                          ', Ui Warning not shown')
 
     @log_calls('OmemoPlugin')
     def announce_support(self, account):
