@@ -447,14 +447,14 @@ class OmemoPlugin(GajimPlugin):
                 The stanza object received from callback
         """
 
+        my_jid = gajim.get_jid_from_account(account)
+        state = self.get_omemo_state(account)
+
         if successful(stanza):
             log.debug(account + ' → Devicelistquery was successful')
             devices_list = unpack_device_list_update(stanza, account)
             if len(devices_list) == 0:
                 return False
-
-            my_jid = gajim.get_jid_from_account(account)
-            state = self.get_omemo_state(account)
             contact_jid = stanza.getAttr('from')
             if contact_jid == my_jid:
                 state.set_own_devices(devices_list)
