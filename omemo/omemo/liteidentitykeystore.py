@@ -150,4 +150,9 @@ class LiteIdentityKeyStore(IdentityKeyStore):
         c.execute(q, (recipientId, identityKey.getPublicKey().serialize()))
         result = c.fetchone()
 
-        return result[0] if result else None
+        states = [UNTRUSTED, TRUSTED, UNDECIDED]
+
+        if result[0] in states:
+            return result[0]
+        else:
+            return UNDECIDED

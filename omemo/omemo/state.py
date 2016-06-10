@@ -41,6 +41,11 @@ from .liteaxolotlstore import LiteAxolotlStore
 log = logging.getLogger('gajim.plugin_system.omemo')
 
 
+UNTRUSTED = 0
+TRUSTED = 1
+UNDECIDED = 2
+
+
 class OmemoState:
     def __init__(self, own_jid, connection):
         """ Instantiates an OmemoState object.
@@ -50,7 +55,6 @@ class OmemoState:
         self.session_ciphers = {}
         self.own_jid = own_jid
         self.device_ids = {}
-        self.trust = {None: "Not Set", 0: False, 1: True, 2: "Undecided"}
         self.own_devices = []
         self.store = LiteAxolotlStore(connection)
         self.encryption = self.store.encryptionStore
@@ -222,14 +226,13 @@ class OmemoState:
         # Encrypt the message key with for each of receivers devices
         for rid, cipher in session_ciphers.items():
             try:
-                if self.trust[self.isTrusted(cipher)] is True:
+                if self.isTrusted(cipher) == TRUSTED:
                     encrypted_keys[rid] = cipher.encrypt(key).serialize()
                 else:
                     log.debug('Skipped Device because Trust is: ' +
-                              str(self.trust[self.isTrusted(cipher)]))
+                              str(self.isTrusted(cipher)))
             except:
-                log.warn('Failed to find key for device ' + str(
-                    rid))
+                log.warn('Failed to find key for device ' + str(rid))
 
         if len(encrypted_keys) == 0:
             log_msg = 'Encrypted keys empty'
@@ -335,19 +338,18 @@ class OmemoState:
     def handlePreKeyWhisperMessage(self, recipient_id, device_id, key):
         preKeyWhisperMessage = PreKeyWhisperMessage(serialized=key)
         sessionCipher = self.get_session_cipher(recipient_id, device_id)
-        if self.trust[self.isTrusted(sessionCipher)] is not False:
+        if self.isTrusted(sessionCipher) != UNTRUSTED:
             key = sessionCipher.decryptPkmsg(preKeyWhisperMessage)
             log.debug('PreKeyWhisperMessage => ' + str(key))
             return key
         else:
             raise Exception("Received PreKeyWhisperMessage from Untrusted Fingerprint!")
 
-
     def handleWhisperMessage(self, recipient_id, device_id, key):
         whisperMessage = WhisperMessage(serialized=key)
         sessionCipher = self.get_session_cipher(recipient_id, device_id)
-        if (self.trust[self.isTrusted(sessionCipher)] is True) or \
-                (self.trust[self.isTrusted(sessionCipher)] == "Undecided"):
+        if self.isTrusted(sessionCipher) == TRUSTED or \
+                self.isTrusted(sessionCipher) == UNDECIDED:
             key = sessionCipher.decryptMsg(whisperMessage)
             log.debug('WhisperMessage => ' + str(key))
             return key

@@ -28,6 +28,7 @@ import binascii
 
 log = logging.getLogger('gajim.plugin_system.omemo')
 
+UNDECIDED = 2
 TRUSTED = 1
 UNTRUSTED = 0
 
@@ -270,7 +271,6 @@ class OMEMOConfigDialog(GajimPluginConfigDialog):
         gtk.Clipboard(selection='PRIMARY').set_text('\n'.join(fprs))
 
     def update_context_list(self):
-        trust = {None: "Not Set", 0: False, 1: True, 2: "Undecided"}
         self.fpr_model.clear()
         self.device_model.clear()
         active = self.B.get_object('account_combobox').get_active()
@@ -288,17 +288,14 @@ class OMEMOConfigDialog(GajimPluginConfigDialog):
             _id, jid, fpr, tr = item
             fpr = binascii.hexlify(fpr)
             fpr = self.human_hash(fpr[2:])
-            if trust[tr] is False:
-                self.fpr_model.append((_id, jid, trust[tr],
+            if tr == UNTRUSTED:
+                self.fpr_model.append((_id, jid, 'False',
                                        '<tt><span foreground="#FF0040">%s</span></tt>' % fpr))
-            elif trust[tr] is True:
-                self.fpr_model.append((_id, jid, trust[tr],
+            elif tr == TRUSTED:
+                self.fpr_model.append((_id, jid, 'True',
                                        '<tt><span foreground="#2EFE2E">%s</span></tt>' % fpr))
-            elif trust[tr] == "Not Set":
-                self.fpr_model.append((_id, jid, trust[tr],
-                                       '<tt><span foreground="#FF0040">%s</span></tt>' % fpr))
-            elif trust[tr] == "Undecided":
-                self.fpr_model.append((_id, jid, trust[tr],
+            else:
+                self.fpr_model.append((_id, jid, 'Undecided',
                                        '<tt><span foreground="#FF8000">%s</span></tt>' % fpr))
 
         for item in state.own_devices:
@@ -412,7 +409,6 @@ class FingerprintWindow(gtk.Dialog):
         gtk.Clipboard(selection='PRIMARY').set_text('\n'.join(fprs))
 
     def update_context_list(self):
-        trust = {None: "Not Set", 0: False, 1: True, 2: "Undecided"}
         self.fpr_model.clear()
         state = self.plugin.get_omemo_state(self.contact.account.name)
 
@@ -427,18 +423,16 @@ class FingerprintWindow(gtk.Dialog):
             _id, jid, fpr, tr = item
             fpr = binascii.hexlify(fpr)
             fpr = self.human_hash(fpr[2:])
-            if trust[tr] is False:
-                self.fpr_model.append((_id, jid, trust[tr],
+            if tr == UNTRUSTED:
+                self.fpr_model.append((_id, jid, 'False',
                                        '<tt><span foreground="#FF0040">%s</span></tt>' % fpr))
-            elif trust[tr] is True:
-                self.fpr_model.append((_id, jid, trust[tr],
+            elif tr == TRUSTED:
+                self.fpr_model.append((_id, jid, 'True',
                                        '<tt><span foreground="#2EFE2E">%s</span></tt>' % fpr))
-            elif trust[tr] == "Not Set":
-                self.fpr_model.append((_id, jid, trust[tr],
-                                       '<tt><span foreground="#FF0040">%s</span></tt>' % fpr))
-            elif trust[tr] == "Undecided":
-                self.fpr_model.append((_id, jid, trust[tr],
+            else:
+                self.fpr_model.append((_id, jid, 'Undecided',
                                        '<tt><span foreground="#FF8000">%s</span></tt>' % fpr))
+
 
     def human_hash(self, fpr):
         fpr = fpr.upper()
