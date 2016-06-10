@@ -123,9 +123,10 @@ class Ui(object):
             'Your next message will still be encrypted!', 'status', '', None)
 
     def WarnIfUndecidedFingerprints(self):
-        if self.state.store.identityKeyStore.getUndecidedFingerprints(self.contact.jid):
-            msg = "You received a new Fingerprint. " + \
-                  "Until you make a trust decision you can only " + \
+        if self.state.store.identityKeyStore. \
+                getUndecidedFingerprints(self.contact.jid):
+            msg = "You received a new Fingerprint. " \
+                  "Until you make a trust decision you can only " \
                   "receive encrypted Messages from that Device."
             self.chat_control.print_conversation_line(msg, 'status', '', None)
         self.refreshAuthLockSymbol()
