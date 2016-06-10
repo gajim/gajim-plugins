@@ -225,8 +225,8 @@ class OmemoState:
                 if self.trust[self.isTrusted(cipher)] is True:
                     encrypted_keys[rid] = cipher.encrypt(key).serialize()
                 else:
-                    log.warn('Skipped Device because Trust is: ' +
-                             str(self.trust[self.isTrusted(cipher)]))
+                    log.debug('Skipped Device because Trust is: ' +
+                              str(self.trust[self.isTrusted(cipher)]))
             except:
                 log.warn('Failed to find key for device ' + str(
                     rid))

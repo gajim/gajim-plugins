@@ -172,7 +172,7 @@ class OmemoPlugin(GajimPlugin):
                     gui = self.ui_list[account].get(jid, None)
                     if gui and gui.encryption_active():
                         gui.plain_warning()
-                except:
+                except KeyError:
                     log.debug('No Ui present for ' + jid +
                               ', Ui Warning not shown')
 
@@ -224,7 +224,7 @@ class OmemoPlugin(GajimPlugin):
                     gui = self.ui_list[account].get(jid, None)
                     if gui and gui.encryption_active():
                         gui.plain_warning()
-                except:
+                except KeyError:
                     log.debug('No Ui present for ' + jid +
                               ', Ui Warning not shown')
 
@@ -327,9 +327,9 @@ class OmemoPlugin(GajimPlugin):
         result += len(state.devices_without_sessions(str(contact_jid)))
         result += len(state.own_devices_without_sessions(my_jid))
         if result > 0:
-            log.warn(account_name + " => Missing keys for " + contact_jid + ": " +
+            log.info(account_name + " => Missing keys for " + contact_jid + ": " +
                      str(result))
-            log.warn('query keys now ...')
+            log.info('Query keys now ...')
             self.query_prekey(account_name, contact_jid)
 
     @log_calls('OmemoPlugin')
@@ -430,13 +430,10 @@ class OmemoPlugin(GajimPlugin):
         if state.build_session(recipient_id, device_id, bundle_dict):
             log.warn(recipient_id + ' => session created')
             # Warn User about new Fingerprints in DB if Chat Window is Open
-            try:
-                if self.ui_list[account_name][recipient_id]:
-                    self.ui_list[account_name][recipient_id]. \
-                        WarnIfUndecidedFingerprints()
-            except:
-                log.debug('No Ui present for ' + recipient_id +
-                          ', Ui Warning not shown')
+            if account_name in self.ui_list and \
+                    recipient_id in self.ui_list[account_name]:
+                self.ui_list[account_name][recipient_id]. \
+                    WarnIfUndecidedFingerprints()
 
     @log_calls('OmemoPlugin')
     def announce_support(self, account):
@@ -553,16 +550,14 @@ class OmemoPlugin(GajimPlugin):
             return False
 
         if not state.store.identityKeyStore.getTrustedFingerprints(to_jid):
-            try:
                 msg = "To send an encrypted message, you have to " \
                       "first trust the fingerprint of your contact!"
-                if self.ui_list[account][to_jid]:
-                    self.ui_list[account][to_jid]. \
-                        chat_control.print_conversation_line(msg, 'status', '', None)
-            except:
-                log.debug('No Ui present for ' + to_jid +
-                          ', Ui Warning not shown')
-            return True
+                if account in self.ui_list and \
+                        to_jid in self.ui_list[account]:
+                    self.ui_list[account][to_jid].chat_control. \
+                        print_conversation_line(msg, 'status', '', None)
+
+                return True
 
         try:
             msg_dict = state.create_msg(
