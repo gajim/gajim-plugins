@@ -428,7 +428,7 @@ class OmemoPlugin(GajimPlugin):
             return
 
         if state.build_session(recipient_id, device_id, bundle_dict):
-            log.warn(recipient_id + ' => session created')
+            log.info(recipient_id + ' => session created')
             # Warn User about new Fingerprints in DB if Chat Window is Open
             if account_name in self.ui_list and \
                     recipient_id in self.ui_list[account_name]:
