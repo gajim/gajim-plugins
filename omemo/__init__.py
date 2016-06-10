@@ -551,6 +551,19 @@ class OmemoPlugin(GajimPlugin):
         to_jid = gajim.get_jid_without_resource(full_jid)
         if not state.encryption.is_active(to_jid):
             return False
+
+        if not state.store.identityKeyStore.getTrustedFingerprints(to_jid):
+            try:
+                msg = "To send an encrypted message, you have to " \
+                      "first trust the fingerprint of your contact!"
+                if self.ui_list[account][to_jid]:
+                    self.ui_list[account][to_jid]. \
+                        chat_control.print_conversation_line(msg, 'status', '', None)
+            except:
+                log.debug('No Ui present for ' + to_jid +
+                          ', Ui Warning not shown')
+            return True
+
         try:
             msg_dict = state.create_msg(
                 gajim.get_jid_from_account(account), to_jid, plaintext)

@@ -185,18 +185,11 @@ class OmemoState:
                 log.error('sender_jid => ' + str(sender_jid) +
                           ' sid => ' + str(sid))
                 return
-            except (Exception) as e:
-                log.error('Exception: ' + str(e.args))
-                return
 
         except (DuplicateMessageException):
             log.error('Duplicate message found ' + e.message)
             log.error('sender_jid => ' + str(sender_jid) +
                       ' sid => ' + str(sid))
-            return
-
-        except (Exception) as e:
-            log.error('Exception: ' + str(e.args))
             return
 
         result = unicode(aes_decrypt(key, iv, payload))
@@ -226,12 +219,6 @@ class OmemoState:
             log.warn('No session ciphers for ' + jid)
             return
 
-        my_other_devices = set(self.own_devices) - set({self.own_device_id})
-        # Encrypt the message key with for each of our own devices
-        for dev in my_other_devices:
-            cipher = self.get_session_cipher(from_jid, dev)
-            encrypted_keys[dev] = cipher.encrypt(key).serialize()
-
         # Encrypt the message key with for each of receivers devices
         for rid, cipher in session_ciphers.items():
             try:
@@ -248,6 +235,12 @@ class OmemoState:
             log_msg = 'Encrypted keys empty'
             log.error(log_msg)
             raise NoValidSessions(log_msg)
+
+        my_other_devices = set(self.own_devices) - set({self.own_device_id})
+        # Encrypt the message key with for each of our own devices
+        for dev in my_other_devices:
+            cipher = self.get_session_cipher(from_jid, dev)
+            encrypted_keys[dev] = cipher.encrypt(key).serialize()
 
         payload = aes_encrypt(key, iv, plaintext)
 
@@ -348,7 +341,7 @@ class OmemoState:
             return key
         else:
             raise Exception("Received PreKeyWhisperMessage from Untrusted Fingerprint!")
-            return
+
 
     def handleWhisperMessage(self, recipient_id, device_id, key):
         whisperMessage = WhisperMessage(serialized=key)
@@ -360,4 +353,3 @@ class OmemoState:
             return key
         else:
             raise Exception("Received WhisperMessage from Untrusted Fingerprint!")
-            return
