@@ -76,7 +76,9 @@ class OmemoPlugin(GajimPlugin):
             'raw-iq-received': (ged.PRECORE, self.handle_iq_received),
             'signed-in': (ged.PRECORE, self.signed_in),
             'stanza-message-outgoing':
-            (ged.PRECORE, self.handle_outgoing_msgs),
+            (ged.PRECORE, self.handle_outgoing_stanza),
+            'message-outgoing':
+            (ged.PRECORE, self.handle_outgoing_event),
         }
         self.config_dialog = ui.OMEMOConfigDialog(self)
         self.gui_extension_points = {'chat_control': (self.connect_ui, None)}
@@ -538,7 +540,20 @@ class OmemoPlugin(GajimPlugin):
         iq_ids_to_callbacks[id_] = lambda event: log.info(event)
 
     @log_calls('OmemoPlugin')
-    def handle_outgoing_msgs(self, event):
+    def handle_outgoing_event(self, event):
+        # Handles the message before it gets made into a stanza
+        # and allows us to remove every xhtml before it even gets
+        # pressed into a stanza
+        account = event.account
+        state = self.get_omemo_state(account)
+
+        if not state.encryption.is_active(event.jid):
+            return False
+
+        event.xhtml = None
+
+    @log_calls('OmemoPlugin')
+    def handle_outgoing_stanza(self, event):
         if not event.msg_iq.getTag('body'):
             return
         plaintext = event.msg_iq.getBody().encode('utf8')
@@ -564,6 +579,7 @@ class OmemoPlugin(GajimPlugin):
                 gajim.get_jid_from_account(account), to_jid, plaintext)
             if not msg_dict:
                 return True
+
             encrypted_node = OmemoMessage(msg_dict)
             event.msg_iq.delChild('body')
             event.msg_iq.addChild(node=encrypted_node)
