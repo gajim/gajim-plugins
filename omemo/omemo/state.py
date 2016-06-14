@@ -61,9 +61,13 @@ class OmemoState:
         for jid, device_id in self.store.getDeviceTuples():
             if jid != own_jid:
                 self.add_device(jid, device_id)
+            else:
+                self.add_own_device(device_id)
 
         log.debug(self.own_jid + ': Roster devices after boot:' +
                   str(self.device_ids))
+        log.debug(self.own_jid + ': Own devices after boot:' +
+                  str(self.own_devices))
 
     def build_session(self, recipient_id, device_id, bundle_dict):
         sessionBuilder = SessionBuilder(self.store, self.store, self.store,
