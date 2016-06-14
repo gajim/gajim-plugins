@@ -62,7 +62,7 @@ class OmemoState:
             if jid != own_jid:
                 self.add_device(jid, device_id)
 
-        log.debug(self.own_jid + ': devices after boot:' +
+        log.debug(self.own_jid + ': Roster devices after boot:' +
                   str(self.device_ids))
 
     def build_session(self, recipient_id, device_id, bundle_dict):
@@ -203,7 +203,7 @@ class OmemoState:
         else:
             self.add_device(sender_jid, sid)
 
-        log.debug("Decrypted msg => " + result)
+        log.debug("Decrypted Message => " + result)
         return result
 
     def create_msg(self, from_jid, jid, plaintext):
@@ -253,8 +253,7 @@ class OmemoState:
                   'iv': iv,
                   'payload': payload}
 
-        log.debug('encrypted message')
-        log.debug(result)
+        log.debug('Finished encrypting message')
         return result
 
     def isTrusted(self, cipher):
@@ -340,10 +339,10 @@ class OmemoState:
         sessionCipher = self.get_session_cipher(recipient_id, device_id)
         if self.isTrusted(sessionCipher) != UNTRUSTED:
             key = sessionCipher.decryptPkmsg(preKeyWhisperMessage)
-            log.debug('PreKeyWhisperMessage => ' + str(key))
             return key
         else:
-            raise Exception("Received PreKeyWhisperMessage from Untrusted Fingerprint!")
+            raise Exception("Received PreKeyWhisperMessage "
+                            "from Untrusted Fingerprint!")
 
     def handleWhisperMessage(self, recipient_id, device_id, key):
         whisperMessage = WhisperMessage(serialized=key)
@@ -351,7 +350,7 @@ class OmemoState:
         if self.isTrusted(sessionCipher) == TRUSTED or \
                 self.isTrusted(sessionCipher) == UNDECIDED:
             key = sessionCipher.decryptMsg(whisperMessage)
-            log.debug('WhisperMessage => ' + str(key))
             return key
         else:
-            raise Exception("Received WhisperMessage from Untrusted Fingerprint!")
+            raise Exception("Received WhisperMessage "
+                            "from Untrusted Fingerprint!")
