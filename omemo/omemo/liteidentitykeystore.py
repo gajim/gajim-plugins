@@ -152,7 +152,7 @@ class LiteIdentityKeyStore(IdentityKeyStore):
 
         states = [UNTRUSTED, TRUSTED, UNDECIDED]
 
-        if result[0] in states:
+        if result and result[0] in states:
             return result[0]
         else:
             return UNDECIDED
