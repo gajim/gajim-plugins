@@ -250,7 +250,11 @@ class OmemoState:
         # Encrypt the message key with for each of our own devices
         for dev in my_other_devices:
             cipher = self.get_session_cipher(from_jid, dev)
-            encrypted_keys[dev] = cipher.encrypt(key).serialize()
+            if self.isTrusted(cipher) == TRUSTED:
+                encrypted_keys[dev] = cipher.encrypt(key).serialize()
+            else:
+                log.debug('Skipped own Device because Trust is: ' +
+                          str(self.isTrusted(cipher)))
 
         payload = aes_encrypt(key, iv, plaintext)
 
