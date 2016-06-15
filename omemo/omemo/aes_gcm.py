@@ -145,7 +145,6 @@ def aes_encrypt(key, nonce, plaintext):
     """ Use AES128 GCM with the given key and iv to encrypt the payload. """
     c, t = gcm_encrypt(key, nonce, plaintext, '')
     result = c + t
-    log.info(result)
     return result
 
 
