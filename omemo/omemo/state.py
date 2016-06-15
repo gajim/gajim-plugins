@@ -47,11 +47,12 @@ UNDECIDED = 2
 
 
 class OmemoState:
-    def __init__(self, own_jid, connection):
+    def __init__(self, own_jid, connection, account):
         """ Instantiates an OmemoState object.
 
             :param connection: an :py:class:`sqlite3.Connection`
         """
+        self.account = account
         self.session_ciphers = {}
         self.own_jid = own_jid
         self.device_ids = {}
@@ -101,8 +102,9 @@ class OmemoState:
             devices: [int]
                 A list of devices
         """
-        log.debug('Saving devices for ' + name + ' => ' + str(devices))
+
         self.device_ids[name] = devices
+        log.info(self.account + ' => Saved devices for ' + name)
 
     def add_device(self, name, device_id):
         if name not in self.device_ids:
@@ -120,6 +122,7 @@ class OmemoState:
                 A list of device_ids
         """
         self.own_devices = devices
+        log.info(self.account + ' => Saved own devices')
 
     def add_own_device(self, device_id):
         if device_id not in self.own_devices:
