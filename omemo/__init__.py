@@ -312,13 +312,18 @@ class OmemoPlugin(GajimPlugin):
             self.ui_list[account_name] = {}
         state = self.get_omemo_state(account_name)
         my_jid = gajim.get_jid_from_account(account_name)
+        omemo_enabled = state.encryption.is_active(contact_jid)
+        if omemo_enabled:
+            log.debug(account_name + " => Adding OMEMO ui for " + contact_jid)
+            self.ui_list[account_name][contact_jid] = Ui(self, chat_control,
+                                                         omemo_enabled, state)
+            return
         if contact_jid in state.device_ids or contact_jid == my_jid:
             log.debug(account_name + " => Adding OMEMO ui for " + contact_jid)
-            omemo_enabled = state.encryption.is_active(contact_jid)
             self.ui_list[account_name][contact_jid] = Ui(self, chat_control,
                                                          omemo_enabled, state)
         else:
-            log.warn(account_name + " => No OMEMO dev_keys for " + contact_jid)
+            log.warn(account_name + " => No devices for " + contact_jid)
 
     def are_keys_missing(self, account_name, contact_jid):
         """ Used by the ui to set the state of the PreKeyButton. """
