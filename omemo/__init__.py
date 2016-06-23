@@ -327,19 +327,17 @@ class OmemoPlugin(GajimPlugin):
         else:
             log.warn(account_name + " => No devices for " + contact_jid)
 
-    def are_keys_missing(self, account_name, contact_jid):
-        """ Used by the ui to set the state of the PreKeyButton. """
-
-        my_jid = gajim.get_jid_from_account(account_name)
-        state = self.get_omemo_state(account_name)
-        result = 0
-        result += len(state.devices_without_sessions(str(contact_jid)))
-        result += len(state.own_devices_without_sessions(my_jid))
-        if result > 0:
-            log.info(account_name + " => Missing keys for " + contact_jid + ": " +
-                     str(result))
-            log.info('Query keys now ...')
-            self.query_prekey(account_name, contact_jid)
+    def are_keys_missing(self, account, contact_jid):
+        """ Check DB if keys are missing and query them """
+        state = self.get_omemo_state(account)
+        devices_without_session = state \
+            .devices_without_sessions(contact_jid)
+        if devices_without_session:
+            for device_id in devices_without_session:
+                self.fetch_device_bundle_information(account,
+                                                     state,
+                                                     contact_jid,
+                                                     device_id)
 
     @log_calls('OmemoPlugin')
     def handle_iq_received(self, event):
@@ -352,23 +350,6 @@ class OmemoPlugin(GajimPlugin):
                 raise
             finally:
                 del iq_ids_to_callbacks[id_]
-
-    @log_calls('OmemoPlugin')
-    def query_prekey(self, account_name, contact_jid):
-        """ Calls OmemoPlugin.fetch_device_bundle_information() for each own or
-            recipient device key missing.
-        """
-        account = account_name
-        state = self.get_omemo_state(account)
-        to_jid = contact_jid
-        my_jid = gajim.get_jid_from_account(account)
-        for device_id in state.devices_without_sessions(to_jid):
-            self.fetch_device_bundle_information(account, state, to_jid,
-                                                 device_id)
-
-        for device_id in state.own_devices_without_sessions(my_jid):
-            self.fetch_device_bundle_information(account, state, my_jid,
-                                                 device_id)
 
     @log_calls('OmemoPlugin')
     def fetch_device_bundle_information(self, account_name, state, jid,
@@ -387,8 +368,8 @@ class OmemoPlugin(GajimPlugin):
             device_id : int
                 The device_id for which we are missing an axolotl session
         """
-        log.debug(account_name + '=> Fetch bundle device ' + str(device_id) +
-                  '#' + jid)
+        log.info(account_name + ' => Fetch bundle device ' + str(device_id) +
+                 '#' + jid)
         iq = BundleInformationQuery(jid, device_id)
         iq_id = str(iq.getAttr('id'))
         iq_ids_to_callbacks[iq_id] = \
@@ -437,7 +418,7 @@ class OmemoPlugin(GajimPlugin):
             return
 
         if state.build_session(recipient_id, device_id, bundle_dict):
-            log.info(recipient_id + ' => session created')
+            log.info(account_name + ' => session created for: ' + recipient_id)
             # Warn User about new Fingerprints in DB if Chat Window is Open
             if account_name in self.ui_list and \
                     recipient_id in self.ui_list[account_name]:
@@ -466,7 +447,7 @@ class OmemoPlugin(GajimPlugin):
         iq = BundleInformationAnnouncement(state.bundle, state.own_device_id)
         gajim.connections[account].connection.send(iq)
         id_ = str(iq.getAttr("id"))
-        log.debug(account + " => Announcing OMEMO support via PEP")
+        log.info(account + " => Announcing OMEMO support via PEP")
         iq_ids_to_callbacks[id_] = lambda stanza: \
             self.handle_announcement_result(account, stanza)
 
@@ -487,9 +468,9 @@ class OmemoPlugin(GajimPlugin):
         my_jid = gajim.get_jid_from_account(account)
         iq = DevicelistQuery(my_jid)
         if successful(stanza):
-            log.debug(account + ' => Publishing bundle was successful')
+            log.info(account + ' => Publishing bundle was successful')
             gajim.connections[account].connection.send(iq)
-            log.debug(account + ' => Querry own Devicelist')
+            log.info(account + ' => Querry own Devicelist')
             id_ = str(iq.getAttr("id"))
             iq_ids_to_callbacks[id_] = lambda stanza: \
                 self.handle_devicelist_result(account, stanza)
@@ -512,7 +493,7 @@ class OmemoPlugin(GajimPlugin):
         state = self.get_omemo_state(account)
 
         if successful(stanza):
-            log.debug(account + ' => Devicelistquery was successful')
+            log.info(account + ' => Devicelistquery was successful')
             devices_list = unpack_device_list_update(stanza, account)
             if len(devices_list) == 0:
                 return False

@@ -65,10 +65,10 @@ class OmemoState:
             else:
                 self.add_own_device(device_id)
 
-        log.debug(self.own_jid + ': Roster devices after boot:' +
-                  str(self.device_ids))
-        log.debug(self.own_jid + ': Own devices after boot:' +
-                  str(self.own_devices))
+        log.info(self.own_jid + ': Roster devices after boot:' +
+                 str(self.device_ids))
+        log.info(self.own_jid + ': Own devices after boot:' +
+                 str(self.own_devices))
 
     def build_session(self, recipient_id, device_id, bundle_dict):
         sessionBuilder = SessionBuilder(self.store, self.store, self.store,
@@ -308,30 +308,8 @@ class OmemoState:
                            for dev in known_devices
                            if not self.store.containsSession(jid, dev)]
         if missing_devices:
-            log.debug('Missing device sessions: ' + str(
-                      missing_devices))
-        return missing_devices
-
-    def own_devices_without_sessions(self, own_jid):
-        """ List own device_ids which have no axolotl session.
-
-            Parameters
-            ----------
-            own_jid : string
-                Workaround for missing own jid in OmemoState
-
-            Returns
-            -------
-            [int]
-                A list of device_ids
-        """
-        known_devices = set(self.own_devices) - {self.own_device_id}
-        missing_devices = [dev
-                           for dev in known_devices
-                           if not self.store.containsSession(own_jid, dev)]
-        if missing_devices:
-            log.debug('Missing device sessions: ' + str(
-                missing_devices))
+            log.info(self.account + ' => Missing device sessions for ' +
+                     jid + ': ' + str(missing_devices))
         return missing_devices
 
     def get_session_cipher(self, jid, device_id):

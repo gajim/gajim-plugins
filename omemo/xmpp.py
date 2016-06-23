@@ -326,7 +326,7 @@ def unpack_device_list_update(stanza, account):
 def decode_data(node):
     """ Fetch the data from specified node and b64decode it. """
     data = node.getData()
-    log.debug(data)
+
     if not data:
         log.warn("No node data")
         return
