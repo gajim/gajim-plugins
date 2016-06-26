@@ -27,7 +27,7 @@ from common import gajim
 from common import ged
 import chat_control
 from plugins import GajimPlugin
-from plugins.helpers import log_calls, log
+from plugins.helpers import log_calls, logging
 from dialogs import FileChooserDialog, ImageChooserDialog, ErrorDialog
 import nbxmpp
 
@@ -38,6 +38,7 @@ iq_ids_to_callbacks = {}
 last_info_query = {}
 max_thumbnail_size = 2048
 max_thumbnail_dimension = 160
+log = logging.getLogger('gajim.plugin_system.httpupload')
 
 class HttpuploadPlugin(GajimPlugin):
     
@@ -179,8 +180,7 @@ class Base(object):
         self.button.set_property('can-focus', False)
         self.button.set_sensitive(False)
         img = gtk.Image()
-        img.set_from_file(os.path.join(gajim.gajimpaths.data_root, 
-                                       u'plugins', u'httpupload', u'httpupload.png'))
+        img.set_from_file(self.plugin.local_file_path('httpupload.png'))
         self.button.set_image(img)
         self.button.set_tooltip_text(_('Your server does not support http uploads'))
         self.image_button = gtk.Button(label=None, stock=None, use_underline=True)
@@ -188,8 +188,7 @@ class Base(object):
         self.image_button.set_property('can-focus', False)
         self.image_button.set_sensitive(False)
         img = gtk.Image()
-        img.set_from_file(os.path.join(gajim.gajimpaths.data_root, 
-                                       u'plugins', u'httpupload', u'image.png'))
+        img.set_from_file(self.plugin.local_file_path('image.png'))
         self.image_button.set_image(img)
         self.image_button.set_tooltip_text(_('Your server does not support http uploads'))
         send_button = chat_control.xml.get_object('send_button')
@@ -270,7 +269,7 @@ class Base(object):
             mime_type = 'application/octet-stream'  # fallback mime type
         log.info("Detected MIME Type of file: " + str(mime_type))
         progress_messages = Queue(8)
-        progress_window = ProgressWindow(_('HTTP Upload'), _('Requesting HTTP Upload Slot...'), progress_messages)
+        progress_window = ProgressWindow(_('HTTP Upload'), _('Requesting HTTP Upload Slot...'), progress_messages, self.plugin)
         def upload_file(stanza):
             slot = stanza.getTag("slot")
             if not slot:
@@ -510,9 +509,9 @@ class StreamFileWithProgress(file):
         return data
 
 class ProgressWindow:
-    def __init__(self, title_text, during_text, messages_queue):
-        self.xml = gtkgui_helpers.get_gtk_builder(os.path.join(gajim.gajimpaths.data_root, 
-                                       u'plugins', u'httpupload', 'upload_progress_dialog.ui'))
+    def __init__(self, title_text, during_text, messages_queue, plugin):
+        self.plugin = plugin
+        self.xml = gtkgui_helpers.get_gtk_builder(self.plugin.local_file_path('upload_progress_dialog.ui'))
         self.messages_queue = messages_queue
         self.dialog = self.xml.get_object('progress_dialog')
         self.label = self.xml.get_object('label')
