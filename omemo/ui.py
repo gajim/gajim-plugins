@@ -126,7 +126,7 @@ class Ui(object):
         _add_widget(self.omemobutton, self.chat_control)
 
     def encryption_active(self):
-        return self.state.encryption.is_active(str(self.contact))
+        return self.state.encryption.is_active(self.contact.jid)
 
     def activate_omemo(self):
         self.omemobutton.menu.set_active(0)
