@@ -3,7 +3,7 @@
 
 from common import demandimport
 demandimport.enable()
-demandimport.ignore += ['builtins', '__builtin__', 'PIL']
+demandimport.ignore += ['builtins', '__builtin__', 'PIL','_imp']
 
 import gtk
 import gobject
@@ -22,26 +22,46 @@ except:
     pil_available = False
 from io import BytesIO
 import base64
+import binascii
 
 from common import gajim
 from common import ged
 import chat_control
 from plugins import GajimPlugin
-from plugins.helpers import log_calls, logging
+from plugins.helpers import log_calls
+import logging
 from dialogs import FileChooserDialog, ImageChooserDialog, ErrorDialog
 import nbxmpp
 
-NS_HTTPUPLOAD = 'urn:xmpp:http:upload'                        # XEP-0363 (http://xmpp.org/extensions/xep-0363.html)
+log = logging.getLogger('gajim.plugin_system.httpupload')
+
+if os.name != 'nt':
+    try:
+        from cryptography.hazmat.backends import default_backend
+        from cryptography.hazmat.primitives.ciphers import Cipher
+        from cryptography.hazmat.primitives.ciphers import algorithms
+        from cryptography.hazmat.primitives.ciphers.modes import GCM
+        encryption_available = True
+    except Exception as e:
+        log.debug(e)
+        encryption_available = False
+else:
+    encryption_available = False
+    log.info('Cryptography not available on Windows for now')
+
+# XEP-0363 (http://xmpp.org/extensions/xep-0363.html)
+NS_HTTPUPLOAD = 'urn:xmpp:http:upload'
+TAGSIZE = 16
 
 jid_to_servers = {}
 iq_ids_to_callbacks = {}
 last_info_query = {}
 max_thumbnail_size = 2048
 max_thumbnail_dimension = 160
-log = logging.getLogger('gajim.plugin_system.httpupload')
+
 
 class HttpuploadPlugin(GajimPlugin):
-    
+
     @log_calls('HttpuploadPlugin')
     def init(self):
         self.config_dialog = None  # HttpuploadPluginConfigDialog(self)
@@ -68,7 +88,7 @@ class HttpuploadPlugin(GajimPlugin):
                 raise
             finally:
                 del iq_ids_to_callbacks[str(id_)]
-        
+
     def handle_agent_info_received(self, event):
         global jid_to_servers
         if NS_HTTPUPLOAD in event.features and gajim.jid_is_transport(event.jid):
@@ -78,7 +98,7 @@ class HttpuploadPlugin(GajimPlugin):
             # update all buttons
             for base in self.controls:
                 self.update_button_state(base.chat_control)
-    
+
     @log_calls('HttpuploadPlugin')
     def connect_with_chat_control(self, control):
         self.chat_control = control
@@ -103,14 +123,14 @@ class HttpuploadPlugin(GajimPlugin):
         global jid_to_servers
         global iq_ids_to_callbacks
         global last_info_query
-        
+
         if gajim.connections[chat_control.account].connection == None and \
             gajim.get_jid_from_account(chat_control.account) in jid_to_servers:
             # maybe don't delete this and detect vanished upload components when actually trying to upload something
             log.info("Deleting %s from jid_to_servers (disconnected)" % gajim.get_jid_from_account(chat_control.account))
             del jid_to_servers[gajim.get_jid_from_account(chat_control.account)]
             #pass
-        
+
         # query info at most every 60 seconds in case something goes wrong
         if (not chat_control.account in last_info_query or \
             last_info_query[chat_control.account] + 60 < time.time()) and \
@@ -148,7 +168,7 @@ class HttpuploadPlugin(GajimPlugin):
             iq.setID(id_)
             last_info_query[chat_control.account] = time.time()
             gajim.connections[chat_control.account].connection.send(iq)
-        
+
         for base in self.controls:
             if base.chat_control == chat_control:
                 is_supported = gajim.get_jid_from_account(chat_control.account) in jid_to_servers and \
@@ -173,6 +193,7 @@ class Base(object):
         self.keypress_id = chat_control.msg_textview.connect('mykeypress',
             self.on_key_press)
         self.plugin = plugin
+        self.encrypted_upload = False
         self.chat_control = chat_control
         actions_hbox = chat_control.xml.get_object('actions_hbox')
         self.button = gtk.Button(label=None, stock=None, use_underline=True)
@@ -196,10 +217,10 @@ class Base(object):
             'position')
         actions_hbox.add_with_properties(self.button, 'position',
             send_button_pos - 2, 'expand', False)
-        
+
         actions_hbox.add_with_properties(self.image_button, 'position',
             send_button_pos - 1, 'expand', False)
-        
+
         file_id = self.button.connect('clicked', self.on_file_button_clicked)
         image_id = self.image_button.connect('clicked', self.on_image_button_clicked)
         chat_control.handlers[file_id] = self.button
@@ -237,8 +258,32 @@ class Base(object):
             self.chat_control.handlers[self.keypress_id].disconnect(self.keypress_id)
             del self.chat_control.handlers[self.keypress_id]
 
+    def encryption_activated(self):
+        if not encryption_available:
+            return False
+        jid = self.chat_control.contact.jid
+        account = self.chat_control.account
+        for plugin in gajim.plugin_manager.active_plugins:
+            if type(plugin).__name__ == 'OmemoPlugin':
+                omemo = plugin
+                break
+        if omemo:
+            state = omemo.get_omemo_state(account)
+            log.info('Encryption is: ' +
+                      str(state.encryption.is_active(jid)))
+            return state.encryption.is_active(jid)
+        log.info('Encryption is: False / OMEMO not found')
+        return False
+
     def on_file_dialog_ok(self, widget, path_to_file=None):
         global jid_to_servers
+
+        try:
+            self.encrypted_upload = self.encryption_activated()
+        except Exception as e:
+            log.debug(e)
+            self.encrypted_upload = False
+
         if not path_to_file:
             path_to_file = self.dlg.get_filename()
             if not path_to_file:
@@ -249,7 +294,10 @@ class Base(object):
         self.dlg.destroy()
         if not os.path.exists(path_to_file):
             return
-        filesize = os.path.getsize(path_to_file)  # in bytes
+        if self.encrypted_upload:
+            filesize = os.path.getsize(path_to_file) + TAGSIZE  # in bytes
+        else:
+            filesize = os.path.getsize(path_to_file)
         invalid_file = False
         msg = ''
         if os.path.isfile(path_to_file):
@@ -263,7 +311,7 @@ class Base(object):
         if invalid_file:
             ErrorDialog(_('Could not open file'), msg, transient_for=self.chat_control.parent_win.window)
             return
-        
+
         mime_type = mimetypes.MimeTypes().guess_type(path_to_file)[0]
         if not mime_type:
             mime_type = 'application/octet-stream'  # fallback mime type
@@ -285,17 +333,26 @@ class Base(object):
                                 _('Got unexpected response from server (protocol mismatch??)'),
                                 transient_for=self.chat_control.parent_win.window)
                 return
-            
+
             try:
-                open(path_to_file, "rb").read(1)     # check for open/read errors (maybe this is not needed anymore)
-                data = StreamFileWithProgress(path_to_file, "rb", progress_window.update_progress)
+                if self.encrypted_upload:
+                    key = os.urandom(32)
+                    iv = os.urandom(16)
+                    data = StreamFileWithProgress(path_to_file,
+                                                  "rb",
+                                                  progress_window.update_progress,
+                                                  self.encrypted_upload, key, iv)
+                else:
+                    data = StreamFileWithProgress(path_to_file,
+                                                  "rb",
+                                                  progress_window.update_progress)
             except:
                 progress_window.close_dialog()
                 ErrorDialog(_('Could not open file'), 
                             _('Exception raised while opening file (see error log for more information)'),
                             transient_for=self.chat_control.parent_win.window)
                 raise       # fill error log with useful information
-            
+
             put = slot.getTag("put")
             get = slot.getTag("get")
             if not put or not get:
@@ -305,7 +362,7 @@ class Base(object):
                             _('Got unexpected response from server (protocol mismatch??)'),
                             transient_for=self.chat_control.parent_win.window)
                 return
-            
+
             def upload_complete(response_code):
                 if response_code == 0:
                     return      # Upload was aborted
@@ -314,7 +371,8 @@ class Base(object):
                     xhtml = None
                     is_image = mime_type.split('/', 1)[0] == 'image'
                     if (not isinstance(self.chat_control, chat_control.ChatControl) or not self.chat_control.gpg_is_active) and \
-                        self.dialog_type == 'image' and is_image:
+                        self.dialog_type == 'image' and is_image and not self.encrypted_upload:
+
                         progress_messages.put(_('Calculating (possible) image thumbnail...'))
                         thumb = None
                         quality_steps = (100, 80, 60, 50, 40, 35, 30, 25, 23, 20, 18, 15, 13, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1)
@@ -379,7 +437,11 @@ class Base(object):
                     id_ = gajim.get_an_id()
                     def add_oob_tag():
                         pass
-                    self.chat_control.send_message(message=get.getData(), xhtml=xhtml)
+                    if self.encrypted_upload:
+                        keyAndIv = '#' + binascii.hexlify(iv) + binascii.hexlify(key)
+                        self.chat_control.send_message(message=get.getData() + keyAndIv, xhtml=None)
+                    else:
+                        self.chat_control.send_message(message=get.getData(), xhtml=xhtml)
                     self.chat_control.msg_textview.grab_focus()
                 else:
                     progress_window.close_dialog()
@@ -392,7 +454,7 @@ class Base(object):
                 progress_messages.put(_('Uploading file via HTTP...'))
                 try:
                     headers = {'User-Agent': 'Gajim %s' % gajim.version,
-                                'Content-Type': mime_type}
+                               'Content-Type': mime_type}
                     request = urllib2.Request(put.getData().encode("utf-8"), data=data, headers=headers)
                     request.get_method = lambda: 'PUT'
                     log.debug("opening urllib2 upload request...")
@@ -411,9 +473,9 @@ class Base(object):
 
             log.info("Uploading file to '%s'..." % str(put.getData()))
             log.info("Please download from '%s' later..." % str(get.getData()))
-            
+
             gajim.thread_interface(uploader, [], upload_complete)
-        
+
         is_supported = gajim.get_jid_from_account(self.chat_control.account) in jid_to_servers and \
                     gajim.connections[self.chat_control.account].connection != None
         log.info("jid_to_servers of %s: %s ; connection: %s" % (gajim.get_jid_from_account(self.chat_control.account), str(jid_to_servers[gajim.get_jid_from_account(self.chat_control.account)]), str(gajim.connections[self.chat_control.account].connection)))
@@ -423,7 +485,7 @@ class Base(object):
             ErrorDialog(_('Your server does not support http uploads or you just got disconnected.\nPlease try to reconnect or reopen the chat window to fix this.'),
                 transient_for=self.chat_control.parent_win.window)
             return
-        
+
         # create iq for slot request
         id_ = gajim.get_an_id()
         iq = nbxmpp.Iq(
@@ -448,12 +510,12 @@ class Base(object):
             name="content-type",
         )
         content_type.addData(mime_type)
-        
+
         # send slot request and register callback
         log.debug("sending httpupload slot request iq...")
         iq_ids_to_callbacks[str(id_)] = upload_file
         gajim.connections[self.chat_control.account].connection.send(iq)
-        
+
         self.chat_control.msg_textview.grab_focus()
 
     def on_file_button_clicked(self, widget):
@@ -462,11 +524,11 @@ class Base(object):
             title_text = _('Choose file to send'), action = gtk.FILE_CHOOSER_ACTION_OPEN,
             buttons = (gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL, gtk.STOCK_OPEN, gtk.RESPONSE_OK),
             default_response = gtk.RESPONSE_OK,)
-    
+
     def on_image_button_clicked(self, widget):
         self.dialog_type = 'image'
         self.dlg = ImageChooserDialog(on_response_ok=self.on_file_dialog_ok, on_response_cancel=None)
-    
+
     def get_pixbuf_of_size(self, pixbuf, size):
         # Creates a pixbuf that fits in the specified square of sizexsize
         # while preserving the aspect ratio
@@ -489,10 +551,19 @@ class Base(object):
 
 
 class StreamFileWithProgress(file):
-    def __init__(self, path, mode, callback=None, *args):
+    def __init__(self, path, mode, callback=None,
+                 encrypted_upload=False, key=None, iv=None, *args):
         file.__init__(self, path, mode)
+        self.encrypted_upload = encrypted_upload
         self.seek(0, os.SEEK_END)
-        self._total = self.tell()
+        if self.encrypted_upload:
+            self.encryptor = Cipher(
+                algorithms.AES(key),
+                GCM(iv),
+                backend=default_backend()).encryptor()
+            self._total = self.tell() + TAGSIZE
+        else:
+            self._total = self.tell()
         self.seek(0)
         self._callback = callback
         self._args = args
@@ -502,11 +573,25 @@ class StreamFileWithProgress(file):
         return self._total
 
     def read(self, size):
-        data = file.read(self, size)
-        self._seen += len(data)
-        if self._callback:
-            self._callback(self._seen, self._total, *self._args)
-        return data
+        if self.encrypted_upload:
+            data = file.read(self, size)
+            if len(data) > 0:
+                data = self.encryptor.update(data)
+                self._seen += len(data)
+                if (self._seen + TAGSIZE) == self._total:
+                    self.encryptor.finalize()
+                    data += self.encryptor.tag
+                    self._seen += TAGSIZE
+                if self._callback:
+                    self._callback(self._seen, self._total, *self._args)
+            return data
+        else:
+            data = file.read(self, size)
+            self._seen += len(data)
+            if self._callback:
+                self._callback(self._seen, self._total, *self._args)
+            return data
+
 
 class ProgressWindow:
     def __init__(self, title_text, during_text, messages_queue, plugin):
@@ -524,38 +609,38 @@ class ProgressWindow:
         self.dialog.set_position(gtk.WIN_POS_CENTER_ON_PARENT)
         self.dialog.show_all()
         self.xml.connect_signals(self)
-        
+
         self.stopped = False
         self.pulse_progressbar_timeout_id = gobject.timeout_add(100, self.pulse_progressbar)
         self.process_messages_queue_timeout_id = gobject.timeout_add(100, self.process_messages_queue)
-        
+
 
     def pulse_progressbar(self):
         if self.dialog:
             self.progressbar.pulse()
             return True # loop forever
         return False
-    
+
     def process_messages_queue(self):
         if not self.messages_queue.empty():
             self.label.set_markup('<big>' + self.messages_queue.get() + '</big>')
         if self.dialog:
             return True # loop forever
         return False
-    
+
     def on_progress_dialog_delete_event(self, widget, event):
         self.stopped = True
         if self.pulse_progressbar_timeout_id:
             gobject.source_remove(self.pulse_progressbar_timeout_id)
         gobject.source_remove(self.process_messages_queue_timeout_id)
-    
+
     def on_cancel(self, widget):
         self.stopped = True
         if self.pulse_progressbar_timeout_id:
             gobject.source_remove(self.pulse_progressbar_timeout_id)
         gobject.source_remove(self.process_messages_queue_timeout_id)
         self.dialog.destroy()
-    
+
     def update_progress(self, seen, total):
         if self.stopped == True:
             raise UploadAbortedException
@@ -566,7 +651,7 @@ class ProgressWindow:
         self.progressbar.set_fraction(float(seen) / total)
         self.progressbar.set_text(str(int(pct)) + "%")
         log.debug('upload progress: %.2f%% (%d of %d bytes)' % (pct, seen, total))
-    
+
     def close_dialog(self):
         self.on_cancel(None)
 
