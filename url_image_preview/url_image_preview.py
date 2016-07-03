@@ -207,19 +207,20 @@ class Base(object):
                 eb.connect('leave-notify-event', self.on_leave_event)
                 # this is threadsafe (gtk textview is NOT threadsafe by itself!!)
                 def add_to_textview():
-                    buffer_ = repl_start.get_buffer()
-                    if buffer is None:            # textview closed in the mean time etc.
-                        return False
-                    iter_ = buffer_.get_iter_at_mark(repl_start)
-                    buffer_.insert(iter_, "\n")
-                    anchor = buffer_.create_child_anchor(iter_)
-                    # Use url as tooltip for image
-                    img = TextViewImage(anchor, url)
-                    img.set_from_pixbuf(pixbuf)
-                    eb.add(img)
-                    eb.show_all()
-                    self.textview.tv.add_child_at_anchor(eb, anchor)
-                    buffer_.delete(iter_, buffer_.get_iter_at_mark(repl_end))
+                    try:        # textview closed in the meantime etc.
+                        buffer_ = repl_start.get_buffer()
+                        iter_ = buffer_.get_iter_at_mark(repl_start)
+                        buffer_.insert(iter_, "\n")
+                        anchor = buffer_.create_child_anchor(iter_)
+                        # Use url as tooltip for image
+                        img = TextViewImage(anchor, url)
+                        img.set_from_pixbuf(pixbuf)
+                        eb.add(img)
+                        eb.show_all()
+                        self.textview.tv.add_child_at_anchor(eb, anchor)
+                        buffer_.delete(iter_, buffer_.get_iter_at_mark(repl_end))
+                    except:
+                        pass
                     return False
                 gobject.idle_add(add_to_textview)
             except Exception:
