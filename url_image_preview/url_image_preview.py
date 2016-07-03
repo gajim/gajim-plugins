@@ -131,12 +131,12 @@ class Base(object):
     def _check_mime_size(self, (file_mime, file_size), url, repl_start, repl_end):
         # Check if mime type is acceptable
         if file_mime == '' and file_size == 0:
-            # URL is already displayed
             log.info("Failed to load HEAD Request for URL: '%s' (see debug log for more info)" % url)
+            # URL is already displayed
             return
         if file_mime.lower() not in ACCEPTED_MIME_TYPES:
-            # URL is already displayed
             log.info("Not accepted mime type '%s' for URL: '%s'" % (file_mime.lower(), url))
+            # URL is already displayed
             return
         # Check if file size is acceptable
         if file_size > self.plugin.config['MAX_FILE_SIZE'] or file_size == 0:
@@ -169,12 +169,12 @@ class Base(object):
                         [url, file_mime, repl_start, repl_end, True])
             
             # Start downloading image (_decryptor is callback when download has finished)
-            gajim.thread_interface(helpers.download_image, [ self.textview.account, {
+            gajim.thread_interface(self._download_image, [ self.textview.account, {
                     'src': url, 'max_size': self.plugin.config['MAX_FILE_SIZE'] } ], 
                     _decryptor, [url, file_mime, repl_start, repl_end, key, iv])
         else:
             # Start downloading image (self._update_img() is callback when download has finished)
-            gajim.thread_interface(helpers.download_image, [ self.textview.account, {
+            gajim.thread_interface(self._download_image, [ self.textview.account, {
                     'src': url, 'max_size': self.plugin.config['MAX_FILE_SIZE'] } ], 
                     self._update_img, [url, file_mime, repl_start, repl_end])
 
@@ -208,7 +208,7 @@ class Base(object):
                 # this is threadsafe (gtk textview is NOT threadsafe by itself!!)
                 def add_to_textview():
                     buffer_ = repl_start.get_buffer()
-                    if not buffer:            # textview closed in the mean time etc.
+                    if buffer is None:            # textview closed in the mean time etc.
                         return False
                     iter_ = buffer_.get_iter_at_mark(repl_start)
                     buffer_.insert(iter_, "\n")
@@ -238,6 +238,12 @@ class Base(object):
             return self._get_http_head_proxy(url, proxy)
         return self._get_http_head_direct(url)
 
+    def _download_image(self, account, attrs):
+        proxy = helpers.get_proxy_info(account)
+        if proxy and proxy['type'] in ('http', 'socks5'):
+            return self._get_img_proxy(attrs, proxy)
+        return self._get_img_direct(attrs)
+    
     def _get_http_head_direct (self, url):
         log.debug('Get head request direct for URL: %s' % url)
         try:
@@ -277,13 +283,11 @@ class Base(object):
             c = pycurl.Curl()
             c.setopt(pycurl.URL, url.encode('utf-8'))
             c.setopt(pycurl.FOLLOWLOCATION, 1)
-            c.setopt(pycurl.CONNECTTIMEOUT, 5)
             # Make a HEAD request:
             c.setopt(pycurl.CUSTOMREQUEST, 'HEAD')
             c.setopt(pycurl.NOBODY, 1)
             c.setopt(pycurl.HEADER, 1)
 
-            c.setopt(pycurl.TIMEOUT, 10)
             c.setopt(pycurl.MAXFILESIZE, 2000000)
             c.setopt(pycurl.WRITEFUNCTION, b.write)
             c.setopt(pycurl.USERAGENT, 'Gajim ' + gajim.version)
@@ -319,6 +323,93 @@ class Base(object):
             except ValueError:
                 pass    
         return (ctype, clen)
+    
+    def _get_img_direct(self, attrs):
+        """
+        Download an image. This function should be launched in a separated thread.
+        """
+        mem, alt, max_size = '', '', 2*1024*1024
+        if 'max_size' in attrs:
+            max_size = attrs['max_size']
+        try:
+            req = urllib2.Request(attrs['src'])
+            req.add_header('User-Agent', 'Gajim ' + gajim.version)
+            f = urllib2.urlopen(req)
+        except Exception, ex:
+            log.debug('Error loading image %s ' % attrs['src']  + str(ex))
+            pixbuf = None
+            alt = attrs.get('alt', 'Broken image')
+        else:
+            while True:
+                try:
+                    temp = f.read(100)
+                except socket.timeout, ex:
+                    log.debug('Timeout loading image %s ' % attrs['src'] + str(ex))
+                    alt = attrs.get('alt', '')
+                    if alt:
+                        alt += '\n'
+                    alt += _('Timeout loading image')
+                    break
+                if temp:
+                    mem += temp
+                else:
+                    break
+                if len(mem) > max_size:
+                    alt = attrs.get('alt', '')
+                    if alt:
+                        alt += '\n'
+                    alt += _('Image is too big')
+                    break
+        return (mem, alt)
+
+    def _get_img_proxy(self, attrs, proxy):
+        """
+        Download an image through a proxy. This function should be launched in a
+        separated thread.
+        """
+        if not gajim.HAVE_PYCURL:
+            return '', _('PyCURL is not installed')
+        mem, alt, max_size = '', '', 2*1024*1024
+        if 'max_size' in attrs:
+            max_size = attrs['max_size']
+        try:
+            b = StringIO()
+            c = pycurl.Curl()
+            c.setopt(pycurl.URL, attrs['src'].encode('utf-8'))
+            c.setopt(pycurl.FOLLOWLOCATION, 1)
+            c.setopt(pycurl.MAXFILESIZE, max_size)
+            c.setopt(pycurl.WRITEFUNCTION, b.write)
+            c.setopt(pycurl.USERAGENT, 'Gajim ' + gajim.version)
+            # set proxy
+            c.setopt(pycurl.PROXY, proxy['host'].encode('utf-8'))
+            c.setopt(pycurl.PROXYPORT, proxy['port'])
+            if proxy['useauth']:
+                c.setopt(pycurl.PROXYUSERPWD, proxy['user'].encode('utf-8')\
+                    + ':' + proxy['pass'].encode('utf-8'))
+                c.setopt(pycurl.PROXYAUTH, pycurl.HTTPAUTH_ANY)
+            if proxy['type'] == 'http':
+                c.setopt(pycurl.PROXYTYPE, pycurl.PROXYTYPE_HTTP)
+            elif proxy['type'] == 'socks5':
+                c.setopt(pycurl.PROXYTYPE, pycurl.PROXYTYPE_SOCKS5)
+            x = c.perform()
+            c.close()
+            t = b.getvalue()
+            return (t, attrs.get('alt', ''))
+        except pycurl.error, ex:
+            alt = attrs.get('alt', '')
+            if alt:
+                alt += '\n'
+            if ex[0] == pycurl.E_FILESIZE_EXCEEDED:
+                alt += _('Image is too big')
+            elif ex[0] == pycurl.E_OPERATION_TIMEOUTED:
+                alt += _('Timeout loading image')
+            else:
+                alt += _('Error loading image')
+        except Exception, ex:
+            log.debug('Error loading image %s ' % attrs['src']  + str(ex))
+            pixbuf = None
+            alt = attrs.get('alt', 'Broken image')
+        return ('', alt)
 
 
 
@@ -384,7 +475,11 @@ class UrlImagePreviewPluginConfigDialog(GajimPluginConfigDialog):
             'PREVIEW_SIZE'])
         value = self.plugin.config['MAX_FILE_SIZE']
         if value:
-            self.max_size_combobox.set_active(self.max_file_size.index(value))
+            # this fails if we upgrade from an old version which has other file size values than we have now
+            try:
+                self.max_size_combobox.set_active(self.max_file_size.index(value))
+            except:
+                pass
         else:
             self.max_size_combobox.set_active(-1)
 
