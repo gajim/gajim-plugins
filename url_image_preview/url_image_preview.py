@@ -208,6 +208,8 @@ class Base(object):
                 # this is threadsafe (gtk textview is NOT threadsafe by itself!!)
                 def add_to_textview():
                     buffer_ = repl_start.get_buffer()
+                    if not buffer:            # textview closed in the mean time etc.
+                        return False
                     iter_ = buffer_.get_iter_at_mark(repl_start)
                     buffer_.insert(iter_, "\n")
                     anchor = buffer_.create_child_anchor(iter_)
