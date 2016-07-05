@@ -68,6 +68,7 @@ class PluginInstaller(GajimPlugin):
         self.config_dialog = PluginInstallerPluginConfigDialog(self)
         self.config_default_values = {'ftp_server': ('ftp.gajim.org', ''),
                                       'check_update': (True, ''),
+                                      'check_update_periodically': (True, ''),
                                       'TLS': (True, ''),}
         self.window = None
         self.progressbar = None
@@ -150,6 +151,9 @@ class PluginInstaller(GajimPlugin):
                             to_update.append(config.get('info', 'name'))
                 con.quit()
                 GLib.idle_add(self.warn_update, to_update)
+                # check for updates at least once every 24 hours
+                if self.config['check_update_periodically']:
+                    self.timeout_id = GLib.timeout_add_seconds(24*3600, self.check_update)
             except Exception as e:
                 log.debug('Ftp error when check updates: %s' % str(e))
         ftp = Ftp(self)
@@ -631,6 +635,8 @@ class PluginInstallerPluginConfigDialog(GajimPluginConfigDialog):
         widget.set_text(str(self.plugin.config['ftp_server']))
         self.xml.get_object('check_update').set_active(
             self.plugin.config['check_update'])
+        self.xml.get_object('check_update_periodically').set_active(
+            self.plugin.config['check_update_periodically'])
         self.xml.get_object('TLS').set_active(self.plugin.config['TLS'])
 
     def on_hide(self, widget):
@@ -639,6 +645,9 @@ class PluginInstallerPluginConfigDialog(GajimPluginConfigDialog):
 
     def on_check_update_toggled(self, widget):
         self.plugin.config['check_update'] = widget.get_active()
+
+    def on_check_update_periodically_toggled(self, widget):
+        self.plugin.config['check_update_periodically'] = widget.get_active()
 
     def on_tls_toggled(self, widget):
         self.plugin.config['TLS'] = widget.get_active()
