@@ -90,6 +90,7 @@ class OmemoPlugin(GajimPlugin):
             OmemoState if it does not exist yet.
         """
         if account not in self.omemo_states:
+            self.deactivate_gajim_e2e(account)
             db_path = os.path.join(DB_DIR, 'omemo_' + account + '.db')
             conn = sqlite3.connect(db_path, check_same_thread=False)
 
@@ -97,6 +98,16 @@ class OmemoPlugin(GajimPlugin):
 
             self.omemo_states[account] = OmemoState(my_jid, conn, account)
         return self.omemo_states[account]
+
+    @log_calls('OmemoPlugin')
+    def deactivate_gajim_e2e(self, account):
+        """ Deativates E2E encryption in Gajim per Account
+        """
+        gajim.config.set_per('accounts', account,
+                             'autonegotiate_esessions', False)
+        gajim.config.set_per('accounts', account,
+                             'enable_esessions', False)
+        log.info(str(account) + " => Gajim E2E encryption disabled")
 
     @log_calls('OmemoPlugin')
     def signed_in(self, show):
