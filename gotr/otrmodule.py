@@ -110,7 +110,7 @@ try:
         potrrootlog.addHandler(h)
 
     def get_jid_from_fjid(fjid):
-        return gajim.get_room_and_nick_from_fjid(fjid)[0]
+        return gajim.get_room_and_nick_from_fjid(str(fjid))[0]
 
     class GajimContext(potr.context.Context):
         # self.peer is fjid
