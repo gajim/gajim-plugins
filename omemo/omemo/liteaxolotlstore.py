@@ -94,8 +94,8 @@ class LiteAxolotlStore(AxolotlStore):
     def loadSession(self, recepientId, deviceId):
         return self.sessionStore.loadSession(recepientId, deviceId)
 
-    def getDeviceTuples(self):
-        return self.sessionStore.getDeviceTuples()
+    def getActiveDeviceTuples(self):
+        return self.sessionStore.getActiveDeviceTuples()
 
     def getSubDeviceSessions(self, recepientId):
         # TODO Reuse this

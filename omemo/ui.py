@@ -284,19 +284,37 @@ class OMEMOConfigDialog(GajimPluginConfigDialog):
                                                           % ownfpr)
 
         fprDB = state.store.identityKeyStore.getAllFingerprints()
+        activeSessions = state.store.sessionStore. \
+            getAllActiveSessionsKeys()
         for item in fprDB:
             _id, jid, fpr, tr = item
+            if fpr in activeSessions:
+                active = True
+            else:
+                active = False
             fpr = binascii.hexlify(fpr)
             fpr = self.human_hash(fpr[2:])
             if tr == UNTRUSTED:
-                self.fpr_model.append((_id, jid, 'False',
-                                       '<tt><span foreground="#FF0040">%s</span></tt>' % fpr))
+                if active:
+                    self.fpr_model.append((_id, jid, 'False',
+                                           '<tt><span foreground="#FF0040">%s</span></tt>' % fpr))
+                else:
+                    self.fpr_model.append((_id, jid, 'False',
+                                           '<tt><span foreground="#585858">%s</span></tt>' % fpr))
             elif tr == TRUSTED:
-                self.fpr_model.append((_id, jid, 'True',
-                                       '<tt><span foreground="#2EFE2E">%s</span></tt>' % fpr))
+                if active:
+                    self.fpr_model.append((_id, jid, 'True',
+                                           '<tt><span foreground="#2EFE2E">%s</span></tt>' % fpr))
+                else:
+                    self.fpr_model.append((_id, jid, 'True',
+                                           '<tt><span foreground="#585858">%s</span></tt>' % fpr))
             else:
-                self.fpr_model.append((_id, jid, 'Undecided',
-                                       '<tt><span foreground="#FF8000">%s</span></tt>' % fpr))
+                if active:
+                    self.fpr_model.append((_id, jid, 'Undecided',
+                                           '<tt><span foreground="#FF8000">%s</span></tt>' % fpr))
+                else:
+                    self.fpr_model.append((_id, jid, 'Undecided',
+                                           '<tt><span foreground="#585858">%s</span></tt>' % fpr))
 
         for item in state.own_devices:
             self.device_model.append([item])
@@ -419,20 +437,38 @@ class FingerprintWindow(gtk.Dialog):
                                                           % ownfpr)
 
         fprDB = state.store.identityKeyStore.getFingerprints(self.contact.jid)
+        activeSessions = state.store.sessionStore. \
+            getActiveSessionsKeys(self.contact.jid)
+
         for item in fprDB:
             _id, jid, fpr, tr = item
+            if fpr in activeSessions:
+                active = True
+            else:
+                active = False
             fpr = binascii.hexlify(fpr)
             fpr = self.human_hash(fpr[2:])
             if tr == UNTRUSTED:
-                self.fpr_model.append((_id, jid, 'False',
-                                       '<tt><span foreground="#FF0040">%s</span></tt>' % fpr))
+                if active:
+                    self.fpr_model.append((_id, jid, 'False',
+                                           '<tt><span foreground="#FF0040">%s</span></tt>' % fpr))
+                else:
+                    self.fpr_model.append((_id, jid, 'False',
+                                           '<tt><span foreground="#585858">%s</span></tt>' % fpr))
             elif tr == TRUSTED:
-                self.fpr_model.append((_id, jid, 'True',
-                                       '<tt><span foreground="#2EFE2E">%s</span></tt>' % fpr))
+                if active:
+                    self.fpr_model.append((_id, jid, 'True',
+                                           '<tt><span foreground="#2EFE2E">%s</span></tt>' % fpr))
+                else:
+                    self.fpr_model.append((_id, jid, 'True',
+                                           '<tt><span foreground="#585858">%s</span></tt>' % fpr))
             else:
-                self.fpr_model.append((_id, jid, 'Undecided',
-                                       '<tt><span foreground="#FF8000">%s</span></tt>' % fpr))
-
+                if active:
+                    self.fpr_model.append((_id, jid, 'Undecided',
+                                           '<tt><span foreground="#FF8000">%s</span></tt>' % fpr))
+                else:
+                    self.fpr_model.append((_id, jid, 'Undecided',
+                                           '<tt><span foreground="#585858">%s</span></tt>' % fpr))
 
     def human_hash(self, fpr):
         fpr = fpr.upper()

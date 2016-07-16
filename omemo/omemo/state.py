@@ -59,7 +59,7 @@ class OmemoState:
         self.own_devices = []
         self.store = LiteAxolotlStore(connection)
         self.encryption = self.store.encryptionStore
-        for jid, device_id in self.store.getDeviceTuples():
+        for jid, device_id in self.store.getActiveDeviceTuples():
             if jid != own_jid:
                 self.add_device(jid, device_id)
             else:

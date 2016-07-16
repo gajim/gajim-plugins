@@ -53,13 +53,13 @@ class LiteSessionStore(SessionStore):
         deviceIds = [r[0] for r in result]
         return deviceIds
 
-    def getDeviceTuples(self):
-       q = "SELECT recipient_id, device_id from sessions"
-       c = self.dbConn.cursor()
-       result = []
-       for row in c.execute(q):
-           result.append((row[0],row[1]))
-       return result 
+    def getActiveDeviceTuples(self):
+        q = "SELECT recipient_id, device_id FROM sessions WHERE active = 1"
+        c = self.dbConn.cursor()
+        result = []
+        for row in c.execute(q):
+            result.append((row[0], row[1]))
+        return result
 
     def storeSession(self, recipientId, deviceId, sessionRecord):
         self.deleteSession(recipientId, deviceId)
@@ -86,3 +86,39 @@ class LiteSessionStore(SessionStore):
         q = "DELETE FROM sessions WHERE recipient_id = ?"
         self.dbConn.cursor().execute(q, (recipientId, ))
         self.dbConn.commit()
+
+    def setActiveState(self, deviceList, jid):
+        c = self.dbConn.cursor()
+
+        q = "UPDATE sessions SET active = {} " \
+            "WHERE recipient_id = '{}' AND device_id IN ({})" \
+            .format(1, jid, ', '.join(['?'] * len(deviceList)))
+        c.execute(q, deviceList)
+
+        q = "UPDATE sessions SET active = {} " \
+            "WHERE recipient_id = '{}' AND device_id NOT IN ({})" \
+            .format(0, jid, ', '.join(['?'] * len(deviceList)))
+        c.execute(q, deviceList)
+        self.dbConn.commit()
+
+    def getActiveSessionsKeys(self, recipientId):
+        q = "SELECT record FROM sessions WHERE active = 1 AND recipient_id = ?"
+        c = self.dbConn.cursor()
+        result = []
+        for row in c.execute(q, (recipientId,)):
+            public_key = (SessionRecord(serialized=row[0]).
+                          getSessionState().getRemoteIdentityKey().
+                          getPublicKey())
+            result.append(public_key.serialize())
+        return result
+
+    def getAllActiveSessionsKeys(self):
+        q = "SELECT record FROM sessions WHERE active = 1"
+        c = self.dbConn.cursor()
+        result = []
+        for row in c.execute(q):
+            public_key = (SessionRecord(serialized=row[0]).
+                          getSessionState().getRemoteIdentityKey().
+                          getPublicKey())
+            result.append(public_key.serialize())
+        return result

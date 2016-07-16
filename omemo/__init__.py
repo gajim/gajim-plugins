@@ -265,6 +265,7 @@ class OmemoPlugin(GajimPlugin):
             log.info(account_name + ' => Received own device list:' + str(
                 devices_list))
             state.set_own_devices(devices_list)
+            state.store.sessionStore.setActiveState(devices_list, my_jid)
 
             if not state.own_device_id_published() or anydup(
                     state.own_devices):
@@ -278,6 +279,7 @@ class OmemoPlugin(GajimPlugin):
             log.info(account_name + ' => Received device list for ' +
                      contact_jid + ':' + str(devices_list))
             state.set_devices(contact_jid, devices_list)
+            state.store.sessionStore.setActiveState(devices_list, contact_jid)
             if (account_name in self.ui_list and
                     contact_jid not in self.ui_list[account_name]):
 
@@ -517,6 +519,8 @@ class OmemoPlugin(GajimPlugin):
             contact_jid = stanza.getAttr('from')
             if contact_jid == my_jid:
                 state.set_own_devices(devices_list)
+                state.store.sessionStore.setActiveState(devices_list, my_jid)
+
                 if not state.own_device_id_published() or anydup(
                         state.own_devices):
                     # Our own device_id is not in the list, it could be

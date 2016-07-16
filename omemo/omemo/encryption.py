@@ -121,4 +121,16 @@ def migrate(dbConn):
                                  END TRANSACTION;
                              """ % (add_index))
 
+    if user_version(dbConn) < 4:
+        # Adds column "active" to the sessions table
+        add_active = """ ALTER TABLE sessions
+                         ADD COLUMN active INTEGER DEFAULT 1;
+                     """
+
+        dbConn.executescript(""" BEGIN TRANSACTION;
+                                 %s
+                                 PRAGMA user_version=4;
+                                 END TRANSACTION;
+                             """ % (add_active))
+
     return dbConn
