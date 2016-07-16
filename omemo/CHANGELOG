@@ -1,5 +1,13 @@
-0.6 /
+0.7 / 2016-16-07
+================
+- Reworked publishing Devicelist
+- Deactivate Gajim E2E on startup
+- Added new OMEMO popup menu
+- UI & handling of inactive Devices
+- various refactoring
 
+0.6 / 2016-06-30
+================
 - Add MAM support
 - Added Fingerprint Trustmanagment UI
 - Added Plugin Config Menu
