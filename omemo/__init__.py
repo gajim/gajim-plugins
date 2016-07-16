@@ -282,14 +282,12 @@ class OmemoPlugin(GajimPlugin):
                     state.own_devices):
                 # Our own device_id is not in the list, it could be
                 # overwritten by some other client?
-                # also remove duplicates
-                devices_list = list(set(state.own_devices))
-                devices_list.append(state.own_device_id)
+                # Is a Device ID duplicated?
                 self.publish_own_devices_list(account_name, state)
         else:
             log.info(account_name + ' => Received device list for ' +
                      contact_jid + ':' + str(devices_list))
-            state.set_devices(contact_jid, devices_list)
+            state.set_devices(contact_jid, set(devices_list))
             state.store.sessionStore.setActiveState(devices_list, contact_jid)
             if (account_name in self.ui_list and
                     contact_jid not in self.ui_list[account_name]):
@@ -307,8 +305,11 @@ class OmemoPlugin(GajimPlugin):
 
     @log_calls('OmemoPlugin')
     def publish_own_devices_list(self, account_name, state):
+
         devices_list = state.own_devices
-        devices_list += [state.own_device_id]
+        devices_list.append(state.own_device_id)
+        devices_list = list(set(devices_list))
+        state.set_own_devices(devices_list)
 
         log.debug(account_name + ' => Publishing own devices_list ' + str(
             devices_list))
@@ -517,9 +518,7 @@ class OmemoPlugin(GajimPlugin):
                         state.own_devices):
                     # Our own device_id is not in the list, it could be
                     # overwritten by some other client?
-                    # also remove duplicates
-                    devices_list = list(set(state.own_devices))
-                    devices_list.append(state.own_device_id)
+                    # Is a Device ID duplicated?
                     self.publish_own_devices_list(account, state)
         else:
             log.error(account + ' => Devicelistquery was NOT successful')
