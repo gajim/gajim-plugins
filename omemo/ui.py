@@ -89,7 +89,9 @@ class OmemoMenu(gtk.Menu):
         self.ui.show_fingerprint_window()
 
     def set_omemo_state(self, state):
+        self.item_omemo_state.handler_block_by_func(self.on_toggle_omemo)
         self.item_omemo_state.set_active(state)
+        self.item_omemo_state.handler_unblock_by_func(self.on_toggle_omemo)
 
 
 def _add_widget(widget, chat_control):
@@ -114,6 +116,22 @@ class Ui(object):
         self.omemobutton = OmemoButton(plugin, chat_control, self, enabled)
 
         _add_widget(self.omemobutton, self.chat_control)
+
+        # add a OMEMO entry to the context/advanced menu
+        chat_control.omemo_orig_prepare_context_menu = chat_control.prepare_context_menu
+        def omemo_prepare_context_menu(hide_buttonbar_items=False):
+            menu = chat_control.omemo_orig_prepare_context_menu(hide_buttonbar_items)
+            submenu = OmemoMenu(self, self.encryption_active())
+
+            item = gtk.ImageMenuItem('OMEMO Encryption')
+            icon_path = plugin.local_file_path('omemo16x16.png')
+            item.set_image(gtk.image_new_from_file(icon_path))
+            item.set_submenu(submenu)
+
+            # at index 8 is the separator after the esession encryption entry
+            menu.insert(item, 8)
+            return menu
+        chat_control.prepare_context_menu = omemo_prepare_context_menu
 
     def set_omemo_state(self, enabled):
         """
