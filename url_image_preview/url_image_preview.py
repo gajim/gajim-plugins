@@ -18,10 +18,29 @@ from plugins.gui import GajimPluginConfigDialog
 from conversation_textview import TextViewImage
 from .aes_gcm import aes_decrypt
 
+from common import demandimport
+demandimport.enable()
+demandimport.ignore += ['_imp']
+
 log = logging.getLogger('gajim.plugin_system.url_image_preview')
 
-ACCEPTED_MIME_TYPES = ('image/png','image/jpeg','image/gif','image/raw',
-                        'image/svg+xml')
+if os.name != 'nt':
+    try:
+        from cryptography.hazmat.backends import default_backend
+        from cryptography.hazmat.primitives.ciphers import Cipher
+        from cryptography.hazmat.primitives.ciphers import algorithms
+        from cryptography.hazmat.primitives.ciphers.modes import GCM
+        decryption_available = True
+    except Exception as e:
+        log.debug(e)
+        decryption_available = False
+else:
+    decryption_available = False
+    log.info('Cryptography not available on Windows for now')
+
+ACCEPTED_MIME_TYPES = ('image/png', 'image/jpeg', 'image/gif', 'image/raw',
+                       'image/svg+xml')
+
 
 class UrlImagePreviewPlugin(GajimPlugin):
     @log_calls('UrlImagePreviewPlugin')
@@ -31,13 +50,13 @@ class UrlImagePreviewPlugin(GajimPlugin):
         self.events_handlers['message-received'] = (ged.PRECORE,
                 self.handle_message_received)
         self.gui_extension_points = {
-                'chat_control_base': (self.connect_with_chat_control,
-                                       self.disconnect_from_chat_control),
-                'print_special_text': (self.print_special_text,
-                                       self.print_special_text1),}
+            'chat_control_base': (self.connect_with_chat_control,
+                                  self.disconnect_from_chat_control),
+            'print_special_text': (self.print_special_text,
+                                   self.print_special_text1), }
         self.config_default_values = {
-                    'PREVIEW_SIZE': (150, 'Preview size(10-512)'),
-                    'MAX_FILE_SIZE': (524288, 'Max file size for image preview')}
+            'PREVIEW_SIZE': (150, 'Preview size(10-512)'),
+            'MAX_FILE_SIZE': (524288, 'Max file size for image preview')}
         self.chat_control = None
         self.controls = []
 
@@ -52,7 +71,7 @@ class UrlImagePreviewPlugin(GajimPlugin):
             if oob_url and oob_url == event.msgtxt and (not oob_desc or oob_desc == ""):
                 log.debug("Detected oob tag containing same url as the message text, deleting oob tag...")
                 event.stanza.delChild(oob_node)
-    
+
     @log_calls('UrlImagePreviewPlugin')
     def connect_with_chat_control(self, chat_control):
 
@@ -67,19 +86,20 @@ class UrlImagePreviewPlugin(GajimPlugin):
         self.controls = []
 
     def print_special_text(self, tv, special_text, other_tags, graphics=True,
-    iter_=None):
+                           iter_=None):
         for control in self.controls:
             if control.chat_control.conv_textview != tv:
                 continue
             control.print_special_text(special_text, other_tags, graphics=True,
-                iter_=iter_)
+                                       iter_=iter_)
 
     def print_special_text1(self, chat_control, special_text, other_tags=None,
-        graphics=True, iter_=None):
+                            graphics=True, iter_=None):
         for control in self.controls:
             if control.chat_control == chat_control:
                 control.disconnect_from_chat_control()
                 self.controls.remove(control)
+
 
 class Base(object):
     def __init__(self, plugin, chat_control):
@@ -88,7 +108,7 @@ class Base(object):
         self.textview = self.chat_control.conv_textview
 
     def print_special_text(self, special_text, other_tags, graphics=True,
-    iter_=None):
+                           iter_=None):
         # remove qip bbcode
         special_text = special_text.rsplit('[/img]')[0]
 
@@ -96,13 +116,13 @@ class Base(object):
             special_text = 'http://' + special_text
         if special_text.startswith('ftp.'):
             special_text = 'ftp://' + special_text
-        
+
         parts = urlparse(special_text)
-        if not parts.scheme in ["https", "http", "ftp", "ftps"] or \
-            not parts.netloc:
+        if parts.scheme not in ["https", "http", "ftp", "ftps"] or \
+                not parts.netloc:
             log.info("Not accepting URL for image preview: %s" % special_text)
             return
-        
+
         buffer_ = self.textview.tv.get_buffer()
         if not iter_:
             iter_ = buffer_.get_end_iter()
@@ -151,23 +171,24 @@ class Base(object):
         if len(urlparts.fragment):
             fragment = []
             for i in range(0, len(urlparts.fragment), 2):
-                fragment.append( chr( int (urlparts.fragment[i:i+2], 16 ) ) )
+                fragment.append(chr(int(urlparts.fragment[i:i + 2], 16)))
             fragment = ''.join(fragment)
             key = fragment[16:]
             iv = fragment[:16]
-        
+
         # decrypt if the encryption parameters are correct
-        if len(urlparts.fragment) and len(key)==32 and len(iv)==16:
+        if len(urlparts.fragment) and len(key) == 32 and len(iv) == 16:
             def _decryptor((mem, alt), url, file_mime, repl_start, repl_end, key, iv):
                 if not mem:
                     log.error('Could not download image for URL: %s -- %s' % (url, alt))
                     return
                 # start self._decrypt_url() in own thread and self._update_img() afterwards
-                gajim.thread_interface(self._decrypt_url,
-                        [(mem, alt), key, iv],
-                        self._update_img,
-                        [url, file_mime, repl_start, repl_end, True])
-            
+                gajim.thread_interface(
+                    self._decrypt_url,
+                    [(mem, alt), key, iv, url],
+                    self._update_img,
+                    [url, file_mime, repl_start, repl_end, True])
+
             # Start downloading image (_decryptor is callback when download has finished)
             gajim.thread_interface(self._download_image, [ self.textview.account, {
                     'src': url, 'max_size': self.plugin.config['MAX_FILE_SIZE'] } ], 
@@ -178,10 +199,15 @@ class Base(object):
                     'src': url, 'max_size': self.plugin.config['MAX_FILE_SIZE'] } ], 
                     self._update_img, [url, file_mime, repl_start, repl_end])
 
-    def _decrypt_url(self, (mem, alt), key, iv):
+    def _decrypt_url(self, (mem, alt), key, iv, url):
         try:
             log.info("Before decrypt image")
-            mem = aes_decrypt(key, iv, mem)
+            if decryption_available:
+                log.info("Fast decrypt")
+                mem = self.aes_decrypt_fast(key, iv, mem)
+            else:
+                log.info("Slow decrypt")
+                mem = aes_decrypt(key, iv, mem)
             log.info("After decrypt image")
         except Exception:
             log.error('Could not decrypt image for URL (exception raised): %s' % url)
@@ -190,7 +216,18 @@ class Base(object):
             log.error('Could not decrypt image for URL: %s' % url)
             return (None, alt)
         return (mem, alt)
-        
+
+    def aes_decrypt_fast(self, key, iv, payload):
+        # Use AES128 GCM with the given key and iv to decrypt the payload.
+        data = payload[:-16]
+        tag = payload[-16:]
+        backend = default_backend()
+        decryptor = Cipher(
+            algorithms.AES(key),
+            GCM(iv, tag=tag),
+            backend=backend).decryptor()
+        return decryptor.update(data) + decryptor.finalize()
+
     def _update_img(self, (mem, alt), url, file_mime, repl_start, repl_end, decrypted=False):
         if mem:
             try:
@@ -232,7 +269,7 @@ class Base(object):
                 # If image could not be downloaded, URL is already displayed
                 log.error('Could not download image for URL: %s -- %s' % (url, alt))
 
-    def _get_http_head (self, account, url):
+    def _get_http_head(self, account, url):
         # Check if proxy is used
         proxy = helpers.get_proxy_info(account)
         if proxy and proxy['type'] in ('http', 'socks5'):
@@ -244,8 +281,8 @@ class Base(object):
         if proxy and proxy['type'] in ('http', 'socks5'):
             return self._get_img_proxy(attrs, proxy)
         return self._get_img_direct(attrs)
-    
-    def _get_http_head_direct (self, url):
+
+    def _get_http_head_direct(self, url):
         log.debug('Get head request direct for URL: %s' % url)
         try:
             req = urllib2.Request(url)
@@ -263,7 +300,7 @@ class Base(object):
             ctype = ctype_list[0]
         clen = 0
         clen_list = url_headers.getheaders('Content-Length')
-        if  clen_list:
+        if clen_list:
             try:
                 clen = int(clen_list[0])
             except ValueError:
@@ -322,9 +359,9 @@ class Base(object):
             try:
                 clen = int(searchObj.group(1).strip())
             except ValueError:
-                pass    
+                pass
         return (ctype, clen)
-    
+
     def _get_img_direct(self, attrs):
         """
         Download an image. This function should be launched in a separated thread.
