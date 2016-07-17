@@ -36,46 +36,19 @@ UNTRUSTED = 0
 
 
 class OmemoButton(gtk.Button):
-    def __init__(self, plugin, chat_control, ui, enabled):
+    def __init__(self, plugin, chat_control, menu):
         super(OmemoButton, self).__init__(label=None, stock=None)
-        self.plugin = plugin
-        self.ui = ui
-        self.enabled = enabled
-        self.contact = chat_control.contact
         self.chat_control = chat_control
+
         self.set_property('relief', gtk.RELIEF_NONE)
         self.set_property('can-focus', False)
         self.set_sensitive(True)
-        img = gtk.Image()
-        img.set_from_file(self.plugin.local_file_path('omemo16x16.png'))
-        self.set_image(img)
+
+        icon = gtk.image_new_from_file(plugin.local_file_path('omemo16x16.png'))
+        self.set_image(icon)
         self.set_tooltip_text('OMEMO Encryption')
 
-        self.menu = gtk.Menu()
-        item = gtk.CheckMenuItem('Activate OMEMO')
-        if self.enabled:
-            item.set_active(True)
-            self.chat_control.print_conversation_line(
-                u'OMEMO encryption enabled ', 'status', '', None)
-            self.ui.refreshAuthLockSymbol()
-        else:
-            item.set_active(False)
-            self.chat_control.print_conversation_line(
-                u'OMEMO encryption disabled', 'status', '', None)
-            self.ui.refreshAuthLockSymbol()
-        item.connect('activate', self.activate_omemo)
-        self.menu.append(item)
-
-        item = gtk.ImageMenuItem('Fingerprints')
-        icon = gtk.image_new_from_stock(gtk.STOCK_DIALOG_AUTHENTICATION,
-                                        gtk.ICON_SIZE_MENU)
-        item.set_image(icon)
-        item.connect('activate', self.open_fingerprint_window)
-        self.menu.append(item)
-
-        self.menu.show_all()
-
-        self.connect('clicked', self.on_click, self.menu)
+        self.connect('clicked', self.on_click, menu)
 
     def on_click(self, widget, menu):
         """
@@ -84,7 +57,39 @@ class OmemoButton(gtk.Button):
         gtkgui_helpers.popup_emoticons_under_button(
             menu, widget, self.chat_control.parent_win)
 
-    def activate_omemo(self, widget):
+
+class OmemoMenu(gtk.Menu):
+    def __init__(self, plugin, chat_control, ui, enabled):
+        super(OmemoMenu, self).__init__()
+        self.plugin = plugin
+        self.ui = ui
+        self.contact = chat_control.contact
+        self.chat_control = chat_control
+
+        self.item_omemo_state = gtk.CheckMenuItem('Activate OMEMO')
+        if enabled:
+            self.item_omemo_state.set_active(True)
+            self.chat_control.print_conversation_line(
+                u'OMEMO encryption enabled ', 'status', '', None)
+            self.ui.refreshAuthLockSymbol()
+        else:
+            self.item_omemo_state.set_active(False)
+            self.chat_control.print_conversation_line(
+                u'OMEMO encryption disabled', 'status', '', None)
+            self.ui.refreshAuthLockSymbol()
+        self.item_omemo_state.connect('activate', self.on_toggle_omemo)
+        self.append(self.item_omemo_state)
+
+        item = gtk.ImageMenuItem('Fingerprints')
+        icon = gtk.image_new_from_stock(gtk.STOCK_DIALOG_AUTHENTICATION,
+                                        gtk.ICON_SIZE_MENU)
+        item.set_image(icon)
+        item.connect('activate', self.on_open_fingerprint_window)
+        self.append(item)
+
+        self.show_all()
+
+    def on_toggle_omemo(self, widget):
         enabled = widget.get_active()
         if enabled:
             log.debug(self.contact.account.name + ' => Enable OMEMO for ' +
@@ -101,10 +106,13 @@ class OmemoButton(gtk.Button):
             self.chat_control.print_conversation_line(
                 u'OMEMO encryption disabled', 'status', '', None)
 
-    def open_fingerprint_window(self, widget):
+    def on_open_fingerprint_window(self, widget):
         dlg = FingerprintWindow(self.plugin, self.contact,
                                 self.chat_control.parent_win.window)
         dlg.show_all()
+
+    def set_omemo_state(self, state):
+        self.item_omemo_state.set_active(state)
 
 
 def _add_widget(widget, chat_control):
@@ -121,7 +129,9 @@ class Ui(object):
         self.contact = chat_control.contact
         self.chat_control = chat_control
         self.state = state
-        self.omemobutton = OmemoButton(plugin, chat_control, self, enabled)
+
+        self.menu = OmemoMenu(plugin, chat_control, self, enabled)
+        self.omemobutton = OmemoButton(plugin, chat_control, self.menu)
 
         _add_widget(self.omemobutton, self.chat_control)
 
@@ -129,8 +139,7 @@ class Ui(object):
         return self.state.encryption.is_active(self.contact.jid)
 
     def activate_omemo(self):
-        self.omemobutton.menu.set_active(0)
-        self.omemobutton.menu.get_active().set_active(True)
+        self.menu.set_omemo_state(True)
 
     def plain_warning(self):
         self.chat_control.print_conversation_line(
