@@ -60,7 +60,6 @@ class OmemoPlugin(GajimPlugin):
     # pylint: disable=no-init
 
     omemo_states = {}
-
     ui_list = {}
 
     @log_calls('OmemoPlugin')
@@ -83,6 +82,7 @@ class OmemoPlugin(GajimPlugin):
         self.config_dialog = ui.OMEMOConfigDialog(self)
         self.gui_extension_points = {'chat_control': (self.connect_ui, None)}
         SUPPORTED_PERSONAL_USER_EVENTS.append(DevicelistPEP)
+        self.announced = []
 
     @log_calls('OmemoPlugin')
     def get_omemo_state(self, account):
@@ -97,6 +97,14 @@ class OmemoPlugin(GajimPlugin):
             my_jid = gajim.get_jid_from_account(account)
 
             self.omemo_states[account] = OmemoState(my_jid, conn, account)
+
+        if account not in self.announced:
+            if gajim.account_is_connected(account):
+                log.debug(account +
+                          ' => Announce Support after Plugin Activation')
+                self.announced.append(account)
+                self.announce_support(account)
+
         return self.omemo_states[account]
 
     @log_calls('OmemoPlugin')
@@ -115,6 +123,9 @@ class OmemoPlugin(GajimPlugin):
             On sign in announce OMEMO support for each account.
         """
         account = show.conn.name
+        log.debug(account +
+                  ' => Announce Support after Sign In')
+        self.announced.append(account)
         self.announce_support(account)
 
     @log_calls('OmemoPlugin')
