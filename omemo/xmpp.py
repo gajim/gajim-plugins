@@ -63,7 +63,7 @@ class DeviceListAnnouncement(Iq):
         attrs = {'id': id_}
         Iq.__init__(self, typ='set', attrs=attrs)
 
-        list_node = Node('list', attrs={'xmlns': NS_DEVICE_LIST})
+        list_node = Node('list', attrs={'xmlns': NS_OMEMO})
         for device in device_list:
             list_node.addChild('device').setAttr('id', device)
 
