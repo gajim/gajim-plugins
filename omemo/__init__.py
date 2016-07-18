@@ -49,8 +49,8 @@ log = logging.getLogger('gajim.plugin_system.omemo')
 try:
     from omemo.state import OmemoState
     HAS_AXOLOTL = True
-except ImportError:
-    log.error(AXOLOTL_MISSING)
+except ImportError as e:
+    log.error(e)
     HAS_AXOLOTL = False
 
 DB_DIR = gajim.gajimpaths.data_root
