@@ -20,7 +20,6 @@
 
 import logging
 
-import os
 import gtk
 from common import gajim
 from plugins.gui import GajimPluginConfigDialog
@@ -44,7 +43,8 @@ class OmemoButton(gtk.Button):
         self.set_property('can-focus', False)
         self.set_sensitive(True)
 
-        icon = gtk.image_new_from_file(plugin.local_file_path('omemo16x16.png'))
+        icon = gtk.image_new_from_file(
+            plugin.local_file_path('omemo16x16.png'))
         self.set_image(icon)
         self.set_tooltip_text('OMEMO Encryption')
 
@@ -94,15 +94,6 @@ class OmemoMenu(gtk.Menu):
         self.item_omemo_state.handler_unblock_by_func(self.on_toggle_omemo)
 
 
-def _add_widget(widget, chat_control):
-    actions_hbox = chat_control.xml.get_object('actions_hbox')
-    send_button = chat_control.xml.get_object('send_button')
-    send_button_pos = actions_hbox.child_get_property(send_button, 'position')
-    actions_hbox.add_with_properties(widget, 'position', send_button_pos - 2,
-                                     'expand', False)
-    widget.show_all()
-
-
 class Ui(object):
     def __init__(self, plugin, chat_control, enabled, state):
         self.contact = chat_control.contact
@@ -115,12 +106,22 @@ class Ui(object):
 
         self.omemobutton = OmemoButton(plugin, chat_control, self, enabled)
 
-        _add_widget(self.omemobutton, self.chat_control)
+        self.actions_hbox = chat_control.xml.get_object('actions_hbox')
+        send_button = chat_control.xml.get_object('send_button')
+        send_button_pos = self.actions_hbox.child_get_property(send_button,
+                                                               'position')
+        self.actions_hbox.add_with_properties(self.omemobutton, 'position',
+                                              send_button_pos - 2,
+                                              'expand', False)
+        self.omemobutton.show_all()
 
         # add a OMEMO entry to the context/advanced menu
-        chat_control.omemo_orig_prepare_context_menu = chat_control.prepare_context_menu
+        self.chat_control.omemo_orig_prepare_context_menu = \
+            self.chat_control.prepare_context_menu
+
         def omemo_prepare_context_menu(hide_buttonbar_items=False):
-            menu = chat_control.omemo_orig_prepare_context_menu(hide_buttonbar_items)
+            menu = self.chat_control. \
+                omemo_orig_prepare_context_menu(hide_buttonbar_items)
             submenu = OmemoMenu(self, self.encryption_active())
 
             item = gtk.ImageMenuItem('OMEMO Encryption')
@@ -131,7 +132,7 @@ class Ui(object):
             # at index 8 is the separator after the esession encryption entry
             menu.insert(item, 8)
             return menu
-        chat_control.prepare_context_menu = omemo_prepare_context_menu
+        self.chat_control.prepare_context_menu = omemo_prepare_context_menu
 
     def set_omemo_state(self, enabled):
         """
@@ -142,7 +143,7 @@ class Ui(object):
             log.debug(self.contact.account.name + ' => Enable OMEMO for ' +
                       self.contact.jid)
             self.plugin.omemo_enable_for(self.contact)
-            self.WarnIfUndecidedFingerprints() # calls refreshAuthLockSymbol()
+            self.WarnIfUndecidedFingerprints()  # calls refreshAuthLockSymbol()
         else:
             log.debug(self.contact.account.name + ' => Disable OMEMO for ' +
                       self.contact.jid)
@@ -196,6 +197,11 @@ class Ui(object):
         else:
             self.chat_control._show_lock_image(False, 'OMEMO', False, True,
                                                False)
+
+    def removeUi(self):
+        self.actions_hbox.remove(self.omemobutton)
+        self.chat_control.prepare_context_menu = \
+            self.chat_control.omemo_orig_prepare_context_menu
 
 
 class OMEMOConfigDialog(GajimPluginConfigDialog):

@@ -80,7 +80,7 @@ class OmemoPlugin(GajimPlugin):
             (ged.PRECORE, self.handle_outgoing_event),
         }
         self.config_dialog = ui.OMEMOConfigDialog(self)
-        self.gui_extension_points = {'chat_control': (self.connect_ui, None)}
+        self.gui_extension_points = {'chat_control': (self.connect_ui, self.disconnect_ui)}
         SUPPORTED_PERSONAL_USER_EVENTS.append(DevicelistPEP)
         self.announced = []
 
@@ -349,6 +349,12 @@ class OmemoPlugin(GajimPlugin):
                                                          omemo_enabled, state)
         else:
             log.warn(account_name + " => No devices for " + contact_jid)
+
+    @log_calls('OmemoPlugin')
+    def disconnect_ui(self, chat_control):
+        contact_jid = chat_control.contact.jid
+        account_name = chat_control.contact.account.name
+        self.ui_list[account_name][contact_jid].removeUi()
 
     def are_keys_missing(self, account, contact_jid):
         """ Check DB if keys are missing and query them """
