@@ -64,7 +64,7 @@ def migrate(dbConn):
                             id INTEGER PRIMARY KEY AUTOINCREMENT,
                             jid TEXT UNIQUE,
                             encryption INTEGER,
-                            timestamp NUMBER DEFAULT CURRENT_TIMESTAMP
+                            timestamp NUMERIC DEFAULT CURRENT_TIMESTAMP
                             );
                         """
 
