@@ -413,9 +413,25 @@ class FingerprintWindow(gtk.Dialog):
         self.fpr_view.set_model(self.fpr_model)
         self.fpr_view.get_selection().set_mode(gtk.SELECTION_MULTIPLE)
 
-        self.child.pack_start(self.B.get_object('notebook1'))
+        self.fpr_view_own = self.B.get_object('fingerprint_view_own')
+        self.fpr_view_own.set_model(self.fpr_model)
+        self.fpr_view_own.get_selection().set_mode(gtk.SELECTION_MULTIPLE)
+
+        self.notebook = self.B.get_object('notebook1')
+
+        self.child.pack_start(self.notebook)
 
         self.B.connect_signals(self)
+
+        self.account = self.contact.account.name
+        self.omemostate = self.plugin.get_omemo_state(self.account)
+
+        ownfpr = binascii.hexlify(self.omemostate.store.getIdentityKeyPair()
+                                  .getPublicKey().serialize())
+        ownfpr = self.human_hash(ownfpr[2:])
+
+        self.B.get_object('fingerprint_label_own').set_markup('<tt>%s</tt>'
+                                                              % ownfpr)
 
         self.update_context_list()
 
@@ -423,11 +439,10 @@ class FingerprintWindow(gtk.Dialog):
         self.hide()
 
     def trust_button_clicked_cb(self, button, *args):
-        account = self.contact.account.name
-
-        state = self.plugin.get_omemo_state(account)
-
-        mod, paths = self.fpr_view.get_selection().get_selected_rows()
+        if self.notebook.get_current_page() == 1:
+            mod, paths = self.fpr_view_own.get_selection().get_selected_rows()
+        else:
+            mod, paths = self.fpr_view.get_selection().get_selected_rows()
 
         for path in paths:
             it = mod.get_iter(path)
@@ -439,20 +454,23 @@ class FingerprintWindow(gtk.Dialog):
                               gtk.STOCK_NO, gtk.RESPONSE_NO))
             l = gtk.Label()
             l.set_markup('Do you want to trust the following '
-                         'fingerprint for the contact <b>%s</b> on the account <b>%s</b>?'
-                         '\n\n<tt>%s</tt>' % (user, account, fpr))
+                         'fingerprint for the contact <b>%s</b> '
+                         'on the account <b>%s</b>?'
+                         '\n\n<tt>%s</tt>' % (user, self.account, fpr))
             l.set_line_wrap(True)
             dlg.vbox.pack_start(l)
             dlg.show_all()
             response = dlg.run()
             if response == gtk.RESPONSE_YES:
-                state.store.identityKeyStore.setTrust(_id, TRUSTED)
-                self.plugin.ui_list[account][self.contact.jid].refreshAuthLockSymbol()
+                self.omemostate.store.identityKeyStore.setTrust(_id, TRUSTED)
+                self.plugin.ui_list[self.account][self.contact.jid]. \
+                    refreshAuthLockSymbol()
                 dlg.destroy()
             else:
                 if response == gtk.RESPONSE_NO:
-                    state.store.identityKeyStore.setTrust(_id, UNTRUSTED)
-                    self.plugin.ui_list[account][self.contact.jid].refreshAuthLockSymbol()
+                    self.omemostate.store.identityKeyStore.setTrust(_id, UNTRUSTED)
+                    self.plugin.ui_list[self.account][self.contact.jid]. \
+                        refreshAuthLockSymbol()
             dlg.destroy()
 
         self.update_context_list()
@@ -479,7 +497,10 @@ class FingerprintWindow(gtk.Dialog):
             return keep_selection
 
     def clipboard_button_cb(self, menuitem):
-        mod, paths = self.fpr_view.get_selection().get_selected_rows()
+        if self.notebook.get_current_page() == 1:
+            mod, paths = self.fpr_view_own.get_selection().get_selected_rows()
+        else:
+            mod, paths = self.fpr_view.get_selection().get_selected_rows()
 
         fprs = []
         for path in paths:
@@ -489,19 +510,17 @@ class FingerprintWindow(gtk.Dialog):
         gtk.Clipboard().set_text('\n'.join(fprs))
         gtk.Clipboard(selection='PRIMARY').set_text('\n'.join(fprs))
 
-    def update_context_list(self):
+    def update_context_list(self, *args):
         self.fpr_model.clear()
-        state = self.plugin.get_omemo_state(self.contact.account.name)
 
-        ownfpr = binascii.hexlify(state.store.getIdentityKeyPair()
-                                  .getPublicKey().serialize())
-        ownfpr = self.human_hash(ownfpr[2:])
-        self.B.get_object('fingerprint_label').set_markup('<tt>%s</tt>'
-                                                          % ownfpr)
+        if self.notebook.get_current_page() == 1:
+            jid = gajim.get_jid_from_account(self.account)
+        else:
+            jid = self.contact.jid
 
-        fprDB = state.store.identityKeyStore.getFingerprints(self.contact.jid)
-        activeSessions = state.store.sessionStore. \
-            getActiveSessionsKeys(self.contact.jid)
+        fprDB = self.omemostate.store.identityKeyStore.getFingerprints(jid)
+        activeSessions = self.omemostate.store.sessionStore. \
+            getActiveSessionsKeys(jid)
 
         for item in fprDB:
             _id, jid, fpr, tr = item
