@@ -53,7 +53,6 @@ class LitePreKeyStore(PreKeyStore):
         return [PreKeyRecord(serialized=r[0]) for r in result]
 
     def storePreKey(self, preKeyId, preKeyRecord):
-        # self.removePreKey(preKeyId)
         q = "INSERT INTO prekeys (prekey_id, record) VALUES(?,?)"
         cursor = self.dbConn.cursor()
         cursor.execute(q, (preKeyId, preKeyRecord.serialize()))
