@@ -65,10 +65,13 @@ class OmemoState:
             else:
                 self.add_own_device(device_id)
 
-        log.info(self.own_jid + ': Roster devices after boot:' +
+        log.info(self.account + ' => Roster devices after boot:' +
                  str(self.device_ids))
-        log.info(self.own_jid + ': Own devices after boot:' +
+        log.info(self.account + ' => Own devices after boot:' +
                  str(self.own_devices))
+        log.debug(self.account + ' => ' +
+                  str(self.store.preKeyStore.getPreKeyCount()) +
+                  ' PreKeys available')
 
     def build_session(self, recipient_id, device_id, bundle_dict):
         sessionBuilder = SessionBuilder(self.store, self.store, self.store,
