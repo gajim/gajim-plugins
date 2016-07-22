@@ -31,6 +31,7 @@ from .encryption import EncryptionState
 log = logging.getLogger('gajim.plugin_system.omemo')
 
 DEFAULT_PREKEY_AMOUNT = 100
+MIN_PREKEY_AMOUNT = 80
 
 
 class LiteAxolotlStore(AxolotlStore):

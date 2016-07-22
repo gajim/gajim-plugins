@@ -19,6 +19,7 @@
 
 from axolotl.state.prekeyrecord import PreKeyRecord
 from axolotl.state.prekeystore import PreKeyStore
+from axolotl.util.keyhelper import KeyHelper
 
 
 class LitePreKeyStore(PreKeyStore):
@@ -69,3 +70,22 @@ class LitePreKeyStore(PreKeyStore):
         cursor = self.dbConn.cursor()
         cursor.execute(q, (preKeyId, ))
         self.dbConn.commit()
+
+    def getCurrentPreKeyId(self):
+        q = "SELECT MAX(prekey_id) FROM prekeys"
+        cursor = self.dbConn.cursor()
+        cursor.execute(q)
+        return cursor.fetchone()[0]
+
+    def getPreKeyCount(self):
+        q = "SELECT COUNT(prekey_id) FROM prekeys"
+        cursor = self.dbConn.cursor()
+        cursor.execute(q)
+        return cursor.fetchone()[0]
+
+    def generateNewPreKeys(self, count):
+        startId = self.getCurrentPreKeyId() + 1
+        preKeys = KeyHelper.generatePreKeys(startId, count)
+
+        for preKey in preKeys:
+            self.storePreKey(preKey.getId(), preKey)

@@ -35,9 +35,9 @@ from axolotl.util.keyhelper import KeyHelper
 from Crypto.Random import get_random_bytes
 
 from .aes_gcm import NoValidSessions, aes_decrypt, aes_encrypt
-from .liteaxolotlstore import LiteAxolotlStore
+from .liteaxolotlstore import (LiteAxolotlStore, DEFAULT_PREKEY_AMOUNT,
+                               MIN_PREKEY_AMOUNT)
 
-# log = logging.getLogger('omemo')
 log = logging.getLogger('gajim.plugin_system.omemo')
 
 
@@ -328,6 +328,7 @@ class OmemoState:
         sessionCipher = self.get_session_cipher(recipient_id, device_id)
         if self.isTrusted(sessionCipher) != UNTRUSTED:
             key = sessionCipher.decryptPkmsg(preKeyWhisperMessage)
+            self.checkPreKeyAmount()
             return key
         else:
             raise Exception("Received PreKeyWhisperMessage "
@@ -343,3 +344,12 @@ class OmemoState:
         else:
             raise Exception("Received WhisperMessage "
                             "from Untrusted Fingerprint!")
+
+    def checkPreKeyAmount(self):
+        # Check if enough PreKeys are available
+        preKeyCount = self.store.preKeyStore.getPreKeyCount()
+        if preKeyCount < MIN_PREKEY_AMOUNT:
+            newKeys = DEFAULT_PREKEY_AMOUNT - preKeyCount
+            self.store.preKeyStore.generateNewPreKeys(newKeys)
+            log.info(self.account + ' => ' + str(newKeys) +
+                     ' PreKeys created')
