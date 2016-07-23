@@ -155,8 +155,15 @@ class OmemoState:
 
         identityKeyPair = self.store.getIdentityKeyPair()
 
-        signedPreKey = self.store.loadSignedPreKey(
-            self.store.signedPreKeyStore.loadCurrentSignedPreKey())
+        signedPreKeyId = self.store.signedPreKeyStore.loadCurrentSignedPreKey()
+
+        if signedPreKeyId is None:
+            signedPreKey = KeyHelper.generateSignedPreKey(
+                identityKeyPair, KeyHelper.getRandomSequence(65536))
+
+            self.store.storeSignedPreKey(signedPreKey.getId(), signedPreKey)
+        else:
+            signedPreKey = self.store.loadSignedPreKey(signedPreKeyId)
 
         result = {
             'signedPreKeyId': signedPreKey.getId(),

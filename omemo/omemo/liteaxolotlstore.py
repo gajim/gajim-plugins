@@ -64,7 +64,7 @@ class LiteAxolotlStore(AxolotlStore):
         signedPreKey = KeyHelper.generateSignedPreKey(
             identityKeyPair, KeyHelper.getRandomSequence(65536))
 
-        self.store.storeSignedPreKey(signedPreKey.getId(), signedPreKey)
+        self.storeSignedPreKey(signedPreKey.getId(), signedPreKey)
 
         for preKey in preKeys:
             self.storePreKey(preKey.getId(), preKey)

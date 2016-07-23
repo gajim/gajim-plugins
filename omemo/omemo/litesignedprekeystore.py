@@ -79,4 +79,7 @@ class LiteSignedPreKeyStore(SignedPreKeyStore):
         cursor = self.dbConn.cursor()
         cursor.execute(q)
         result = cursor.fetchone()
-        return result[0] is not None
+        if not result:
+            return None
+        else:
+            return result[0]
