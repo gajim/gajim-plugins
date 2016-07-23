@@ -148,6 +148,7 @@ class OmemoState:
 
     @property
     def bundle(self):
+        self.checkPreKeyAmount()
         prekeys = [
             (k.getId(), b64encode(k.getKeyPair().getPublicKey().serialize()))
             for k in self.store.loadPreKeys()
@@ -337,7 +338,9 @@ class OmemoState:
         sessionCipher = self.get_session_cipher(recipient_id, device_id)
         if self.isTrusted(sessionCipher) != UNTRUSTED:
             key = sessionCipher.decryptPkmsg(preKeyWhisperMessage)
-            self.checkPreKeyAmount()
+            # Publish new bundle after PreKey has been used
+            # for building a new Session
+            self.plugin.publish_bundle(self.account)
             return key
         else:
             raise Exception("Received PreKeyWhisperMessage "
@@ -362,4 +365,3 @@ class OmemoState:
             self.store.preKeyStore.generateNewPreKeys(newKeys)
             log.info(self.account + ' => ' + str(newKeys) +
                      ' PreKeys created')
-            self.plugin.publish_bundle(self.account)
