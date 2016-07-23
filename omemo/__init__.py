@@ -35,8 +35,9 @@ from nbxmpp.simplexml import Node
 from .ui import Ui
 from .xmpp import (
     NS_NOTIFY, NS_OMEMO, BundleInformationAnnouncement, BundleInformationQuery,
-    DeviceListAnnouncement, DevicelistQuery, DevicelistPEP, OmemoMessage, successful,
-    unpack_device_bundle, unpack_device_list_update, unpack_encrypted)
+    DeviceListAnnouncement, DevicelistQuery, DevicelistPEP, OmemoMessage,
+    successful, unpack_device_bundle, unpack_device_list_update,
+    unpack_encrypted)
 
 
 iq_ids_to_callbacks = {}
@@ -80,8 +81,10 @@ class OmemoPlugin(GajimPlugin):
             (ged.PRECORE, self.handle_outgoing_event),
         }
         self.config_dialog = ui.OMEMOConfigDialog(self)
-        self.gui_extension_points = {'chat_control': (self.connect_ui, self.disconnect_ui)}
+        self.gui_extension_points = {'chat_control': (self.connect_ui,
+                                                      self.disconnect_ui)}
         SUPPORTED_PERSONAL_USER_EVENTS.append(DevicelistPEP)
+        self.plugin = self
         self.announced = []
 
     @log_calls('OmemoPlugin')
@@ -96,14 +99,8 @@ class OmemoPlugin(GajimPlugin):
 
             my_jid = gajim.get_jid_from_account(account)
 
-            self.omemo_states[account] = OmemoState(my_jid, conn, account)
-
-        if account not in self.announced:
-            if gajim.account_is_connected(account):
-                log.debug(account +
-                          ' => Announce Support after Plugin Activation')
-                self.announced.append(account)
-                self.announce_support(account)
+            self.omemo_states[account] = OmemoState(my_jid, conn, account,
+                                                    self.plugin)
 
         return self.omemo_states[account]
 
@@ -118,21 +115,31 @@ class OmemoPlugin(GajimPlugin):
         log.info(str(account) + " => Gajim E2E encryption disabled")
 
     @log_calls('OmemoPlugin')
-    def signed_in(self, show):
+    def signed_in(self, event):
         """
             On sign in announce OMEMO support for each account.
         """
-        account = show.conn.name
+        account = event.conn.name
         log.debug(account +
                   ' => Announce Support after Sign In')
         self.announced.append(account)
-        self.announce_support(account)
+        self.publish_bundle(account)
+        self.query_own_devicelist(account)
 
     @log_calls('OmemoPlugin')
     def activate(self):
         if NS_NOTIFY not in gajim.gajim_common_features:
             gajim.gajim_common_features.append(NS_NOTIFY)
         self._compute_caps_hash()
+        # Publish bundle information
+        for account in gajim.connections:
+            if account not in self.announced:
+                if gajim.account_is_connected(account):
+                    log.debug(account +
+                              ' => Announce Support after Plugin Activation')
+                    self.announced.append(account)
+                    self.publish_bundle(account)
+                    self.query_own_devicelist(account)
 
     @log_calls('OmemoPlugin')
     def deactivate(self):
@@ -322,7 +329,7 @@ class OmemoPlugin(GajimPlugin):
         devices_list = list(set(devices_list))
         state.set_own_devices(devices_list)
 
-        log.debug(account_name + ' => Publishing own devices_list ' + str(
+        log.debug(account_name + ' => Publishing own Devices: ' + str(
             devices_list))
         iq = DeviceListAnnouncement(devices_list)
         gajim.connections[account_name].connection.send(iq)
@@ -455,12 +462,18 @@ class OmemoPlugin(GajimPlugin):
                     WarnIfUndecidedFingerprints()
 
     @log_calls('OmemoPlugin')
-    def announce_support(self, account):
-        """ Announce OMEMO support for an account via PEP.
+    def query_own_devicelist(self, account):
+        my_jid = gajim.get_jid_from_account(account)
+        iq = DevicelistQuery(my_jid)
+        gajim.connections[account].connection.send(iq)
+        log.info(account + ' => Querry own devicelist ...')
+        id_ = str(iq.getAttr("id"))
+        iq_ids_to_callbacks[id_] = lambda stanza: \
+            self.handle_devicelist_result(account, stanza)
 
-            In order for other clients/devices to be able to initiate a session
-            with gajim, it first has to announce itself by adding its device ID
-            to the devicelist PEP node.
+    @log_calls('OmemoPlugin')
+    def publish_bundle(self, account):
+        """ Publish our bundle information to the PEP node.
 
             Parameters
             ----------
@@ -476,16 +489,13 @@ class OmemoPlugin(GajimPlugin):
         iq = BundleInformationAnnouncement(state.bundle, state.own_device_id)
         gajim.connections[account].connection.send(iq)
         id_ = str(iq.getAttr("id"))
-        log.info(account + " => Announcing OMEMO support via PEP")
+        log.info(account + " => Publishing bundle ...")
         iq_ids_to_callbacks[id_] = lambda stanza: \
-            self.handle_announcement_result(account, stanza)
+            self.handle_publish_result(account, stanza)
 
     @log_calls('OmemoPlugin')
-    def handle_announcement_result(self, account, stanza):
-        """ Query own device list if announcement was successfull.
-
-            If the OMEMO support announcement was successfull own device
-            list is queried.
+    def handle_publish_result(self, account, stanza):
+        """ Log if publishing our bundle was successful
 
             Parameters
             ----------
@@ -494,15 +504,8 @@ class OmemoPlugin(GajimPlugin):
             stanza
                 The stanza object received from callback
         """
-        my_jid = gajim.get_jid_from_account(account)
-        iq = DevicelistQuery(my_jid)
         if successful(stanza):
             log.info(account + ' => Publishing bundle was successful')
-            gajim.connections[account].connection.send(iq)
-            log.info(account + ' => Querry own Devicelist')
-            id_ = str(iq.getAttr("id"))
-            iq_ids_to_callbacks[id_] = lambda stanza: \
-                self.handle_devicelist_result(account, stanza)
         else:
             log.error(account + ' => Publishing bundle was NOT successful')
 

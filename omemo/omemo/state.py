@@ -47,12 +47,13 @@ UNDECIDED = 2
 
 
 class OmemoState:
-    def __init__(self, own_jid, connection, account):
+    def __init__(self, own_jid, connection, account, plugin):
         """ Instantiates an OmemoState object.
 
             :param connection: an :py:class:`sqlite3.Connection`
         """
         self.account = account
+        self.plugin = plugin
         self.session_ciphers = {}
         self.own_jid = own_jid
         self.device_ids = {}
@@ -356,3 +357,4 @@ class OmemoState:
             self.store.preKeyStore.generateNewPreKeys(newKeys)
             log.info(self.account + ' => ' + str(newKeys) +
                      ' PreKeys created')
+            self.plugin.publish_bundle(self.account)
