@@ -18,6 +18,7 @@
 #
 
 import logging
+import time
 from base64 import b64encode
 
 from axolotl.ecc.djbec import DjbECPublicKey
@@ -36,7 +37,8 @@ from Crypto.Random import get_random_bytes
 
 from .aes_gcm import NoValidSessions, aes_decrypt, aes_encrypt
 from .liteaxolotlstore import (LiteAxolotlStore, DEFAULT_PREKEY_AMOUNT,
-                               MIN_PREKEY_AMOUNT)
+                               MIN_PREKEY_AMOUNT, SPK_CYCLE_TIME,
+                               SPK_ARCHIVE_TIME)
 
 log = logging.getLogger('gajim.plugin_system.omemo')
 
@@ -156,15 +158,10 @@ class OmemoState:
 
         identityKeyPair = self.store.getIdentityKeyPair()
 
-        signedPreKeyId = self.store.signedPreKeyStore.loadCurrentSignedPreKey()
+        self.cycleSignedPreKey(identityKeyPair)
 
-        if signedPreKeyId is None:
-            signedPreKey = KeyHelper.generateSignedPreKey(
-                identityKeyPair, KeyHelper.getRandomSequence(65536))
-
-            self.store.storeSignedPreKey(signedPreKey.getId(), signedPreKey)
-        else:
-            signedPreKey = self.store.loadSignedPreKey(signedPreKeyId)
+        signedPreKey = self.store.loadSignedPreKey(
+            self.store.getCurrentSignedPreKeyId())
 
         result = {
             'signedPreKeyId': signedPreKey.getId(),
@@ -365,3 +362,31 @@ class OmemoState:
             self.store.preKeyStore.generateNewPreKeys(newKeys)
             log.info(self.account + ' => ' + str(newKeys) +
                      ' PreKeys created')
+
+    def cycleSignedPreKey(self, identityKeyPair):
+        # Publish every SPK_CYCLE_TIME a new SignedPreKey
+        # Delete all exsiting SignedPreKeys that are older
+        # then SPK_ARCHIVE_TIME
+
+        # Check if SignedPreKey exist and create if not
+        if not self.store.getCurrentSignedPreKeyId():
+            signedPreKey = KeyHelper.generateSignedPreKey(
+                identityKeyPair, self.store.getNextSignedPreKeyId())
+            self.store.storeSignedPreKey(signedPreKey.getId(), signedPreKey)
+            log.debug(self.account +
+                      ' => New SignedPreKey created, because none existed')
+
+        # if SPK_CYCLE_TIME is reached, generate a new SignedPreKey
+        now = int(time.time())
+        timestamp = self.store.getSignedPreKeyTimestamp(
+            self.store.getCurrentSignedPreKeyId())
+
+        if int(timestamp) < now - SPK_CYCLE_TIME:
+            signedPreKey = KeyHelper.generateSignedPreKey(
+                identityKeyPair, self.store.getNextSignedPreKeyId())
+            self.store.storeSignedPreKey(signedPreKey.getId(), signedPreKey)
+            log.debug(self.account + ' => Cycled SignedPreKey')
+
+        # Delete all SignedPreKeys that are older than SPK_ARCHIVE_TIME
+        timestamp = now - SPK_ARCHIVE_TIME
+        self.store.removeOldSignedPreKeys(timestamp)

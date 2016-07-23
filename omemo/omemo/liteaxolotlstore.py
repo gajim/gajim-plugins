@@ -33,6 +33,8 @@ log = logging.getLogger('gajim.plugin_system.omemo')
 
 DEFAULT_PREKEY_AMOUNT = 100
 MIN_PREKEY_AMOUNT = 80
+SPK_ARCHIVE_TIME = 8600 * 15  # 15 Days
+SPK_CYCLE_TIME = 8600         # 24 Hours
 
 
 class LiteAxolotlStore(AxolotlStore):
@@ -137,3 +139,15 @@ class LiteAxolotlStore(AxolotlStore):
 
     def removeSignedPreKey(self, signedPreKeyId):
         self.signedPreKeyStore.removeSignedPreKey(signedPreKeyId)
+
+    def getNextSignedPreKeyId(self):
+        return self.signedPreKeyStore.getNextSignedPreKeyId()
+
+    def getCurrentSignedPreKeyId(self):
+        return self.signedPreKeyStore.getCurrentSignedPreKeyId()
+
+    def getSignedPreKeyTimestamp(self, signedPreKeyId):
+        return self.signedPreKeyStore.getSignedPreKeyTimestamp(signedPreKeyId)
+
+    def removeOldSignedPreKeys(self, timestamp):
+        self.signedPreKeyStore.removeOldSignedPreKeys(timestamp)
