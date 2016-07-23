@@ -157,7 +157,8 @@ class Ui(object):
         return self.state.encryption.is_active(self.contact.jid)
 
     def activate_omemo(self):
-        self.omemobutton.set_omemo_state(True)
+        if not self.encryption_active():
+            self.set_omemo_state(True)
 
     def show_fingerprint_window(self):
         dlg = FingerprintWindow(self.plugin, self.contact,
