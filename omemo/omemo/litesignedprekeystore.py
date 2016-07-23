@@ -75,3 +75,12 @@ class LiteSignedPreKeyStore(SignedPreKeyStore):
         cursor = self.dbConn.cursor()
         cursor.execute(q, (signedPreKeyId, ))
         self.dbConn.commit()
+
+    def loadCurrentSignedPreKey(self):
+        q = "SELECT prekey_id FROM signed_prekeys " \
+            "WHERE _id = (SELECT MAX(_id) FROM signed_prekeys)"
+
+        cursor = self.dbConn.cursor()
+        cursor.execute(q)
+        result = cursor.fetchone()
+        return result[0]

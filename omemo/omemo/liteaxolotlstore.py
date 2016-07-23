@@ -41,6 +41,7 @@ class LiteAxolotlStore(AxolotlStore):
         except(AttributeError):
             raise AssertionError('Expected a sqlite3.Connection got ' +
                                  str(connection))
+
         self.identityKeyStore = LiteIdentityKeyStore(connection)
         self.preKeyStore = LitePreKeyStore(connection)
         self.signedPreKeyStore = LiteSignedPreKeyStore(connection)
@@ -57,6 +58,11 @@ class LiteAxolotlStore(AxolotlStore):
         preKeys = KeyHelper.generatePreKeys(KeyHelper.getRandomSequence(),
                                             DEFAULT_PREKEY_AMOUNT)
         self.storeLocalData(registrationId, identityKeyPair)
+
+        signedPreKey = KeyHelper.generateSignedPreKey(
+            identityKeyPair, KeyHelper.getRandomSequence(65536))
+
+        self.store.storeSignedPreKey(signedPreKey.getId(), signedPreKey)
 
         for preKey in preKeys:
             self.storePreKey(preKey.getId(), preKey)
