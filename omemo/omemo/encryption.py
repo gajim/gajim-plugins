@@ -18,8 +18,6 @@
 # the Gajim-OMEMO plugin.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from .db_helpers import table_exists, user_version
-
 
 class EncryptionState():
     """ Used to store if OMEMO is enabled or not between gajim restarts """
@@ -28,7 +26,7 @@ class EncryptionState():
         """
         :type dbConn: Connection
         """
-        self.dbConn = migrate(dbConn)
+        self.dbConn = dbConn
 
     def activate(self, jid):
         q = """INSERT OR REPLACE INTO encryption_state (jid, encryption)
@@ -54,83 +52,3 @@ class EncryptionState():
         if result is None:
             return False
         return result[0] == 1
-
-
-def migrate(dbConn):
-    """ Creates the encryption_state table and migrates it if needed.
-    """
-    if user_version(dbConn) == 0:
-        create_table = """ CREATE TABLE encryption_state (
-                            id INTEGER PRIMARY KEY AUTOINCREMENT,
-                            jid TEXT UNIQUE,
-                            encryption INTEGER,
-                            timestamp NUMERIC DEFAULT CURRENT_TIMESTAMP
-                            );
-                        """
-
-        if table_exists(dbConn, 'encryption_state'):
-            # Given a database which already has `encryption_state` and has
-            # `user_version` 0, we assume the database needs migration and
-            # migrate it to add an `ID INTEGER AUTOINCREMENT` column
-            migrate_sql = """
-            BEGIN TRANSACTION;
-            ALTER TABLE encryption_state RENAME TO encryption_state_back;
-            %s
-            INSERT INTO encryption_state(jid, encryption, timestamp)
-                SELECT jid, encryption, timestamp FROM encryption_state_back;
-            DROP TABLE encryption_state_back;
-            PRAGMA user_version=1;
-            END TRANSACTION ;
-            """ % (create_table)
-            dbConn.executescript(migrate_sql)
-        else:
-            # The database has `user_version` 0 and has no `encryption_state
-            # table, so crate it!
-            dbConn.executescript(""" BEGIN TRANSACTION;
-                                     %s
-                                     PRAGMA user_version=1;
-                                     END TRANSACTION;
-                                 """ % (create_table))
-            # Find all double entrys and delete them
-    if user_version(dbConn) < 2:
-        delete_dupes = """ DELETE FROM identities WHERE _id not in (
-                            SELECT MIN(_id)
-                            FROM identities
-                            GROUP BY
-                            recipient_id, public_key
-                            );
-                        """
-
-        dbConn.executescript(""" BEGIN TRANSACTION;
-                                     %s
-                                     PRAGMA user_version=2;
-                                     END TRANSACTION;
-                                 """ % (delete_dupes))
-
-    if user_version(dbConn) < 3:
-        # Create a UNIQUE INDEX so every public key/recipient_id tuple
-        # can only be once in the db
-        add_index = """ CREATE UNIQUE INDEX IF NOT EXISTS
-                        public_key_index
-                        ON identities (public_key, recipient_id);
-                    """
-
-        dbConn.executescript(""" BEGIN TRANSACTION;
-                                 %s
-                                 PRAGMA user_version=3;
-                                 END TRANSACTION;
-                             """ % (add_index))
-
-    if user_version(dbConn) < 4:
-        # Adds column "active" to the sessions table
-        add_active = """ ALTER TABLE sessions
-                         ADD COLUMN active INTEGER DEFAULT 1;
-                     """
-
-        dbConn.executescript(""" BEGIN TRANSACTION;
-                                 %s
-                                 PRAGMA user_version=4;
-                                 END TRANSACTION;
-                             """ % (add_active))
-
-    return dbConn

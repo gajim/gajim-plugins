@@ -27,11 +27,6 @@ class LiteSessionStore(SessionStore):
         :type dbConn: Connection
         """
         self.dbConn = dbConn
-        dbConn.execute("CREATE TABLE IF NOT EXISTS sessions (" +
-                       "_id INTEGER PRIMARY KEY AUTOINCREMENT," +
-                       "recipient_id TEXT," + "device_id INTEGER," +
-                       "record BLOB," + "timestamp INTEGER, " +
-                       "UNIQUE(recipient_id, device_id));")
 
     def loadSession(self, recipientId, deviceId):
         q = "SELECT record FROM sessions WHERE recipient_id = ? AND device_id = ?"

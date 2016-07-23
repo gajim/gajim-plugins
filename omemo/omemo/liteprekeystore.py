@@ -28,10 +28,6 @@ class LitePreKeyStore(PreKeyStore):
         :type dbConn: Connection
         """
         self.dbConn = dbConn
-        dbConn.execute("CREATE TABLE IF NOT EXISTS prekeys(" +
-                       "_id INTEGER PRIMARY KEY AUTOINCREMENT," +
-                       "prekey_id INTEGER UNIQUE, sent_to_server BOOLEAN, " +
-                       " record BLOB);")
 
     def loadPreKey(self, preKeyId):
         q = "SELECT record FROM prekeys WHERE prekey_id = ?"

@@ -28,10 +28,6 @@ class LiteSignedPreKeyStore(SignedPreKeyStore):
         :type dbConn: Connection
         """
         self.dbConn = dbConn
-        dbConn.execute(
-            "CREATE TABLE IF NOT EXISTS signed_prekeys (" +
-            "_id INTEGER PRIMARY" + " KEY AUTOINCREMENT," +
-            "prekey_id INTEGER UNIQUE, timestamp INTEGER, record BLOB);")
 
     def loadSignedPreKey(self, signedPreKeyId):
         q = "SELECT record FROM signed_prekeys WHERE prekey_id = ?"
@@ -83,4 +79,4 @@ class LiteSignedPreKeyStore(SignedPreKeyStore):
         cursor = self.dbConn.cursor()
         cursor.execute(q)
         result = cursor.fetchone()
-        return result[0]
+        return result[0] is not None

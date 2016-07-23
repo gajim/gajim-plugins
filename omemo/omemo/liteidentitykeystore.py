@@ -33,11 +33,6 @@ class LiteIdentityKeyStore(IdentityKeyStore):
         :type dbConn: Connection
         """
         self.dbConn = dbConn
-        dbConn.execute(
-            "CREATE TABLE IF NOT EXISTS identities (" +
-            "_id INTEGER PRIMARY KEY AUTOINCREMENT, recipient_id TEXT," +
-            "registration_id INTEGER, public_key BLOB, private_key BLOB," +
-            "next_prekey_id INTEGER, timestamp INTEGER, trust INTEGER);")
 
     def getIdentityKeyPair(self):
         q = "SELECT public_key, private_key FROM identities " + \

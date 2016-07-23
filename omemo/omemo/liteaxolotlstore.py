@@ -27,6 +27,7 @@ from .liteprekeystore import LitePreKeyStore
 from .litesessionstore import LiteSessionStore
 from .litesignedprekeystore import LiteSignedPreKeyStore
 from .encryption import EncryptionState
+from .sql import SQLDatabase
 
 log = logging.getLogger('gajim.plugin_system.omemo')
 
@@ -42,6 +43,7 @@ class LiteAxolotlStore(AxolotlStore):
             raise AssertionError('Expected a sqlite3.Connection got ' +
                                  str(connection))
 
+        self.sql = SQLDatabase(connection)
         self.identityKeyStore = LiteIdentityKeyStore(connection)
         self.preKeyStore = LitePreKeyStore(connection)
         self.signedPreKeyStore = LiteSignedPreKeyStore(connection)
