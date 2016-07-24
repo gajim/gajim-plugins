@@ -30,7 +30,7 @@ from plugins import GajimPlugin
 from plugins.helpers import log_calls
 
 from nbxmpp.simplexml import Node
-
+from nbxmpp import NS_CORRECT
 
 from .ui import Ui
 from .xmpp import (
@@ -576,6 +576,11 @@ class OmemoPlugin(GajimPlugin):
     def handle_outgoing_stanza(self, event):
         if not event.msg_iq.getTag('body'):
             return
+
+        # Delete previous Message out of Correction Message Stanza
+        if event.msg_iq.getTag('replace', namespace=NS_CORRECT):
+            event.msg_iq.delChild('encrypted')
+
         plaintext = event.msg_iq.getBody().encode('utf8')
         account = event.conn.name
         state = self.get_omemo_state(account)
