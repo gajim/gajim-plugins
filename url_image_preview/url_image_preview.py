@@ -24,19 +24,20 @@ demandimport.ignore += ['_imp']
 
 log = logging.getLogger('gajim.plugin_system.url_image_preview')
 
-if os.name != 'nt':
-    try:
+
+try:
+    if os.name == 'nt':
+        from cryptography.hazmat.backends.openssl import backend
+    else:
         from cryptography.hazmat.backends import default_backend
-        from cryptography.hazmat.primitives.ciphers import Cipher
-        from cryptography.hazmat.primitives.ciphers import algorithms
-        from cryptography.hazmat.primitives.ciphers.modes import GCM
-        decryption_available = True
-    except Exception as e:
-        log.debug(e)
-        decryption_available = False
-else:
+    from cryptography.hazmat.primitives.ciphers import Cipher
+    from cryptography.hazmat.primitives.ciphers import algorithms
+    from cryptography.hazmat.primitives.ciphers.modes import GCM
+    decryption_available = True
+except Exception as e:
+    log.debug('Cryptography Import Error: ' + str(e))
+    log.debug('Decryption/Encryption disabled')
     decryption_available = False
-    log.info('Cryptography not available on Windows for now')
 
 ACCEPTED_MIME_TYPES = ('image/png', 'image/jpeg', 'image/gif', 'image/raw',
                        'image/svg+xml')
@@ -47,8 +48,8 @@ class UrlImagePreviewPlugin(GajimPlugin):
     def init(self):
         self.config_dialog = UrlImagePreviewPluginConfigDialog(self)
         self.events_handlers = {}
-        self.events_handlers['message-received'] = (ged.PRECORE,
-                self.handle_message_received)
+        self.events_handlers['message-received'] = (
+            ged.PRECORE, self.handle_message_received)
         self.gui_extension_points = {
             'chat_control_base': (self.connect_with_chat_control,
                                   self.disconnect_from_chat_control),
@@ -106,6 +107,10 @@ class Base(object):
         self.plugin = plugin
         self.chat_control = chat_control
         self.textview = self.chat_control.conv_textview
+        if os.name == 'nt':
+            self.backend = backend
+        else:
+            self.backend = default_backend()
 
     def print_special_text(self, special_text, other_tags, graphics=True,
                            iter_=None):
@@ -210,7 +215,8 @@ class Base(object):
                 mem = aes_decrypt(key, iv, mem)
             log.info("After decrypt image")
         except Exception:
-            log.error('Could not decrypt image for URL (exception raised): %s' % url)
+            log.error('Could not decrypt image for URL (exception raised): %s'
+                      % url)
             raise
         if not mem or not len(mem):
             log.error('Could not decrypt image for URL: %s' % url)
@@ -221,11 +227,10 @@ class Base(object):
         # Use AES128 GCM with the given key and iv to decrypt the payload.
         data = payload[:-16]
         tag = payload[-16:]
-        backend = default_backend()
         decryptor = Cipher(
             algorithms.AES(key),
             GCM(iv, tag=tag),
-            backend=backend).decryptor()
+            backend=self.backend).decryptor()
         return decryptor.update(data) + decryptor.finalize()
 
     def _update_img(self, (mem, alt), url, file_mime, repl_start, repl_end, decrypted=False):
