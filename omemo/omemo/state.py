@@ -35,7 +35,7 @@ from axolotl.state.prekeybundle import PreKeyBundle
 from axolotl.util.keyhelper import KeyHelper
 from Crypto.Random import get_random_bytes
 
-from .aes_gcm import NoValidSessions, aes_decrypt, aes_encrypt
+from .aes_gcm import NoValidSessions, decrypt, encrypt
 from .liteaxolotlstore import (LiteAxolotlStore, DEFAULT_PREKEY_AMOUNT,
                                MIN_PREKEY_AMOUNT, SPK_CYCLE_TIME,
                                SPK_ARCHIVE_TIME)
@@ -210,7 +210,7 @@ class OmemoState:
                       ' sid => ' + str(sid))
             return
 
-        result = unicode(aes_decrypt(key, iv, payload))
+        result = unicode(decrypt(key, iv, payload))
 
         if self.own_jid == sender_jid:
             self.add_own_device(sid)
@@ -263,7 +263,7 @@ class OmemoState:
                 log.debug('Skipped own Device because Trust is: ' +
                           str(self.isTrusted(cipher)))
 
-        payload = aes_encrypt(key, iv, plaintext)
+        payload = encrypt(key, iv, plaintext)
 
         result = {'sid': self.own_device_id,
                   'keys': encrypted_keys,
