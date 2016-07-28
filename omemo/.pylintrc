@@ -96,7 +96,7 @@ evaluation=10.0 - ((float(5 * error + warning + refactor + convention) / stateme
 bad-functions=map,filter,input
 
 # Good variable names which should always be accepted, separated by a comma
-good-names=i,j,k,ex,Run,_
+good-names=i,j,k,e,Run,_,log,ui,iq,db
 
 # Bad variable names which should always be refused, separated by a comma
 bad-names=foo,bar,baz,toto,tutu,tata
@@ -314,7 +314,7 @@ valid-metaclass-classmethod-first-arg=mcs
 
 # List of member names, which should be excluded from the protected access
 # warning.
-exclude-protected=_asdict,_fields,_replace,_source,_make
+exclude-protected=_asdict,_fields,_replace,_source,_make,_show_lock_image
 
 
 [DESIGN]
