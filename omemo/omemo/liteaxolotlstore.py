@@ -33,8 +33,8 @@ log = logging.getLogger('gajim.plugin_system.omemo')
 
 DEFAULT_PREKEY_AMOUNT = 100
 MIN_PREKEY_AMOUNT = 80
-SPK_ARCHIVE_TIME = 8600 * 15  # 15 Days
-SPK_CYCLE_TIME = 8600         # 24 Hours
+SPK_ARCHIVE_TIME = 86400 * 15  # 15 Days
+SPK_CYCLE_TIME = 86400         # 24 Hours
 
 
 class LiteAxolotlStore(AxolotlStore):
