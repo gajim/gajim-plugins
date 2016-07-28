@@ -1,11 +1,13 @@
+''' Database helper functions '''
+
 
 def table_exists(db, name):
     """ Check if the specified table exists in the db. """
 
-    q = """ SELECT name FROM sqlite_master
+    query = """ SELECT name FROM sqlite_master
             WHERE type='table' AND name=?;
         """
-    return db.execute(q, (name, )).fetchone() is not None
+    return db.execute(query, (name, )).fetchone() is not None
 
 
 def user_version(db):

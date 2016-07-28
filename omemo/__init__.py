@@ -65,6 +65,7 @@ class OmemoPlugin(GajimPlugin):
 
     @log_calls('OmemoPlugin')
     def init(self):
+        # pylint: disable=attribute-defined-outside-init
         if not HAS_AXOLOTL:
             self.activatable = False
             self.available_text = _(AXOLOTL_MISSING)

@@ -18,14 +18,17 @@
 # the Gajim-OMEMO plugin.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+import binascii
 import logging
 
+import gobject
 import gtk
+
+# pylint: disable=import-error
+import gtkgui_helpers
 from common import gajim
 from plugins.gui import GajimPluginConfigDialog
-import gobject
-import binascii
-import gtkgui_helpers
+# pylint: enable=import-error
 
 log = logging.getLogger('gajim.plugin_system.omemo')
 
@@ -207,6 +210,7 @@ class Ui(object):
 
 class OMEMOConfigDialog(GajimPluginConfigDialog):
     def init(self):
+        # pylint: disable=attribute-defined-outside-init
         self.GTK_BUILDER_FILE_PATH = \
             self.plugin.local_file_path('config_dialog.ui')
         self.B = gtk.Builder()
@@ -348,10 +352,7 @@ class OMEMOConfigDialog(GajimPluginConfigDialog):
             getAllActiveSessionsKeys()
         for item in fprDB:
             _id, jid, fpr, tr = item
-            if fpr in activeSessions:
-                active = True
-            else:
-                active = False
+            active = fpr in activeSessions
             fpr = binascii.hexlify(fpr)
             fpr = self.human_hash(fpr[2:])
             if tr == UNTRUSTED:
@@ -525,10 +526,7 @@ class FingerprintWindow(gtk.Dialog):
 
         for item in fprDB:
             _id, jid, fpr, tr = item
-            if fpr in activeSessions:
-                active = True
-            else:
-                active = False
+            active = fpr in activeSessions
             fpr = binascii.hexlify(fpr)
             fpr = self.human_hash(fpr[2:])
             if tr == UNTRUSTED:
