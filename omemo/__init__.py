@@ -286,13 +286,13 @@ class OmemoPlugin(GajimPlugin):
         devices_list = unpack_device_list_update(event.stanza, event.conn.name)
         if len(devices_list) == 0:
             return False
-        account_name = event.conn.name
+        account = event.conn.name
         contact_jid = gajim.get_jid_without_resource(event.fjid)
-        state = self.get_omemo_state(account_name)
-        my_jid = gajim.get_jid_from_account(account_name)
+        state = self.get_omemo_state(account)
+        my_jid = gajim.get_jid_from_account(account)
 
         if contact_jid == my_jid:
-            log.info(account_name + ' => Received own device list:' + str(
+            log.info(account + ' => Received own device list:' + str(
                 devices_list))
             state.set_own_devices(devices_list)
             state.store.sessionStore.setActiveState(devices_list, my_jid)
@@ -302,23 +302,36 @@ class OmemoPlugin(GajimPlugin):
                 # Our own device_id is not in the list, it could be
                 # overwritten by some other client?
                 # Is a Device ID duplicated?
-                self.publish_own_devices_list(account_name, state)
+                self.publish_own_devices_list(account, state)
         else:
-            log.info(account_name + ' => Received device list for ' +
+            log.info(account + ' => Received device list for ' +
                      contact_jid + ':' + str(devices_list))
             state.set_devices(contact_jid, set(devices_list))
             state.store.sessionStore.setActiveState(devices_list, contact_jid)
-            if (account_name in self.ui_list and
-                    contact_jid not in self.ui_list[account_name]):
+
+            # Enable Encryption on receiving first Device List
+            if not state.encryption.exist(contact_jid):
+                if account in self.ui_list and \
+                        contact_jid in self.ui_list[account]:
+                    log.debug(account +
+                              ' => Switch encryption ON automatically ...')
+                    self.ui_list[account][contact_jid].activate_omemo()
+                else:
+                    log.debug(account +
+                              ' => Switch encryption ON automatically ...')
+                    self.omemo_enable_for(contact_jid, account)
+
+            if (account in self.ui_list and
+                    contact_jid not in self.ui_list[account]):
 
                 chat_control = gajim.interface.msg_win_mgr.get_control(
-                    contact_jid, account_name)
+                    contact_jid, account)
 
                 if chat_control is not None:
                     self.connect_ui(chat_control)
 
-        # Look if Device Keys are missing and fetch them
-        self.are_keys_missing(account_name, contact_jid)
+        # Look if Public Keys are missing and fetch them
+        self.are_keys_missing(account, contact_jid)
 
         return True
 
@@ -616,16 +629,22 @@ class OmemoPlugin(GajimPlugin):
             return True
 
     @log_calls('OmemoPlugin')
-    def omemo_enable_for(self, contact):
-        """ Used by the ui to enable omemo for a specified contact """
-        account = contact.account.name
+    def omemo_enable_for(self, jid, account):
+        """ Used by the ui to enable omemo for a specified contact
+            If you want to activate OMEMO check first if a Ui Object
+            exists for the Contact. If it exists use Ui.activate_omemo().
+            Only if there is no Ui Object for the contact this function
+            is to be used.
+        """
         state = self.get_omemo_state(account)
-        state.encryption.activate(contact.jid)
+        state.encryption.activate(jid)
 
     @log_calls('OmemoPlugin')
     def omemo_disable_for(self, contact):
-        """ Used by the ui to disable omemo for a specified contact """
-        # TODO Migrate this
+        """ Used by the ui to disable omemo for a specified contact
+            WARNING - OMEMO should only be disabled through
+            Userinteraction with the Ui.
+        """
         account = contact.account.name
         state = self.get_omemo_state(account)
         state.encryption.deactivate(contact.jid)

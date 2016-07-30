@@ -145,7 +145,8 @@ class Ui(object):
         if enabled:
             log.debug(self.contact.account.name + ' => Enable OMEMO for ' +
                       self.contact.jid)
-            self.plugin.omemo_enable_for(self.contact)
+            self.plugin.omemo_enable_for(self.contact.jid,
+                                         self.contact.account.name)
             self.WarnIfUndecidedFingerprints()  # calls refreshAuthLockSymbol()
         else:
             log.debug(self.contact.account.name + ' => Disable OMEMO for ' +

@@ -51,4 +51,14 @@ class EncryptionState():
         result = c.fetchone()
         if result is None:
             return False
-        return result[0] == 1
+        return result[0]
+
+    def exist(self, jid):
+        q = 'SELECT encryption FROM encryption_state where jid = ?;'
+        c = self.dbConn.cursor()
+        c.execute(q, (jid, ))
+        result = c.fetchone()
+        if result is None:
+            return False
+        else:
+            return True
