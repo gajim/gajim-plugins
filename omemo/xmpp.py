@@ -276,7 +276,6 @@ def unpack_encrypted(encrypted_node):
         keys[int(rid)] = decode_data(kn)
 
     result = {'sid': sid, 'iv': iv, 'keys': keys, 'payload': payload}
-    log.debug('Parsed OMEMO message:' + str(result))
     return result
 
 

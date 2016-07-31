@@ -26,6 +26,7 @@ from axolotl.identitykey import IdentityKey
 from axolotl.duplicatemessagexception import DuplicateMessageException
 from axolotl.invalidmessageexception import InvalidMessageException
 from axolotl.invalidversionexception import InvalidVersionException
+from axolotl.untrustedidentityexception import UntrustedIdentityException
 from axolotl.nosessionexception import NoSessionException
 from axolotl.protocol.prekeywhispermessage import PreKeyWhisperMessage
 from axolotl.protocol.whispermessage import WhisperMessage
@@ -41,6 +42,7 @@ from .liteaxolotlstore import (LiteAxolotlStore, DEFAULT_PREKEY_AMOUNT,
                                SPK_ARCHIVE_TIME)
 
 log = logging.getLogger('gajim.plugin_system.omemo')
+logAxolotl = logging.getLogger('axolotl')
 
 
 UNTRUSTED = 0
@@ -281,7 +283,7 @@ class OmemoState:
             getSessionState()
         self.key = self.state.getRemoteIdentityKey()
         return self.store.identityKeyStore. \
-            getTrust(self.cipher.recipientId, self.key)
+            isTrustedIdentity(self.cipher.recipientId, self.key)
 
     def device_list_for(self, jid):
         """ Return a list of known device ids for the specified jid.
@@ -333,26 +335,30 @@ class OmemoState:
     def handlePreKeyWhisperMessage(self, recipient_id, device_id, key):
         preKeyWhisperMessage = PreKeyWhisperMessage(serialized=key)
         sessionCipher = self.get_session_cipher(recipient_id, device_id)
-        if self.isTrusted(sessionCipher) != UNTRUSTED:
+        try:
+            log.debug(self.account +
+                      " => Received PreKeyWhisperMessage from " +
+                      recipient_id)
             key = sessionCipher.decryptPkmsg(preKeyWhisperMessage)
             # Publish new bundle after PreKey has been used
             # for building a new Session
             self.plugin.publish_bundle(self.account)
             return key
-        else:
-            raise Exception("Received PreKeyWhisperMessage "
-                            "from Untrusted Fingerprint!")
+        except UntrustedIdentityException as e:
+            log.info(self.account + " => Received WhisperMessage " +
+                     "from Untrusted Fingerprint! => " + e.getName())
 
     def handleWhisperMessage(self, recipient_id, device_id, key):
         whisperMessage = WhisperMessage(serialized=key)
         sessionCipher = self.get_session_cipher(recipient_id, device_id)
-        if self.isTrusted(sessionCipher) == TRUSTED or \
-                self.isTrusted(sessionCipher) == UNDECIDED:
+        log.debug(self.account + " => Received WhisperMessage from " +
+                  recipient_id)
+        if self.isTrusted(sessionCipher) >= TRUSTED:
             key = sessionCipher.decryptMsg(whisperMessage)
             return key
         else:
             raise Exception("Received WhisperMessage "
-                            "from Untrusted Fingerprint!")
+                            "from Untrusted Fingerprint! => " + recipient_id)
 
     def checkPreKeyAmount(self):
         # Check if enough PreKeys are available
