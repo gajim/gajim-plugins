@@ -76,7 +76,6 @@ class DeviceListAnnouncement(Iq):
 class OmemoMessage(Node):
     def __init__(self, msg_dict):
         # , contact_jid, key, iv, payload, dev_id, my_dev_id):
-        log.debug('Creating_msg' + str(msg_dict))
         Node.__init__(self, 'encrypted', attrs={'xmlns': NS_OMEMO})
         header = Node('header', attrs={'sid': msg_dict['sid']})
         for rid, key in msg_dict['keys'].items():
