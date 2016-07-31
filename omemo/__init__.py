@@ -22,6 +22,7 @@ import logging
 import os
 import sqlite3
 import ui
+import re
 
 # pylint: disable=import-error
 from common import caps_cache, gajim, ged
@@ -167,7 +168,7 @@ class OmemoPlugin(GajimPlugin):
         if msg.msg_.getTag('encrypted', namespace=NS_OMEMO):
             account = msg.conn.name
             log.debug(account + ' => OMEMO MAM msg received')
-            log.debug(msg.msg_)
+            self.print_msg_to_log(msg.msg_)
             state = self.get_omemo_state(account)
 
             from_jid = str(msg.msg_.getAttr('from'))
@@ -221,7 +222,7 @@ class OmemoPlugin(GajimPlugin):
                 log.debug('message was forwarded doing magic')
             else:
                 from_jid = str(msg.stanza.getFrom())
-
+            self.print_msg_to_log(msg.stanza)
             msg_dict = unpack_encrypted(msg.stanza.getTag
                                         ('encrypted', namespace=NS_OMEMO))
             msg_dict['sender_jid'] = gajim.get_jid_without_resource(from_jid)
@@ -590,6 +591,14 @@ class OmemoPlugin(GajimPlugin):
 
         event.xhtml = None
 
+    def print_msg_to_log(self, stanza):
+        log.debug('-'*15)
+        stanzastr = str(stanza)
+        for item in re.split("(<.*?>)(<.*?/.*?>)", stanzastr):
+            if item:
+                log.debug(item)
+        log.debug('-'*15)
+
     @log_calls('OmemoPlugin')
     def handle_outgoing_stanza(self, event):
         if not event.msg_iq.getTag('body'):
@@ -628,7 +637,7 @@ class OmemoPlugin(GajimPlugin):
             event.msg_iq.addChild(node=encrypted_node)
             store = Node('store', attrs={'xmlns': NS_HINTS})
             event.msg_iq.addChild(node=store)
-            log.debug(account + ' => ' + str(event.msg_iq))
+            self.print_msg_to_log(event.msg_iq)
         except:
             return True
 
