@@ -131,6 +131,22 @@ class LiteIdentityKeyStore(IdentityKeyStore):
 
         return result
 
+    def getNewFingerprints(self, jid):
+        q = "SELECT _id FROM identities WHERE shown = 0 AND " \
+            "recipient_id = ?"
+        c = self.dbConn.cursor()
+        result = []
+        for row in c.execute(q, (jid,)):
+            result.append(row[0])
+        return result
+
+    def setShownFingerprints(self, fingerprints):
+        q = "UPDATE identities SET shown = 1 WHERE _id IN ({})" \
+            .format(', '.join(['?'] * len(fingerprints)))
+        c = self.dbConn.cursor()
+        c.execute(q, fingerprints)
+        self.dbConn.commit()
+
     def setTrust(self, _id, trust):
         q = "UPDATE identities SET trust = ? WHERE _id = ?"
         c = self.dbConn.cursor()

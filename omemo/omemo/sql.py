@@ -44,7 +44,8 @@ class SQLDatabase():
                 CREATE TABLE IF NOT EXISTS identities (
                     _id INTEGER PRIMARY KEY AUTOINCREMENT, recipient_id TEXT,
                     registration_id INTEGER, public_key BLOB, private_key BLOB,
-                    next_prekey_id INTEGER, timestamp INTEGER, trust INTEGER);
+                    next_prekey_id INTEGER, timestamp INTEGER, trust INTEGER,
+                    shown INTEGER DEFAULT 0);
 
                 CREATE UNIQUE INDEX IF NOT EXISTS
                     public_key_index ON identities (public_key, recipient_id);
@@ -135,6 +136,8 @@ class SQLDatabase():
                     _id INTEGER PRIMARY KEY AUTOINCREMENT,
                     prekey_id INTEGER UNIQUE,
                     timestamp NUMERIC DEFAULT CURRENT_TIMESTAMP, record BLOB);
+                ALTER TABLE identities ADD COLUMN shown INTEGER DEFAULT 0;
+                UPDATE identities SET shown = 1;
             """
 
             self.dbConn.executescript(""" BEGIN TRANSACTION;

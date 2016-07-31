@@ -321,13 +321,13 @@ class OmemoPlugin(GajimPlugin):
                               ' => Switch encryption ON automatically ...')
                     self.omemo_enable_for(contact_jid, account)
 
-            if (account in self.ui_list and
-                    contact_jid not in self.ui_list[account]):
+            if account in self.ui_list and \
+                    contact_jid not in self.ui_list[account]:
 
                 chat_control = gajim.interface.msg_win_mgr.get_control(
                     contact_jid, account)
 
-                if chat_control is not None:
+                if chat_control:
                     self.connect_ui(chat_control)
 
         # Look if Public Keys are missing and fetch them
@@ -352,24 +352,26 @@ class OmemoPlugin(GajimPlugin):
 
     @log_calls('OmemoPlugin')
     def connect_ui(self, chat_control):
-        account_name = chat_control.contact.account.name
+        account = chat_control.contact.account.name
         contact_jid = chat_control.contact.jid
-        if account_name not in self.ui_list:
-            self.ui_list[account_name] = {}
-        state = self.get_omemo_state(account_name)
-        my_jid = gajim.get_jid_from_account(account_name)
+        if account not in self.ui_list:
+            self.ui_list[account] = {}
+        state = self.get_omemo_state(account)
+        my_jid = gajim.get_jid_from_account(account)
         omemo_enabled = state.encryption.is_active(contact_jid)
         if omemo_enabled:
-            log.debug(account_name + " => Adding OMEMO ui for " + contact_jid)
-            self.ui_list[account_name][contact_jid] = Ui(self, chat_control,
-                                                         omemo_enabled, state)
+            log.debug(account + " => Adding OMEMO ui for " + contact_jid)
+            self.ui_list[account][contact_jid] = Ui(self, chat_control,
+                                                    omemo_enabled, state)
+            self.ui_list[account][contact_jid].new_fingerprints_available()
             return
         if contact_jid in state.device_ids or contact_jid == my_jid:
-            log.debug(account_name + " => Adding OMEMO ui for " + contact_jid)
-            self.ui_list[account_name][contact_jid] = Ui(self, chat_control,
-                                                         omemo_enabled, state)
+            log.debug(account + " => Adding OMEMO ui for " + contact_jid)
+            self.ui_list[account][contact_jid] = Ui(self, chat_control,
+                                                    omemo_enabled, state)
+            self.ui_list[account][contact_jid].new_fingerprints_available()
         else:
-            log.warn(account_name + " => No devices for " + contact_jid)
+            log.warn(account + " => No devices for " + contact_jid)
 
     @log_calls('OmemoPlugin')
     def disconnect_ui(self, chat_control):
@@ -474,6 +476,8 @@ class OmemoPlugin(GajimPlugin):
                     recipient_id in self.ui_list[account_name]:
                 self.ui_list[account_name][recipient_id]. \
                     WarnIfUndecidedFingerprints()
+                self.ui_list[account_name][recipient_id]. \
+                    new_fingerprints_available()
 
     @log_calls('OmemoPlugin')
     def query_own_devicelist(self, account):
