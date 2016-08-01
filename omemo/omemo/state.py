@@ -214,11 +214,6 @@ class OmemoState:
 
         result = unicode(decrypt(key, iv, payload))
 
-        if self.own_jid == sender_jid:
-            self.add_own_device(sid)
-        else:
-            self.add_device(sender_jid, sid)
-
         log.debug("Decrypted Message => " + result)
         return result
 
