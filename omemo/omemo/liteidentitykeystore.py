@@ -124,13 +124,14 @@ class LiteIdentityKeyStore(IdentityKeyStore):
         return result
 
     def getTrustedFingerprints(self, jid):
-        q = "SELECT _id FROM identities WHERE recipient_id = ? AND trust = ?"
+        q = "SELECT public_key FROM identities WHERE recipient_id = ? AND trust = ?"
         c = self.dbConn.cursor()
 
         result = []
         c.execute(q, (jid, TRUSTED))
-        result = c.fetchall()
-
+        rows = c.fetchall()
+        for row in rows:
+            result.append(row[0])
         return result
 
     def getUndecidedFingerprints(self, jid):

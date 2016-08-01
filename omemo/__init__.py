@@ -88,6 +88,7 @@ class OmemoPlugin(GajimPlugin):
         SUPPORTED_PERSONAL_USER_EVENTS.append(DevicelistPEP)
         self.plugin = self
         self.announced = []
+        self.query_for_bundles = []
 
     @log_calls('OmemoPlugin')
     def get_omemo_state(self, account):
@@ -124,12 +125,15 @@ class OmemoPlugin(GajimPlugin):
         account = event.conn.name
         log.debug(account +
                   ' => Announce Support after Sign In')
+        self.query_for_bundles = []
+        self.announced = []
         self.announced.append(account)
         self.publish_bundle(account)
         self.query_own_devicelist(account)
 
     @log_calls('OmemoPlugin')
     def activate(self):
+        self.query_for_bundles = []
         if NS_NOTIFY not in gajim.gajim_common_features:
             gajim.gajim_common_features.append(NS_NOTIFY)
         self._compute_caps_hash()
@@ -298,6 +302,11 @@ class OmemoPlugin(GajimPlugin):
             state.set_own_devices(devices_list)
             state.store.sessionStore.setActiveState(devices_list, my_jid)
 
+            # remove contact from list, so on send button pressed
+            # we query for bundle and build a session
+            if contact_jid in self.query_for_bundles:
+                self.query_for_bundles.remove(contact_jid)
+
             if not state.own_device_id_published() or anydup(
                     state.own_devices):
                 # Our own device_id is not in the list, it could be
@@ -309,6 +318,11 @@ class OmemoPlugin(GajimPlugin):
                      contact_jid + ':' + str(devices_list))
             state.set_devices(contact_jid, set(devices_list))
             state.store.sessionStore.setActiveState(devices_list, contact_jid)
+
+            # remove contact from list, so on send button pressed
+            # we query for bundle and build a session
+            if contact_jid in self.query_for_bundles:
+                self.query_for_bundles.remove(contact_jid)
 
             # Enable Encryption on receiving first Device List
             if not state.encryption.exist(contact_jid):
@@ -330,9 +344,6 @@ class OmemoPlugin(GajimPlugin):
 
                 if chat_control:
                     self.connect_ui(chat_control)
-
-        # Look if Public Keys are missing and fetch them
-        self.are_keys_missing(account, contact_jid)
 
         return True
 
@@ -383,14 +394,26 @@ class OmemoPlugin(GajimPlugin):
     def are_keys_missing(self, account, contact_jid):
         """ Check DB if keys are missing and query them """
         state = self.get_omemo_state(account)
-        devices_without_session = state \
-            .devices_without_sessions(contact_jid)
-        if devices_without_session:
-            for device_id in devices_without_session:
-                self.fetch_device_bundle_information(account,
-                                                     state,
-                                                     contact_jid,
-                                                     device_id)
+        if contact_jid not in self.query_for_bundles:
+
+            devices_without_session = state \
+                .devices_without_sessions(contact_jid)
+
+            self.query_for_bundles.append(contact_jid)
+
+            if devices_without_session:
+                for device_id in devices_without_session:
+                    self.fetch_device_bundle_information(account,
+                                                         state,
+                                                         contact_jid,
+                                                         device_id)
+
+        if state.getTrustedFingerprints(contact_jid):
+            return False
+        else:
+            return True
+
+
 
     @log_calls('OmemoPlugin')
     def handle_iq_received(self, event):
@@ -553,6 +576,11 @@ class OmemoPlugin(GajimPlugin):
                 state.set_own_devices(devices_list)
                 state.store.sessionStore.setActiveState(devices_list, my_jid)
 
+                # remove contact from list, so on send button pressed
+                # we query for bundle and build a session
+                if contact_jid in self.query_for_bundles:
+                    self.query_for_bundles.remove(contact_jid)
+
                 if not state.own_device_id_published() or anydup(
                         state.own_devices):
                     # Our own device_id is not in the list, it could be
@@ -601,32 +629,23 @@ class OmemoPlugin(GajimPlugin):
 
     @log_calls('OmemoPlugin')
     def handle_outgoing_stanza(self, event):
-        if not event.msg_iq.getTag('body'):
-            return
-
-        # Delete previous Message out of Correction Message Stanza
-        if event.msg_iq.getTag('replace', namespace=NS_CORRECT):
-            event.msg_iq.delChild('encrypted')
-
-        plaintext = event.msg_iq.getBody().encode('utf8')
-        account = event.conn.name
-        state = self.get_omemo_state(account)
-        full_jid = str(event.msg_iq.getAttr('to'))
-        to_jid = gajim.get_jid_without_resource(full_jid)
-        if not state.encryption.is_active(to_jid):
-            return False
-
-        if not state.store.identityKeyStore.getTrustedFingerprints(to_jid):
-                msg = "To send an encrypted message, you have to " \
-                      "first trust the fingerprint of your contact!"
-                if account in self.ui_list and \
-                        to_jid in self.ui_list[account]:
-                    self.ui_list[account][to_jid].chat_control. \
-                        print_conversation_line(msg, 'status', '', None)
-
-                return True
-
         try:
+            if not event.msg_iq.getTag('body'):
+                return
+
+            account = event.conn.name
+            state = self.get_omemo_state(account)
+            full_jid = str(event.msg_iq.getAttr('to'))
+            to_jid = gajim.get_jid_without_resource(full_jid)
+            if not state.encryption.is_active(to_jid):
+                return
+
+            # Delete previous Message out of Correction Message Stanza
+            if event.msg_iq.getTag('replace', namespace=NS_CORRECT):
+                event.msg_iq.delChild('encrypted')
+
+            plaintext = event.msg_iq.getBody().encode('utf8')
+
             msg_dict = state.create_msg(
                 gajim.get_jid_from_account(account), to_jid, plaintext)
             if not msg_dict:
@@ -638,7 +657,8 @@ class OmemoPlugin(GajimPlugin):
             store = Node('store', attrs={'xmlns': NS_HINTS})
             event.msg_iq.addChild(node=store)
             self.print_msg_to_log(event.msg_iq)
-        except:
+        except Exception as e:
+            log.debug(e)
             return True
 
     @log_calls('OmemoPlugin')

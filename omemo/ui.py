@@ -139,6 +139,29 @@ class Ui(object):
             return menu
         self.chat_control.prepare_context_menu = omemo_prepare_context_menu
 
+        # Hook into Send Button so we can check Stuff before sending
+        self.chat_control.orig_send_message = \
+            self.chat_control.send_message
+
+        def omemo_send_message(message, keyID='', chatstate=None, xhtml=None,
+                               process_commands=True, attention=False):
+
+            if self.encryption_active() and \
+                    self.plugin.are_keys_missing(self.account,
+                                                 self.contact.jid):
+
+                log.debug(self.account + ' => No Trusted Fingerprints for ' +
+                          self.contact.jid)
+                self.no_trusted_fingerprints_warning()
+            else:
+                self.chat_control.orig_send_message(message, keyID, chatstate,
+                                                    xhtml, process_commands,
+                                                    attention)
+                log.debug(self.account + ' => Sending Message to ' +
+                          self.contact.jid)
+
+        self.chat_control.send_message = omemo_send_message
+
     def set_omemo_state(self, enabled):
         """
         Enable or disable OMEMO for this window's contact and update the
@@ -209,6 +232,11 @@ class Ui(object):
             self.chat_control.print_conversation_line(msg, 'status', '', None)
         self.refreshAuthLockSymbol()
 
+    def no_trusted_fingerprints_warning(self):
+        msg = "To send an encrypted message, you have to " \
+                          "first trust the fingerprint of your contact!"
+        self.chat_control.print_conversation_line(msg, 'status', '', None)
+
     def refreshAuthLockSymbol(self):
         if self.encryption_active():
             if self.state.store.identityKeyStore. \
@@ -226,6 +254,7 @@ class Ui(object):
         self.actions_hbox.remove(self.omemobutton)
         self.chat_control.prepare_context_menu = \
             self.chat_control.omemo_orig_prepare_context_menu
+        self.chat_control.send_message = self.chat_control.orig_send_message
 
 
 class OMEMOConfigDialog(GajimPluginConfigDialog):

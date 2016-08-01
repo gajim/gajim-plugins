@@ -117,3 +117,14 @@ class LiteSessionStore(SessionStore):
                           getPublicKey())
             result.append(public_key.serialize())
         return result
+
+    def getInactiveSessionsKeys(self, recipientId):
+        q = "SELECT record FROM sessions WHERE active = 0 AND recipient_id = ?"
+        c = self.dbConn.cursor()
+        result = []
+        for row in c.execute(q, (recipientId,)):
+            public_key = (SessionRecord(serialized=row[0]).
+                          getSessionState().getRemoteIdentityKey().
+                          getPublicKey())
+            result.append(public_key.serialize())
+        return result

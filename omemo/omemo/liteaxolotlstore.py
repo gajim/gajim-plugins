@@ -87,6 +87,9 @@ class LiteAxolotlStore(AxolotlStore):
         return self.identityKeyStore.isTrustedIdentity(recepientId,
                                                        identityKey)
 
+    def getTrustedFingerprints(self, jid):
+        return self.identityKeyStore.getTrustedFingerprints(jid)
+
     def setShownFingerprints(self, jid):
         return self.identityKeyStore.setShownFingerprints(jid)
 
@@ -113,6 +116,9 @@ class LiteAxolotlStore(AxolotlStore):
 
     def getActiveDeviceTuples(self):
         return self.sessionStore.getActiveDeviceTuples()
+
+    def getInactiveSessionsKeys(self, recipientId):
+        return self.sessionStore.getInactiveSessionsKeys(recipientId)
 
     def getSubDeviceSessions(self, recepientId):
         # TODO Reuse this
