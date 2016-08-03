@@ -36,6 +36,8 @@ hg update gajim-0.16.5 --clean
 want to use `pip2` as Gajim is using python2.7. If you are using the official repository,
 do not forget to install the `nbxmpp` dependency via pip or you package manager.
 
+if you still have problems, we have written down the most common problems [here](https://github.com/omemo/gajim-omemo/wiki/It-doesnt-work,-what-should-i-do%3F-(Linux))
+
 ## Running
 Enable *OMEMO Multi-End Message and Object Encryption* in the Plugin-Manager.
 If your contact supports OMEMO you should see a new orange fish icon in the chat window.
