@@ -38,11 +38,20 @@ do not forget to install the `nbxmpp` dependency via pip or you package manager.
 
 ## Running
 Enable *OMEMO Multi-End Message and Object Encryption* in the Plugin-Manager.
-Before exchanging encrypted messages with a contact you have to hit the *Get
-Device Keys* button. (Repeat that if you or your contact get new devices.)
+If your contact supports OMEMO you should see a new orange fish icon in the chat window.
 
-Currently the plugin has no user interface for confirming the own and foreign
-device keys.  It uses trust on first use. This will be added in near future.
+Encryption will be enabled by default for contacts that support OMEMO.
+If you open the chat window, the Plugin will tell you with a green status message if its *enabled* or *disabled*.
+If you see no status message, your contact doesnt support OMEMO.
+(**Beware**, every status message is green. A green message does not mean encryption is active. Read the message !)
+You can also check if encryption is enabled/disabled, when you click on the OMEMO icon.
+
+When you send your first message the Plugin will query your contacts encryption keys and you will
+see them in a readable fingerprint format in the fingerprint window which pops up.
+you have to trust at least **one** fingerprint to send messages.
+you can receive messages from fingerprints where you didnt made a trust decision, but you cant
+receive Messages from *not trusted* fingerprints
+
 
 ## Debugging
 To see OMEMO related debug output start Gajim with the parameter `-l
