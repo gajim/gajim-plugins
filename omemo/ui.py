@@ -145,7 +145,7 @@ class Ui(object):
 
         def omemo_send_message(message, keyID='', chatstate=None, xhtml=None,
                                process_commands=True, attention=False):
-
+            self.new_fingerprints_available()
             if self.encryption_active() and \
                     self.plugin.are_keys_missing(self.account,
                                                  self.contact.jid):
