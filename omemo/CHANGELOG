@@ -1,11 +1,26 @@
-0.7.5 / 2016-20-07
+0.8.0 / 2016-08-03
+- Encryption improvements:
+-- SignedPreKey renews every 24 hours
+-- New PreKeys are generated and published if less then 80 are available
+-- If the Python Cryptography package is installed native encryption is now used (faster on old devices)
+-- Bundle Information is only pulled right before sending a Message (see Business rules of the OMEMO XEP)
+-- If Contact supports OMEMO, encryption is activated automatically 
+
+- Other Stuff:
+-- The Fingerprint Window pops up if the Send Button is pressed and there are new Fingerprints in the DB
+-- Message Correction now works with OMEMO (Press STRG + UP Arrow to correct the last send message)
+-- SQL Refactoring, so new users dont have to go through DB Migration
+-- Small bugfixes
+
+
+0.7.5 / 2016-07-20
 ================
 - Announcing of Support right after Plugin activation
 - New Context Menu for Gajim Compact View
 - Own Device Fingerprints are now available in the Fingerprint Window
 - Small bugfixes
 
-0.7 / 2016-16-07
+0.7 / 2016-07-16
 ================
 - Reworked publishing Devicelist
 - Deactivate Gajim E2E on startup
