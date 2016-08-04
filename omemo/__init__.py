@@ -394,6 +394,24 @@ class OmemoPlugin(GajimPlugin):
     def are_keys_missing(self, account, contact_jid):
         """ Check DB if keys are missing and query them """
         state = self.get_omemo_state(account)
+        my_jid = gajim.get_jid_from_account(account)
+
+        # Fetch Bundles of own other Devices
+        if my_jid not in self.query_for_bundles:
+
+            devices_without_session = state \
+                    .devices_without_sessions(my_jid)
+
+            self.query_for_bundles.append(my_jid)
+
+            if devices_without_session:
+                for device_id in devices_without_session:
+                    self.fetch_device_bundle_information(account,
+                                                         state,
+                                                         my_jid,
+                                                         device_id)
+
+        # Fetch Bundles of contacts devices
         if contact_jid not in self.query_for_bundles:
 
             devices_without_session = state \
