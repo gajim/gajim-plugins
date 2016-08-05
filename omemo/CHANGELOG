@@ -1,3 +1,9 @@
+0.8.1 / 2016-08-05
+- Query own Device Bundles on send button press
+- Make Fingerprint Window higher and rename Buttons for something more appropriate
+- Bugfixes
+
+
 0.8.0 / 2016-08-03
 - Encryption improvements:
 -- SignedPreKey renews every 24 hours
