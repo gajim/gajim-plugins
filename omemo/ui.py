@@ -107,7 +107,7 @@ class Ui(object):
         self.windowinstances = {}
 
         self.display_omemo_state()
-        self.refreshAuthLockSymbol()
+        self.refresh_auth_lock_icon()
 
         self.omemobutton = OmemoButton(plugin, chat_control, self, enabled)
 
@@ -172,12 +172,12 @@ class Ui(object):
                       self.contact.jid)
             self.plugin.omemo_enable_for(self.contact.jid,
                                          self.contact.account.name)
-            self.WarnIfUndecidedFingerprints()  # calls refreshAuthLockSymbol()
+            self.refresh_auth_lock_icon()
         else:
             log.debug(self.contact.account.name + ' => Disable OMEMO for ' +
                       self.contact.jid)
             self.plugin.omemo_disable_for(self.contact)
-            self.refreshAuthLockSymbol()
+            self.refresh_auth_lock_icon()
 
         self.omemobutton.set_omemo_state(enabled)
         self.display_omemo_state()
@@ -223,24 +223,14 @@ class Ui(object):
             msg = u'OMEMO encryption disabled'
         self.chat_control.print_conversation_line(msg, 'status', '', None)
 
-    def WarnIfUndecidedFingerprints(self):
-        if self.state.store.identityKeyStore. \
-                getUndecidedFingerprints(self.contact.jid):
-            msg = "You received a new Fingerprint. " \
-                  "Until you make a trust decision you can only " \
-                  "receive encrypted Messages from that Device."
-            self.chat_control.print_conversation_line(msg, 'status', '', None)
-        self.refreshAuthLockSymbol()
-
     def no_trusted_fingerprints_warning(self):
         msg = "To send an encrypted message, you have to " \
                           "first trust the fingerprint of your contact!"
         self.chat_control.print_conversation_line(msg, 'status', '', None)
 
-    def refreshAuthLockSymbol(self):
+    def refresh_auth_lock_icon(self):
         if self.encryption_active():
-            if self.state.store.identityKeyStore. \
-                    getUndecidedFingerprints(self.contact.jid):
+            if self.state.getUndecidedFingerprints(self.contact.jid):
                 self.chat_control._show_lock_image(True, 'OMEMO', True, True,
                                                    False)
             else:
@@ -329,7 +319,7 @@ class OMEMOConfigDialog(GajimPluginConfigDialog):
                 state.store.identityKeyStore.setTrust(_id, TRUSTED)
                 try:
                     if self.plugin.ui_list[account]:
-                        self.plugin.ui_list[account][user].refreshAuthLockSymbol()
+                        self.plugin.ui_list[account][user].refresh_auth_lock_icon()
                 except:
                     dlg.destroy()
             else:
@@ -337,7 +327,7 @@ class OMEMOConfigDialog(GajimPluginConfigDialog):
                     state.store.identityKeyStore.setTrust(_id, UNTRUSTED)
                     try:
                         if user in self.plugin.ui_list[account]:
-                            self.plugin.ui_list[account][user].refreshAuthLockSymbol()
+                            self.plugin.ui_list[account][user].refresh_auth_lock_icon()
                     except:
                         dlg.destroy()
 
@@ -523,13 +513,13 @@ class FingerprintWindow(gtk.Dialog):
             if response == gtk.RESPONSE_YES:
                 self.omemostate.store.identityKeyStore.setTrust(_id, TRUSTED)
                 self.plugin.ui_list[self.account][self.contact.jid]. \
-                    refreshAuthLockSymbol()
+                    refresh_auth_lock_icon()
                 dlg.destroy()
             else:
                 if response == gtk.RESPONSE_NO:
                     self.omemostate.store.identityKeyStore.setTrust(_id, UNTRUSTED)
                     self.plugin.ui_list[self.account][self.contact.jid]. \
-                        refreshAuthLockSymbol()
+                        refresh_auth_lock_icon()
             dlg.destroy()
 
         self.update_context_list()

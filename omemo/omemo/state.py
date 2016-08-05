@@ -284,19 +284,18 @@ class OmemoState:
             isTrustedIdentity(self.cipher.recipientId, self.key)
 
     def getTrustedFingerprints(self, recipient_id):
-        log.debug('Inactive fingerprints')
-        log.debug(self.store.getInactiveSessionsKeys(recipient_id))
-        log.debug('trusted fingerprints')
-        log.debug(self.store.getTrustedFingerprints(recipient_id))
-
         inactive = self.store.getInactiveSessionsKeys(recipient_id)
         trusted = self.store.getTrustedFingerprints(recipient_id)
         trusted = set(trusted) - set(inactive)
 
-        log.debug('trusted active fingerprints')
-        log.debug(trusted)
-
         return trusted
+
+    def getUndecidedFingerprints(self, recipient_id):
+        inactive = self.store.getInactiveSessionsKeys(recipient_id)
+        undecided = self.store.getUndecidedFingerprints(recipient_id)
+        undecided = set(undecided) - set(inactive)
+
+        return undecided
 
     def device_list_for(self, jid):
         """ Return a list of known device ids for the specified jid.

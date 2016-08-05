@@ -517,8 +517,6 @@ class OmemoPlugin(GajimPlugin):
             if account_name in self.ui_list and \
                     recipient_id in self.ui_list[account_name]:
                 self.ui_list[account_name][recipient_id]. \
-                    WarnIfUndecidedFingerprints()
-                self.ui_list[account_name][recipient_id]. \
                     new_fingerprints_available()
 
     @log_calls('OmemoPlugin')
