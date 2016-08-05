@@ -311,15 +311,16 @@ class OMEMOConfigDialog(GajimPluginConfigDialog):
             it = mod.get_iter(path)
             _id, user, fpr = mod.get(it, 0, 1, 3)
             fpr = fpr[31:-12]
-            dlg = gtk.Dialog('Confirm trusting fingerprint', self,
+            dlg = gtk.Dialog('Trust / Revoke Fingerprint', self,
                              gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
                              (gtk.STOCK_YES, gtk.RESPONSE_YES,
                               gtk.STOCK_NO, gtk.RESPONSE_NO))
             l = gtk.Label()
-            l.set_markup('Do you want to trust the following '
-                         'fingerprint for the contact <b>%s</b> on the account <b>%s</b>?'
+            l.set_markup('Do you want to trust the '
+                         'fingerprint of <b>%s</b> on your account <b>%s</b>?'
                          '\n\n<tt>%s</tt>' % (user, account, fpr))
             l.set_line_wrap(True)
+            l.set_padding(12, 12)
             dlg.vbox.pack_start(l)
             dlg.show_all()
 
@@ -506,16 +507,16 @@ class FingerprintWindow(gtk.Dialog):
             it = mod.get_iter(path)
             _id, user, fpr = mod.get(it, 0, 1, 3)
             fpr = fpr[31:-12]
-            dlg = gtk.Dialog('Confirm trusting fingerprint', self,
+            dlg = gtk.Dialog('Trust / Revoke Fingerprint', self,
                              gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
                              (gtk.STOCK_YES, gtk.RESPONSE_YES,
                               gtk.STOCK_NO, gtk.RESPONSE_NO))
             l = gtk.Label()
-            l.set_markup('Do you want to trust the following '
-                         'fingerprint for the contact <b>%s</b> '
-                         'on the account <b>%s</b>?'
+            l.set_markup('Do you want to trust the '
+                         'fingerprint of <b>%s</b> on your account <b>%s</b>?'
                          '\n\n<tt>%s</tt>' % (user, self.account, fpr))
             l.set_line_wrap(True)
+            l.set_padding(12, 12)
             dlg.vbox.pack_start(l)
             dlg.show_all()
             response = dlg.run()
