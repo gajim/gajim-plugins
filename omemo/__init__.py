@@ -24,6 +24,10 @@ import sqlite3
 import ui
 import re
 
+from common import demandimport
+demandimport.enable()
+demandimport.ignore += ['_imp']
+
 # pylint: disable=import-error
 from common import caps_cache, gajim, ged
 from common.pep import SUPPORTED_PERSONAL_USER_EVENTS
