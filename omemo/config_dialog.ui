@@ -147,6 +147,7 @@
             <property name="vscrollbar_policy">automatic</property>
             <child>
               <object class="GtkTreeView" id="fingerprint_view">
+                <property name="height_request">300</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="model">fingerprint_store</property>
@@ -205,8 +206,8 @@
             <property name="spacing">5</property>
             <child>
               <object class="GtkButton" id="trust_button">
-                <property name="label" translatable="yes" comments="button">Verify Fingerprint</property>
-                <property name="width_request">150</property>
+                <property name="label" translatable="yes" comments="button">Trust/Revoke Fingerprint</property>
+                <property name="width_request">200</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
@@ -306,7 +307,7 @@
             <child>
               <object class="GtkButton" id="cleardevice_button">
                 <property name="label" translatable="yes">Clear Devices</property>
-                <property name="width_request">150</property>
+                <property name="width_request">160</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
@@ -321,7 +322,7 @@
             <child>
               <object class="GtkButton" id="refresh">
                 <property name="label">gtk-refresh</property>
-                <property name="width_request">150</property>
+                <property name="width_request">160</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>

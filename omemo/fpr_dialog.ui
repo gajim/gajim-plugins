@@ -32,8 +32,7 @@
         <property name="spacing">10</property>
         <child>
           <object class="GtkScrolledWindow" id="scrolledwindow1">
-            <property name="width_request">500</property>
-            <property name="height_request">250</property>
+            <property name="height_request">200</property>
             <property name="visible">True</property>
             <property name="can_focus">True</property>
             <property name="hscrollbar_policy">automatic</property>
@@ -99,7 +98,7 @@
             <child>
               <object class="GtkButton" id="trust_button">
                 <property name="label" translatable="yes" comments="button">Trust/Revoke Fingerprint</property>
-                <property name="width_request">150</property>
+                <property name="width_request">200</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
@@ -246,8 +245,8 @@
             <property name="spacing">5</property>
             <child>
               <object class="GtkButton" id="trust_button1">
-                <property name="label" translatable="yes" comments="button">Verify Fingerprint</property>
-                <property name="width_request">150</property>
+                <property name="label" translatable="yes" comments="button">Trust/Revoke Fingerprint</property>
+                <property name="width_request">200</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
