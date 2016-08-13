@@ -641,10 +641,9 @@ class OmemoPlugin(GajimPlugin):
 
     def print_msg_to_log(self, stanza):
         log.debug('-'*15)
-        stanzastr = str(stanza)
-        for item in re.split("(<.*?>)(<.*?/.*?>)", stanzastr):
-            if item:
-                log.debug(item)
+        stanzastr = '\n' + stanza.__str__(fancy=True)
+        stanzastr = stanzastr[0:-1]
+        log.debug(stanzastr)
         log.debug('-'*15)
 
     @log_calls('OmemoPlugin')
