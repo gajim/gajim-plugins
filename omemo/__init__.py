@@ -671,7 +671,21 @@ class OmemoPlugin(GajimPlugin):
                 return True
 
             encrypted_node = OmemoMessage(msg_dict)
-            event.msg_iq.delChild('body')
+            contacts = gajim.contacts.get_contacts(account, to_jid)
+            non_omemo_resource_online = False
+            for contact in contacts:
+                if contact.show == 'offline':
+                    continue
+                if not contact.supports(NS_NOTIFY):
+                    log.debug(contact.get_full_jid() +
+                              ' => Contact doesnt support OMEMO, '
+                              'adding Info Message to Body')
+                    support_msg = 'You received a message encrypted with ' \
+                                  'OMEMO but your client doesnt support OMEMO.'
+                    event.msg_iq.setBody(support_msg)
+                    non_omemo_resource_online = True
+            if not non_omemo_resource_online:
+                event.msg_iq.delChild('body')
             event.msg_iq.addChild(node=encrypted_node)
             store = Node('store', attrs={'xmlns': NS_HINTS})
             event.msg_iq.addChild(node=store)
