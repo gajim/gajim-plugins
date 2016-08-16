@@ -11,7 +11,7 @@ distributed under the GNU General Public License version 3 or any later version.
 
 ### Windows
 
-See [Windows Wiki](https://github.com/omemo/gajim-omemo/wiki/Installing-and-Using-on-Windows)
+See [Windows Wiki](https://github.com/omemo/gajim-omemo/wiki/Installing-on-Windows)
 
 ### Via Package Manager
 #### Arch
