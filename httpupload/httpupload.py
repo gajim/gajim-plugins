@@ -1,20 +1,16 @@
 # -*- coding: utf-8 -*-
 ##
 
-from common import demandimport
-demandimport.enable()
-demandimport.ignore += ['builtins', '__builtin__', 'PIL','_imp']
-
-import gtk
-import gobject
+from gi.repository import GObject, Gtk
 import os
 import time
 import base64
 import tempfile
-import urllib2
+from urllib.request import Request, urlopen
+from urllib.parse import quote as urlquote
 import mimetypes        # better use the magic packet, but that's not a standard lib
 import gtkgui_helpers
-from Queue import Queue
+from queue import Queue
 try:
     from PIL import Image
     pil_available = True
@@ -105,10 +101,7 @@ class HttpuploadPlugin(GajimPlugin):
         base = Base(self, self.chat_control)
         self.controls.append(base)
         if self.first_run:
-            # ALT + U
-            gtk.binding_entry_add_signal(control.msg_textview,
-                gtk.keysyms.u, gtk.gdk.MOD1_MASK, 'mykeypress',
-                int, gtk.keysyms.u, gtk.gdk.ModifierType, gtk.gdk.MOD1_MASK)
+            # TODO: Potentially add back keyboard shortcut
             self.first_run = False
         self.update_button_state(self.chat_control)
 
@@ -190,73 +183,46 @@ class Base(object):
     def __init__(self, plugin, chat_control):
         self.dlg = None
         self.dialog_type = 'file'
-        self.keypress_id = chat_control.msg_textview.connect('mykeypress',
-            self.on_key_press)
         self.plugin = plugin
         self.encrypted_upload = False
         self.chat_control = chat_control
         actions_hbox = chat_control.xml.get_object('actions_hbox')
-        self.button = gtk.Button(label=None, stock=None, use_underline=True)
-        self.button.set_property('relief', gtk.RELIEF_NONE)
+        self.button = Gtk.Button(label=None, stock=None, use_underline=True)
         self.button.set_property('can-focus', False)
         self.button.set_sensitive(False)
-        img = gtk.Image()
+        img = Gtk.Image()
         img.set_from_file(self.plugin.local_file_path('httpupload.png'))
         self.button.set_image(img)
         self.button.set_tooltip_text(_('Your server does not support http uploads'))
-        self.image_button = gtk.Button(label=None, stock=None, use_underline=True)
-        self.image_button.set_property('relief', gtk.RELIEF_NONE)
+        self.button.set_relief(Gtk.ReliefStyle.NONE)
+        self.image_button = Gtk.Button(label=None, stock=None, use_underline=True)
         self.image_button.set_property('can-focus', False)
+        self.image_button.set_relief(Gtk.ReliefStyle.NONE)
         self.image_button.set_sensitive(False)
-        img = gtk.Image()
+        img = Gtk.Image()
         img.set_from_file(self.plugin.local_file_path('image.png'))
         self.image_button.set_image(img)
         self.image_button.set_tooltip_text(_('Your server does not support http uploads'))
         send_button = chat_control.xml.get_object('send_button')
-        send_button_pos = actions_hbox.child_get_property(send_button,
-            'position')
-        actions_hbox.add_with_properties(self.button, 'position',
-            send_button_pos - 2, 'expand', False)
+        actions_hbox.add(self.button)
+        actions_hbox.add(self.image_button)
 
-        actions_hbox.add_with_properties(self.image_button, 'position',
-            send_button_pos - 1, 'expand', False)
+        send_button_pos = actions_hbox.child_get_property(send_button, 'position')
+        actions_hbox.child_set_property(self.image_button, 'position', send_button_pos - 1)
+        actions_hbox.child_set_property(self.button, 'position', send_button_pos - 1)
 
         file_id = self.button.connect('clicked', self.on_file_button_clicked)
         image_id = self.image_button.connect('clicked', self.on_image_button_clicked)
         chat_control.handlers[file_id] = self.button
         chat_control.handlers[image_id] = self.image_button
-        chat_control.handlers[self.keypress_id] = chat_control.msg_textview
         self.button.show()
         self.image_button.show()
 
-    def on_key_press(self, widget, event_keyval, event_keymod):
-        # construct event instance from binding
-        event = gtk.gdk.Event(gtk.gdk.KEY_PRESS)  # it's always a key-press here
-        event.keyval = event_keyval
-        event.state = event_keymod
-        event.time = 0  # assign current time
-
-        if event.keyval != gtk.keysyms.u:
-            return
-        if event.state != gtk.gdk.MOD1_MASK:  # ALT+u
-            return
-        is_supported = gajim.get_jid_from_account(self.chat_control.account) in jid_to_servers and \
-                    gajim.connections[self.chat_control.account].connection != None
-        if not is_supported:
-            from dialogs import WarningDialog
-            WarningDialog('Warning', _('Your server does not support http uploads'),
-                transient_for=self.chat_control.parent_win.window)
-            return
-        self.on_file_button_clicked(widget)
 
     def disconnect_from_chat_control(self):
         actions_hbox = self.chat_control.xml.get_object('actions_hbox')
         actions_hbox.remove(self.button)
         actions_hbox.remove(self.image_button)
-        if self.keypress_id in self.chat_control.handlers and \
-            self.chat_control.handlers[self.keypress_id].handler_is_connected(self.keypress_id):
-            self.chat_control.handlers[self.keypress_id].disconnect(self.keypress_id)
-            del self.chat_control.handlers[self.keypress_id]
 
     def encryption_activated(self):
         if not encryption_available:
@@ -289,8 +255,6 @@ class Base(object):
             if not path_to_file:
                 self.dlg.destroy()
                 return
-            path_to_file = gtkgui_helpers.decode_filechooser_file_paths(
-                    (path_to_file,))[0]
         self.dlg.destroy()
         if not os.path.exists(path_to_file):
             return
@@ -321,8 +285,8 @@ class Base(object):
         def upload_file(stanza):
             slot = stanza.getTag("slot")
             if not slot:
-                progress_window.close_dialog()
                 log.error("got unexpected stanza: "+str(stanza))
+                progress_window.close_dialog()
                 error = stanza.getTag("error")
                 if error and error.getTag("text"):
                     ErrorDialog(_('Could not request upload slot'), 
@@ -347,6 +311,7 @@ class Base(object):
                                                   "rb",
                                                   progress_window.update_progress)
             except:
+                log.error("Could not open file")
                 progress_window.close_dialog()
                 ErrorDialog(_('Could not open file'), 
                             _('Exception raised while opening file (see error log for more information)'),
@@ -356,8 +321,8 @@ class Base(object):
             put = slot.getTag("put")
             get = slot.getTag("get")
             if not put or not get:
-                progress_window.close_dialog()
                 log.error("got unexpected stanza: " + str(stanza))
+                progress_window.close_dialog()
                 ErrorDialog(_('Could not request upload slot'), 
                             _('Got unexpected response from server (protocol mismatch??)'),
                             transient_for=self.chat_control.parent_win.window)
@@ -377,7 +342,7 @@ class Base(object):
                         thumb = None
                         quality_steps = (100, 80, 60, 50, 40, 35, 30, 25, 23, 20, 18, 15, 13, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1)
                         with open(path_to_file, 'rb') as content_file:
-                            thumb = urllib2.quote(base64.standard_b64encode(content_file.read()), '')
+                            thumb = urlquote(base64.standard_b64encode(content_file.read()), '')
                         if thumb and len(thumb) < max_thumbnail_size:
                             quality = 100
                             log.info("Image small enough (%d bytes), not resampling" % len(thumb))
@@ -391,7 +356,7 @@ class Base(object):
                                     thumb.save(output, format='JPEG', quality=quality, optimize=True)
                                     thumb = output.getvalue()
                                     output.close()
-                                    thumb = urllib2.quote(base64.standard_b64encode(thumb), '')
+                                    thumb = urlquote(base64.standard_b64encode(thumb), '')
                                     log.debug("pil thumbnail jpeg quality %d produces an image of size %d..." % (quality, len(thumb)))
                                     if len(thumb) < max_thumbnail_size:
                                         break
@@ -405,7 +370,7 @@ class Base(object):
                             try:
                                 with open(path_to_file, 'rb') as content_file:
                                     thumb = content_file.read()
-                                loader = gtk.gdk.PixbufLoader()
+                                loader = Gtk.gdk.PixbufLoader()
                                 loader.write(thumb)
                                 loader.close()
                                 pixbuf = loader.get_pixbuf()
@@ -417,7 +382,7 @@ class Base(object):
                                     scaled_pb.save(temp_file, "jpeg", {"quality": str(quality)})
                                     with open(temp_file, 'rb') as content_file:
                                         thumb = content_file.read()
-                                    thumb = urllib2.quote(base64.standard_b64encode(thumb), '')
+                                    thumb = urlquote(base64.standard_b64encode(thumb), '')
                                     log.debug("gtk thumbnail jpeg quality %d produces an image of size %d..." % (quality, len(thumb)))
                                     if len(thumb) < max_thumbnail_size:
                                         break
@@ -455,11 +420,12 @@ class Base(object):
                 try:
                     headers = {'User-Agent': 'Gajim %s' % gajim.version,
                                'Content-Type': mime_type}
-                    request = urllib2.Request(put.getData().encode("utf-8"), data=data, headers=headers)
+                    request = Request(put.getData(), data=data, headers=headers)
                     request.get_method = lambda: 'PUT'
-                    log.debug("opening urllib2 upload request...")
-                    transfer = urllib2.urlopen(request, timeout=30)
-                    log.debug("urllib2 upload request done, response code: " + str(transfer.getcode()))
+                    log.debug("opening urllib upload request...")
+                    transfer = urlopen(request, timeout=30)
+                    data.close()
+                    log.debug("urllib upload request done, response code: " + str(transfer.getcode()))
                     return transfer.getcode()
                 except UploadAbortedException:
                     log.info("Upload aborted")
@@ -521,9 +487,9 @@ class Base(object):
     def on_file_button_clicked(self, widget):
         self.dialog_type = 'file'
         self.dlg = FileChooserDialog(on_response_ok=self.on_file_dialog_ok, on_response_cancel=None,
-            title_text = _('Choose file to send'), action = gtk.FILE_CHOOSER_ACTION_OPEN,
-            buttons = (gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL, gtk.STOCK_OPEN, gtk.RESPONSE_OK),
-            default_response = gtk.RESPONSE_OK,)
+            title_text = _('Choose file to send'), action = Gtk.FileChooserAction.OPEN,
+            buttons = (Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL, Gtk.STOCK_OPEN, Gtk.ResponseType.OK),
+            default_response = Gtk.ResponseType.OK,)
 
     def on_image_button_clicked(self, widget):
         self.dialog_type = 'image'
@@ -546,25 +512,25 @@ class Base(object):
                 image_height = int(size)
 
         crop_pixbuf = pixbuf.scale_simple(image_width, image_height,
-            gtk.gdk.INTERP_BILINEAR)
+            Gtk.gdk.INTERP_BILINEAR)
         return crop_pixbuf
 
 
-class StreamFileWithProgress(file):
+class StreamFileWithProgress:
     def __init__(self, path, mode, callback=None,
                  encrypted_upload=False, key=None, iv=None, *args):
-        file.__init__(self, path, mode)
+        self.backing = open(path, mode)
         self.encrypted_upload = encrypted_upload
-        self.seek(0, os.SEEK_END)
+        self.backing.seek(0, os.SEEK_END)
         if self.encrypted_upload:
             self.encryptor = Cipher(
                 algorithms.AES(key),
                 GCM(iv),
                 backend=default_backend()).encryptor()
-            self._total = self.tell() + TAGSIZE
+            self._total = self.backing.tell() + TAGSIZE
         else:
-            self._total = self.tell()
-        self.seek(0)
+            self._total = self.backing.tell()
+        self.backing.seek(0)
         self._callback = callback
         self._args = args
         self._seen = 0
@@ -574,7 +540,7 @@ class StreamFileWithProgress(file):
 
     def read(self, size):
         if self.encrypted_upload:
-            data = file.read(self, size)
+            data = self.backing.read(size)
             if len(data) > 0:
                 data = self.encryptor.update(data)
                 self._seen += len(data)
@@ -586,11 +552,14 @@ class StreamFileWithProgress(file):
                     self._callback(self._seen, self._total, *self._args)
             return data
         else:
-            data = file.read(self, size)
+            data = self.backing.read(size)
             self._seen += len(data)
             if self._callback:
                 self._callback(self._seen, self._total, *self._args)
             return data
+
+    def close(self):
+        return self.backing.close()
 
 
 class ProgressWindow:
@@ -605,14 +574,14 @@ class ProgressWindow:
         self.progressbar = self.xml.get_object('progressbar')
         self.progressbar.set_text("")
         self.dialog.set_title(title_text)
-        self.dialog.set_geometry_hints(min_width=400, min_height=96)
-        self.dialog.set_position(gtk.WIN_POS_CENTER_ON_PARENT)
+        #self.dialog.set_geometry_hints(min_width=400, min_height=96)
+        #self.dialog.set_position(Gtk.WIN_POS_CENTER_ON_PARENT)
         self.dialog.show_all()
         self.xml.connect_signals(self)
 
         self.stopped = False
-        self.pulse_progressbar_timeout_id = gobject.timeout_add(100, self.pulse_progressbar)
-        self.process_messages_queue_timeout_id = gobject.timeout_add(100, self.process_messages_queue)
+        self.pulse_progressbar_timeout_id = GObject.timeout_add(100, self.pulse_progressbar)
+        self.process_messages_queue_timeout_id = GObject.timeout_add(100, self.process_messages_queue)
 
 
     def pulse_progressbar(self):
@@ -631,21 +600,21 @@ class ProgressWindow:
     def on_progress_dialog_delete_event(self, widget, event):
         self.stopped = True
         if self.pulse_progressbar_timeout_id:
-            gobject.source_remove(self.pulse_progressbar_timeout_id)
-        gobject.source_remove(self.process_messages_queue_timeout_id)
+            GObject.source_remove(self.pulse_progressbar_timeout_id)
+        GObject.source_remove(self.process_messages_queue_timeout_id)
 
     def on_cancel(self, widget):
         self.stopped = True
         if self.pulse_progressbar_timeout_id:
-            gobject.source_remove(self.pulse_progressbar_timeout_id)
-        gobject.source_remove(self.process_messages_queue_timeout_id)
+            GObject.source_remove(self.pulse_progressbar_timeout_id)
+        GObject.source_remove(self.process_messages_queue_timeout_id)
         self.dialog.destroy()
 
     def update_progress(self, seen, total):
         if self.stopped == True:
             raise UploadAbortedException
         if self.pulse_progressbar_timeout_id:
-            gobject.source_remove(self.pulse_progressbar_timeout_id)
+            GObject.source_remove(self.pulse_progressbar_timeout_id)
             self.pulse_progressbar_timeout_id = None
         pct = (float(seen) / total) * 100.0
         self.progressbar.set_fraction(float(seen) / total)
