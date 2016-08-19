@@ -4,20 +4,11 @@
 from gi.repository import GObject, Gtk
 import os
 import time
-import base64
-import tempfile
 from urllib.request import Request, urlopen
-from urllib.parse import quote as urlquote
 import mimetypes        # better use the magic packet, but that's not a standard lib
 import gtkgui_helpers
+import logging
 from queue import Queue
-try:
-    from PIL import Image
-    pil_available = True
-except:
-    pil_available = False
-from io import BytesIO
-import base64
 import binascii
 
 from common import gajim
@@ -25,9 +16,10 @@ from common import ged
 import chat_control
 from plugins import GajimPlugin
 from plugins.helpers import log_calls
-import logging
 from dialogs import FileChooserDialog, ImageChooserDialog, ErrorDialog
 import nbxmpp
+
+from .thumbnail import thumbnail
 
 log = logging.getLogger('gajim.plugin_system.httpupload')
 
@@ -52,8 +44,6 @@ TAGSIZE = 16
 jid_to_servers = {}
 iq_ids_to_callbacks = {}
 last_info_query = {}
-max_thumbnail_size = 2048
-max_thumbnail_dimension = 160
 
 
 class HttpuploadPlugin(GajimPlugin):
@@ -125,10 +115,11 @@ class HttpuploadPlugin(GajimPlugin):
             #pass
 
         # query info at most every 60 seconds in case something goes wrong
-        if (not chat_control.account in last_info_query or \
-            last_info_query[chat_control.account] + 60 < time.time()) and \
-            not gajim.get_jid_from_account(chat_control.account) in jid_to_servers and \
-            gajim.account_is_connected(chat_control.account):
+        if ((not chat_control.account in last_info_query or
+             last_info_query[chat_control.account] + 60 < time.time())
+            and not gajim.get_jid_from_account(chat_control.account) in jid_to_servers
+            and gajim.account_is_connected(chat_control.account)
+        ):
             log.info("Account %s: Using dicovery to find jid of httpupload component" % chat_control.account)
             id_ = gajim.get_an_id()
             iq = nbxmpp.Iq(
@@ -289,11 +280,11 @@ class Base(object):
                 progress_window.close_dialog()
                 error = stanza.getTag("error")
                 if error and error.getTag("text"):
-                    ErrorDialog(_('Could not request upload slot'), 
+                    ErrorDialog(_('Could not request upload slot'),
                                 _('Got unexpected response from server: %s') % str(error.getTagData("text")),
                                 transient_for=self.chat_control.parent_win.window)
                 else:
-                    ErrorDialog(_('Could not request upload slot'), 
+                    ErrorDialog(_('Could not request upload slot'),
                                 _('Got unexpected response from server (protocol mismatch??)'),
                                 transient_for=self.chat_control.parent_win.window)
                 return
@@ -313,7 +304,7 @@ class Base(object):
             except:
                 log.error("Could not open file")
                 progress_window.close_dialog()
-                ErrorDialog(_('Could not open file'), 
+                ErrorDialog(_('Could not open file'),
                             _('Exception raised while opening file (see error log for more information)'),
                             transient_for=self.chat_control.parent_win.window)
                 raise       # fill error log with useful information
@@ -323,7 +314,7 @@ class Base(object):
             if not put or not get:
                 log.error("got unexpected stanza: " + str(stanza))
                 progress_window.close_dialog()
-                ErrorDialog(_('Could not request upload slot'), 
+                ErrorDialog(_('Could not request upload slot'),
                             _('Got unexpected response from server (protocol mismatch??)'),
                             transient_for=self.chat_control.parent_win.window)
                 return
@@ -335,69 +326,17 @@ class Base(object):
                     log.info("Upload completed successfully")
                     xhtml = None
                     is_image = mime_type.split('/', 1)[0] == 'image'
-                    if (not isinstance(self.chat_control, chat_control.ChatControl) or not self.chat_control.gpg_is_active) and \
-                        self.dialog_type == 'image' and is_image and not self.encrypted_upload:
-
+                    if ((not isinstance(self.chat_control, chat_control.ChatControl)
+                         or not self.chat_control.gpg_is_active)
+                        and self.dialog_type == 'image'
+                        and is_image
+                        and not self.encrypted_upload
+                    ):
                         progress_messages.put(_('Calculating (possible) image thumbnail...'))
-                        thumb = None
-                        quality_steps = (100, 80, 60, 50, 40, 35, 30, 25, 23, 20, 18, 15, 13, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1)
-                        with open(path_to_file, 'rb') as content_file:
-                            thumb = urlquote(base64.standard_b64encode(content_file.read()), '')
-                        if thumb and len(thumb) < max_thumbnail_size:
-                            quality = 100
-                            log.info("Image small enough (%d bytes), not resampling" % len(thumb))
-                        elif pil_available:
-                            log.info("PIL available, using it for image downsampling")
-                            try:
-                                for quality in quality_steps:
-                                    thumb = Image.open(path_to_file)
-                                    thumb.thumbnail((max_thumbnail_dimension, max_thumbnail_dimension), Image.ANTIALIAS)
-                                    output = BytesIO()
-                                    thumb.save(output, format='JPEG', quality=quality, optimize=True)
-                                    thumb = output.getvalue()
-                                    output.close()
-                                    thumb = urlquote(base64.standard_b64encode(thumb), '')
-                                    log.debug("pil thumbnail jpeg quality %d produces an image of size %d..." % (quality, len(thumb)))
-                                    if len(thumb) < max_thumbnail_size:
-                                        break
-                            except:
-                                thumb = None
-                        else:
-                            thumb = None
-                        if not thumb:
-                            log.info("PIL not available, using GTK for image downsampling")
-                            temp_file = None
-                            try:
-                                with open(path_to_file, 'rb') as content_file:
-                                    thumb = content_file.read()
-                                loader = Gtk.gdk.PixbufLoader()
-                                loader.write(thumb)
-                                loader.close()
-                                pixbuf = loader.get_pixbuf()
-                                scaled_pb = self.get_pixbuf_of_size(pixbuf, max_thumbnail_dimension)
-                                handle, temp_file = tempfile.mkstemp(suffix='.jpeg', prefix='gajim_httpupload_scaled_tmp', dir=gajim.TMP)
-                                log.debug("Saving temporary jpeg image to '%s'..." % temp_file)
-                                os.close(handle)
-                                for quality in quality_steps:
-                                    scaled_pb.save(temp_file, "jpeg", {"quality": str(quality)})
-                                    with open(temp_file, 'rb') as content_file:
-                                        thumb = content_file.read()
-                                    thumb = urlquote(base64.standard_b64encode(thumb), '')
-                                    log.debug("gtk thumbnail jpeg quality %d produces an image of size %d..." % (quality, len(thumb)))
-                                    if len(thumb) < max_thumbnail_size:
-                                        break
-                            except:
-                                thumb = None
-                            finally:
-                                if temp_file:
-                                    os.unlink(temp_file)
+                        thumb = thumbnail(path_to_file)
                         if thumb:
-                            if len(thumb) > max_thumbnail_size:
-                                log.info("Couldn't compress image enough, not sending any thumbnail")
-                            else:
-                                log.info("Using thumbnail jpeg quality %d (image size: %d bytes)" % (quality, len(thumb)))
-                                xhtml = '<body><br/><a href="%s"> <img alt="%s" src="data:image/png;base64,%s"/> </a></body>' % \
-                                    (get.getData(), get.getData(), thumb)
+                            xhtml = '<body><br/><a href="%s"><img alt="%s" src="data:image/jpeg;base64,%s"/></a></body>' % \
+                                (get.getData(), get.getData(), thumb)
                     progress_window.close_dialog()
                     id_ = gajim.get_an_id()
                     def add_oob_tag():
@@ -414,7 +353,7 @@ class Base(object):
                     ErrorDialog(_('Could not upload file'),
                                 _('Got unexpected http response code from server: ') + str(response_code),
                                 transient_for=self.chat_control.parent_win.window)
-            
+
             def uploader():
                 progress_messages.put(_('Uploading file via HTTP...'))
                 try:
@@ -494,26 +433,6 @@ class Base(object):
     def on_image_button_clicked(self, widget):
         self.dialog_type = 'image'
         self.dlg = ImageChooserDialog(on_response_ok=self.on_file_dialog_ok, on_response_cancel=None)
-
-    def get_pixbuf_of_size(self, pixbuf, size):
-        # Creates a pixbuf that fits in the specified square of sizexsize
-        # while preserving the aspect ratio
-        # Returns scaled_pixbuf
-        image_width = pixbuf.get_width()
-        image_height = pixbuf.get_height()
-
-        if image_width > image_height:
-            if image_width > size:
-                image_height = int(size / float(image_width) * image_height)
-                image_width = int(size)
-        else:
-            if image_height > size:
-                image_width = int(size / float(image_height) * image_width)
-                image_height = int(size)
-
-        crop_pixbuf = pixbuf.scale_simple(image_width, image_height,
-            Gtk.gdk.INTERP_BILINEAR)
-        return crop_pixbuf
 
 
 class StreamFileWithProgress:
