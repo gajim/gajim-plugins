@@ -33,6 +33,7 @@ from common.pep import SUPPORTED_PERSONAL_USER_EVENTS
 from plugins import GajimPlugin
 from plugins.helpers import log_calls
 
+
 from nbxmpp.simplexml import Node
 from nbxmpp import NS_CORRECT
 
@@ -49,6 +50,8 @@ iq_ids_to_callbacks = {}
 AXOLOTL_MISSING = 'You are missing Python-Axolotl or use an outdated version'
 PROTOBUF_MISSING = 'OMEMO cant import Google Protobuf, you can find help in ' \
                    'the GitHub Wiki'
+GAJIM_VERSION = 'OMEMO only works with the latest Gajim version, get the ' \
+                'latest version from gajim.org'
 ERROR_MSG = ''
 
 NS_HINTS = 'urn:xmpp:hints'
@@ -56,9 +59,8 @@ DB_DIR = gajim.gajimpaths.data_root
 
 log = logging.getLogger('gajim.plugin_system.omemo')
 
-
 try:
-    from omemo.state import OmemoState
+    from .omemo.state import OmemoState
 except Exception as e:
     log.error(e)
     ERROR_MSG = 'Error: ' + e
@@ -76,6 +78,9 @@ try:
 except Exception as e:
     log.error(e)
     ERROR_MSG = AXOLOTL_MISSING
+
+if gajim.config.get('version') < "0.16.5":
+    ERROR_MSG = GAJIM_VERSION
 
 
 class OmemoPlugin(GajimPlugin):
