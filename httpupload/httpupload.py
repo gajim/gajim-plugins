@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 ##
 
-from gi.repository import GObject, Gtk
+from gi.repository import GObject, Gtk, GLib
 import os
+import sys
 import time
 from urllib.request import Request, urlopen
 import mimetypes        # better use the magic packet, but that's not a standard lib
@@ -322,7 +323,7 @@ class Base(object):
             def upload_complete(response_code):
                 if response_code == 0:
                     return      # Upload was aborted
-                if response_code >= 200 and response_code < 300:
+                if 200 <= response_code < 300:
                     log.info("Upload completed successfully")
                     xhtml = None
                     is_image = mime_type.split('/', 1)[0] == 'image'
@@ -354,13 +355,20 @@ class Base(object):
                                 _('Got unexpected http response code from server: ') + str(response_code),
                                 transient_for=self.chat_control.parent_win.window)
 
+            def on_upload_error():
+                progress_window.close_dialog()
+                ErrorDialog(_('Could not upload file'),
+                            _('Got unexpected exception while uploading file'
+                              ' (see error log for more information)'),
+                            transient_for=self.chat_control.parent_win.window)
+                return 0
+
             def uploader():
                 progress_messages.put(_('Uploading file via HTTP...'))
                 try:
                     headers = {'User-Agent': 'Gajim %s' % gajim.version,
                                'Content-Type': mime_type}
-                    request = Request(put.getData(), data=data, headers=headers)
-                    request.get_method = lambda: 'PUT'
+                    request = Request(put.getData(), data=data, headers=headers, method='PUT')
                     log.debug("opening urllib upload request...")
                     transfer = urlopen(request, timeout=30)
                     data.close()
@@ -369,11 +377,8 @@ class Base(object):
                 except UploadAbortedException:
                     log.info("Upload aborted")
                 except:
-                    progress_window.close_dialog()
-                    ErrorDialog(_('Could not upload file'),
-                                _('Got unexpected exception while uploading file (see error log for more information)'),
-                                transient_for=self.chat_control.parent_win.window)
-                    raise       # fill error log with useful information
+                    log.error("Exception during upload", exc_info=sys.exc_info())
+                    GLib.idle_add(on_upload_error)
                 return 0
 
             log.info("Uploading file to '%s'..." % str(put.getData()))
@@ -383,7 +388,10 @@ class Base(object):
 
         is_supported = gajim.get_jid_from_account(self.chat_control.account) in jid_to_servers and \
                     gajim.connections[self.chat_control.account].connection != None
-        log.info("jid_to_servers of %s: %s ; connection: %s" % (gajim.get_jid_from_account(self.chat_control.account), str(jid_to_servers[gajim.get_jid_from_account(self.chat_control.account)]), str(gajim.connections[self.chat_control.account].connection)))
+        log.info("jid_to_servers of %s: %s ; connection: %s",
+                 gajim.get_jid_from_account(self.chat_control.account),
+                 str(jid_to_servers[gajim.get_jid_from_account(self.chat_control.account)]),
+                 str(gajim.connections[self.chat_control.account].connection))
         if not is_supported:
             progress_window.close_dialog()
             log.error("upload component vanished, account got disconnected??")
