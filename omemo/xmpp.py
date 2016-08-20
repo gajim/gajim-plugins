@@ -34,6 +34,7 @@ from plugins.helpers import log_calls  # pylint: disable=import-error
 
 NS_PUBSUB_EVENT = NS_PUBSUB + '#event'
 
+NS_EME = 'urn:xmpp:eme:0'
 NS_OMEMO = 'eu.siacs.conversations.axolotl'
 NS_DEVICE_LIST = NS_OMEMO + '.devicelist'
 NS_NOTIFY = NS_DEVICE_LIST + '+notify'

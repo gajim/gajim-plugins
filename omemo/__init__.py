@@ -39,10 +39,10 @@ from nbxmpp import NS_CORRECT
 
 from .ui import Ui
 from .xmpp import (
-    NS_NOTIFY, NS_OMEMO, BundleInformationAnnouncement, BundleInformationQuery,
-    DeviceListAnnouncement, DevicelistQuery, DevicelistPEP, OmemoMessage,
-    successful, unpack_device_bundle, unpack_device_list_update,
-    unpack_encrypted)
+    NS_NOTIFY, NS_OMEMO, NS_EME, BundleInformationAnnouncement,
+    BundleInformationQuery, DeviceListAnnouncement, DevicelistQuery,
+    DevicelistPEP, OmemoMessage, successful, unpack_device_bundle,
+    unpack_device_list_update, unpack_encrypted)
 
 
 iq_ids_to_callbacks = {}
@@ -682,7 +682,7 @@ class OmemoPlugin(GajimPlugin):
 
             # Delete previous Message out of Correction Message Stanza
             if event.msg_iq.getTag('replace', namespace=NS_CORRECT):
-                event.msg_iq.delChild('encrypted')
+                event.msg_iq.delChild('encrypted', attrs={'xmlns': NS_OMEMO})
 
             plaintext = event.msg_iq.getBody().encode('utf8')
 
@@ -692,6 +692,8 @@ class OmemoPlugin(GajimPlugin):
                 return True
 
             encrypted_node = OmemoMessage(msg_dict)
+
+            # Check if non-OMEMO resource is online
             contacts = gajim.contacts.get_contacts(account, to_jid)
             non_omemo_resource_online = False
             for contact in contacts:
@@ -707,7 +709,17 @@ class OmemoPlugin(GajimPlugin):
                     non_omemo_resource_online = True
             if not non_omemo_resource_online:
                 event.msg_iq.delChild('body')
+
             event.msg_iq.addChild(node=encrypted_node)
+
+            # XEP-xxxx: Explicit Message Encryption
+            if not event.msg_iq.getTag('encrypted', attrs={'xmlns': NS_EME}):
+                eme_node = Node('encrypted', attrs={'xmlns': NS_EME,
+                                                    'name': 'OMEMO',
+                                                    'namespace': NS_OMEMO})
+                event.msg_iq.addChild(node=eme_node)
+
+            # Store Hint for MAM
             store = Node('store', attrs={'xmlns': NS_HINTS})
             event.msg_iq.addChild(node=store)
             self.print_msg_to_log(event.msg_iq)
