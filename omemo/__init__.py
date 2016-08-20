@@ -194,22 +194,26 @@ class OmemoPlugin(GajimPlugin):
 
     @log_calls('OmemoPlugin')
     def mam_message_received(self, msg):
-        if msg.msg_.getTag('encrypted', namespace=NS_OMEMO):
+        omemo_encrypted_tag = msg.msg_.getTag('encrypted', namespace=NS_OMEMO)
+        if omemo_encrypted_tag:
             account = msg.conn.name
             log.debug(account + ' => OMEMO MAM msg received')
-            self.print_msg_to_log(msg.msg_)
+
             state = self.get_omemo_state(account)
 
             from_jid = str(msg.msg_.getAttr('from'))
             from_jid = gajim.get_jid_without_resource(from_jid)
 
-            msg_dict = unpack_encrypted(msg.msg_.getTag
-                                        ('encrypted', namespace=NS_OMEMO))
+            msg_dict = unpack_encrypted(omemo_encrypted_tag)
+
             msg_dict['sender_jid'] = from_jid
+
             plaintext = state.decrypt_msg(msg_dict)
 
             if not plaintext:
                 return
+
+            self.print_msg_to_log(msg.msg_)
 
             msg.msgtxt = plaintext
 

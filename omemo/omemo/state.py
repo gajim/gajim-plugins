@@ -178,8 +178,11 @@ class OmemoState:
 
     def decrypt_msg(self, msg_dict):
         own_id = self.own_device_id
+        if msg_dict['sid'] == own_id:
+            log.info('Received previously sent message by us')
+            return
         if own_id not in msg_dict['keys']:
-            log.warn('OMEMO message does not contain our device key')
+            log.warning('OMEMO message does not contain our device key')
             return
 
         iv = msg_dict['iv']
@@ -196,20 +199,16 @@ class OmemoState:
             try:
                 key = self.handleWhisperMessage(sender_jid, sid, encrypted_key)
             except (NoSessionException, InvalidMessageException) as e:
-                log.error('No Session found ' + e.message)
-                log.error('sender_jid =>  ' + str(sender_jid) + ' sid =>' +
+                log.warning('No Session found ' + e.message)
+                log.warning('sender_jid =>  ' + str(sender_jid) + ' sid =>' +
                           str(sid))
                 return
             except (DuplicateMessageException) as e:
-                log.error('Duplicate message found ' + str(e.args))
-                log.error('sender_jid => ' + str(sender_jid) +
-                          ' sid => ' + str(sid))
+                log.warning('Duplicate message found ' + str(e.args))
                 return
 
         except (DuplicateMessageException) as e:
-            log.error('Duplicate message found ' + e.message)
-            log.error('sender_jid => ' + str(sender_jid) +
-                      ' sid => ' + str(sid))
+            log.warning('Duplicate message found ' + str(e.args))
             return
 
         result = unicode(decrypt(key, iv, payload))
