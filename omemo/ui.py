@@ -176,7 +176,8 @@ class Ui(object):
         else:
             log.debug(self.contact.account.name + ' => Disable OMEMO for ' +
                       self.contact.jid)
-            self.plugin.omemo_disable_for(self.contact)
+            self.plugin.omemo_disable_for(self.contact.jid,
+                                          self.contact.account.name)
             self.refresh_auth_lock_icon()
 
         self.omemobutton.set_omemo_state(enabled)
