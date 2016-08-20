@@ -230,7 +230,7 @@ class OmemoState:
             self.get_session_cipher(jid, dev)
         session_ciphers = self.session_ciphers[jid]
         if not session_ciphers:
-            log.warn('No session ciphers for ' + jid)
+            log.warning('No session ciphers for ' + jid)
             return
 
         # Encrypt the message key with for each of receivers devices
@@ -242,7 +242,7 @@ class OmemoState:
                     log.debug('Skipped Device because Trust is: ' +
                               str(self.isTrusted(cipher)))
             except:
-                log.warn('Failed to find key for device ' + str(rid))
+                log.warning('Failed to find key for device ' + str(rid))
 
         if len(encrypted_keys) == 0:
             log_msg = 'Encrypted keys empty'
@@ -260,7 +260,7 @@ class OmemoState:
                     log.debug('Skipped own Device because Trust is: ' +
                               str(self.isTrusted(cipher)))
             except:
-                log.warn('Failed to find key for device ' + str(dev))
+                log.warning('Failed to find key for device ' + str(dev))
 
         payload = encrypt(key, iv, plaintext)
 

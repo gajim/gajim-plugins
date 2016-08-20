@@ -412,7 +412,7 @@ class OmemoPlugin(GajimPlugin):
                                                     omemo_enabled, state)
             self.ui_list[account][contact_jid].new_fingerprints_available()
         else:
-            log.warn(account + " => No devices for " + contact_jid)
+            log.warning(account + " => No devices for " + contact_jid)
 
     @log_calls('OmemoPlugin')
     def disconnect_ui(self, chat_control):
@@ -537,7 +537,7 @@ class OmemoPlugin(GajimPlugin):
         """
         bundle_dict = unpack_device_bundle(stanza, device_id)
         if not bundle_dict:
-            log.warn('Failed requesting a bundle')
+            log.warning('Failed requesting a bundle')
             return
 
         if state.build_session(recipient_id, device_id, bundle_dict):
