@@ -456,7 +456,8 @@ class OmemoPlugin(GajimPlugin):
         if event.pep_type != 'headline':
             return False
 
-        devices_list = unpack_device_list_update(event.stanza, event.conn.name)
+        devices_list = list(set(unpack_device_list_update(event.stanza,
+                                                          event.conn.name)))
         if len(devices_list) == 0:
             return False
         account = event.conn.name
@@ -475,16 +476,14 @@ class OmemoPlugin(GajimPlugin):
             if contact_jid in self.query_for_bundles:
                 self.query_for_bundles.remove(contact_jid)
 
-            if not state.own_device_id_published() or self.anydup(
-                    state.own_devices):
+            if not state.own_device_id_published():
                 # Our own device_id is not in the list, it could be
-                # overwritten by some other client?
-                # Is a Device ID duplicated?
+                # overwritten by some other client
                 self.publish_own_devices_list(account)
         else:
             log.info(account + ' => Received device list for ' +
                      contact_jid + ':' + str(devices_list))
-            state.set_devices(contact_jid, set(devices_list))
+            state.set_devices(contact_jid, devices_list)
             state.store.sessionStore.setActiveState(devices_list, contact_jid)
 
             # remove contact from list, so on send button pressed
@@ -788,7 +787,7 @@ class OmemoPlugin(GajimPlugin):
 
         if successful(stanza):
             log.info(account + ' => Devicelistquery was successful')
-            devices_list = unpack_device_list_update(stanza, account)
+            devices_list = list(set(unpack_device_list_update(stanza, account)))
             if len(devices_list) == 0:
                 return False
             contact_jid = stanza.getAttr('from')
@@ -801,11 +800,9 @@ class OmemoPlugin(GajimPlugin):
                 if contact_jid in self.query_for_bundles:
                     self.query_for_bundles.remove(contact_jid)
 
-                if not state.own_device_id_published() or self.anydup(
-                        state.own_devices):
+                if not state.own_device_id_published():
                     # Our own device_id is not in the list, it could be
-                    # overwritten by some other client?
-                    # Is a Device ID duplicated?
+                    # overwritten by some other client
                     self.publish_own_devices_list(account)
         else:
             log.error(account + ' => Devicelistquery was NOT successful')
@@ -833,15 +830,6 @@ class OmemoPlugin(GajimPlugin):
         connection.send(iq)
         id_ = str(iq.getAttr('id'))
         IQ_CALLBACK[id_] = lambda event: log.info(event)
-
-    @staticmethod
-    def anydup(thelist):
-        seen = set()
-        for x in thelist:
-            if x in seen:
-                return True
-            seen.add(x)
-        return False
 
     @staticmethod
     def print_msg_to_log(stanza):
