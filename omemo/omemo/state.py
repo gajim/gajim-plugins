@@ -345,6 +345,9 @@ class OmemoState:
 
     def handlePreKeyWhisperMessage(self, recipient_id, device_id, key):
         preKeyWhisperMessage = PreKeyWhisperMessage(serialized=key)
+        if not preKeyWhisperMessage.getPreKeyId():
+            raise Exception("Received PreKeyWhisperMessage without PreKey =>" +
+                            recipient_id)
         sessionCipher = self.get_session_cipher(recipient_id, device_id)
         try:
             log.debug(self.account +
