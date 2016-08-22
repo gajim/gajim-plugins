@@ -273,7 +273,8 @@ class Base(object):
             mime_type = 'application/octet-stream'  # fallback mime type
         log.info("Detected MIME Type of file: " + str(mime_type))
         progress_messages = Queue(8)
-        progress_window = ProgressWindow(_('HTTP Upload'), _('Requesting HTTP Upload Slot...'), progress_messages, self.plugin)
+        progress_window = ProgressWindow(_('HTTP Upload'), _('Requesting HTTP Upload Slot...'),
+                progress_messages, self.plugin, parent=self.chat_control.parent_win.window)
         def upload_file(stanza):
             slot = stanza.getTag("slot")
             if not slot:
@@ -437,10 +438,12 @@ class Base(object):
             title_text = _('Choose file to send'), action = Gtk.FileChooserAction.OPEN,
             buttons = (Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL, Gtk.STOCK_OPEN, Gtk.ResponseType.OK),
             default_response = Gtk.ResponseType.OK,)
+        self.dlg.set_transient_for(self.chat_control.parent_win.window)
 
     def on_image_button_clicked(self, widget):
         self.dialog_type = 'image'
         self.dlg = ImageChooserDialog(on_response_ok=self.on_file_dialog_ok, on_response_cancel=None)
+        self.dlg.set_transient_for(self.chat_control.parent_win.window)
 
 
 class StreamFileWithProgress:
@@ -490,11 +493,12 @@ class StreamFileWithProgress:
 
 
 class ProgressWindow:
-    def __init__(self, title_text, during_text, messages_queue, plugin):
+    def __init__(self, title_text, during_text, messages_queue, plugin, parent):
         self.plugin = plugin
         self.xml = gtkgui_helpers.get_gtk_builder(self.plugin.local_file_path('upload_progress_dialog.ui'))
         self.messages_queue = messages_queue
         self.dialog = self.xml.get_object('progress_dialog')
+        self.dialog.set_transient_for(parent)
         self.label = self.xml.get_object('label')
         self.cancel_button = self.xml.get_object('close_button')
         self.label.set_markup('<big>' + during_text + '</big>')
@@ -507,8 +511,8 @@ class ProgressWindow:
         self.xml.connect_signals(self)
 
         self.stopped = False
-        self.pulse_progressbar_timeout_id = GObject.timeout_add(100, self.pulse_progressbar)
-        self.process_messages_queue_timeout_id = GObject.timeout_add(100, self.process_messages_queue)
+        self.pulse_progressbar_timeout_id = GLib.timeout_add(100, self.pulse_progressbar)
+        self.process_messages_queue_timeout_id = GLib.timeout_add(100, self.process_messages_queue)
 
 
     def pulse_progressbar(self):
@@ -527,21 +531,21 @@ class ProgressWindow:
     def on_progress_dialog_delete_event(self, widget, event):
         self.stopped = True
         if self.pulse_progressbar_timeout_id:
-            GObject.source_remove(self.pulse_progressbar_timeout_id)
-        GObject.source_remove(self.process_messages_queue_timeout_id)
+            GLib.source_remove(self.pulse_progressbar_timeout_id)
+        GLib.source_remove(self.process_messages_queue_timeout_id)
 
     def on_cancel(self, widget):
         self.stopped = True
         if self.pulse_progressbar_timeout_id:
-            GObject.source_remove(self.pulse_progressbar_timeout_id)
-        GObject.source_remove(self.process_messages_queue_timeout_id)
+            GLib.source_remove(self.pulse_progressbar_timeout_id)
+        GLib.source_remove(self.process_messages_queue_timeout_id)
         self.dialog.destroy()
 
     def update_progress(self, seen, total):
         if self.stopped == True:
             raise UploadAbortedException
         if self.pulse_progressbar_timeout_id:
-            GObject.source_remove(self.pulse_progressbar_timeout_id)
+            GLib.source_remove(self.pulse_progressbar_timeout_id)
             self.pulse_progressbar_timeout_id = None
         pct = (float(seen) / total) * 100.0
         self.progressbar.set_fraction(float(seen) / total)
