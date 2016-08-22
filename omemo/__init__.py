@@ -70,13 +70,12 @@ except Exception as e:
 
 try:
     import axolotl
-    if axolotl.__version__ < "0.1.35":
-        ERROR_MSG = AXOLOTL_MISSING
 except Exception as e:
     log.error(e)
     ERROR_MSG = AXOLOTL_MISSING
 
-if gajim.config.get('version') < "0.16.5":
+ver = gajim.config.get('version')
+if ver[0:6] != '0.16.5':
     ERROR_MSG = GAJIM_VERSION
 
 # pylint: disable=no-init
