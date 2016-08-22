@@ -382,6 +382,9 @@ class OMEMOConfigDialog(GajimPluginConfigDialog):
         account = self.account_store[active][0]
         state = self.plugin.get_omemo_state(account)
 
+        deviceid = state.own_device_id
+        self.B.get_object('ID').set_markup('<tt>%s</tt>' % deviceid)
+
         ownfpr = binascii.hexlify(state.store.getIdentityKeyPair()
                                   .getPublicKey().serialize())
         ownfpr = self.human_hash(ownfpr[2:])
