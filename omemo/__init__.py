@@ -21,6 +21,7 @@
 import logging
 import os
 import sqlite3
+import os
 
 from common import caps_cache, gajim, ged
 from common.pep import SUPPORTED_PERSONAL_USER_EVENTS
@@ -74,9 +75,20 @@ except Exception as e:
     log.error(e)
     ERROR_MSG = AXOLOTL_MISSING
 
-ver = gajim.config.get('version')
-if ver[0:6] != '0.16.5':
-    ERROR_MSG = GAJIM_VERSION
+GAJIM_VER = gajim.config.get('version')
+
+if os.name != 'nt':
+    try:
+        SETUPTOOLS_MISSING = False
+        from pkg_resources import parse_version
+    except Exception as e:
+        log.error(e)
+        SETUPTOOLS_MISSING = True
+        ERROR_MSG = 'You are missing the Setuptools package.'
+
+    if not SETUPTOOLS_MISSING:
+        if parse_version(GAJIM_VER) < parse_version('0.16.5'):
+            ERROR_MSG = GAJIM_VERSION
 
 # pylint: disable=no-init
 # pylint: disable=attribute-defined-outside-init
