@@ -551,7 +551,8 @@ class OtrPlugin(GajimPlugin):
         accjid = gajim.get_jid_from_account(account)
 
         if event.encrypted is not False or not event.stanza.getTag('body') \
-        or not isinstance(event.stanza.getBody(), unicode):
+            or not isinstance(event.stanza.getBody(), unicode) \
+                or event.mtype != 'chat':
             return PASS
 
         try:
