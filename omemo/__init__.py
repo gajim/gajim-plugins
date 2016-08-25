@@ -53,6 +53,7 @@ GAJIM_VERSION = 'OMEMO only works with the latest Gajim version, get the ' \
 ERROR_MSG = ''
 
 NS_HINTS = 'urn:xmpp:hints'
+NS_PGP = 'urn:xmpp:openpgp:0'
 DB_DIR = gajim.gajimpaths.data_root
 
 log = logging.getLogger('gajim.plugin_system.omemo')
@@ -234,6 +235,9 @@ class OmemoPlugin(GajimPlugin):
             -------
             Return means that the Event is passed on to Gajim
         """
+        if msg.msg_.getTag('openpgp', namespace=NS_PGP):
+            return
+
         omemo_encrypted_tag = msg.msg_.getTag('encrypted', namespace=NS_OMEMO)
         if omemo_encrypted_tag:
             account = msg.conn.name
@@ -274,14 +278,6 @@ class OmemoPlugin(GajimPlugin):
             if omemo_enabled:
                 msg.msgtxt = '**Unencrypted** ' + msg.msgtxt
 
-                try:
-                    gui = self.ui_list[account].get(jid, None)
-                    if gui and gui.encryption_active():
-                        gui.plain_warning()
-                except KeyError:
-                    log.debug('No Ui present for ' + jid +
-                              ', Ui Warning not shown')
-
     @log_calls('OmemoPlugin')
     def message_received(self, msg):
         """ Handles an incoming message
@@ -297,6 +293,9 @@ class OmemoPlugin(GajimPlugin):
             -------
             Return means that the Event is passed on to Gajim
         """
+        if msg.stanza.getTag('openpgp', namespace=NS_PGP):
+            return
+
         if msg.stanza.getTag('encrypted', namespace=NS_OMEMO) and \
                 msg.mtype == 'chat':
             account = msg.conn.name
