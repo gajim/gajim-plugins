@@ -254,6 +254,7 @@ except ImportError:
 def otr_dialog_destroy(widget, *args, **kwargs):
     widget.destroy()
 
+
 class OtrPlugin(GajimPlugin):
     otr = None
     def init(self):
