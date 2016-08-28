@@ -21,7 +21,6 @@
 import logging
 import os
 import sqlite3
-import os
 
 from common import caps_cache, gajim, ged
 from common.pep import SUPPORTED_PERSONAL_USER_EVENTS
