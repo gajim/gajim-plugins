@@ -62,7 +62,7 @@ try:
     from .omemo.state import OmemoState
 except Exception as e:
     log.error(e)
-    ERROR_MSG = 'Error: ' + e
+    ERROR_MSG = 'Error: ' + str(e)
 
 try:
     import google.protobuf
