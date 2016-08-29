@@ -1,8 +1,13 @@
+0.9.0 / 2016-08-28
+- Send INFO message to resources who dont support OMEMO
+- Check dependencys and give correct error message
+- Dont process PreKeyWhisperMessages without PreKey
+- Dont process PGP messages
+
 0.8.1 / 2016-08-05
 - Query own Device Bundles on send button press
 - Make Fingerprint Window higher and rename Buttons for something more appropriate
 - Bugfixes
-
 
 0.8.0 / 2016-08-03
 - Encryption improvements:
@@ -17,7 +22,6 @@
 -- Message Correction now works with OMEMO (Press STRG + UP Arrow to correct the last send message)
 -- SQL Refactoring, so new users dont have to go through DB Migration
 -- Small bugfixes
-
 
 0.7.5 / 2016-07-20
 ================

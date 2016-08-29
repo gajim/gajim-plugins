@@ -1,17 +1,20 @@
 # OMEMO Plugin for Gajim
 
-This is an experimental plugin that adds support for the [OMEMO
-Encryption](http://conversations.im/omemo) to [Gajim](https://gajim.org/). This
+This Plugin adds support for the [OMEMO Encryption](http://conversations.im/omemo) to [Gajim](https://gajim.org/). This
 plugin is [free software](http://www.gnu.org/philosophy/free-sw.en.html)
 distributed under the GNU General Public License version 3 or any later version.
 
-**DO NOT rely on this plugin to protect sensitive information!** 
-
 ## Installation
+
+Before you open any issues please read our [Wiki](https://github.com/omemo/gajim-omemo/wiki) which addresses some problems that can occur during an install
+
+### Linux
+
+See [Linux Wiki](https://github.com/omemo/gajim-omemo/wiki/Installing-on-Linux)
 
 ### Windows
 
-See [Windows Wiki](https://github.com/omemo/gajim-omemo/wiki/Installing-and-Using-on-Windows)
+See [Windows Wiki](https://github.com/omemo/gajim-omemo/wiki/Installing-on-Windows)
 
 ### Via Package Manager
 #### Arch

@@ -21,59 +21,91 @@
 import logging
 import os
 import sqlite3
-import ui
-import re
+import os
+
+from common import caps_cache, gajim, ged
+from common.pep import SUPPORTED_PERSONAL_USER_EVENTS
+from plugins import GajimPlugin
+from plugins.helpers import log_calls
+from nbxmpp.simplexml import Node
+from nbxmpp import NS_CORRECT
+
+from . import ui
+from .ui import Ui
+from .xmpp import (
+    NS_NOTIFY, NS_OMEMO, NS_EME, BundleInformationAnnouncement,
+    BundleInformationQuery, DeviceListAnnouncement, DevicelistQuery,
+    DevicelistPEP, OmemoMessage, successful, unpack_device_bundle,
+    unpack_device_list_update, unpack_encrypted)
 
 from common import demandimport
 demandimport.enable()
 demandimport.ignore += ['_imp']
 
-# pylint: disable=import-error
-from common import caps_cache, gajim, ged
-from common.pep import SUPPORTED_PERSONAL_USER_EVENTS
-from plugins import GajimPlugin
-from plugins.helpers import log_calls
 
-from nbxmpp.simplexml import Node
-from nbxmpp import NS_CORRECT
+IQ_CALLBACK = {}
 
-from .ui import Ui
-from .xmpp import (
-    NS_NOTIFY, NS_OMEMO, BundleInformationAnnouncement, BundleInformationQuery,
-    DeviceListAnnouncement, DevicelistQuery, DevicelistPEP, OmemoMessage,
-    successful, unpack_device_bundle, unpack_device_list_update,
-    unpack_encrypted)
-
-
-iq_ids_to_callbacks = {}
-
-AXOLOTL_MISSING = 'Please install python-axolotl.'
+AXOLOTL_MISSING = 'You are missing Python-Axolotl or use an outdated version'
+PROTOBUF_MISSING = 'OMEMO cant import Google Protobuf, you can find help in ' \
+                   'the GitHub Wiki'
+GAJIM_VERSION = 'OMEMO only works with the latest Gajim version, get the ' \
+                'latest version from gajim.org'
+ERROR_MSG = ''
 
 NS_HINTS = 'urn:xmpp:hints'
+NS_PGP = 'urn:xmpp:openpgp:0'
+DB_DIR = gajim.gajimpaths.data_root
 
 log = logging.getLogger('gajim.plugin_system.omemo')
-try:
-    from omemo.state import OmemoState
-    HAS_AXOLOTL = True
-except ImportError as e:
-    log.error(e)
-    HAS_AXOLOTL = False
 
-DB_DIR = gajim.gajimpaths.data_root
+try:
+    from .omemo.state import OmemoState
+except Exception as e:
+    log.error(e)
+    ERROR_MSG = 'Error: ' + str(e)
+
+try:
+    import google.protobuf
+except Exception as e:
+    log.error(e)
+    ERROR_MSG = PROTOBUF_MISSING
+
+try:
+    import axolotl
+except Exception as e:
+    log.error(e)
+    ERROR_MSG = AXOLOTL_MISSING
+
+GAJIM_VER = gajim.config.get('version')
+
+if os.name != 'nt':
+    try:
+        SETUPTOOLS_MISSING = False
+        from pkg_resources import parse_version
+    except Exception as e:
+        log.error(e)
+        SETUPTOOLS_MISSING = True
+        ERROR_MSG = 'You are missing the Setuptools package.'
+
+    if not SETUPTOOLS_MISSING:
+        if parse_version(GAJIM_VER) < parse_version('0.16.5'):
+            ERROR_MSG = GAJIM_VERSION
+
+# pylint: disable=no-init
+# pylint: disable=attribute-defined-outside-init
 
 
 class OmemoPlugin(GajimPlugin):
-    # pylint: disable=no-init
 
     omemo_states = {}
     ui_list = {}
 
     @log_calls('OmemoPlugin')
     def init(self):
-        # pylint: disable=attribute-defined-outside-init
-        if not HAS_AXOLOTL:
+        """ Init """
+        if ERROR_MSG:
             self.activatable = False
-            self.available_text = _(AXOLOTL_MISSING)
+            self.available_text = ERROR_MSG
             return
         self.events_handlers = {
             'mam-message-received': (ged.PRECORE, self.mam_message_received),
@@ -96,8 +128,17 @@ class OmemoPlugin(GajimPlugin):
 
     @log_calls('OmemoPlugin')
     def get_omemo_state(self, account):
-        """ Returns the the OmemoState for specified account. Creates the
-            OmemoState if it does not exist yet.
+        """ Returns the the OmemoState for the specified account.
+            Creates the OmemoState if it does not exist yet.
+
+            Parameters
+            ----------
+            account : str
+                the account name
+
+            Returns
+            -------
+            OmemoState
         """
         if account not in self.omemo_states:
             self.deactivate_gajim_e2e(account)
@@ -111,10 +152,9 @@ class OmemoPlugin(GajimPlugin):
 
         return self.omemo_states[account]
 
-    @log_calls('OmemoPlugin')
-    def deactivate_gajim_e2e(self, account):
-        """ Deativates E2E encryption in Gajim per Account
-        """
+    @staticmethod
+    def deactivate_gajim_e2e(account):
+        """ Deativates E2E encryption in Gajim """
         gajim.config.set_per('accounts', account,
                              'autonegotiate_esessions', False)
         gajim.config.set_per('accounts', account,
@@ -123,8 +163,11 @@ class OmemoPlugin(GajimPlugin):
 
     @log_calls('OmemoPlugin')
     def signed_in(self, event):
-        """
-            On sign in announce OMEMO support for each account.
+        """ Method called on SignIn
+
+            Parameters
+            ----------
+            event : SignedInEvent
         """
         account = event.conn.name
         log.debug(account +
@@ -137,6 +180,8 @@ class OmemoPlugin(GajimPlugin):
 
     @log_calls('OmemoPlugin')
     def activate(self):
+        """ Method called when the Plugin is activated in the PluginManager
+        """
         self.query_for_bundles = []
         if NS_NOTIFY not in gajim.gajim_common_features:
             gajim.gajim_common_features.append(NS_NOTIFY)
@@ -153,42 +198,66 @@ class OmemoPlugin(GajimPlugin):
 
     @log_calls('OmemoPlugin')
     def deactivate(self):
+        """ Method called when the Plugin is deactivated in the PluginManager
+
+            Removes OMEMO from the Entity Capabilities list
+        """
         if NS_NOTIFY in gajim.gajim_common_features:
             gajim.gajim_common_features.remove(NS_NOTIFY)
         self._compute_caps_hash()
 
-    @log_calls('OmemoPlugin')
-    def _compute_caps_hash(self):
-        for a in gajim.connections:
-            gajim.caps_hash[a] = caps_cache.compute_caps_hash(
-                [
-                    gajim.gajim_identity
-                ],
-                gajim.gajim_common_features + gajim.gajim_optional_features[a])
+    @staticmethod
+    def _compute_caps_hash():
+        """ Computes the hash for Entity Capabilities and publishes it """
+        for acc in gajim.connections:
+            gajim.caps_hash[acc] = caps_cache.compute_caps_hash(
+                [gajim.gajim_identity],
+                gajim.gajim_common_features +
+                gajim.gajim_optional_features[acc])
             # re-send presence with new hash
-            connected = gajim.connections[a].connected
+            connected = gajim.connections[acc].connected
             if connected > 1 and gajim.SHOW_LIST[connected] != 'invisible':
-                gajim.connections[a].change_status(gajim.SHOW_LIST[connected],
-                                                   gajim.connections[a].status)
+                gajim.connections[acc].change_status(
+                    gajim.SHOW_LIST[connected], gajim.connections[acc].status)
 
     @log_calls('OmemoPlugin')
     def mam_message_received(self, msg):
-        if msg.msg_.getTag('encrypted', namespace=NS_OMEMO):
+        """ Handles an incoming MAM message
+
+            Payload is decrypted and the plaintext is written into the
+            event object. Afterwards the event is passed on further to Gajim.
+
+            Parameters
+            ----------
+            msg : MamMessageReceivedEvent
+
+            Returns
+            -------
+            Return means that the Event is passed on to Gajim
+        """
+        if msg.msg_.getTag('openpgp', namespace=NS_PGP):
+            return
+
+        omemo_encrypted_tag = msg.msg_.getTag('encrypted', namespace=NS_OMEMO)
+        if omemo_encrypted_tag:
             account = msg.conn.name
             log.debug(account + ' => OMEMO MAM msg received')
-            self.print_msg_to_log(msg.msg_)
+
             state = self.get_omemo_state(account)
 
             from_jid = str(msg.msg_.getAttr('from'))
             from_jid = gajim.get_jid_without_resource(from_jid)
 
-            msg_dict = unpack_encrypted(msg.msg_.getTag
-                                        ('encrypted', namespace=NS_OMEMO))
+            msg_dict = unpack_encrypted(omemo_encrypted_tag)
+
             msg_dict['sender_jid'] = from_jid
+
             plaintext = state.decrypt_msg(msg_dict)
 
             if not plaintext:
                 return
+
+            self.print_msg_to_log(msg.msg_)
 
             msg.msgtxt = plaintext
 
@@ -209,16 +278,24 @@ class OmemoPlugin(GajimPlugin):
             if omemo_enabled:
                 msg.msgtxt = '**Unencrypted** ' + msg.msgtxt
 
-                try:
-                    gui = self.ui_list[account].get(jid, None)
-                    if gui and gui.encryption_active():
-                        gui.plain_warning()
-                except KeyError:
-                    log.debug('No Ui present for ' + jid +
-                              ', Ui Warning not shown')
-
     @log_calls('OmemoPlugin')
     def message_received(self, msg):
+        """ Handles an incoming message
+
+            Payload is decrypted and the plaintext is written into the
+            event object. Afterwards the event is passed on further to Gajim.
+
+            Parameters
+            ----------
+            msg : MessageReceivedEvent
+
+            Returns
+            -------
+            Return means that the Event is passed on to Gajim
+        """
+        if msg.stanza.getTag('openpgp', namespace=NS_PGP):
+            return
+
         if msg.stanza.getTag('encrypted', namespace=NS_OMEMO) and \
                 msg.mtype == 'chat':
             account = msg.conn.name
@@ -240,7 +317,8 @@ class OmemoPlugin(GajimPlugin):
                 return
 
             msg.msgtxt = plaintext
-            # bug? there must be a body or the message gets dropped from history
+            # Gajim bug: there must be a body or the message
+            # gets dropped from history
             msg.stanza.setBody(plaintext)
 
             contact_jid = gajim.get_jid_without_resource(from_jid)
@@ -270,13 +348,109 @@ class OmemoPlugin(GajimPlugin):
                               ', Ui Warning not shown')
 
     @log_calls('OmemoPlugin')
+    def handle_outgoing_event(self, event):
+        """ Handles a message outgoing event
+
+            In this event we have no stanza. XHTML is set to None
+            so that it doesnt make its way into the stanza
+
+            Parameters
+            ----------
+            event : MessageOutgoingEvent
+
+            Returns
+            -------
+            Return if encryption is not activated
+        """
+        account = event.account
+        state = self.get_omemo_state(account)
+
+        if not state.encryption.is_active(event.jid):
+            return False
+
+        event.xhtml = None
+
+    @log_calls('OmemoPlugin')
+    def handle_outgoing_stanza(self, event):
+        """ Manipulates the outgoing stanza
+
+            The body is getting encrypted
+
+            Parameters
+            ----------
+            event : StanzaMessageOutgoingEvent
+
+            Returns
+            -------
+            Return if encryption is not activated or any other
+            exception or error occurs
+        """
+        try:
+            if not event.msg_iq.getTag('body'):
+                return
+
+            account = event.conn.name
+            state = self.get_omemo_state(account)
+            full_jid = str(event.msg_iq.getAttr('to'))
+            to_jid = gajim.get_jid_without_resource(full_jid)
+            if not state.encryption.is_active(to_jid):
+                return
+
+            # Delete previous Message out of Correction Message Stanza
+            if event.msg_iq.getTag('replace', namespace=NS_CORRECT):
+                event.msg_iq.delChild('encrypted', attrs={'xmlns': NS_OMEMO})
+
+            plaintext = event.msg_iq.getBody().encode('utf8')
+
+            msg_dict = state.create_msg(
+                gajim.get_jid_from_account(account), to_jid, plaintext)
+            if not msg_dict:
+                return True
+
+            encrypted_node = OmemoMessage(msg_dict)
+
+            # Check if non-OMEMO resource is online
+            contacts = gajim.contacts.get_contacts(account, to_jid)
+            non_omemo_resource_online = False
+            for contact in contacts:
+                if contact.show == 'offline':
+                    continue
+                if not contact.supports(NS_NOTIFY):
+                    log.debug(contact.get_full_jid() +
+                              ' => Contact doesnt support OMEMO, '
+                              'adding Info Message to Body')
+                    support_msg = 'You received a message encrypted with ' \
+                                  'OMEMO but your client doesnt support OMEMO.'
+                    event.msg_iq.setBody(support_msg)
+                    non_omemo_resource_online = True
+            if not non_omemo_resource_online:
+                event.msg_iq.delChild('body')
+
+            event.msg_iq.addChild(node=encrypted_node)
+
+            # XEP-xxxx: Explicit Message Encryption
+            if not event.msg_iq.getTag('encrypted', attrs={'xmlns': NS_EME}):
+                eme_node = Node('encrypted', attrs={'xmlns': NS_EME,
+                                                    'name': 'OMEMO',
+                                                    'namespace': NS_OMEMO})
+                event.msg_iq.addChild(node=eme_node)
+
+            # Store Hint for MAM
+            store = Node('store', attrs={'xmlns': NS_HINTS})
+            event.msg_iq.addChild(node=store)
+            self.print_msg_to_log(event.msg_iq)
+        except Exception as e:
+            log.debug(e)
+            return True
+
+    @log_calls('OmemoPlugin')
     def handle_device_list_update(self, event):
         """ Check if the passed event is a device list update and store the new
             device ids.
 
             Parameters
             ----------
-            event : MessageReceivedEvent
+            event : PEPReceivedEvent
 
             Returns
             -------
@@ -292,7 +466,8 @@ class OmemoPlugin(GajimPlugin):
         if event.pep_type != 'headline':
             return False
 
-        devices_list = unpack_device_list_update(event.stanza, event.conn.name)
+        devices_list = list(set(unpack_device_list_update(event.stanza,
+                                                          event.conn.name)))
         if len(devices_list) == 0:
             return False
         account = event.conn.name
@@ -311,16 +486,14 @@ class OmemoPlugin(GajimPlugin):
             if contact_jid in self.query_for_bundles:
                 self.query_for_bundles.remove(contact_jid)
 
-            if not state.own_device_id_published() or anydup(
-                    state.own_devices):
+            if not state.own_device_id_published():
                 # Our own device_id is not in the list, it could be
-                # overwritten by some other client?
-                # Is a Device ID duplicated?
-                self.publish_own_devices_list(account, state)
+                # overwritten by some other client
+                self.publish_own_devices_list(account)
         else:
             log.info(account + ' => Received device list for ' +
                      contact_jid + ':' + str(devices_list))
-            state.set_devices(contact_jid, set(devices_list))
+            state.set_devices(contact_jid, devices_list)
             state.store.sessionStore.setActiveState(devices_list, contact_jid)
 
             # remove contact from list, so on send button pressed
@@ -352,22 +525,37 @@ class OmemoPlugin(GajimPlugin):
         return True
 
     @log_calls('OmemoPlugin')
-    def publish_own_devices_list(self, account_name, state):
+    def publish_own_devices_list(self, account):
+        """ Check if the passed event is a device list update and store the new
+            device ids.
 
+            Parameters
+            ----------
+            account : str
+                the account name
+        """
+        state = self.get_omemo_state(account)
         devices_list = state.own_devices
         devices_list.append(state.own_device_id)
         devices_list = list(set(devices_list))
         state.set_own_devices(devices_list)
 
-        log.debug(account_name + ' => Publishing own Devices: ' + str(
+        log.debug(account + ' => Publishing own Devices: ' + str(
             devices_list))
         iq = DeviceListAnnouncement(devices_list)
-        gajim.connections[account_name].connection.send(iq)
+        gajim.connections[account].connection.send(iq)
         id_ = str(iq.getAttr('id'))
-        iq_ids_to_callbacks[id_] = lambda event: log.debug(event)
+        IQ_CALLBACK[id_] = lambda event: log.debug(event)
 
     @log_calls('OmemoPlugin')
     def connect_ui(self, chat_control):
+        """ Method called from Gajim when a Chat Window is opened
+
+            Parameters
+            ----------
+            chat_control : ChatControl
+                Gajim ChatControl object
+        """
         account = chat_control.contact.account.name
         contact_jid = chat_control.contact.jid
         if account not in self.ui_list:
@@ -387,16 +575,37 @@ class OmemoPlugin(GajimPlugin):
                                                     omemo_enabled, state)
             self.ui_list[account][contact_jid].new_fingerprints_available()
         else:
-            log.warn(account + " => No devices for " + contact_jid)
+            log.warning(account + " => No devices for " + contact_jid)
 
     @log_calls('OmemoPlugin')
     def disconnect_ui(self, chat_control):
+        """ Calls the removeUi method to remove all relatad UI objects.
+
+            Parameters
+            ----------
+            chat_control : ChatControl
+                Gajim ChatControl object
+        """
         contact_jid = chat_control.contact.jid
-        account_name = chat_control.contact.account.name
-        self.ui_list[account_name][contact_jid].removeUi()
+        account = chat_control.contact.account.name
+        self.ui_list[account][contact_jid].removeUi()
 
     def are_keys_missing(self, account, contact_jid):
-        """ Check DB if keys are missing and query them """
+        """ Checks if devicekeys are missing and querys the
+            bundles
+
+            Parameters
+            ----------
+            account : str
+                the account name
+            contact_jid : str
+                bare jid of the contact
+
+            Returns
+            -------
+            bool
+                Returns True if there are no trusted Fingerprints
+        """
         state = self.get_omemo_state(account)
         my_jid = gajim.get_jid_from_account(account)
 
@@ -410,9 +619,7 @@ class OmemoPlugin(GajimPlugin):
 
             if devices_without_session:
                 for device_id in devices_without_session:
-                    self.fetch_device_bundle_information(account,
-                                                         state,
-                                                         my_jid,
+                    self.fetch_device_bundle_information(account, my_jid,
                                                          device_id)
 
         # Fetch Bundles of contacts devices
@@ -425,9 +632,7 @@ class OmemoPlugin(GajimPlugin):
 
             if devices_without_session:
                 for device_id in devices_without_session:
-                    self.fetch_device_bundle_information(account,
-                                                         state,
-                                                         contact_jid,
+                    self.fetch_device_bundle_information(account, contact_jid,
                                                          device_id)
 
         if state.getTrustedFingerprints(contact_jid):
@@ -435,52 +640,51 @@ class OmemoPlugin(GajimPlugin):
         else:
             return True
 
+    @staticmethod
+    def handle_iq_received(event):
+        """ Method called when an IQ is received
 
-
-    @log_calls('OmemoPlugin')
-    def handle_iq_received(self, event):
-        global iq_ids_to_callbacks
+            Parameters
+            ----------
+            event : RawIqReceived
+        """
         id_ = str(event.stanza.getAttr("id"))
-        if id_ in iq_ids_to_callbacks:
+        if id_ in IQ_CALLBACK:
             try:
-                iq_ids_to_callbacks[id_](event.stanza)
+                IQ_CALLBACK[id_](event.stanza)
             except:
                 raise
             finally:
-                del iq_ids_to_callbacks[id_]
+                del IQ_CALLBACK[id_]
 
     @log_calls('OmemoPlugin')
-    def fetch_device_bundle_information(self, account_name, state, jid,
-                                        device_id):
+    def fetch_device_bundle_information(self, account, jid, device_id):
         """ Fetch bundle information for specified jid, key, and create axolotl
             session on success.
 
             Parameters
             ----------
-            account_name : str
+            account : str
                 The account name
-            state : (OmemoState)
-                The OmemoState which is missing device bundle information
             jid : str
                 The jid to query for bundle information
             device_id : int
                 The device_id for which we are missing an axolotl session
         """
-        log.info(account_name + ' => Fetch bundle device ' + str(device_id) +
+        log.info(account + ' => Fetch bundle device ' + str(device_id) +
                  '#' + jid)
         iq = BundleInformationQuery(jid, device_id)
         iq_id = str(iq.getAttr('id'))
-        iq_ids_to_callbacks[iq_id] = \
-            lambda stanza: self.session_from_prekey_bundle(account_name, state,
+        IQ_CALLBACK[iq_id] = \
+            lambda stanza: self.session_from_prekey_bundle(account,
                                                            stanza, jid,
                                                            device_id)
-        gajim.connections[account_name].connection.send(iq)
+        gajim.connections[account].connection.send(iq)
 
     @log_calls('OmemoPlugin')
-    def session_from_prekey_bundle(self, account_name, state, stanza,
+    def session_from_prekey_bundle(self, account, stanza,
                                    recipient_id, device_id):
-        """ Starts a session when a bundle information announcement is received.
-
+        """ Starts a session from a PreKey bundle.
 
             This method tries to build an axolotl session when a PreKey bundle
             is fetched.
@@ -490,18 +694,14 @@ class OmemoPlugin(GajimPlugin):
 
             See also
             --------
-            4.3. Announcing bundle information:
-                http://conversations.im/xeps/multi-end.html#usecases-announcing
 
             4.4 Building a session:
                 http://conversations.im/xeps/multi-end.html#usecases-building
 
             Parameters:
             -----------
-            account_name : str
+            account : str
                 The account name
-            state : (OmemoState)
-                The OmemoState used
             stanza
                 The stanza object received from callback
             recipient_id : str
@@ -510,27 +710,36 @@ class OmemoPlugin(GajimPlugin):
                 The device_id for which the bundle was queried
 
         """
+        state = self.get_omemo_state(account)
         bundle_dict = unpack_device_bundle(stanza, device_id)
         if not bundle_dict:
-            log.warn('Failed requesting a bundle')
+            log.warning('Failed to build Session with ' + recipient_id)
             return
 
         if state.build_session(recipient_id, device_id, bundle_dict):
-            log.info(account_name + ' => session created for: ' + recipient_id)
-            # Warn User about new Fingerprints in DB if Chat Window is Open
-            if account_name in self.ui_list and \
-                    recipient_id in self.ui_list[account_name]:
-                self.ui_list[account_name][recipient_id]. \
+            log.info(account + ' => session created for: ' + recipient_id)
+            # Trigger dialog to trust new Fingerprints if
+            # the Chat Window is Open
+            if account in self.ui_list and \
+                    recipient_id in self.ui_list[account]:
+                self.ui_list[account][recipient_id]. \
                     new_fingerprints_available()
 
     @log_calls('OmemoPlugin')
     def query_own_devicelist(self, account):
+        """ Query own devicelist from the server.
+
+            Parameters
+            ----------
+            account : str
+                the account name
+        """
         my_jid = gajim.get_jid_from_account(account)
         iq = DevicelistQuery(my_jid)
         gajim.connections[account].connection.send(iq)
         log.info(account + ' => Querry own devicelist ...')
         id_ = str(iq.getAttr("id"))
-        iq_ids_to_callbacks[id_] = lambda stanza: \
+        IQ_CALLBACK[id_] = lambda stanza: \
             self.handle_devicelist_result(account, stanza)
 
     @log_calls('OmemoPlugin')
@@ -552,11 +761,11 @@ class OmemoPlugin(GajimPlugin):
         gajim.connections[account].connection.send(iq)
         id_ = str(iq.getAttr("id"))
         log.info(account + " => Publishing bundle ...")
-        iq_ids_to_callbacks[id_] = lambda stanza: \
+        IQ_CALLBACK[id_] = lambda stanza: \
             self.handle_publish_result(account, stanza)
 
-    @log_calls('OmemoPlugin')
-    def handle_publish_result(self, account, stanza):
+    @staticmethod
+    def handle_publish_result(account, stanza):
         """ Log if publishing our bundle was successful
 
             Parameters
@@ -588,7 +797,7 @@ class OmemoPlugin(GajimPlugin):
 
         if successful(stanza):
             log.info(account + ' => Devicelistquery was successful')
-            devices_list = unpack_device_list_update(stanza, account)
+            devices_list = list(set(unpack_device_list_update(stanza, account)))
             if len(devices_list) == 0:
                 return False
             contact_jid = stanza.getAttr('from')
@@ -601,113 +810,77 @@ class OmemoPlugin(GajimPlugin):
                 if contact_jid in self.query_for_bundles:
                     self.query_for_bundles.remove(contact_jid)
 
-                if not state.own_device_id_published() or anydup(
-                        state.own_devices):
+                if not state.own_device_id_published():
                     # Our own device_id is not in the list, it could be
-                    # overwritten by some other client?
-                    # Is a Device ID duplicated?
-                    self.publish_own_devices_list(account, state)
+                    # overwritten by some other client
+                    self.publish_own_devices_list(account)
         else:
             log.error(account + ' => Devicelistquery was NOT successful')
-            self.publish_own_devices_list(account, state)
+            self.publish_own_devices_list(account)
 
     @log_calls('OmemoPlugin')
     def clear_device_list(self, account):
+        """ Clears the local devicelist of our own devices and publishes
+            a new one including only the current ID of this device
+
+            Parameters
+            ----------
+            account : str
+                the account name
+        """
+        connection = gajim.connections[account].connection
+        if not connection:
+            return
         state = self.get_omemo_state(account)
         devices_list = [state.own_device_id]
         state.set_own_devices(devices_list)
 
         log.info(account + ' => Clearing devices_list ' + str(devices_list))
         iq = DeviceListAnnouncement(devices_list)
-        connection = gajim.connections[account].connection
-        if not connection:  # not connected
-            return
         connection.send(iq)
         id_ = str(iq.getAttr('id'))
-        iq_ids_to_callbacks[id_] = lambda event: log.info(event)
+        IQ_CALLBACK[id_] = lambda event: log.info(event)
 
-    @log_calls('OmemoPlugin')
-    def handle_outgoing_event(self, event):
-        # Handles the message before it gets made into a stanza
-        # and allows us to remove every xhtml before it even gets
-        # pressed into a stanza
-        account = event.account
-        state = self.get_omemo_state(account)
-
-        if not state.encryption.is_active(event.jid):
-            return False
-
-        event.xhtml = None
-
-    def print_msg_to_log(self, stanza):
+    @staticmethod
+    def print_msg_to_log(stanza):
+        """ Prints a stanza in a fancy way to the log """
         log.debug('-'*15)
-        stanzastr = str(stanza)
-        for item in re.split("(<.*?>)(<.*?/.*?>)", stanzastr):
-            if item:
-                log.debug(item)
+        stanzastr = '\n' + stanza.__str__(fancy=True)
+        stanzastr = stanzastr[0:-1]
+        log.debug(stanzastr)
         log.debug('-'*15)
-
-    @log_calls('OmemoPlugin')
-    def handle_outgoing_stanza(self, event):
-        try:
-            if not event.msg_iq.getTag('body'):
-                return
-
-            account = event.conn.name
-            state = self.get_omemo_state(account)
-            full_jid = str(event.msg_iq.getAttr('to'))
-            to_jid = gajim.get_jid_without_resource(full_jid)
-            if not state.encryption.is_active(to_jid):
-                return
-
-            # Delete previous Message out of Correction Message Stanza
-            if event.msg_iq.getTag('replace', namespace=NS_CORRECT):
-                event.msg_iq.delChild('encrypted')
-
-            plaintext = event.msg_iq.getBody().encode('utf8')
-
-            msg_dict = state.create_msg(
-                gajim.get_jid_from_account(account), to_jid, plaintext)
-            if not msg_dict:
-                return True
-
-            encrypted_node = OmemoMessage(msg_dict)
-            event.msg_iq.delChild('body')
-            event.msg_iq.addChild(node=encrypted_node)
-            store = Node('store', attrs={'xmlns': NS_HINTS})
-            event.msg_iq.addChild(node=store)
-            self.print_msg_to_log(event.msg_iq)
-        except Exception as e:
-            log.debug(e)
-            return True
 
     @log_calls('OmemoPlugin')
     def omemo_enable_for(self, jid, account):
-        """ Used by the ui to enable omemo for a specified contact
-            If you want to activate OMEMO check first if a Ui Object
-            exists for the Contact. If it exists use Ui.activate_omemo().
-            Only if there is no Ui Object for the contact this function
-            is to be used.
+        """ Used by the UI to enable OMEMO for a specified contact.
+
+            To activate OMEMO check first if a Ui Object exists for the
+            Contact. If it exists use Ui.activate_omemo(). Only if there
+            is no Ui Object for the contact this method is to be used.
+
+            Parameters
+            ----------
+            jid : str
+                bare jid
+            account : str
+                the account name
         """
         state = self.get_omemo_state(account)
         state.encryption.activate(jid)
 
     @log_calls('OmemoPlugin')
-    def omemo_disable_for(self, contact):
-        """ Used by the ui to disable omemo for a specified contact
+    def omemo_disable_for(self, jid, account):
+        """ Used by the UI to disable OMEMO for a specified contact.
+
             WARNING - OMEMO should only be disabled through
-            Userinteraction with the Ui.
+            User interaction with the UI.
+
+            Parameters
+            ----------
+            jid : str
+                bare jid
+            account : str
+                the account name
         """
-        account = contact.account.name
         state = self.get_omemo_state(account)
-        state.encryption.deactivate(contact.jid)
-
-
-@log_calls('OmemoPlugin')
-def anydup(thelist):
-    seen = set()
-    for x in thelist:
-        if x in seen:
-            return True
-        seen.add(x)
-    return False
+        state.encryption.deactivate(jid)

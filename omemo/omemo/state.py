@@ -178,8 +178,11 @@ class OmemoState:
 
     def decrypt_msg(self, msg_dict):
         own_id = self.own_device_id
+        if msg_dict['sid'] == own_id:
+            log.info('Received previously sent message by us')
+            return
         if own_id not in msg_dict['keys']:
-            log.warn('OMEMO message does not contain our device key')
+            log.warning('OMEMO message does not contain our device key')
             return
 
         iv = msg_dict['iv']
@@ -196,20 +199,16 @@ class OmemoState:
             try:
                 key = self.handleWhisperMessage(sender_jid, sid, encrypted_key)
             except (NoSessionException, InvalidMessageException) as e:
-                log.error('No Session found ' + e.message)
-                log.error('sender_jid =>  ' + str(sender_jid) + ' sid =>' +
+                log.warning('No Session found ' + e.message)
+                log.warning('sender_jid =>  ' + str(sender_jid) + ' sid =>' +
                           str(sid))
                 return
             except (DuplicateMessageException) as e:
-                log.error('Duplicate message found ' + str(e.args))
-                log.error('sender_jid => ' + str(sender_jid) +
-                          ' sid => ' + str(sid))
+                log.warning('Duplicate message found ' + str(e.args))
                 return
 
         except (DuplicateMessageException) as e:
-            log.error('Duplicate message found ' + e.message)
-            log.error('sender_jid => ' + str(sender_jid) +
-                      ' sid => ' + str(sid))
+            log.warning('Duplicate message found ' + str(e.args))
             return
 
         result = unicode(decrypt(key, iv, payload))
@@ -231,7 +230,7 @@ class OmemoState:
             self.get_session_cipher(jid, dev)
         session_ciphers = self.session_ciphers[jid]
         if not session_ciphers:
-            log.warn('No session ciphers for ' + jid)
+            log.warning('No session ciphers for ' + jid)
             return
 
         # Encrypt the message key with for each of receivers devices
@@ -243,7 +242,7 @@ class OmemoState:
                     log.debug('Skipped Device because Trust is: ' +
                               str(self.isTrusted(cipher)))
             except:
-                log.warn('Failed to find key for device ' + str(rid))
+                log.warning('Failed to find key for device ' + str(rid))
 
         if len(encrypted_keys) == 0:
             log_msg = 'Encrypted keys empty'
@@ -261,7 +260,7 @@ class OmemoState:
                     log.debug('Skipped own Device because Trust is: ' +
                               str(self.isTrusted(cipher)))
             except:
-                log.warn('Failed to find key for device ' + str(dev))
+                log.warning('Failed to find key for device ' + str(dev))
 
         payload = encrypt(key, iv, plaintext)
 
@@ -346,6 +345,9 @@ class OmemoState:
 
     def handlePreKeyWhisperMessage(self, recipient_id, device_id, key):
         preKeyWhisperMessage = PreKeyWhisperMessage(serialized=key)
+        if not preKeyWhisperMessage.getPreKeyId():
+            raise Exception("Received PreKeyWhisperMessage without PreKey =>" +
+                            recipient_id)
         sessionCipher = self.get_session_cipher(recipient_id, device_id)
         try:
             log.debug(self.account +

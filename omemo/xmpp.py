@@ -34,6 +34,7 @@ from plugins.helpers import log_calls  # pylint: disable=import-error
 
 NS_PUBSUB_EVENT = NS_PUBSUB + '#event'
 
+NS_EME = 'urn:xmpp:eme:0'
 NS_OMEMO = 'eu.siacs.conversations.axolotl'
 NS_DEVICE_LIST = NS_OMEMO + '.devicelist'
 NS_NOTIFY = NS_DEVICE_LIST + '+notify'
@@ -149,37 +150,37 @@ class DevicelistPEP(AbstractPEP):
 def unpack_device_bundle(bundle, device_id):
     pubsub = bundle.getTag('pubsub', namespace=NS_PUBSUB)
     if not pubsub:
-        log.warn('OMEMO device bundle has no pubsub node')
+        log.warning('OMEMO device bundle has no pubsub node')
         return
     items = pubsub.getTag('items', attrs={'node': NS_BUNDLES + str(device_id)})
     if not items:
-        log.warn('OMEMO device bundle has no items node')
+        log.warning('OMEMO device bundle has no items node')
         return
 
     item = items.getTag('item', namespace=NS_PUBSUB)
     if not item:
-        log.warn('OMEMO device bundle has no item node')
+        log.warning('OMEMO device bundle has no item node')
         return
 
     bundle = item.getTag('bundle', namespace=NS_OMEMO)
     if not bundle:
-        log.warn('OMEMO device bundle has no bundle node')
+        log.warning('OMEMO device bundle has no bundle node')
         return
 
     signed_prekey_node = bundle.getTag('signedPreKeyPublic',
                                        namespace=NS_OMEMO)
     if not signed_prekey_node:
-        log.warn('OMEMO device bundle has no signedPreKeyPublic node')
+        log.warning('OMEMO device bundle has no signedPreKeyPublic node')
         return
 
     result = {}
     result['signedPreKeyPublic'] = decode_data(signed_prekey_node)
     if not result['signedPreKeyPublic']:
-        log.warn('OMEMO device bundle has no signedPreKeyPublic data')
+        log.warning('OMEMO device bundle has no signedPreKeyPublic data')
         return
 
     if not signed_prekey_node.getAttr('signedPreKeyId'):
-        log.warn('OMEMO device bundle has no signedPreKeyId')
+        log.warning('OMEMO device bundle has no signedPreKeyId')
         return
     result['signedPreKeyId'] = int(signed_prekey_node.getAttr(
         'signedPreKeyId'))
@@ -187,33 +188,33 @@ def unpack_device_bundle(bundle, device_id):
     signed_signature_node = bundle.getTag('signedPreKeySignature',
                                           namespace=NS_OMEMO)
     if not signed_signature_node:
-        log.warn('OMEMO device bundle has no signedPreKeySignature node')
+        log.warning('OMEMO device bundle has no signedPreKeySignature node')
         return
 
     result['signedPreKeySignature'] = decode_data(signed_signature_node)
     if not result['signedPreKeySignature']:
-        log.warn('OMEMO device bundle has no signedPreKeySignature data')
+        log.warning('OMEMO device bundle has no signedPreKeySignature data')
         return
 
     identity_key_node = bundle.getTag('identityKey', namespace=NS_OMEMO)
     if not identity_key_node:
-        log.warn('OMEMO device bundle has no identityKey node')
+        log.warning('OMEMO device bundle has no identityKey node')
         return
 
     result['identityKey'] = decode_data(identity_key_node)
     if not result['identityKey']:
-        log.warn('OMEMO device bundle has no identityKey data')
+        log.warning('OMEMO device bundle has no identityKey data')
         return
 
     prekeys = bundle.getTag('prekeys', namespace=NS_OMEMO)
     if not prekeys or len(prekeys.getChildren()) == 0:
-        log.warn('OMEMO device bundle has no prekys')
+        log.warning('OMEMO device bundle has no prekys')
         return
 
     picked_key_node = random.SystemRandom().choice(prekeys.getChildren())
 
     if not picked_key_node.getAttr('preKeyId'):
-        log.warn('OMEMO PreKey has no id set')
+        log.warning('OMEMO PreKey has no id set')
         return
     result['preKeyId'] = int(picked_key_node.getAttr('preKeyId'))
 
@@ -228,28 +229,28 @@ def unpack_encrypted(encrypted_node):
     """ Unpacks the encrypted node, decodes the data and returns a msg_dict.
     """
     if not encrypted_node.getNamespace() == NS_OMEMO:
-        log.warn("Encrypted node with wrong NS")
+        log.warning("Encrypted node with wrong NS")
         return
 
     header_node = encrypted_node.getTag('header', namespace=NS_OMEMO)
     if not header_node:
-        log.warn("OMEMO message without header")
+        log.warning("OMEMO message without header")
         return
 
     if not header_node.getAttr('sid'):
-        log.warn("OMEMO message without sid in header")
+        log.warning("OMEMO message without sid in header")
         return
 
     sid = int(header_node.getAttr('sid'))
 
     iv_node = header_node.getTag('iv', namespace=NS_OMEMO)
     if not iv_node:
-        log.warn("OMEMO message without iv")
+        log.warning("OMEMO message without iv")
         return
 
     iv = decode_data(iv_node)
     if not iv:
-        log.warn("OMEMO message without iv data")
+        log.warning("OMEMO message without iv data")
 
     payload_node = encrypted_node.getTag('payload', namespace=NS_OMEMO)
     payload = None
@@ -258,18 +259,18 @@ def unpack_encrypted(encrypted_node):
 
     key_nodes = header_node.getTags('key')
     if len(key_nodes) < 1:
-        log.warn("OMEMO message without keys")
+        log.warning("OMEMO message without keys")
         return
 
     keys = {}
     for kn in key_nodes:
         rid = kn.getAttr('rid')
         if not rid:
-            log.warn('Omemo key without rid')
+            log.warning('Omemo key without rid')
             continue
 
         if not kn.getData():
-            log.warn('Omemo key without data')
+            log.warning('Omemo key without data')
             continue
 
         keys[int(rid)] = decode_data(kn)
@@ -296,7 +297,7 @@ def unpack_device_list_update(stanza, account):
     result = []
 
     if not event_node:
-        log.warn(account + ' => Device list update event node empty!')
+        log.warning(account + ' => Device list update event node empty!')
         return result
 
     items = event_node.getTag('items', {'node': NS_DEVICE_LIST})
@@ -308,7 +309,7 @@ def unpack_device_list_update(stanza, account):
 
     list_node = items.getChildren()[0].getTag('list')
     if not list_node or len(list_node.getChildren()) == 0:
-        log.warn(account + ' => Device list update list node empty!')
+        log.warning(account + ' => Device list update list node empty!')
         return result
 
     devices_nodes = list_node.getChildren()
@@ -326,12 +327,12 @@ def decode_data(node):
     data = node.getData()
 
     if not data:
-        log.warn("No node data")
+        log.warning("No node data")
         return
     try:
         return b64decode(data)
     except:
-        log.warn('b64decode broken')
+        log.warning('b64decode broken')
         return
 
 
