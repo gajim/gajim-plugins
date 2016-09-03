@@ -39,7 +39,7 @@ from .xmpp import (
 
 from common import demandimport
 demandimport.enable()
-demandimport.ignore += ['_imp', '_thread']
+demandimport.ignore += ['_imp', '_thread', 'axolotl']
 
 
 IQ_CALLBACK = {}
