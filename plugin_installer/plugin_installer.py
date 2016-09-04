@@ -602,7 +602,7 @@ class Ftp(threading.Thread):
             # downloading zip file
             GLib.idle_add(self.progressbar.set_text,
                 _('Downloading "%s"') % filename)
-            full_filename = os.path.join(local_dir, 'plugins', filename)
+            full_filename = os.path.join(user_dir, filename)
             self.buffer_ = io.BytesIO()
             try:
                 self.ftp.retrbinary('RETR %s' % filename, self.handleDownload)
@@ -610,7 +610,7 @@ class Ftp(threading.Thread):
                 print (str(e))
 
         with zipfile.ZipFile(self.buffer_) as zip_file:
-            zip_file.extractall(os.path.join(local_dir, 'plugins'))
+            zip_file.extractall(os.path.join(user_dir))
         
         self.ftp.quit()
         GLib.idle_add(self.window.emit, 'plugin_downloaded', self.remote_dirs)
