@@ -127,7 +127,6 @@ class HttpuploadPlugin(GajimPlugin):
             # maybe don't delete this and detect vanished upload components when actually trying to upload something
             log.info("Deleting %s from jid_to_servers (disconnected)" % gajim.get_jid_from_account(chat_control.account))
             del jid_to_servers[gajim.get_jid_from_account(chat_control.account)]
-            #pass
 
         # query info at most every 60 seconds in case something goes wrong
         if ((not chat_control.account in last_info_query or
