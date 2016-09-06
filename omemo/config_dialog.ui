@@ -24,6 +24,8 @@
       <column type="gchararray"/>
       <!-- column-name fingerprint -->
       <column type="gchararray"/>
+      <!-- column-name deviceid -->
+      <column type="gint"/>
     </columns>
   </object>
   <object class="GtkNotebook" id="notebook1">
@@ -259,6 +261,21 @@
                 <property name="expand">False</property>
                 <property name="fill">False</property>
                 <property name="position">0</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkButton" id="delfprbutton">
+                <property name="label" translatable="yes">Delete Fingerprint</property>
+                <property name="width_request">200</property>
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="receives_default">True</property>
+                <signal name="clicked" handler="delfpr_button_clicked" swapped="no"/>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">False</property>
+                <property name="position">1</property>
               </packing>
             </child>
           </object>

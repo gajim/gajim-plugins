@@ -18,6 +18,8 @@
       <column type="gchararray"/>
       <!-- column-name fingerprint -->
       <column type="gchararray"/>
+      <!-- column-name deviceid -->
+      <column type="gint"/>
     </columns>
   </object>
   <object class="GtkNotebook" id="notebook1">

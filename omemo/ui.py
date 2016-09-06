@@ -28,6 +28,7 @@ import gtk
 import gtkgui_helpers
 from common import gajim
 from plugins.gui import GajimPluginConfigDialog
+from axolotl.state.sessionrecord import SessionRecord
 # pylint: enable=import-error
 
 log = logging.getLogger('gajim.plugin_system.omemo')
@@ -260,7 +261,8 @@ class OMEMOConfigDialog(GajimPluginConfigDialog):
         self.fpr_model = gtk.ListStore(gobject.TYPE_INT,
                                        gobject.TYPE_STRING,
                                        gobject.TYPE_STRING,
-                                       gobject.TYPE_STRING)
+                                       gobject.TYPE_STRING,
+                                       gobject.TYPE_INT)
 
         self.device_model = gtk.ListStore(gobject.TYPE_STRING)
 
@@ -290,6 +292,46 @@ class OMEMOConfigDialog(GajimPluginConfigDialog):
     def account_combobox_changed_cb(self, box, *args):
         self.update_context_list()
 
+    def delfpr_button_clicked(self, button, *args):
+        active = self.B.get_object('account_combobox').get_active()
+        account = self.account_store[active][0]
+
+        state = self.plugin.get_omemo_state(account)
+
+        mod, paths = self.fpr_view.get_selection().get_selected_rows()
+
+        for path in paths:
+            it = mod.get_iter(path)
+            jid, fpr, deviceid = mod.get(it, 1, 3, 4)
+            fpr = fpr[31:-12]
+
+            dlg = gtk.Dialog('Delete Fingerprint', self,
+                             gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
+                             (gtk.STOCK_YES, gtk.RESPONSE_YES,
+                              gtk.STOCK_NO, gtk.RESPONSE_NO))
+            l = gtk.Label()
+            l.set_markup('Do you want to delete the '
+                         'fingerprint of <b>%s</b> on your account <b>%s</b>?'
+                         '\n\n<tt>%s</tt>' % (jid, account, fpr))
+            l.set_line_wrap(True)
+            l.set_padding(12, 12)
+            dlg.vbox.pack_start(l)
+            dlg.show_all()
+
+            response = dlg.run()
+            if response == gtk.RESPONSE_YES:
+                record = state.store.loadSession(jid, deviceid)
+                identity_key = record.getSessionState().getRemoteIdentityKey()
+
+                state.store.deleteSession(jid, deviceid)
+                state.store.deleteIdentity(jid, identity_key)
+
+                dlg.destroy()
+            else:
+                dlg.destroy()
+
+            self.update_context_list()
+
     def trust_button_clicked_cb(self, button, *args):
         active = self.B.get_object('account_combobox').get_active()
         account = self.account_store[active][0]
@@ -300,7 +342,7 @@ class OMEMOConfigDialog(GajimPluginConfigDialog):
 
         for path in paths:
             it = mod.get_iter(path)
-            _id, user, fpr = mod.get(it, 0, 1, 3)
+            jid, fpr, deviceid = mod.get(it, 1, 3, 4)
             fpr = fpr[31:-12]
             dlg = gtk.Dialog('Trust / Revoke Fingerprint', self,
                              gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
@@ -309,28 +351,35 @@ class OMEMOConfigDialog(GajimPluginConfigDialog):
             l = gtk.Label()
             l.set_markup('Do you want to trust the '
                          'fingerprint of <b>%s</b> on your account <b>%s</b>?'
-                         '\n\n<tt>%s</tt>' % (user, account, fpr))
+                         '\n\n<tt>%s</tt>' % (jid, account, fpr))
             l.set_line_wrap(True)
             l.set_padding(12, 12)
             dlg.vbox.pack_start(l)
             dlg.show_all()
 
             response = dlg.run()
+
+            record = state.store.loadSession(jid, deviceid)
+            identity_key = record.getSessionState().getRemoteIdentityKey()
+
             if response == gtk.RESPONSE_YES:
-                state.store.identityKeyStore.setTrust(_id, TRUSTED)
+                state.store.setTrust(identity_key, TRUSTED)
                 try:
                     if self.plugin.ui_list[account]:
-                        self.plugin.ui_list[account][user].refresh_auth_lock_icon()
+                        self.plugin.ui_list[account][jid]. \
+                            refresh_auth_lock_icon()
                 except:
-                    dlg.destroy()
+                    log.debug('UI not available')
             else:
                 if response == gtk.RESPONSE_NO:
-                    state.store.identityKeyStore.setTrust(_id, UNTRUSTED)
+                    state.store.setTrust(identity_key, UNTRUSTED)
                     try:
-                        if user in self.plugin.ui_list[account]:
-                            self.plugin.ui_list[account][user].refresh_auth_lock_icon()
+                        if jid in self.plugin.ui_list[account]:
+                            self.plugin.ui_list[account][jid]. \
+                                refresh_auth_lock_icon()
                     except:
-                        dlg.destroy()
+                        log.debug('UI not available')
+            dlg.destroy()
 
         self.update_context_list()
 
@@ -391,35 +440,33 @@ class OMEMOConfigDialog(GajimPluginConfigDialog):
         self.B.get_object('fingerprint_label').set_markup('<tt>%s</tt>'
                                                           % ownfpr)
 
-        fprDB = state.store.identityKeyStore.getAllFingerprints()
-        activeSessions = state.store.sessionStore. \
-            getAllActiveSessionsKeys()
-        for item in fprDB:
-            _id, jid, fpr, tr = item
-            active = fpr in activeSessions
-            fpr = binascii.hexlify(fpr)
+        trust_str = {0: 'False', 1: 'True', 2: 'Undecided'}
+        session_db = state.store.getAllSessions()
+
+        for item in session_db:
+            color = {0: '#FF0040',  # red
+                     1: '#2EFE2E',  # green
+                     2: '#FF8000'}  # orange
+
+            _id, jid, deviceid, record, active = item
+
+            active = bool(active)
+
+            identity_key = SessionRecord(serialized=record). \
+                getSessionState().getRemoteIdentityKey()
+            fpr = binascii.hexlify(identity_key.getPublicKey().serialize())
             fpr = self.human_hash(fpr[2:])
-            if tr == UNTRUSTED:
-                if active:
-                    self.fpr_model.append((_id, jid, 'False',
-                                           '<tt><span foreground="#FF0040">%s</span></tt>' % fpr))
-                else:
-                    self.fpr_model.append((_id, jid, 'False',
-                                           '<tt><span foreground="#585858">%s</span></tt>' % fpr))
-            elif tr == TRUSTED:
-                if active:
-                    self.fpr_model.append((_id, jid, 'True',
-                                           '<tt><span foreground="#2EFE2E">%s</span></tt>' % fpr))
-                else:
-                    self.fpr_model.append((_id, jid, 'True',
-                                           '<tt><span foreground="#585858">%s</span></tt>' % fpr))
-            else:
-                if active:
-                    self.fpr_model.append((_id, jid, 'Undecided',
-                                           '<tt><span foreground="#FF8000">%s</span></tt>' % fpr))
-                else:
-                    self.fpr_model.append((_id, jid, 'Undecided',
-                                           '<tt><span foreground="#585858">%s</span></tt>' % fpr))
+
+            trust = state.store.isTrustedIdentity(jid, identity_key)
+
+            if not active:
+                color[trust] = '#585858'  # grey
+
+            self.fpr_model.append(
+                (_id, jid, trust_str[trust],
+                 '<tt><span foreground="{}">{}</span></tt>'.
+                 format(color[trust], fpr),
+                 deviceid))
 
         for item in state.own_devices:
             self.device_model.append([item])
@@ -455,7 +502,8 @@ class FingerprintWindow(gtk.Dialog):
         self.fpr_model = gtk.ListStore(gobject.TYPE_INT,
                                        gobject.TYPE_STRING,
                                        gobject.TYPE_STRING,
-                                       gobject.TYPE_STRING)
+                                       gobject.TYPE_STRING,
+                                       gobject.TYPE_INT)
 
         self.fpr_view = self.B.get_object('fingerprint_view')
         self.fpr_view.set_model(self.fpr_model)
@@ -492,6 +540,8 @@ class FingerprintWindow(gtk.Dialog):
         self.hide()
 
     def trust_button_clicked_cb(self, button, *args):
+        state = self.omemostate
+
         if self.notebook.get_current_page() == 1:
             mod, paths = self.fpr_view_own.get_selection().get_selected_rows()
         else:
@@ -499,7 +549,7 @@ class FingerprintWindow(gtk.Dialog):
 
         for path in paths:
             it = mod.get_iter(path)
-            _id, user, fpr = mod.get(it, 0, 1, 3)
+            jid, fpr, deviceid = mod.get(it, 1, 3, 4)
             fpr = fpr[31:-12]
             dlg = gtk.Dialog('Trust / Revoke Fingerprint', self,
                              gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
@@ -508,20 +558,24 @@ class FingerprintWindow(gtk.Dialog):
             l = gtk.Label()
             l.set_markup('Do you want to trust the '
                          'fingerprint of <b>%s</b> on your account <b>%s</b>?'
-                         '\n\n<tt>%s</tt>' % (user, self.account, fpr))
+                         '\n\n<tt>%s</tt>' % (jid, self.account, fpr))
             l.set_line_wrap(True)
             l.set_padding(12, 12)
             dlg.vbox.pack_start(l)
             dlg.show_all()
             response = dlg.run()
+
+            record = state.store.loadSession(jid, deviceid)
+            identity_key = record.getSessionState().getRemoteIdentityKey()
+
             if response == gtk.RESPONSE_YES:
-                self.omemostate.store.identityKeyStore.setTrust(_id, TRUSTED)
+                state.store.setTrust(identity_key, TRUSTED)
                 self.plugin.ui_list[self.account][self.contact.jid]. \
                     refresh_auth_lock_icon()
                 dlg.destroy()
             else:
                 if response == gtk.RESPONSE_NO:
-                    self.omemostate.store.identityKeyStore.setTrust(_id, UNTRUSTED)
+                    state.store.setTrust(identity_key, UNTRUSTED)
                     self.plugin.ui_list[self.account][self.contact.jid]. \
                         refresh_auth_lock_icon()
             dlg.destroy()
@@ -565,42 +619,40 @@ class FingerprintWindow(gtk.Dialog):
 
     def update_context_list(self, *args):
         self.fpr_model.clear()
+        state = self.omemostate
 
         if self.notebook.get_current_page() == 1:
-            jid = gajim.get_jid_from_account(self.account)
+            contact_jid = gajim.get_jid_from_account(self.account)
         else:
-            jid = self.contact.jid
+            contact_jid = self.contact.jid
 
-        fprDB = self.omemostate.store.identityKeyStore.getFingerprints(jid)
-        activeSessions = self.omemostate.store.sessionStore. \
-            getActiveSessionsKeys(jid)
+        trust_str = {0: 'False', 1: 'True', 2: 'Undecided'}
+        session_db = state.store.getSessionsFromJid(contact_jid)
 
-        for item in fprDB:
-            _id, jid, fpr, tr = item
-            active = fpr in activeSessions
-            fpr = binascii.hexlify(fpr)
+        for item in session_db:
+            color = {0: '#FF0040',  # red
+                     1: '#2EFE2E',  # green
+                     2: '#FF8000'}  # orange
+
+            _id, jid, deviceid, record, active = item
+
+            active = bool(active)
+
+            identity_key = SessionRecord(serialized=record). \
+                getSessionState().getRemoteIdentityKey()
+            fpr = binascii.hexlify(identity_key.getPublicKey().serialize())
             fpr = self.human_hash(fpr[2:])
-            if tr == UNTRUSTED:
-                if active:
-                    self.fpr_model.append((_id, jid, 'False',
-                                           '<tt><span foreground="#FF0040">%s</span></tt>' % fpr))
-                else:
-                    self.fpr_model.append((_id, jid, 'False',
-                                           '<tt><span foreground="#585858">%s</span></tt>' % fpr))
-            elif tr == TRUSTED:
-                if active:
-                    self.fpr_model.append((_id, jid, 'True',
-                                           '<tt><span foreground="#2EFE2E">%s</span></tt>' % fpr))
-                else:
-                    self.fpr_model.append((_id, jid, 'True',
-                                           '<tt><span foreground="#585858">%s</span></tt>' % fpr))
-            else:
-                if active:
-                    self.fpr_model.append((_id, jid, 'Undecided',
-                                           '<tt><span foreground="#FF8000">%s</span></tt>' % fpr))
-                else:
-                    self.fpr_model.append((_id, jid, 'Undecided',
-                                           '<tt><span foreground="#585858">%s</span></tt>' % fpr))
+
+            trust = state.store.isTrustedIdentity(jid, identity_key)
+
+            if not active:
+                color[trust] = '#585858'  # grey
+
+            self.fpr_model.append(
+                (_id, jid, trust_str[trust],
+                 '<tt><span foreground="{}">{}</span></tt>'.
+                 format(color[trust], fpr),
+                 deviceid))
 
     def human_hash(self, fpr):
         fpr = fpr.upper()

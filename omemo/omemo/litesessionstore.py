@@ -82,6 +82,23 @@ class LiteSessionStore(SessionStore):
         self.dbConn.cursor().execute(q, (recipientId, ))
         self.dbConn.commit()
 
+    def getAllSessions(self):
+        q = "SELECT _id, recipient_id, device_id, record, active from sessions"
+        c = self.dbConn.cursor()
+        result = []
+        for row in c.execute(q):
+            result.append((row[0], row[1], row[2], row[3], row[4]))
+        return result
+
+    def getSessionsFromJid(self, recipientId):
+        q = "SELECT _id, recipient_id, device_id, record, active from sessions" \
+            " WHERE recipient_id = ?"
+        c = self.dbConn.cursor()
+        result = []
+        for row in c.execute(q, (recipientId,)):
+            result.append((row[0], row[1], row[2], row[3], row[4]))
+        return result
+
     def setActiveState(self, deviceList, jid):
         c = self.dbConn.cursor()
 
@@ -95,28 +112,6 @@ class LiteSessionStore(SessionStore):
             .format(0, jid, ', '.join(['?'] * len(deviceList)))
         c.execute(q, deviceList)
         self.dbConn.commit()
-
-    def getActiveSessionsKeys(self, recipientId):
-        q = "SELECT record FROM sessions WHERE active = 1 AND recipient_id = ?"
-        c = self.dbConn.cursor()
-        result = []
-        for row in c.execute(q, (recipientId,)):
-            public_key = (SessionRecord(serialized=row[0]).
-                          getSessionState().getRemoteIdentityKey().
-                          getPublicKey())
-            result.append(public_key.serialize())
-        return result
-
-    def getAllActiveSessionsKeys(self):
-        q = "SELECT record FROM sessions WHERE active = 1"
-        c = self.dbConn.cursor()
-        result = []
-        for row in c.execute(q):
-            public_key = (SessionRecord(serialized=row[0]).
-                          getSessionState().getRemoteIdentityKey().
-                          getPublicKey())
-            result.append(public_key.serialize())
-        return result
 
     def getInactiveSessionsKeys(self, recipientId):
         q = "SELECT record FROM sessions WHERE active = 0 AND recipient_id = ?"

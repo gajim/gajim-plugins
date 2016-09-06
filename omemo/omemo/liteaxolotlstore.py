@@ -83,9 +83,15 @@ class LiteAxolotlStore(AxolotlStore):
     def saveIdentity(self, recepientId, identityKey):
         self.identityKeyStore.saveIdentity(recepientId, identityKey)
 
+    def deleteIdentity(self, recipientId, identityKey):
+        self.identityKeyStore.deleteIdentity(recipientId, identityKey)
+
     def isTrustedIdentity(self, recepientId, identityKey):
         return self.identityKeyStore.isTrustedIdentity(recepientId,
                                                        identityKey)
+
+    def setTrust(self, identityKey, trust):
+        return self.identityKeyStore.setTrust(identityKey, trust)
 
     def getTrustedFingerprints(self, jid):
         return self.identityKeyStore.getTrustedFingerprints(jid)
@@ -138,6 +144,12 @@ class LiteAxolotlStore(AxolotlStore):
 
     def deleteAllSessions(self, recepientId):
         self.sessionStore.deleteAllSessions(recepientId)
+
+    def getSessionsFromJid(self, recipientId):
+        return self.sessionStore.getSessionsFromJid(recipientId)
+
+    def getAllSessions(self):
+        return self.sessionStore.getAllSessions()
 
     def loadSignedPreKey(self, signedPreKeyId):
         return self.signedPreKeyStore.loadSignedPreKey(signedPreKeyId)
