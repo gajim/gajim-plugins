@@ -57,6 +57,13 @@ you have to trust at least **one** fingerprint to send messages.
 you can receive messages from fingerprints where you didnt made a trust decision, but you cant
 receive Messages from *not trusted* fingerprints
 
+## Filetransfer
+
+For Filetransfer use the **httpupload** plugin.
+
+For decrypting and showing pictures in chat use the **url_image_preview** plugin.
+
+If you want to use these plugins together with *OMEMO* you have to install the `python-cryptography` package
 
 ## Debugging
 To see OMEMO related debug output start Gajim with the parameter `-l
