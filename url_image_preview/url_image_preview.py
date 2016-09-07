@@ -5,21 +5,25 @@ import gobject
 import re
 import os
 import sys
-import urllib2
 import hashlib
 from urlparse import urlparse
+from io import BytesIO
+import shutil
 
 import logging
 import nbxmpp
+import gtkgui_helpers
 from common import gajim
 from common import ged
 from common import helpers
 from common import configpaths
+import dialogs
 from plugins import GajimPlugin
 from plugins.helpers import log_calls, log
 from plugins.gui import GajimPluginConfigDialog
 from conversation_textview import TextViewImage
 from .aes_gcm import aes_decrypt
+from .http_functions import get_http_head, get_http_file
 
 from common import demandimport
 demandimport.enable()
@@ -29,10 +33,8 @@ log = logging.getLogger('gajim.plugin_system.url_image_preview')
 
 try:
     from PIL import Image
-    pil_available = True
 except:
-    pil_available = False
-    log.debug('PIL not available')
+    log.debug('Pillow not available')
 
 try:
     if os.name == 'nt':
@@ -45,7 +47,7 @@ try:
     decryption_available = True
 except Exception as e:
     log.debug('Cryptography Import Error: ' + str(e))
-    log.debug('Decryption/Encryption disabled')
+    log.info('Decryption/Encryption disabled due to errors')
     decryption_available = False
 
 ACCEPTED_MIME_TYPES = ('image/png', 'image/jpeg', 'image/gif', 'image/raw',
@@ -94,6 +96,7 @@ class UrlImagePreviewPlugin(GajimPlugin):
     def disconnect_from_chat_control(self, chat_control):
         account = chat_control.contact.account.name
         jid = chat_control.contact.jid
+        self.controls[account][jid].deinit()
         del self.controls[account][jid]
 
     def print_special_text(self, tv, special_text, other_tags, graphics=True,
@@ -112,20 +115,32 @@ class Base(object):
         self.plugin = plugin
         self.chat_control = chat_control
         self.textview = self.chat_control.conv_textview
+        self.handlers = {}
         if os.name == 'nt':
             self.backend = backend
         else:
             self.backend = default_backend()
 
-        self.directory = os.path.join(configpaths.gajimpaths['MY_CACHE'],
+        self.directory = os.path.join(configpaths.gajimpaths['MY_DATA'],
                                       'downloads')
-        self.thumbpath = os.path.join(self.directory, 'thumb')
+        self.thumbpath = os.path.join(configpaths.gajimpaths['MY_CACHE'],
+                                      'downloads.thumb')
 
         try:
-            self.create_path(self.thumbpath)
+            self._create_path(self.directory)
+            self._create_path(self.thumbpath)
         except Exception as e:
-            log.debug(e)
+            log.error("Error creating download and/or thumbnail folder!")
+            raise
 
+    def deinit():
+        # remove all register handlers on wigets, created by self.xml
+        # to prevent circular references among objects
+        for i in list(self.handlers.keys()):
+            if self.handlers[i].handler_is_connected(i):
+                self.handlers[i].disconnect(i)
+            del self.handlers[i]
+    
     def print_special_text(self, special_text, other_tags, graphics=True,
                            iter_=None):
         # remove qip bbcode
@@ -164,63 +179,155 @@ class Base(object):
         thumbpath = os.path.join(self.thumbpath, thumbfilename)
         filepaths = [filepath, thumbpath]
 
-        if os.path.exists(filepath):
-            def open_file():
-                with open(filepath, 'rb') as f:
-                    mem = f.read()
-                    f.closed
-                log.debug('File from disk')
-                return (mem, '')
-
-            if pil_available:
-                if not os.path.exists(thumbpath):
-                    self.save_thumbnail(filepaths)
-                tup = (True, '')
-                gajim.thread_interface(self._update_img,
-                                       [tup, special_text, repl_start,
-                                        repl_end, filepaths])
-            else:
-                gajim.thread_interface(
-                    open_file, [],
-                    self._update_img, [special_text, repl_start,
-                                       repl_end, filepaths])
-
+        key = ''
+        iv = ''
+        encrypted = False
+        if len(urlparts.fragment):
+            fragment = []
+            for i in range(0, len(urlparts.fragment), 2):
+                fragment.append(chr(int(urlparts.fragment[i:i + 2], 16)))
+            fragment = ''.join(fragment)
+            key = fragment[16:]
+            iv = fragment[:16]
+            if len(key) == 32 and len(iv) == 16:
+                encrypted = True
+        
+        # file exists but thumbnail got deleted
+        if os.path.exists(filepath) and not os.path.exists(thumbpath):
+            with open(filepath, 'rb') as f:
+                mem = f.read()
+                f.closed
+            gajim.thread_interface(
+                self._save_thumbnail, [thumbpath, (mem, '')],
+                self._update_img, [special_text, repl_start,
+                                    repl_end, filepath, encrypted])
+        
+        # display thumbnail if already downloaded (but only if file also exists)
+        elif os.path.exists(filepath) and os.path.exists(thumbpath):
+            gajim.thread_interface(
+                self._load_thumbnail, [thumbpath],
+                self._update_img, [special_text, repl_start,
+                                    repl_end, filepath, encrypted])
+        
+        # or download file, calculate thumbnail and finally display it
         else:
-            key = ''
-            iv = ''
-            encrypted = False
-            if len(urlparts.fragment):
-                fragment = []
-                for i in range(0, len(urlparts.fragment), 2):
-                    fragment.append(chr(int(urlparts.fragment[i:i + 2], 16)))
-                fragment = ''.join(fragment)
-                key = fragment[16:]
-                iv = fragment[:16]
-                if len(key) == 32 and len(iv) == 16:
-                    encrypted = True
-
-            if encrypted:
-                if decryption_available:
-                    # First get the http head request
-                    # which does not fetch data, just headers
-                    gajim.thread_interface(
-                        self._get_http_head,
-                        [self.textview.account, special_text],
-                        self._check_mime_size,
-                        [special_text, repl_start, repl_end,
-                         filepaths, key, iv, encrypted])
-                else:
-                    log.debug('Please install Crytography to decrypt pictures')
+            if encrypted and not decryption_available:
+                log.debug('Please install Crytography to decrypt pictures')
             else:
                 # First get the http head request
                 # which does not fetch data, just headers
+                # then check the mime type and filesize
                 gajim.thread_interface(
-                    self._get_http_head, [self.textview.account, special_text],
+                    get_http_head, [self.textview.account, special_text],
                     self._check_mime_size, [special_text, repl_start, repl_end,
                                             filepaths, key, iv, encrypted])
-
+        
         # Don't print the URL in the message window (in the calling function)
         self.textview.plugin_modified = True
+
+    def _save_thumbnail(self, thumbpath, (mem, alt)):
+        size = self.plugin.config['PREVIEW_SIZE']
+        use_gtk = False
+        output = None
+        
+        try:
+            output = BytesIO()
+            im = Image.open(BytesIO(mem))
+            im.thumbnail((size, size), Image.ANTIALIAS)
+            im.save(output, "jpeg", quality=100, optimize=True)
+        except Exception as e:
+            if output:
+                output.close()
+            log.info("Failed to load image using pillow, falling back to gdk pixbuf.")
+            log.debug(e)
+            use_gtk = True
+        
+        if use_gtk:
+            log.info("Pillow not available or file corrupt, trying to load using gdk pixbuf.")
+            output = BytesIO()
+            loader = gtk.gdk.PixbufLoader()
+            loader.write(mem)
+            loader.close()
+            pixbuf = loader.get_pixbuf()
+            pixbuf, w, h = self._get_pixbuf_of_size(pixbuf, size)
+            def cb(buf, data=None):
+                output.write(buf)
+                return True
+            pixbuf.save_to_callback(cb, "jpeg", {"quality": "100"})
+        
+        mem = output.getvalue()
+        output.close()
+        try:
+            self._create_path(os.path.dirname(thumbpath))
+            self._write_file(thumbpath, mem)
+        except Exception as e:
+            dialogs.ErrorDialog(_('Could not save file'),
+                                _('Exception raised while saving thumbnail for image file'
+                                  ' (see error log for more information)'),
+                                transient_for=self.chat_control.parent_win.window)
+            log.error(str(e))
+        return (mem, alt)
+    
+    def _load_thumbnail(self, thumbpath):
+        with open(thumbpath, 'rb') as f:
+            mem = f.read()
+            f.closed
+        return (mem, '')
+
+    def _write_file(self, path, data):
+        log.info("Writing '%s' of size %d..." % (path, len(data)))
+        try:
+            with open(path, "wb") as output_file:
+                output_file.write(data)
+                output_file.closed
+        except Exception as e:
+            log.error("Failed to write file '%s'!" % path)
+            raise
+
+    def _update_img(self, (mem, alt), url, repl_start, repl_end, filepath, encrypted):
+        if mem:
+            try:
+                eb = gtk.EventBox()
+                eb.connect('button-press-event', self.on_button_press_event,
+                           filepath, os.path.basename(url), url, encrypted)
+                eb.connect('enter-notify-event', self.on_enter_event)
+                eb.connect('leave-notify-event', self.on_leave_event)
+
+                # this is threadsafe
+                # (gtk textview is NOT threadsafe by itself!!)
+                def add_to_textview():
+                    try:        # textview closed in the meantime etc.
+                        buffer_ = repl_start.get_buffer()
+                        iter_ = buffer_.get_iter_at_mark(repl_start)
+                        buffer_.insert(iter_, "\n")
+                        anchor = buffer_.create_child_anchor(iter_)
+                        # Use url as tooltip for image
+                        img = TextViewImage(anchor, filepath)
+                        
+                        loader = gtk.gdk.PixbufLoader()
+                        loader.write(mem)
+                        loader.close()
+                        pixbuf = loader.get_pixbuf()
+                        img.set_from_pixbuf(pixbuf)
+                        
+                        eb.add(img)
+                        eb.show_all()
+                        self.textview.tv.add_child_at_anchor(eb, anchor)
+                        buffer_.delete(iter_, buffer_.get_iter_at_mark(repl_end))
+                    except:
+                        pass
+                    return False
+                # add to mainloop --> make call threadsafe
+                gobject.idle_add(add_to_textview)
+            except Exception:
+                # URL is already displayed
+                log.error('Could not display image for URL: %s'
+                          % url)
+                raise
+        else:
+            # If image could not be downloaded, URL is already displayed
+            log.error('Could not download image for URL: %s -- %s'
+                      % (url, alt))
 
     def _check_mime_size(self, (file_mime, file_size),
                          url, repl_start, repl_end, filepaths,
@@ -252,9 +359,40 @@ class Base(object):
         gajim.thread_interface(
             self._download_image, [self.textview.account,
                                    attributes, encrypted],
-            self._update_img, [url, repl_start, repl_end, filepaths])
+            self._update_img, [url, repl_start, repl_end, filepaths[0], encrypted])
 
-    def aes_decrypt_fast(self, key, iv, payload):
+    def _download_image(self, account, attributes, encrypted):
+        filepath = attributes['filepaths'][0]
+        thumbpath = attributes['filepaths'][1]
+        key = attributes['key']
+        iv = attributes['iv']
+        mem, alt = get_http_file(account, attributes)
+
+        # Decrypt file if necessary
+        if encrypted:
+            mem = self._aes_decrypt_fast(key, iv, mem)
+
+        try:
+            # Write file to harddisk
+            self._write_file(filepath, mem)
+        except Exception as e:
+            dialogs.ErrorDialog(_('Could not save file'),
+                            _('Exception raised while saving image file'
+                              ' (see error log for more information)'),
+                            transient_for=self.chat_control.parent_win.window)
+            log.error(str(e))
+        
+        # Create thumbnail, write it to harddisk and return it
+        return self._save_thumbnail(thumbpath, (mem, alt))
+        
+
+    def _create_path(self, folder):
+        if os.path.exists(folder):
+            return
+        log.debug("creating folder '%s'" % folder)
+        os.mkdir(folder, 0700)
+
+    def _aes_decrypt_fast(self, key, iv, payload):
         # Use AES128 GCM with the given key and iv to decrypt the payload.
         data = payload[:-16]
         tag = payload[-16:]
@@ -264,299 +402,7 @@ class Base(object):
             backend=self.backend).decryptor()
         return decryptor.update(data) + decryptor.finalize()
 
-    def _update_img(self, (mem, alt), url, repl_start, repl_end, filepaths):
-        if mem:
-            try:
-                if not pil_available:
-                    loader = gtk.gdk.PixbufLoader()
-                    loader.write(mem)
-                    loader.close()
-                    pixbuf = loader.get_pixbuf()
-                    pixbuf, w, h = self.get_pixbuf_of_size(
-                        pixbuf, self.plugin.config['PREVIEW_SIZE'])
-                eb = gtk.EventBox()
-                eb.connect('button-press-event', self.on_button_press_event,
-                           filepaths[0])
-                eb.connect('enter-notify-event', self.on_enter_event)
-                eb.connect('leave-notify-event', self.on_leave_event)
-
-                # this is threadsafe
-                # (gtk textview is NOT threadsafe by itself!!)
-
-                def add_to_textview():
-                    try:        # textview closed in the meantime etc.
-                        buffer_ = repl_start.get_buffer()
-                        iter_ = buffer_.get_iter_at_mark(repl_start)
-                        buffer_.insert(iter_, "\n")
-                        anchor = buffer_.create_child_anchor(iter_)
-                        # Use url as tooltip for image
-                        img = TextViewImage(anchor, filepaths[0])
-                        if pil_available:
-                            img.set_from_file(filepaths[1])
-                        else:
-                            img.set_from_pixbuf(pixbuf)
-                        eb.add(img)
-                        eb.show_all()
-                        self.textview.tv.add_child_at_anchor(eb, anchor)
-                        buffer_.delete(iter_,
-                                       buffer_.get_iter_at_mark(repl_end))
-                    except:
-                        pass
-                    return False
-                gobject.idle_add(add_to_textview)
-            except Exception:
-                # URL is already displayed
-                log.error('Could not display image for URL: %s'
-                          % url)
-                raise
-        else:
-            # If image could not be downloaded, URL is already displayed
-            log.error('Could not download image for URL: %s -- %s'
-                      % (url, alt))
-
-    def _get_http_head(self, account, url):
-        # Check if proxy is used
-        proxy = helpers.get_proxy_info(account)
-        if proxy and proxy['type'] in ('http', 'socks5'):
-            return self._get_http_head_proxy(url, proxy)
-        return self._get_http_head_direct(url)
-
-    def _download_image(self, account, attrs, encrypted):
-        proxy = helpers.get_proxy_info(account)
-        filepaths = attrs['filepaths']
-        key = attrs['key']
-        iv = attrs['iv']
-
-        if proxy and proxy['type'] in ('http', 'socks5'):
-            mem, alt = self._get_img_proxy(attrs, proxy)
-        else:
-            mem, alt = self._get_img_direct(attrs)
-
-        # Decrypt file if necessary
-        if encrypted:
-            mem = self.aes_decrypt_fast(key, iv, mem)
-
-        # Write file to harddisk
-        self.write_file(filepaths, mem)
-        log.debug('downloading file')
-        if pil_available:
-            self.save_thumbnail(filepaths)
-        return (mem, alt)
-
-    def write_file(self, filepaths, data):
-        try:
-            with open(filepaths[0], "wb") as output_file:
-                output_file.write(data)
-                output_file.closed
-        except Exception as e:
-            log.debug(e)
-
-    def save_thumbnail(self, filepaths):
-        size = 200, 200
-
-        try:
-            im = Image.open(filepaths[0])
-            im.thumbnail(size)
-            im.save(filepaths[1], "JPEG")
-        except Exception as e:
-            log.debug(e)
-
-    def create_path(self, folder):
-        head, tail = os.path.split(folder)
-        if not os.path.exists(head):
-            self.create_path(head)
-        if os.path.exists(folder):
-            return
-        log.debug('creating folder')
-        os.mkdir(folder, 0700)
-
-    def _get_http_head_direct(self, url):
-        log.debug('Get head request direct for URL: %s' % url)
-        try:
-            req = urllib2.Request(url)
-            req.get_method = lambda: 'HEAD'
-            req.add_header('User-Agent', 'Gajim %s' % gajim.version)
-            f = urllib2.urlopen(req)
-        except Exception, ex:
-            log.debug('Could not get head response for URL: %s' % url)
-            log.debug("%s" % str(ex))
-            return ('', 0)
-        url_headers = f.info()
-        ctype = ''
-        ctype_list = url_headers.getheaders('Content-Type')
-        if ctype_list:
-            ctype = ctype_list[0]
-        clen = 0
-        clen_list = url_headers.getheaders('Content-Length')
-        if clen_list:
-            try:
-                clen = int(clen_list[0])
-            except ValueError:
-                pass
-        return (ctype, clen)
-
-    def _get_http_head_proxy(self, url, proxy):
-        log.debug('Get head request with proxy for URL: %s' % url)
-        if not gajim.HAVE_PYCURL:
-            log.error('PYCURL not installed')
-            return ('', 0)
-        import pycurl
-        from cStringIO import StringIO
-
-        headers = ''
-        try:
-            b = StringIO()
-            c = pycurl.Curl()
-            c.setopt(pycurl.URL, url.encode('utf-8'))
-            c.setopt(pycurl.FOLLOWLOCATION, 1)
-            # Make a HEAD request:
-            c.setopt(pycurl.CUSTOMREQUEST, 'HEAD')
-            c.setopt(pycurl.NOBODY, 1)
-            c.setopt(pycurl.HEADER, 1)
-
-            c.setopt(pycurl.MAXFILESIZE, 2000000)
-            c.setopt(pycurl.WRITEFUNCTION, b.write)
-            c.setopt(pycurl.USERAGENT, 'Gajim ' + gajim.version)
-
-            # set proxy
-            c.setopt(pycurl.PROXY, proxy['host'].encode('utf-8'))
-            c.setopt(pycurl.PROXYPORT, proxy['port'])
-            if proxy['useauth']:
-                c.setopt(pycurl.PROXYUSERPWD, proxy['user'].encode('utf-8') +
-                         ':' + proxy['pass'].encode('utf-8'))
-                c.setopt(pycurl.PROXYAUTH, pycurl.HTTPAUTH_ANY)
-            if proxy['type'] == 'http':
-                c.setopt(pycurl.PROXYTYPE, pycurl.PROXYTYPE_HTTP)
-            elif proxy['type'] == 'socks5':
-                c.setopt(pycurl.PROXYTYPE, pycurl.PROXYTYPE_SOCKS5)
-            x = c.perform()
-            c.close()
-            headers = b.getvalue()
-        except pycurl.error, ex:
-            log.debug('Could not get head response for URL: %s' % url)
-            log.debug("%s" % str(ex))
-            return ('', 0)
-
-        ctype = ''
-        searchObj = re.search(r'^Content-Type: (.*)$', headers, re.M | re.I)
-        if searchObj:
-            ctype = searchObj.group(1).strip()
-        clen = 0
-        searchObj = re.search(r'^Content-Length: (.*)$', headers, re.M | re.I)
-        if searchObj:
-            try:
-                clen = int(searchObj.group(1).strip())
-            except ValueError:
-                pass
-        return (ctype, clen)
-
-    def _get_img_direct(self, attrs):
-        """
-        Download an image. This function should
-        be launched in a separated thread.
-        """
-        mem, alt, max_size = '', '', 2 * 1024 * 1024
-        if 'max_size' in attrs:
-            max_size = attrs['max_size']
-        try:
-            req = urllib2.Request(attrs['src'])
-            req.add_header('User-Agent', 'Gajim ' + gajim.version)
-            f = urllib2.urlopen(req)
-        except Exception, ex:
-            log.debug('Error loading image %s '
-                      % attrs['src'] + str(ex))
-            pixbuf = None
-            alt = attrs.get('alt', 'Broken image')
-        else:
-            while True:
-                try:
-                    temp = f.read(100)
-                except socket.timeout, ex:
-                    log.debug('Timeout loading image %s '
-                              % attrs['src'] + str(ex))
-                    alt = attrs.get('alt', '')
-                    if alt:
-                        alt += '\n'
-                    alt += _('Timeout loading image')
-                    break
-                if temp:
-                    mem += temp
-                else:
-                    break
-                if len(mem) > max_size:
-                    alt = attrs.get('alt', '')
-                    if alt:
-                        alt += '\n'
-                    alt += _('Image is too big')
-                    break
-        return (mem, alt)
-
-    def _get_img_proxy(self, attrs, proxy):
-        """
-        Download an image through a proxy.
-        This function should be launched in a
-        separated thread.
-        """
-        if not gajim.HAVE_PYCURL:
-            return '', _('PyCURL is not installed')
-        mem, alt, max_size = '', '', 2 * 1024 * 1024
-        if 'max_size' in attrs:
-            max_size = attrs['max_size']
-        try:
-            b = StringIO()
-            c = pycurl.Curl()
-            c.setopt(pycurl.URL, attrs['src'].encode('utf-8'))
-            c.setopt(pycurl.FOLLOWLOCATION, 1)
-            c.setopt(pycurl.MAXFILESIZE, max_size)
-            c.setopt(pycurl.WRITEFUNCTION, b.write)
-            c.setopt(pycurl.USERAGENT, 'Gajim ' + gajim.version)
-            # set proxy
-            c.setopt(pycurl.PROXY, proxy['host'].encode('utf-8'))
-            c.setopt(pycurl.PROXYPORT, proxy['port'])
-            if proxy['useauth']:
-                c.setopt(pycurl.PROXYUSERPWD, proxy['user'].encode('utf-8') +
-                         ':' + proxy['pass'].encode('utf-8'))
-                c.setopt(pycurl.PROXYAUTH, pycurl.HTTPAUTH_ANY)
-            if proxy['type'] == 'http':
-                c.setopt(pycurl.PROXYTYPE, pycurl.PROXYTYPE_HTTP)
-            elif proxy['type'] == 'socks5':
-                c.setopt(pycurl.PROXYTYPE, pycurl.PROXYTYPE_SOCKS5)
-            x = c.perform()
-            c.close()
-            t = b.getvalue()
-            return (t, attrs.get('alt', ''))
-        except pycurl.error, ex:
-            alt = attrs.get('alt', '')
-            if alt:
-                alt += '\n'
-            if ex[0] == pycurl.E_FILESIZE_EXCEEDED:
-                alt += _('Image is too big')
-            elif ex[0] == pycurl.E_OPERATION_TIMEOUTED:
-                alt += _('Timeout loading image')
-            else:
-                alt += _('Error loading image')
-        except Exception, ex:
-            log.debug('Error loading image %s ' % attrs['src'] + str(ex))
-            pixbuf = None
-            alt = attrs.get('alt', 'Broken image')
-        return ('', alt)
-
-    # Change mouse pointer to HAND2 when
-    # mouse enter the eventbox with the image
-    def on_enter_event(self, eb, event):
-        self.textview.tv.get_window(
-            gtk.TEXT_WINDOW_TEXT).set_cursor(gtk.gdk.Cursor(gtk.gdk.HAND2))
-
-    # Change mouse pointer to default when mouse leaves the eventbox
-    def on_leave_event(self, eb, event):
-        self.textview.tv.get_window(
-            gtk.TEXT_WINDOW_TEXT).set_cursor(gtk.gdk.Cursor(gtk.gdk.XTERM))
-
-    def on_button_press_event(self, eb, event, filepath):
-        if event.button == 1:  # left click
-            helpers.launch_file_manager(filepath)
-
-    def get_pixbuf_of_size(self, pixbuf, size):
+    def _get_pixbuf_of_size(self, pixbuf, size):
         # Creates a pixbuf that fits in the specified square of sizexsize
         # while preserving the aspect ratio
         # Returns tuple: (scaled_pixbuf, actual_width, actual_height)
@@ -575,6 +421,110 @@ class Base(object):
         crop_pixbuf = pixbuf.scale_simple(image_width, image_height,
                                           gtk.gdk.INTERP_BILINEAR)
         return (crop_pixbuf, image_width, image_height)
+
+    def make_rightclick_menu(self, event, filepath, original_filename, url, encrypted):
+        xml = gtk.Builder()
+        xml.set_translation_domain('gajim_plugins')
+        xml.add_from_file(self.plugin.local_file_path('context_menu.ui'))
+        menu = xml.get_object('context_menu')
+
+        open_menuitem = xml.get_object('open_menuitem')
+        save_as_menuitem = xml.get_object('save_as_menuitem')
+        copy_link_location_menuitem = xml.get_object('copy_link_location_menuitem')
+        open_link_in_browser_menuitem = xml.get_object('open_link_in_browser_menuitem')
+        
+        if encrypted:
+            open_link_in_browser_menuitem.hide()
+        
+        id_ = open_menuitem.connect('activate', self.on_open_menuitem_activate, filepath)
+        self.handlers[id_] = open_menuitem
+        id_ = save_as_menuitem.connect('activate', self.on_save_as_menuitem_activate,
+                    filepath, original_filename)
+        self.handlers[id_] = save_as_menuitem
+        id_ = copy_link_location_menuitem.connect('activate',
+                    self.on_copy_link_location_menuitem_activate, url)
+        self.handlers[id_] = copy_link_location_menuitem
+        id_ = open_link_in_browser_menuitem.connect('activate',
+                    self.on_open_link_in_browser_menuitem_activate, url)
+        self.handlers[id_] = open_link_in_browser_menuitem
+        
+        return menu
+    
+    def on_open_menuitem_activate(self, menu, filepath):
+        helpers.launch_file_manager(filepath)
+    
+    def on_save_as_menuitem_activate(self, menu, filepath, original_filename):
+        def on_continue(response, target_path):
+            if response < 0:
+                return
+            shutil.copy(filepath, target_path)
+            dialog.destroy()
+
+        def on_ok(widget):
+            target_path = dialog.get_filename()
+            if os.path.exists(target_path):
+                # check if we have write permissions
+                if not os.access(target_path, os.W_OK):
+                    file_name = os.path.basename(target_path)
+                    dialogs.ErrorDialog(_('Cannot overwrite existing file "%s"') % \
+                        file_name, _('A file with this name already exists and you '
+                        'do not have permission to overwrite it.'))
+                    return
+                dialog2 = dialogs.FTOverwriteConfirmationDialog(
+                    _('This file already exists'), _('What do you want to do?'),
+                    propose_resume=False, on_response=(on_continue, target_path),
+                    transient_for=dialog)
+                dialog2.set_destroy_with_parent(True)
+            else:
+                dirname = os.path.dirname(target_path)
+                if not os.access(dirname, os.W_OK):
+                    dialogs.ErrorDialog(_('Directory "%s" is not writable') % \
+                        dirname, _('You do not have permission to create files in '
+                        'this directory.'))
+                    return
+                on_continue(0, target_path)
+
+        def on_cancel(widget):
+            dialog.destroy()
+
+        dialog = dialogs.FileChooserDialog(title_text=_('Save Image as...'),
+            action=gtk.FILE_CHOOSER_ACTION_SAVE, buttons=(gtk.STOCK_CANCEL,
+            gtk.RESPONSE_CANCEL, gtk.STOCK_SAVE, gtk.RESPONSE_OK),
+            default_response=gtk.RESPONSE_OK,
+            current_folder=gajim.config.get('last_save_dir'), on_response_ok=on_ok,
+            on_response_cancel=on_cancel)
+
+        dialog.set_current_name(original_filename)
+        dialog.connect('delete-event', lambda widget, event:
+            on_cancel(widget))
+    
+    def on_copy_link_location_menuitem_activate(self, menu, url):
+        clipboard = gtk.Clipboard()
+        clipboard.set_text(url)
+    
+    def on_open_link_in_browser_menuitem_activate(self, menu, url):
+        helpers.launch_file_manager(url)
+    
+    # Change mouse pointer to HAND2 when
+    # mouse enter the eventbox with the image
+    def on_enter_event(self, eb, event):
+        self.textview.tv.get_window(
+            gtk.TEXT_WINDOW_TEXT).set_cursor(gtk.gdk.Cursor(gtk.gdk.HAND2))
+
+    # Change mouse pointer to default when mouse leaves the eventbox
+    def on_leave_event(self, eb, event):
+        self.textview.tv.get_window(
+            gtk.TEXT_WINDOW_TEXT).set_cursor(gtk.gdk.Cursor(gtk.gdk.XTERM))
+
+    def on_button_press_event(self, eb, event, filepath,
+                            original_filename, url, encrypted):
+        if event.type == gtk.gdk.BUTTON_PRESS and event.button == 1:     # left click
+            helpers.launch_file_manager(filepath)
+        elif event.type == gtk.gdk.BUTTON_PRESS and event.button == 3:   #right klick
+            menu = self.make_rightclick_menu(event, filepath,
+                            original_filename, url, encrypted)
+            #menu.attach_to_widget(self.tv, None)
+            menu.popup(None, None, None, event.button, event.time)
 
     def disconnect_from_chat_control(self):
         pass
