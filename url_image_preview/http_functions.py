@@ -1,4 +1,5 @@
 import urllib2
+import socket
 
 from common import helpers
 from common import gajim

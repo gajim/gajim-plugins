@@ -133,7 +133,7 @@ class Base(object):
             log.error("Error creating download and/or thumbnail folder!")
             raise
 
-    def deinit():
+    def deinit(self):
         # remove all register handlers on wigets, created by self.xml
         # to prevent circular references among objects
         for i in list(self.handlers.keys()):
@@ -244,16 +244,23 @@ class Base(object):
         
         if use_gtk:
             log.info("Pillow not available or file corrupt, trying to load using gdk pixbuf.")
-            output = BytesIO()
-            loader = gtk.gdk.PixbufLoader()
-            loader.write(mem)
-            loader.close()
-            pixbuf = loader.get_pixbuf()
-            pixbuf, w, h = self._get_pixbuf_of_size(pixbuf, size)
-            def cb(buf, data=None):
-                output.write(buf)
-                return True
-            pixbuf.save_to_callback(cb, "jpeg", {"quality": "100"})
+            try:
+                output = BytesIO()
+                loader = gtk.gdk.PixbufLoader()
+                loader.write(mem)
+                loader.close()
+                pixbuf = loader.get_pixbuf()
+                pixbuf, w, h = self._get_pixbuf_of_size(pixbuf, size)
+                def cb(buf, data=None):
+                    output.write(buf)
+                    return True
+                pixbuf.save_to_callback(cb, "jpeg", {"quality": "100"})
+            except Exception as e:
+                if output:
+                    output.close()
+                log.info("Failed to load image using gdk pixbuf, ignoring image.")
+                log.debug(e)
+                return ('', '')
         
         mem = output.getvalue()
         output.close()
