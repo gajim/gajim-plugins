@@ -50,7 +50,7 @@ except Exception as e:
     decryption_available = False
 
 ACCEPTED_MIME_TYPES = ('image/png', 'image/jpeg', 'image/gif', 'image/raw',
-                       'image/svg+xml')
+                       'image/svg+xml', 'image/x-ms-bmp')
 
 
 class UrlImagePreviewPlugin(GajimPlugin):
