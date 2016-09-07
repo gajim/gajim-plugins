@@ -199,14 +199,15 @@ class Base(object):
             gajim.thread_interface(
                 self._save_thumbnail, [thumbpath, (mem, '')],
                 self._update_img, [special_text, repl_start,
-                                    repl_end, filepath, encrypted])
+                                   repl_end, filepath, encrypted])
 
-        # display thumbnail if already downloaded (but only if file also exists)
+        # display thumbnail if already downloadeded
+        # (but only if file also exists)
         elif os.path.exists(filepath) and os.path.exists(thumbpath):
             gajim.thread_interface(
                 self._load_thumbnail, [thumbpath],
                 self._update_img, [special_text, repl_start,
-                                    repl_end, filepath, encrypted])
+                                   repl_end, filepath, encrypted])
 
         # or download file, calculate thumbnail and finally display it
         else:
@@ -237,12 +238,14 @@ class Base(object):
         except Exception as e:
             if output:
                 output.close()
-            log.info("Failed to load image using pillow, falling back to gdk pixbuf.")
+            log.info("Failed to load image using pillow, "
+                     "falling back to gdk pixbuf.")
             log.debug(e)
             use_gtk = True
 
         if use_gtk:
-            log.info("Pillow not available or file corrupt, trying to load using gdk pixbuf.")
+            log.info("Pillow not available or file corrupt, "
+                     "trying to load using gdk pixbuf.")
             try:
                 output = BytesIO()
                 loader = gtk.gdk.PixbufLoader()
@@ -250,14 +253,17 @@ class Base(object):
                 loader.close()
                 pixbuf = loader.get_pixbuf()
                 pixbuf, w, h = self._get_pixbuf_of_size(pixbuf, size)
+
                 def cb(buf, data=None):
                     output.write(buf)
                     return True
+
                 pixbuf.save_to_callback(cb, "jpeg", {"quality": "100"})
             except Exception as e:
                 if output:
                     output.close()
-                log.info("Failed to load image using gdk pixbuf, ignoring image.")
+                log.info("Failed to load image using gdk pixbuf, "
+                         "ignoring image.")
                 log.debug(e)
                 return ('', '')
 
@@ -267,10 +273,12 @@ class Base(object):
             self._create_path(os.path.dirname(thumbpath))
             self._write_file(thumbpath, mem)
         except Exception as e:
-            dialogs.ErrorDialog(_('Could not save file'),
-                                _('Exception raised while saving thumbnail for image file'
-                                  ' (see error log for more information)'),
-                                transient_for=self.chat_control.parent_win.window)
+            dialogs.ErrorDialog(
+                _('Could not save file'),
+                _('Exception raised while saving thumbnail '
+                  'for image file (see error log for more '
+                  'information)'),
+                transient_for=self.chat_control.parent_win.window)
             log.error(str(e))
         return (mem, alt)
 
@@ -290,7 +298,8 @@ class Base(object):
             log.error("Failed to write file '%s'!" % path)
             raise
 
-    def _update_img(self, (mem, alt), url, repl_start, repl_end, filepath, encrypted):
+    def _update_img(self, (mem, alt), url, repl_start, repl_end,
+                    filepath, encrypted):
         if mem:
             try:
                 urlparts = urlparse(url)
@@ -321,7 +330,8 @@ class Base(object):
                         eb.add(img)
                         eb.show_all()
                         self.textview.tv.add_child_at_anchor(eb, anchor)
-                        buffer_.delete(iter_, buffer_.get_iter_at_mark(repl_end))
+                        buffer_.delete(iter_,
+                                       buffer_.get_iter_at_mark(repl_end))
                     except:
                         pass
                     return False
@@ -367,7 +377,8 @@ class Base(object):
         gajim.thread_interface(
             self._download_image, [self.textview.account,
                                    attributes, encrypted],
-            self._update_img, [url, repl_start, repl_end, filepaths[0], encrypted])
+            self._update_img, [url, repl_start, repl_end,
+                               filepaths[0], encrypted])
 
     def _download_image(self, account, attributes, encrypted):
         filepath = attributes['filepaths'][0]
@@ -384,10 +395,11 @@ class Base(object):
             # Write file to harddisk
             self._write_file(filepath, mem)
         except Exception as e:
-            dialogs.ErrorDialog(_('Could not save file'),
-                            _('Exception raised while saving image file'
-                              ' (see error log for more information)'),
-                            transient_for=self.chat_control.parent_win.window)
+            dialogs.ErrorDialog(
+                _('Could not save file'),
+                _('Exception raised while saving image file'
+                  ' (see error log for more information)'),
+                transient_for=self.chat_control.parent_win.window)
             log.error(str(e))
 
         # Create thumbnail, write it to harddisk and return it
@@ -429,7 +441,8 @@ class Base(object):
                                           gtk.gdk.INTERP_BILINEAR)
         return (crop_pixbuf, image_width, image_height)
 
-    def make_rightclick_menu(self, event, filepath, original_filename, url, encrypted):
+    def make_rightclick_menu(self, event, filepath, original_filename,
+                             url, encrypted):
         xml = gtk.Builder()
         xml.set_translation_domain('gajim_plugins')
         xml.add_from_file(self.plugin.local_file_path('context_menu.ui'))
@@ -437,22 +450,26 @@ class Base(object):
 
         open_menuitem = xml.get_object('open_menuitem')
         save_as_menuitem = xml.get_object('save_as_menuitem')
-        copy_link_location_menuitem = xml.get_object('copy_link_location_menuitem')
-        open_link_in_browser_menuitem = xml.get_object('open_link_in_browser_menuitem')
+        copy_link_location_menuitem = \
+            xml.get_object('copy_link_location_menuitem')
+        open_link_in_browser_menuitem = \
+            xml.get_object('open_link_in_browser_menuitem')
 
         if encrypted:
             open_link_in_browser_menuitem.hide()
 
-        id_ = open_menuitem.connect('activate', self.on_open_menuitem_activate, filepath)
+        id_ = open_menuitem.connect(
+            'activate', self.on_open_menuitem_activate, filepath)
         self.handlers[id_] = open_menuitem
-        id_ = save_as_menuitem.connect('activate', self.on_save_as_menuitem_activate,
-                    filepath, original_filename)
+        id_ = save_as_menuitem.connect(
+            'activate', self.on_save_as_menuitem_activate,
+            filepath, original_filename)
         self.handlers[id_] = save_as_menuitem
-        id_ = copy_link_location_menuitem.connect('activate',
-                    self.on_copy_link_location_menuitem_activate, url)
+        id_ = copy_link_location_menuitem.connect(
+            'activate', self.on_copy_link_location_menuitem_activate, url)
         self.handlers[id_] = copy_link_location_menuitem
-        id_ = open_link_in_browser_menuitem.connect('activate',
-                    self.on_open_link_in_browser_menuitem_activate, url)
+        id_ = open_link_in_browser_menuitem.connect(
+            'activate', self.on_open_link_in_browser_menuitem_activate, url)
         self.handlers[id_] = open_link_in_browser_menuitem
 
         return menu
@@ -473,37 +490,44 @@ class Base(object):
                 # check if we have write permissions
                 if not os.access(target_path, os.W_OK):
                     file_name = os.path.basename(target_path)
-                    dialogs.ErrorDialog(_('Cannot overwrite existing file "%s"') % \
-                        file_name, _('A file with this name already exists and you '
-                        'do not have permission to overwrite it.'))
+                    dialogs.ErrorDialog(
+                        _('Cannot overwrite existing file "%s"') % file_name,
+                        _('A file with this name already exists and you do '
+                          'not have permission to overwrite it.'))
                     return
                 dialog2 = dialogs.FTOverwriteConfirmationDialog(
-                    _('This file already exists'), _('What do you want to do?'),
-                    propose_resume=False, on_response=(on_continue, target_path),
+                    _('This file already exists'),
+                    _('What do you want to do?'),
+                    propose_resume=False,
+                    on_response=(on_continue, target_path),
                     transient_for=dialog)
                 dialog2.set_destroy_with_parent(True)
             else:
                 dirname = os.path.dirname(target_path)
                 if not os.access(dirname, os.W_OK):
-                    dialogs.ErrorDialog(_('Directory "%s" is not writable') % \
-                        dirname, _('You do not have permission to create files in '
-                        'this directory.'))
+                    dialogs.ErrorDialog(
+                        _('Directory "%s" is not writable') % dirname,
+                        _('You do not have permission to '
+                          'create files in this directory.'))
                     return
                 on_continue(0, target_path)
 
         def on_cancel(widget):
             dialog.destroy()
 
-        dialog = dialogs.FileChooserDialog(title_text=_('Save Image as...'),
-            action=gtk.FILE_CHOOSER_ACTION_SAVE, buttons=(gtk.STOCK_CANCEL,
-            gtk.RESPONSE_CANCEL, gtk.STOCK_SAVE, gtk.RESPONSE_OK),
+        dialog = dialogs.FileChooserDialog(
+            title_text=_('Save Image as...'),
+            action=gtk.FILE_CHOOSER_ACTION_SAVE,
+            buttons=(gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL,
+                     gtk.STOCK_SAVE, gtk.RESPONSE_OK),
             default_response=gtk.RESPONSE_OK,
-            current_folder=gajim.config.get('last_save_dir'), on_response_ok=on_ok,
+            current_folder=gajim.config.get('last_save_dir'),
+            on_response_ok=on_ok,
             on_response_cancel=on_cancel)
 
         dialog.set_current_name(original_filename)
         dialog.connect('delete-event', lambda widget, event:
-            on_cancel(widget))
+                       on_cancel(widget))
 
     def on_copy_link_location_menuitem_activate(self, menu, url):
         clipboard = gtk.Clipboard()
@@ -524,13 +548,15 @@ class Base(object):
             gtk.TEXT_WINDOW_TEXT).set_cursor(gtk.gdk.Cursor(gtk.gdk.XTERM))
 
     def on_button_press_event(self, eb, event, filepath,
-                            original_filename, url, encrypted):
-        if event.type == gtk.gdk.BUTTON_PRESS and event.button == 1:     # left click
+                              original_filename, url, encrypted):
+        # left click
+        if event.type == gtk.gdk.BUTTON_PRESS and event.button == 1:
             helpers.launch_file_manager(filepath)
-        elif event.type == gtk.gdk.BUTTON_PRESS and event.button == 3:   #right klick
+        # right klick
+        elif event.type == gtk.gdk.BUTTON_PRESS and event.button == 3:
             menu = self.make_rightclick_menu(event, filepath,
-                            original_filename, url, encrypted)
-            #menu.attach_to_widget(self.tv, None)
+                                             original_filename, url, encrypted)
+            # menu.attach_to_widget(self.tv, None)
             menu.popup(None, None, None, event.button, event.time)
 
     def disconnect_from_chat_control(self):
