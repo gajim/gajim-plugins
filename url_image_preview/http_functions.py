@@ -106,7 +106,7 @@ def _get_http_direct(attrs):
     Download a file. This function should
     be launched in a separated thread.
     """
-    log.debug('Get request direct for URL: %s' % url)
+    log.debug('Get request direct for URL: %s' % attrs['src'])
     mem, alt, max_size = '', '', 2 * 1024 * 1024
     if 'max_size' in attrs:
         max_size = attrs['max_size']
@@ -149,7 +149,7 @@ def _get_http_proxy(attrs, proxy):
     This function should be launched in a
     separated thread.
     """
-    log.debug('Get request with proxy for URL: %s' % url)
+    log.debug('Get request with proxy for URL: %s' % attrs['src'])
     if not gajim.HAVE_PYCURL:
         log.error('PYCURL not installed')
         return '', _('PyCURL is not installed')
