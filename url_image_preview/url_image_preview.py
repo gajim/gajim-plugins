@@ -510,7 +510,7 @@ class Base(object):
         clipboard.set_text(url)
 
     def on_open_link_in_browser_menuitem_activate(self, menu, url):
-        helpers.launch_file_manager(url)
+        helpers.launch_browser_mailer('url', url)
 
     # Change mouse pointer to HAND2 when
     # mouse enter the eventbox with the image
