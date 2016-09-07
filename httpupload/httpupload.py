@@ -35,9 +35,8 @@ try:
 except:
     pil_available = False
 from io import BytesIO
-import base64
-import binascii
 
+import binascii
 from common import gajim
 from common import ged
 import chat_control
@@ -49,19 +48,21 @@ import nbxmpp
 
 log = logging.getLogger('gajim.plugin_system.httpupload')
 
-if os.name != 'nt':
-    try:
+try:
+    if os.name == 'nt':
+        from cryptography.hazmat.backends.openssl import backend
+    else:
         from cryptography.hazmat.backends import default_backend
-        from cryptography.hazmat.primitives.ciphers import Cipher
-        from cryptography.hazmat.primitives.ciphers import algorithms
-        from cryptography.hazmat.primitives.ciphers.modes import GCM
-        encryption_available = True
-    except Exception as e:
-        log.debug(e)
-        encryption_available = False
-else:
+    from cryptography.hazmat.primitives.ciphers import Cipher
+    from cryptography.hazmat.primitives.ciphers import algorithms
+    from cryptography.hazmat.primitives.ciphers.modes import GCM
+    encryption_available = True
+except Exception as e:
+    DEP_MSG = 'For encryption of files, ' \
+              'please install python-cryptography!'
+    log.debug('Cryptography Import Error: ' + str(e))
+    log.info('Decryption/Encryption disabled due to errors')
     encryption_available = False
-    log.info('Cryptography not available on Windows for now')
 
 # XEP-0363 (http://xmpp.org/extensions/xep-0363.html)
 NS_HTTPUPLOAD = 'urn:xmpp:http:upload'
@@ -78,6 +79,8 @@ class HttpuploadPlugin(GajimPlugin):
 
     @log_calls('HttpuploadPlugin')
     def init(self):
+        if not encryption_available:
+            self.available_text = DEP_MSG
         self.config_dialog = None  # HttpuploadPluginConfigDialog(self)
         self.controls = []
         self.events_handlers = {}
@@ -571,10 +574,14 @@ class StreamFileWithProgress(file):
         self.encrypted_upload = encrypted_upload
         self.seek(0, os.SEEK_END)
         if self.encrypted_upload:
+            if os.name == 'nt':
+                self.backend = backend
+            else:
+                self.backend = default_backend()
             self.encryptor = Cipher(
                 algorithms.AES(key),
                 GCM(iv),
-                backend=default_backend()).encryptor()
+                backend=self.backend).encryptor()
             self._total = self.tell() + TAGSIZE
         else:
             self._total = self.tell()
