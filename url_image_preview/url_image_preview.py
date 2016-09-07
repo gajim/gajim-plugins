@@ -22,7 +22,6 @@ from plugins import GajimPlugin
 from plugins.helpers import log_calls, log
 from plugins.gui import GajimPluginConfigDialog
 from conversation_textview import TextViewImage
-from .aes_gcm import aes_decrypt
 from .http_functions import get_http_head, get_http_file
 
 from common import demandimport
@@ -140,7 +139,7 @@ class Base(object):
             if self.handlers[i].handler_is_connected(i):
                 self.handlers[i].disconnect(i)
             del self.handlers[i]
-    
+
     def print_special_text(self, special_text, other_tags, graphics=True,
                            iter_=None):
         # remove qip bbcode
@@ -191,7 +190,7 @@ class Base(object):
             iv = fragment[:16]
             if len(key) == 32 and len(iv) == 16:
                 encrypted = True
-        
+
         # file exists but thumbnail got deleted
         if os.path.exists(filepath) and not os.path.exists(thumbpath):
             with open(filepath, 'rb') as f:
@@ -201,14 +200,14 @@ class Base(object):
                 self._save_thumbnail, [thumbpath, (mem, '')],
                 self._update_img, [special_text, repl_start,
                                     repl_end, filepath, encrypted])
-        
+
         # display thumbnail if already downloaded (but only if file also exists)
         elif os.path.exists(filepath) and os.path.exists(thumbpath):
             gajim.thread_interface(
                 self._load_thumbnail, [thumbpath],
                 self._update_img, [special_text, repl_start,
                                     repl_end, filepath, encrypted])
-        
+
         # or download file, calculate thumbnail and finally display it
         else:
             if encrypted and not decryption_available:
@@ -221,7 +220,7 @@ class Base(object):
                     get_http_head, [self.textview.account, special_text],
                     self._check_mime_size, [special_text, repl_start, repl_end,
                                             filepaths, key, iv, encrypted])
-        
+
         # Don't print the URL in the message window (in the calling function)
         self.textview.plugin_modified = True
 
@@ -229,7 +228,7 @@ class Base(object):
         size = self.plugin.config['PREVIEW_SIZE']
         use_gtk = False
         output = None
-        
+
         try:
             output = BytesIO()
             im = Image.open(BytesIO(mem))
@@ -241,7 +240,7 @@ class Base(object):
             log.info("Failed to load image using pillow, falling back to gdk pixbuf.")
             log.debug(e)
             use_gtk = True
-        
+
         if use_gtk:
             log.info("Pillow not available or file corrupt, trying to load using gdk pixbuf.")
             try:
@@ -261,7 +260,7 @@ class Base(object):
                 log.info("Failed to load image using gdk pixbuf, ignoring image.")
                 log.debug(e)
                 return ('', '')
-        
+
         mem = output.getvalue()
         output.close()
         try:
@@ -274,7 +273,7 @@ class Base(object):
                                 transient_for=self.chat_control.parent_win.window)
             log.error(str(e))
         return (mem, alt)
-    
+
     def _load_thumbnail(self, thumbpath):
         with open(thumbpath, 'rb') as f:
             mem = f.read()
@@ -312,13 +311,13 @@ class Base(object):
                         anchor = buffer_.create_child_anchor(iter_)
                         # Use url as tooltip for image
                         img = TextViewImage(anchor, url)
-                        
+
                         loader = gtk.gdk.PixbufLoader()
                         loader.write(mem)
                         loader.close()
                         pixbuf = loader.get_pixbuf()
                         img.set_from_pixbuf(pixbuf)
-                        
+
                         eb.add(img)
                         eb.show_all()
                         self.textview.tv.add_child_at_anchor(eb, anchor)
@@ -390,10 +389,9 @@ class Base(object):
                               ' (see error log for more information)'),
                             transient_for=self.chat_control.parent_win.window)
             log.error(str(e))
-        
+
         # Create thumbnail, write it to harddisk and return it
         return self._save_thumbnail(thumbpath, (mem, alt))
-        
 
     def _create_path(self, folder):
         if os.path.exists(folder):
@@ -441,10 +439,10 @@ class Base(object):
         save_as_menuitem = xml.get_object('save_as_menuitem')
         copy_link_location_menuitem = xml.get_object('copy_link_location_menuitem')
         open_link_in_browser_menuitem = xml.get_object('open_link_in_browser_menuitem')
-        
+
         if encrypted:
             open_link_in_browser_menuitem.hide()
-        
+
         id_ = open_menuitem.connect('activate', self.on_open_menuitem_activate, filepath)
         self.handlers[id_] = open_menuitem
         id_ = save_as_menuitem.connect('activate', self.on_save_as_menuitem_activate,
@@ -456,12 +454,12 @@ class Base(object):
         id_ = open_link_in_browser_menuitem.connect('activate',
                     self.on_open_link_in_browser_menuitem_activate, url)
         self.handlers[id_] = open_link_in_browser_menuitem
-        
+
         return menu
-    
+
     def on_open_menuitem_activate(self, menu, filepath):
         helpers.launch_file_manager(filepath)
-    
+
     def on_save_as_menuitem_activate(self, menu, filepath, original_filename):
         def on_continue(response, target_path):
             if response < 0:
@@ -506,14 +504,14 @@ class Base(object):
         dialog.set_current_name(original_filename)
         dialog.connect('delete-event', lambda widget, event:
             on_cancel(widget))
-    
+
     def on_copy_link_location_menuitem_activate(self, menu, url):
         clipboard = gtk.Clipboard()
         clipboard.set_text(url)
-    
+
     def on_open_link_in_browser_menuitem_activate(self, menu, url):
         helpers.launch_file_manager(url)
-    
+
     # Change mouse pointer to HAND2 when
     # mouse enter the eventbox with the image
     def on_enter_event(self, eb, event):
