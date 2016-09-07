@@ -45,6 +45,8 @@ try:
     from cryptography.hazmat.primitives.ciphers.modes import GCM
     decryption_available = True
 except Exception as e:
+    DEP_MSG = 'For preview of encrypted images, ' \
+              'please install python-cryptography!'
     log.debug('Cryptography Import Error: ' + str(e))
     log.info('Decryption/Encryption disabled due to errors')
     decryption_available = False
@@ -56,6 +58,8 @@ ACCEPTED_MIME_TYPES = ('image/png', 'image/jpeg', 'image/gif', 'image/raw',
 class UrlImagePreviewPlugin(GajimPlugin):
     @log_calls('UrlImagePreviewPlugin')
     def init(self):
+        if not decryption_available:
+            self.available_text = DEP_MSG
         self.config_dialog = UrlImagePreviewPluginConfigDialog(self)
         self.events_handlers = {}
         self.events_handlers['message-received'] = (
