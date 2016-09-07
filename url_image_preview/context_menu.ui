@@ -1,25 +1,49 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Generated with glade 3.18.3 -->
 <interface>
   <requires lib="gtk+" version="2.16"/>
+  <!-- interface-naming-policy toplevel-contextual -->
+  <object class="GtkImage" id="image1">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <property name="stock">gtk-open</property>
+  </object>
+  <object class="GtkImage" id="image2">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <property name="stock">gtk-save-as</property>
+  </object>
+  <object class="GtkImage" id="image3">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <property name="stock">gtk-copy</property>
+  </object>
+  <object class="GtkImage" id="image4">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <property name="stock">gtk-jump-to</property>
+  </object>
   <object class="GtkMenu" id="context_menu">
     <property name="can_focus">False</property>
     <child>
       <object class="GtkImageMenuItem" id="open_menuitem">
-        <property name="use_stock">True</property>
-        <property name="always_show_image">True</property>
+        <property name="label" translatable="yes">_Open</property>
         <property name="visible">True</property>
         <property name="can_focus">False</property>
-        <property name="label" translatable="yes">_Open</property>
         <property name="use_underline">True</property>
+        <property name="image">image1</property>
+        <property name="use_stock">False</property>
+        <property name="always_show_image">True</property>
       </object>
     </child>
     <child>
-      <object class="GtkMenuItem" id="save_as_menuitem">
+      <object class="GtkImageMenuItem" id="save_as_menuitem">
+        <property name="label" translatable="yes">_Save as</property>
         <property name="visible">True</property>
         <property name="can_focus">False</property>
-        <property name="label" translatable="yes">_Save as</property>
         <property name="use_underline">True</property>
+        <property name="image">image2</property>
+        <property name="use_stock">False</property>
+        <property name="always_show_image">True</property>
       </object>
     </child>
     <child>
@@ -29,19 +53,25 @@
       </object>
     </child>
     <child>
-      <object class="GtkMenuItem" id="copy_link_location_menuitem">
+      <object class="GtkImageMenuItem" id="copy_link_location_menuitem">
+        <property name="label" translatable="yes">_Copy Link Location</property>
         <property name="visible">True</property>
         <property name="can_focus">False</property>
-        <property name="label" translatable="yes">_Copy Link Location</property>
         <property name="use_underline">True</property>
+        <property name="image">image3</property>
+        <property name="use_stock">False</property>
+        <property name="always_show_image">True</property>
       </object>
     </child>
     <child>
-      <object class="GtkMenuItem" id="open_link_in_browser_menuitem">
+      <object class="GtkImageMenuItem" id="open_link_in_browser_menuitem">
+        <property name="label" translatable="yes">Open Link in _Browser</property>
         <property name="visible">True</property>
         <property name="can_focus">False</property>
-        <property name="label" translatable="yes">Open Link in _Browser</property>
         <property name="use_underline">True</property>
+        <property name="image">image4</property>
+        <property name="use_stock">False</property>
+        <property name="always_show_image">True</property>
       </object>
     </child>
   </object>
