@@ -294,9 +294,11 @@ class Base(object):
     def _update_img(self, (mem, alt), url, repl_start, repl_end, filepath, encrypted):
         if mem:
             try:
+                urlparts = urlparse(url)
+                filename = os.path.basename(urlparts.path)
                 eb = gtk.EventBox()
                 eb.connect('button-press-event', self.on_button_press_event,
-                           filepath, os.path.basename(url), url, encrypted)
+                           filepath, filename, url, encrypted)
                 eb.connect('enter-notify-event', self.on_enter_event)
                 eb.connect('leave-notify-event', self.on_leave_event)
 
@@ -309,7 +311,7 @@ class Base(object):
                         buffer_.insert(iter_, "\n")
                         anchor = buffer_.create_child_anchor(iter_)
                         # Use url as tooltip for image
-                        img = TextViewImage(anchor, filepath)
+                        img = TextViewImage(anchor, url)
                         
                         loader = gtk.gdk.PixbufLoader()
                         loader.write(mem)
