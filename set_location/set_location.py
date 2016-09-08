@@ -5,20 +5,31 @@ from datetime import datetime
 import time
 import gtk
 import os
+import gobject
+import urllib2
+import logging
 
 from plugins.gui import GajimPluginConfigDialog
 from plugins import GajimPlugin
 from plugins.helpers import log, log_calls
 from common import gajim
 from common import ged
+from common import helpers
+from common import configpaths
+from conversation_textview import TextViewImage
 import gtkgui_helpers
 from dialogs import InputDialog, WarningDialog
+
+
+log = logging.getLogger('gajim.plugin_system.set_location')
 
 
 class SetLocationPlugin(GajimPlugin):
     @log_calls('SetLocationPlugin')
     def init(self):
         self.config_dialog = SetLocationPluginConfigDialog(self)
+        self.gui_extension_points = {
+            'print_special_text': (self.print_special_text, None)}
         self.config_default_values = {
             'alt': (1609, ''),
             'area': ('Central Park', ''),
@@ -38,10 +49,14 @@ class SetLocationPlugin(GajimPlugin):
             'uri': ('http://beta.plazes.com/plazes/1940:jabber_inc', ''),
             'presets': ({'default': {}}, ''), }
 
+        self.thumbpath = os.path.join(configpaths.gajimpaths['MY_CACHE'],
+                                      'downloads.thumb')
+        self.create_path(self.thumbpath)
+
     @log_calls('SetLocationPlugin')
     def activate(self):
         gajim.ged.register_event_handler('signed-in', ged.POSTGUI,
-            self.on_signed_in)
+                                         self.on_signed_in)
         self.send_locations()
 
     @log_calls('SetLocationPlugin')
@@ -50,10 +65,152 @@ class SetLocationPlugin(GajimPlugin):
         for acct in gajim.connections:
             gajim.connections[acct].send_location(self._data)
         gajim.ged.remove_event_handler('signed-in', ged.POSTGUI,
-            self.on_signed_in)
+                                       self.on_signed_in)
 
     def on_signed_in(self, network_event):
         self.send_locations(network_event.conn.name)
+
+    def print_special_text(self, tv, special_text, other_tags, graphics=True,
+                           iter_=None):
+        conv_textview = tv
+        textview = tv.tv
+        # geo:48.2057365,16.3435941
+        if not special_text.startswith('geo:'):
+            return
+
+        buffer_ = textview.get_buffer()
+        if not iter_:
+            iter_ = buffer_.get_end_iter()
+
+        # Show URL, until image is loaded (if ever)
+        ttt = buffer_.get_tag_table()
+        repl_start = buffer_.create_mark(None, iter_, True)
+        buffer_.insert_with_tags(iter_, special_text,
+            *[(ttt.lookup(t) if isinstance(t, str) else t) for t in ["url"]])
+        repl_end = buffer_.create_mark(None, iter_, True)
+
+        zoom = 17
+        size = 200
+        color = 'blue'
+
+        coordinates = special_text.split(':')[1]
+
+        lat = coordinates.split(',')[0]
+        lon = coordinates.split(',')[1]
+
+        if not (len(lat) == 10 and len(lon) == 10):
+            return
+
+        filename = coordinates.replace(',', '_').replace('.', '-')
+        filepath = os.path.join(self.thumbpath, filename)
+
+        url = 'https://maps.googleapis.com/maps/api/staticmap?center={}' \
+              '&zoom={}&size={}x{}&markers=color:{}' \
+              '|label:S|{}'.format(coordinates, zoom, size, size,
+                                   color, coordinates)
+
+        weburl = 'https://www.google.at/maps/place/{}'.format(coordinates)
+
+        log.debug(url)
+
+        if os.path.exists(filepath):
+            gajim.thread_interface(
+                self.load_thumbnail, [filepath],
+                self.updatechat, [weburl, repl_start, repl_end, textview])
+        else:
+            gajim.thread_interface(
+                self.download, [url, filepath],
+                self.updatechat, [weburl, repl_start, repl_end, textview])
+
+        # Don't print the URL in the message window (in the calling function)
+        conv_textview.plugin_modified = True
+
+    def updatechat(self, data, weburl, repl_start, repl_end, textview):
+        if data:
+            try:
+                log.debug(weburl)
+                eb = gtk.EventBox()
+                eb.connect('button-press-event', self.on_button_press_event,
+                           weburl)
+                eb.connect('enter-notify-event', self.on_enter_event,
+                           textview)
+                eb.connect('leave-notify-event', self.on_leave_event,
+                           textview)
+
+                # this is threadsafe
+                # (gtk textview is NOT threadsafe by itself!!)
+                def add_to_textview():
+                    try:        # textview closed in the meantime etc.
+                        buffer_ = repl_start.get_buffer()
+                        iter_ = buffer_.get_iter_at_mark(repl_start)
+                        buffer_.insert(iter_, "\n")
+                        anchor = buffer_.create_child_anchor(iter_)
+                        # Use weburl as tooltip for image
+                        img = TextViewImage(anchor, weburl)
+
+                        loader = gtk.gdk.PixbufLoader()
+                        loader.write(data)
+                        loader.close()
+                        pixbuf = loader.get_pixbuf()
+                        img.set_from_pixbuf(pixbuf)
+
+                        eb.add(img)
+                        eb.show_all()
+                        textview.add_child_at_anchor(eb, anchor)
+                        buffer_.delete(iter_,
+                                       buffer_.get_iter_at_mark(repl_end))
+                    except:
+                        pass
+                    return False
+                # add to mainloop --> make call threadsafe
+                gobject.idle_add(add_to_textview)
+            except Exception:
+                # URL is already displayed
+                log.error('Could not display image for URL: %s'
+                          % weburl)
+                raise
+        else:
+            # If image could not be downloaded, URL is already displayed
+            log.error('Could not download image for URL: %s -- %s'
+                      % weburl)
+
+    def download(self, url, filepath):
+        """
+        Download a file. This function should
+        be launched in a separated thread.
+        """
+        log.debug('Getting map thumbnail ..')
+        try:
+            req = urllib2.Request(url)
+            req.add_header('User-Agent', 'Gajim')
+            f = urllib2.urlopen(req)
+        except Exception as ex:
+            log.debug('Error loading file %s '
+                      % str(ex))
+        else:
+            try:
+                temp = f.read()
+                with open(filepath, "wb") as local_file:
+                    local_file.write(temp)
+                    local_file.closed
+                log.debug('Saved map thumbnail ..')
+            except Exception as ex:
+                log.exception('Error: ')
+            if temp:
+                return temp
+
+    def load_thumbnail(self, filepath):
+        with open(filepath, 'rb') as f:
+            data = f.read()
+            f.closed
+        log.debug('Load map thumbnail')
+        return data
+
+    def create_path(self, folder):
+        if os.path.exists(folder):
+            return
+        log.debug("creating folder '%s'" % folder)
+        os.mkdir(folder, 0o700)
 
     def send_locations(self, acct=False):
         self._data = {}
@@ -65,22 +222,38 @@ class SetLocationPlugin(GajimPlugin):
             self._data[name] = self.config[name]
 
         if not acct:
-            #set geo for all accounts
+            # set geo for all accounts
             for acct in gajim.connections:
                 if gajim.config.get_per('accounts', acct, 'publish_location'):
                     gajim.connections[acct].send_location(self._data)
         elif gajim.config.get_per('accounts', acct, 'publish_location'):
             gajim.connections[acct].send_location(self._data)
 
+    # Change mouse pointer to HAND2 when
+    # mouse enter the eventbox with the image
+    def on_enter_event(self, eb, event, tv):
+        tv.get_window(
+            gtk.TEXT_WINDOW_TEXT).set_cursor(gtk.gdk.Cursor(gtk.gdk.HAND2))
+
+    # Change mouse pointer to default when mouse leaves the eventbox
+    def on_leave_event(self, eb, event, tv):
+        tv.get_window(
+            gtk.TEXT_WINDOW_TEXT).set_cursor(gtk.gdk.Cursor(gtk.gdk.XTERM))
+
+    def on_button_press_event(self, eb, event, url):
+        # left click
+        if event.type == gtk.gdk.BUTTON_PRESS and event.button == 1:
+            helpers.launch_browser_mailer('url', url)
+
 
 class SetLocationPluginConfigDialog(GajimPluginConfigDialog):
     def init(self):
         self.GTK_BUILDER_FILE_PATH = self.plugin.local_file_path(
-                'config_dialog.ui')
+            'config_dialog.ui')
         self.xml = gtk.Builder()
         self.xml.set_translation_domain('gajim_plugins')
         self.xml.add_objects_from_file(self.GTK_BUILDER_FILE_PATH,
-            ['hbox1', 'image1', 'image2'])
+                                       ['hbox1', 'image1', 'image2'])
         hbox = self.xml.get_object('hbox1')
         self.child.pack_start(hbox)
         self.xml.connect_signals(self)
@@ -93,7 +266,7 @@ class SetLocationPluginConfigDialog(GajimPluginConfigDialog):
         cellrenderer = gtk.CellRendererText()
         self.preset_combo.pack_start(cellrenderer, True)
         self.preset_combo.add_attribute(cellrenderer, 'text', 0)
-        #self.plugin.config['presets'] = {'default': {}}
+        # self.plugin.config['presets'] = {'default': {}}
 
     @log_calls('SetLocationPlugin.SetLocationPluginConfigDialog')
     def on_run(self):
@@ -127,7 +300,7 @@ class SetLocationPluginConfigDialog(GajimPluginConfigDialog):
 
             self.osm = osmgpsmap.GpsMap()
             self.osm.layer_add(osmgpsmap.GpsMapOsd(show_dpad=True,
-                show_zoom=True))
+                                                   show_zoom=True))
             self.osm.layer_add(DummyLayer())
             lat = self.plugin.config['lat']
             lon = self.plugin.config['lon']
@@ -142,9 +315,10 @@ class SetLocationPluginConfigDialog(GajimPluginConfigDialog):
                 self.path_to_image, 16, 16)
             self.osm.connect('button_release_event', self.map_clicked)
             vbox.pack_start(self.osm, expand=True, fill=True, padding=6)
-            label = gtk.Label(_(
-                'Click the right mouse button to specify the location, \n'\
-                'middle mouse button to show / hide the contacts on the map'))
+            label = gtk.Label(
+                _('Click the right mouse button to specify the location, \n'
+                  'middle mouse button to show / '
+                  'hide the contacts on the map'))
             vbox.pack_start(label, expand=False, fill=False, padding=6)
             self.is_active = True
             self.images = []
@@ -185,7 +359,7 @@ class SetLocationPluginConfigDialog(GajimPluginConfigDialog):
         try:
             self.lat = float(lat)
             self.lon = float(lon)
-        except ValueError, e:
+        except ValueError:
             return
         if not -85 < self.lat < 85 or not -180 < self.lon < 180:
             return
@@ -216,11 +390,11 @@ class SetLocationPluginConfigDialog(GajimPluginConfigDialog):
                         continue
                     data[contact] = (lat, lon)
             for jid in data:
-                path = gtkgui_helpers.get_path_to_generic_or_avatar(None,
-                        jid=jid, suffix='')
+                path = gtkgui_helpers.get_path_to_generic_or_avatar(
+                    None, jid=jid, suffix='')
                 icon = gtk.gdk.pixbuf_new_from_file_at_size(path, 24, 24)
                 image = self.osm.image_add(float(data[jid][0]),
-                    float(data[jid][1]), icon)
+                                           float(data[jid][1]), icon)
                 self.images.append(image)
         else:
             for image in self.images:
@@ -238,13 +412,15 @@ class SetLocationPluginConfigDialog(GajimPluginConfigDialog):
                 widget = self.xml.get_object(name)
                 preset[name] = widget.get_text()
             preset = {preset_name: preset}
-            presets = dict(self.plugin.config['presets'].items() + \
-                preset.items())
+            presets = dict(self.plugin.config['presets'].items() +
+                           preset.items())
             if preset_name not in self.plugin.config['presets'].keys():
                 iter_ = self.preset_liststore.append((preset_name,))
             self.plugin.config['presets'] = presets
         self.set_modal(False)
-        InputDialog(_('Save as Preset'), _('Please type a name for this preset'),
+        InputDialog(
+            _('Save as Preset'),
+            _('Please type a name for this preset'),
             is_modal=True, ok_handler=on_ok)
 
     def on_preset_combobox_changed(self, widget):
@@ -256,7 +432,8 @@ class SetLocationPluginConfigDialog(GajimPluginConfigDialog):
         pres_name = model[active][0].decode('utf-8')
         for name in self.plugin.config['presets'][pres_name].keys():
             widget = self.xml.get_object(name)
-            widget.set_text(str(self.plugin.config['presets'][pres_name][name]))
+            widget.set_text(
+                str(self.plugin.config['presets'][pres_name][name]))
 
         self.xml.get_object('del_preset').set_sensitive(True)
 
