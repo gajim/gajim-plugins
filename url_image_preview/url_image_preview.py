@@ -178,7 +178,8 @@ class Base(object):
         name = os.path.splitext(filename)[0]
         namehash = hashlib.sha1(special_text).hexdigest()
         newfilename = name + '_' + namehash + ext
-        thumbfilename = name + '_' + namehash + '_thumb' + ext
+        thumbfilename = name + '_' + namehash + '_thumb_' \
+            + str(self.plugin.config['PREVIEW_SIZE']) + ext
 
         filepath = os.path.join(self.directory, newfilename)
         thumbpath = os.path.join(self.thumbpath, thumbfilename)
