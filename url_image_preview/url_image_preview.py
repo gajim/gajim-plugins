@@ -9,6 +9,7 @@ import hashlib
 from urlparse import urlparse
 from io import BytesIO
 import shutil
+import webbrowser
 
 import logging
 import nbxmpp
@@ -70,7 +71,8 @@ class UrlImagePreviewPlugin(GajimPlugin):
             'print_special_text': (self.print_special_text, None), }
         self.config_default_values = {
             'PREVIEW_SIZE': (150, 'Preview size(10-512)'),
-            'MAX_FILE_SIZE': (524288, 'Max file size for image preview')}
+            'MAX_FILE_SIZE': (524288, 'Max file size for image preview'),
+            'LEFTCLICK_ACTION': ('open_menuitem', 'Open')}
         self.controls = {}
 
     # remove oob tag if oob url == message text
@@ -445,8 +447,7 @@ class Base(object):
                                           gtk.gdk.INTERP_BILINEAR)
         return (crop_pixbuf, image_width, image_height)
 
-    def make_rightclick_menu(self, event, filepath, original_filename,
-                             url, encrypted):
+    def make_rightclick_menu(self, event, data):
         xml = gtk.Builder()
         xml.set_translation_domain('gajim_plugins')
         xml.add_from_file(self.plugin.local_file_path('context_menu.ui'))
@@ -458,30 +459,37 @@ class Base(object):
             xml.get_object('copy_link_location_menuitem')
         open_link_in_browser_menuitem = \
             xml.get_object('open_link_in_browser_menuitem')
+        open_file_in_browser_menuitem = \
+            xml.get_object('open_file_in_browser_menuitem')
 
-        if encrypted:
+        if data["encrypted"]:
             open_link_in_browser_menuitem.hide()
 
         id_ = open_menuitem.connect(
-            'activate', self.on_open_menuitem_activate, filepath)
+            'activate', self.on_open_menuitem_activate, data)
         self.handlers[id_] = open_menuitem
         id_ = save_as_menuitem.connect(
-            'activate', self.on_save_as_menuitem_activate,
-            filepath, original_filename)
+            'activate', self.on_save_as_menuitem_activate, data)
         self.handlers[id_] = save_as_menuitem
         id_ = copy_link_location_menuitem.connect(
-            'activate', self.on_copy_link_location_menuitem_activate, url)
+            'activate', self.on_copy_link_location_menuitem_activate, data)
         self.handlers[id_] = copy_link_location_menuitem
         id_ = open_link_in_browser_menuitem.connect(
-            'activate', self.on_open_link_in_browser_menuitem_activate, url)
+            'activate', self.on_open_link_in_browser_menuitem_activate, data)
         self.handlers[id_] = open_link_in_browser_menuitem
+        id_ = open_file_in_browser_menuitem.connect(
+            'activate', self.on_open_file_in_browser_menuitem_activate, data)
+        self.handlers[id_] = open_file_in_browser_menuitem
 
         return menu
 
-    def on_open_menuitem_activate(self, menu, filepath):
+    def on_open_menuitem_activate(self, menu, data):
+        filepath = data["filepath"]
         helpers.launch_file_manager(filepath)
 
-    def on_save_as_menuitem_activate(self, menu, filepath, original_filename):
+    def on_save_as_menuitem_activate(self, menu, data):
+        filepath = data["filepath"]
+        original_filename = data["original_filename"]
         def on_continue(response, target_path):
             if response < 0:
                 return
@@ -533,12 +541,37 @@ class Base(object):
         dialog.connect('delete-event', lambda widget, event:
                        on_cancel(widget))
 
-    def on_copy_link_location_menuitem_activate(self, menu, url):
+    def on_copy_link_location_menuitem_activate(self, menu, data):
+        url = data["url"]
         clipboard = gtk.Clipboard()
         clipboard.set_text(url)
 
-    def on_open_link_in_browser_menuitem_activate(self, menu, url):
-        helpers.launch_browser_mailer('url', url)
+    def on_open_link_in_browser_menuitem_activate(self, menu, data):
+        url = data["url"]
+        if data["encrypted"]:
+            dialogs.ErrorDialog(
+                _('Encrypted file'),
+                _('You cannot open encrypted files in your '
+                  'browser directly. Try "Open Downloaded File '
+                  'in Browser" instead.'),
+                transient_for=self.chat_control.parent_win.window)
+        else:
+            helpers.launch_browser_mailer('url', url)
+        
+    def on_open_file_in_browser_menuitem_activate(self, menu, data):
+        filepath = "file://" + data["filepath"]
+        if not gajim.config.get('autodetect_browser_mailer'):
+            command = gajim.config.get('custombrowser')
+            if command == '': # if no app is configured
+                return
+            command = helpers.build_command(command, filepath)
+            try:
+                helpers.exec_command(command)
+            except Exception:
+                pass
+        else:
+            log.error(filepath)
+            webbrowser.open(filepath)
 
     # Change mouse pointer to HAND2 when
     # mouse enter the eventbox with the image
@@ -553,13 +586,18 @@ class Base(object):
 
     def on_button_press_event(self, eb, event, filepath,
                               original_filename, url, encrypted):
+        data = {"filepath": filepath,
+                "original_filename": original_filename,
+                "url": url,
+                "encrypted": encrypted}
         # left click
         if event.type == gtk.gdk.BUTTON_PRESS and event.button == 1:
-            helpers.launch_file_manager(filepath)
+            method = getattr(self, "on_" + self.plugin.config['LEFTCLICK_ACTION']
+                    + "_activate")
+            method(event, data)
         # right klick
         elif event.type == gtk.gdk.BUTTON_PRESS and event.button == 3:
-            menu = self.make_rightclick_menu(event, filepath,
-                                             original_filename, url, encrypted)
+            menu = self.make_rightclick_menu(event, data)
             # menu.attach_to_widget(self.tv, None)
             menu.popup(None, None, None, event.button, event.time)
 
@@ -569,6 +607,8 @@ class Base(object):
 
 class UrlImagePreviewPluginConfigDialog(GajimPluginConfigDialog):
     max_file_size = [262144, 524288, 1048576, 5242880, 10485760]
+    leftclick_action = ['open_menuitem', 'save_as_menuitem', 'copy_link_location_menuitem',
+                        'open_link_in_browser_menuitem', 'open_file_in_browser_menuitem']
 
     def init(self):
         self.GTK_BUILDER_FILE_PATH = self.plugin.local_file_path(
@@ -576,11 +616,12 @@ class UrlImagePreviewPluginConfigDialog(GajimPluginConfigDialog):
         self.xml = gtk.Builder()
         self.xml.set_translation_domain('gajim_plugins')
         self.xml.add_objects_from_file(self.GTK_BUILDER_FILE_PATH, [
-            'vbox1', 'liststore1'])
+            'vbox1', 'liststore1', 'liststore2'])
         self.preview_size_spinbutton = self.xml.get_object('preview_size')
         self.preview_size_spinbutton.get_adjustment().set_all(20, 10, 512, 1,
                                                               10, 0)
         self.max_size_combobox = self.xml.get_object('max_size_combobox')
+        self.leftclick_action_combobox = self.xml.get_object('leftclick_action_combobox')
         vbox = self.xml.get_object('vbox1')
         self.child.pack_start(vbox)
 
@@ -600,6 +641,18 @@ class UrlImagePreviewPluginConfigDialog(GajimPluginConfigDialog):
                 pass
         else:
             self.max_size_combobox.set_active(-1)
+        
+        value = self.plugin.config['LEFTCLICK_ACTION']
+        if value:
+            # this fails if we upgrade from an old version
+            # which has other file size values than we have now
+            try:
+                self.leftclick_action_combobox.set_active(
+                    self.leftclick_action.index(value))
+            except:
+                pass
+        else:
+            self.leftclick_action_combobox.set_active(0)
 
     def preview_size_value_changed(self, spinbutton):
         self.plugin.config['PREVIEW_SIZE'] = spinbutton.get_value()
@@ -607,3 +660,7 @@ class UrlImagePreviewPluginConfigDialog(GajimPluginConfigDialog):
     def max_size_value_changed(self, widget):
         self.plugin.config['MAX_FILE_SIZE'] = self.max_file_size[
             self.max_size_combobox.get_active()]
+    
+    def leftclick_action_changed(self, widget):
+        self.plugin.config['LEFTCLICK_ACTION'] = self.leftclick_action[
+            self.leftclick_action_combobox.get_active()]

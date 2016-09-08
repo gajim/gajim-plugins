@@ -25,6 +25,29 @@
       </row>
     </data>
   </object>
+  <object class="GtkListStore" id="liststore2">
+    <columns>
+      <!-- column-name Text -->
+      <column type="gchararray"/>
+    </columns>
+    <data>
+      <row>
+        <col id="0" translatable="yes">Open</col>
+      </row>
+      <row>
+        <col id="0" translatable="yes">Save as</col>
+      </row>
+      <row>
+        <col id="0" translatable="yes">Copy Link Location</col>
+      </row>
+      <row>
+        <col id="0" translatable="yes">Open Link in Browser</col>
+      </row>
+      <row>
+        <col id="0" translatable="yes">Open Downloaded File in Browser</col>
+      </row>
+    </data>
+  </object>
   <object class="GtkWindow" id="window1">
     <property name="can_focus">False</property>
     <child>
@@ -42,7 +65,7 @@
               <object class="GtkTable" id="table1">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="n_rows">2</property>
+                <property name="n_rows">3</property>
                 <property name="n_columns">2</property>
                 <child>
                   <object class="GtkSpinButton" id="preview_size">
@@ -86,6 +109,27 @@
                   </packing>
                 </child>
                 <child>
+                  <object class="GtkComboBox" id="leftclick_action_combobox">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="model">liststore2</property>
+                    <signal name="changed" handler="leftclick_action_changed" swapped="no"/>
+                    <child>
+                      <object class="GtkCellRendererText" id="cellrenderertext2"/>
+                      <attributes>
+                        <attribute name="text">0</attribute>
+                      </attributes>
+                    </child>
+                  </object>
+                  <packing>
+                    <property name="left_attach">1</property>
+                    <property name="right_attach">2</property>
+                    <property name="top_attach">2</property>
+                    <property name="bottom_attach">3</property>
+                    <property name="y_options">GTK_EXPAND</property>
+                  </packing>
+                </child>
+                <child>
                   <object class="GtkLabel" id="max_size_label">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
@@ -110,6 +154,22 @@
                     <property name="track_visited_links">False</property>
                   </object>
                   <packing>
+                    <property name="y_options">GTK_EXPAND</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkLabel" id="leftclick_action_label">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="xalign">0</property>
+                    <property name="xpad">12</property>
+                    <property name="label" translatable="yes">Left click action</property>
+                    <property name="track_visited_links">False</property>
+                  </object>
+                  <packing>
+                    <property name="y_options">GTK_EXPAND</property>
+                    <property name="top_attach">2</property>
+                    <property name="bottom_attach">3</property>
                     <property name="y_options">GTK_EXPAND</property>
                   </packing>
                 </child>
