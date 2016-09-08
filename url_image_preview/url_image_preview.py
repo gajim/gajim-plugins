@@ -461,9 +461,15 @@ class Base(object):
             xml.get_object('open_link_in_browser_menuitem')
         open_file_in_browser_menuitem = \
             xml.get_object('open_file_in_browser_menuitem')
-
+        extras_separator = \
+            xml.get_object('extras_separator')
+        
         if data["encrypted"]:
             open_link_in_browser_menuitem.hide()
+        if gajim.config.get('autodetect_browser_mailer') \
+                or gajim.config.get('custombrowser') == '':
+            extras_separator.hide()
+            open_file_in_browser_menuitem.hide()
 
         id_ = open_menuitem.connect(
             'activate', self.on_open_menuitem_activate, data)
@@ -560,18 +566,20 @@ class Base(object):
         
     def on_open_file_in_browser_menuitem_activate(self, menu, data):
         filepath = "file://" + data["filepath"]
-        if not gajim.config.get('autodetect_browser_mailer'):
-            command = gajim.config.get('custombrowser')
-            if command == '': # if no app is configured
-                return
-            command = helpers.build_command(command, filepath)
-            try:
-                helpers.exec_command(command)
-            except Exception:
-                pass
-        else:
-            log.error(filepath)
-            webbrowser.open(filepath)
+        if gajim.config.get('autodetect_browser_mailer') \
+                or gajim.config.get('custombrowser') == '':
+            dialogs.ErrorDialog(
+                _('Cannot open downloaded file in browser'),
+                _('You have to set a custom browser executable '
+                  'in your gajim settings for this to work.'),
+                transient_for=self.chat_control.parent_win.window)
+            return
+        command = gajim.config.get('custombrowser')
+        command = helpers.build_command(command, filepath)
+        try:
+            helpers.exec_command(command)
+        except Exception:
+            pass
 
     # Change mouse pointer to HAND2 when
     # mouse enter the eventbox with the image
@@ -592,8 +600,9 @@ class Base(object):
                 "encrypted": encrypted}
         # left click
         if event.type == gtk.gdk.BUTTON_PRESS and event.button == 1:
-            method = getattr(self, "on_" + self.plugin.config['LEFTCLICK_ACTION']
-                    + "_activate")
+            method = getattr(self, "on_"
+                             + self.plugin.config['LEFTCLICK_ACTION']
+                             + "_activate")
             method(event, data)
         # right klick
         elif event.type == gtk.gdk.BUTTON_PRESS and event.button == 3:
