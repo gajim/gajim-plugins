@@ -1,4 +1,19 @@
 # -*- coding: utf-8 -*-
+##
+## This file is part of Gajim.
+##
+## Gajim is free software; you can redistribute it and/or modify
+## it under the terms of the GNU General Public License as published
+## by the Free Software Foundation; version 3 only.
+##
+## Gajim is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License for more details.
+##
+## You should have received a copy of the GNU General Public License
+## along with Gajim.  If not, see <http://www.gnu.org/licenses/>.
+##
 
 import gtk
 import gobject
@@ -27,7 +42,7 @@ from .http_functions import get_http_head, get_http_file
 
 from common import demandimport
 demandimport.enable()
-demandimport.ignore += ['_imp']
+demandimport.ignore += ['_imp', 'PIL']
 
 log = logging.getLogger('gajim.plugin_system.url_image_preview')
 
@@ -162,6 +177,9 @@ class Base(object):
             log.info("Not accepting URL for image preview: %s" % special_text)
             return
 
+        # Don't print the URL in the message window (in the calling function)
+        self.textview.plugin_modified = True
+        
         buffer_ = self.textview.tv.get_buffer()
         if not iter_:
             iter_ = buffer_.get_end_iter()
@@ -229,8 +247,6 @@ class Base(object):
                     self._check_mime_size, [special_text, repl_start, repl_end,
                                             filepaths, key, iv, encrypted])
 
-        # Don't print the URL in the message window (in the calling function)
-        self.textview.plugin_modified = True
 
     def _save_thumbnail(self, thumbpath, (mem, alt)):
         size = self.plugin.config['PREVIEW_SIZE']
@@ -566,7 +582,10 @@ class Base(object):
             helpers.launch_browser_mailer('url', url)
         
     def on_open_file_in_browser_menuitem_activate(self, menu, data):
-        filepath = "file://" + data["filepath"]
+        if os.name == "nt":
+            filepath = "file://" + os.path.abspath(data["filepath"])
+        else:
+            filepath = "file://" + data["filepath"]
         if gajim.config.get('autodetect_browser_mailer') \
                 or gajim.config.get('custombrowser') == '':
             dialogs.ErrorDialog(
