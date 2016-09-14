@@ -136,10 +136,6 @@ class Base(object):
         self.chat_control = chat_control
         self.textview = self.chat_control.conv_textview
         self.handlers = {}
-        if os.name == 'nt':
-            self.backend = backend
-        else:
-            self.backend = default_backend()
 
         self.directory = os.path.join(configpaths.gajimpaths['MY_DATA'],
                                       'downloads')
@@ -179,7 +175,7 @@ class Base(object):
 
         # Don't print the URL in the message window (in the calling function)
         self.textview.plugin_modified = True
-        
+
         buffer_ = self.textview.tv.get_buffer()
         if not iter_:
             iter_ = buffer_.get_end_iter()
@@ -246,7 +242,6 @@ class Base(object):
                     get_http_head, [self.textview.account, special_text],
                     self._check_mime_size, [special_text, repl_start, repl_end,
                                             filepaths, key, iv, encrypted])
-
 
     def _save_thumbnail(self, thumbpath, (mem, alt)):
         size = self.plugin.config['PREVIEW_SIZE']
@@ -436,12 +431,16 @@ class Base(object):
 
     def _aes_decrypt_fast(self, key, iv, payload):
         # Use AES128 GCM with the given key and iv to decrypt the payload.
+        if os.name == 'nt':
+            be = backend
+        else:
+            be = default_backend()
         data = payload[:-16]
         tag = payload[-16:]
         decryptor = Cipher(
             algorithms.AES(key),
             GCM(iv, tag=tag),
-            backend=self.backend).decryptor()
+            backend=be).decryptor()
         return decryptor.update(data) + decryptor.finalize()
 
     def _get_pixbuf_of_size(self, pixbuf, size):
