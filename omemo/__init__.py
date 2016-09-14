@@ -58,36 +58,37 @@ DB_DIR = gajim.gajimpaths.data_root
 log = logging.getLogger('gajim.plugin_system.omemo')
 
 try:
-    from .omemo.state import OmemoState
-except Exception as e:
-    log.error(e)
-    ERROR_MSG = 'Error: ' + str(e)
-
-try:
-    import google.protobuf
+    prototest = __import__('google.protobuf')
 except Exception as e:
     log.error(e)
     ERROR_MSG = PROTOBUF_MISSING
 
 try:
-    import axolotl
+    axolotltest = __import__('axolotl')
 except Exception as e:
     log.error(e)
     ERROR_MSG = AXOLOTL_MISSING
+
+if not ERROR_MSG:
+    try:
+        from .omemo.state import OmemoState
+    except Exception as e:
+        log.error(e)
+        ERROR_MSG = 'Error: ' + str(e)
 
 GAJIM_VER = gajim.config.get('version')
 
 if os.name != 'nt':
     try:
         SETUPTOOLS_MISSING = False
-        from pkg_resources import parse_version
+        pkg = __import__('pkg_resources')
     except Exception as e:
         log.error(e)
         SETUPTOOLS_MISSING = True
         ERROR_MSG = 'You are missing the Setuptools package.'
 
     if not SETUPTOOLS_MISSING:
-        if parse_version(GAJIM_VER) < parse_version('0.16.5'):
+        if pkg.parse_version(GAJIM_VER) < pkg.parse_version('0.16.5'):
             ERROR_MSG = GAJIM_VERSION
 
 # pylint: disable=no-init
