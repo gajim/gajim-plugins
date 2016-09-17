@@ -21,8 +21,9 @@
 import logging
 import os
 import sqlite3
+import shutil
 
-from common import caps_cache, gajim, ged
+from common import caps_cache, gajim, ged, configpaths
 from common.pep import SUPPORTED_PERSONAL_USER_EVENTS
 from plugins import GajimPlugin
 from plugins.helpers import log_calls
@@ -53,7 +54,8 @@ ERROR_MSG = ''
 
 NS_HINTS = 'urn:xmpp:hints'
 NS_PGP = 'urn:xmpp:openpgp:0'
-DB_DIR = gajim.gajimpaths.data_root
+DB_DIR_OLD = gajim.gajimpaths.data_root
+DB_DIR_NEW = configpaths.gajimpaths['MY_DATA']
 
 log = logging.getLogger('gajim.plugin_system.omemo')
 
@@ -126,6 +128,21 @@ class OmemoPlugin(GajimPlugin):
         self.announced = []
         self.query_for_bundles = []
 
+    def migrate_dbpath(self, account, my_jid):
+        old_dbpath = os.path.join(DB_DIR_OLD, 'omemo_' + account + '.db')
+        new_dbpath = os.path.join(DB_DIR_NEW, 'omemo_' + my_jid + '.db')
+
+        if os.path.exists(old_dbpath):
+            log.debug('Migrating DBName and Path ..')
+            try:
+                shutil.move(old_dbpath, new_dbpath)
+                return new_dbpath
+            except Exception:
+                log.exception('Migration Error:')
+                return old_dbpath
+
+        return new_dbpath
+
     @log_calls('OmemoPlugin')
     def get_omemo_state(self, account):
         """ Returns the the OmemoState for the specified account.
@@ -142,11 +159,10 @@ class OmemoPlugin(GajimPlugin):
         """
         if account not in self.omemo_states:
             self.deactivate_gajim_e2e(account)
-            db_path = os.path.join(DB_DIR, 'omemo_' + account + '.db')
-            conn = sqlite3.connect(db_path, check_same_thread=False)
-
             my_jid = gajim.get_jid_from_account(account)
+            db_path = self.migrate_dbpath(account, my_jid)
 
+            conn = sqlite3.connect(db_path, check_same_thread=False)
             self.omemo_states[account] = OmemoState(my_jid, conn, account,
                                                     self.plugin)
 
