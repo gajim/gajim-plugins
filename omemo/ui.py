@@ -266,11 +266,6 @@ class OMEMOConfigDialog(GajimPluginConfigDialog):
 
         self.device_model = gtk.ListStore(gobject.TYPE_STRING)
 
-        self.account_store = self.B.get_object('account_store')
-
-        for account in sorted(gajim.contacts.get_accounts()):
-            self.account_store.append(row=(account,))
-
         self.fpr_view = self.B.get_object('fingerprint_view')
         self.fpr_view.set_model(self.fpr_model)
         self.fpr_view.get_selection().set_mode(gtk.SELECTION_MULTIPLE)
@@ -278,19 +273,38 @@ class OMEMOConfigDialog(GajimPluginConfigDialog):
         self.device_view = self.B.get_object('deviceid_view')
         self.device_view.set_model(self.device_model)
 
-        if len(self.account_store) > 0:
-            self.B.get_object('account_combobox').set_active(0)
-
         self.child.pack_start(self.B.get_object('notebook1'))
 
         self.B.connect_signals(self)
 
     def on_run(self):
-        self.update_context_list()
-        self.account_combobox_changed_cb(self.B.get_object('account_combobox'))
+        self.update_account_combobox()
+        self.clear_all()
+        if len(self.account_store) > 0:
+            self.account_combobox_changed_cb(
+                self.B.get_object('account_combobox'))
+
+    def clear_all(self):
+        self.fpr_model.clear()
+        self.device_model.clear()
+        self.B.get_object('ID').set_markup('')
+        self.B.get_object('fingerprint_label').set_markup('')
+        self.B.get_object('trust_button').set_sensitive(False)
+        self.B.get_object('delfprbutton').set_sensitive(False)
+        self.B.get_object('refresh').set_sensitive(False)
+        self.B.get_object('cleardevice_button').set_sensitive(False)
+
+    def update_account_combobox(self):
+        self.account_store = self.B.get_object('account_store')
+        self.account_store.clear()
+        for account in sorted(gajim.contacts.get_accounts()):
+            self.account_store.append(row=(account,))
+        if len(self.account_store) > 0:
+            self.B.get_object('account_combobox').set_active(0)
 
     def account_combobox_changed_cb(self, box, *args):
-        self.update_context_list()
+        if len(self.account_store) > 0:
+            self.update_context_list()
 
     def delfpr_button_clicked(self, button, *args):
         active = self.B.get_object('account_combobox').get_active()
@@ -429,8 +443,18 @@ class OMEMOConfigDialog(GajimPluginConfigDialog):
         self.device_model.clear()
         active = self.B.get_object('account_combobox').get_active()
         account = self.account_store[active][0]
-        state = self.plugin.get_omemo_state(account)
 
+        # Set buttons active
+        self.B.get_object('trust_button').set_sensitive(True)
+        self.B.get_object('delfprbutton').set_sensitive(True)
+        self.B.get_object('refresh').set_sensitive(True)
+        if account == 'Local':
+            self.B.get_object('cleardevice_button').set_sensitive(False)
+        else:
+            self.B.get_object('cleardevice_button').set_sensitive(True)
+
+        # Set FPR Label and DeviceID
+        state = self.plugin.get_omemo_state(account)
         deviceid = state.own_device_id
         self.B.get_object('ID').set_markup('<tt>%s</tt>' % deviceid)
 
@@ -440,6 +464,7 @@ class OMEMOConfigDialog(GajimPluginConfigDialog):
         self.B.get_object('fingerprint_label').set_markup('<tt>%s</tt>'
                                                           % ownfpr)
 
+        # Set Fingerprint List
         trust_str = {0: 'False', 1: 'True', 2: 'Undecided'}
         session_db = state.store.getAllSessions()
 
@@ -468,6 +493,7 @@ class OMEMOConfigDialog(GajimPluginConfigDialog):
                  format(color[trust], fpr),
                  deviceid))
 
+        # Set Device ID List
         for item in state.own_devices:
             self.device_model.append([item])
 
