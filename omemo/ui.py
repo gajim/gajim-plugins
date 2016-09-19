@@ -258,6 +258,14 @@ class OMEMOConfigDialog(GajimPluginConfigDialog):
         self.B.set_translation_domain('gajim_plugins')
         self.B.add_from_file(self.GTK_BUILDER_FILE_PATH)
 
+        try:
+            self.disabled_accounts = self.plugin.config['DISABLED_ACCOUNTS']
+        except KeyError:
+            self.plugin.config['DISABLED_ACCOUNTS'] = []
+            self.disabled_accounts = self.plugin.config['DISABLED_ACCOUNTS']
+
+        log.debug(self.disabled_accounts)
+
         self.fpr_model = gtk.ListStore(gobject.TYPE_INT,
                                        gobject.TYPE_STRING,
                                        gobject.TYPE_STRING,
@@ -273,38 +281,98 @@ class OMEMOConfigDialog(GajimPluginConfigDialog):
         self.device_view = self.B.get_object('deviceid_view')
         self.device_view.set_model(self.device_model)
 
+        self.disabled_acc_store = self.B.get_object('disabled_account_store')
+        self.account_store = self.B.get_object('account_store')
+
+        self.active_acc_view = self.B.get_object('active_accounts_view')
+        self.disabled_acc_view = self.B.get_object('disabled_accounts_view')
+
         self.child.pack_start(self.B.get_object('notebook1'))
 
         self.B.connect_signals(self)
 
+        self.plugin_active = False
+
     def on_run(self):
+        log.debug('on_run')
+        for plugin in gajim.plugin_manager.active_plugins:
+            log.debug(type(plugin))
+            if type(plugin).__name__ == 'OmemoPlugin':
+                self.plugin_active = True
+                break
+        self.update_account_store()
         self.update_account_combobox()
-        self.clear_all()
-        if len(self.account_store) > 0:
+        self.update_disabled_account_view()
+
+        if len(self.account_store) > 0 and \
+                self.plugin_active is True:
             self.account_combobox_changed_cb(
                 self.B.get_object('account_combobox'))
 
-    def clear_all(self):
-        self.fpr_model.clear()
-        self.device_model.clear()
-        self.B.get_object('ID').set_markup('')
-        self.B.get_object('fingerprint_label').set_markup('')
-        self.B.get_object('trust_button').set_sensitive(False)
-        self.B.get_object('delfprbutton').set_sensitive(False)
-        self.B.get_object('refresh').set_sensitive(False)
-        self.B.get_object('cleardevice_button').set_sensitive(False)
+    def is_in_accountstore(self, account):
+        for row in self.account_store:
+            if row[0] == account:
+                return True
+        return False
+
+    def update_account_store(self):
+        log.debug('update_account_store')
+        # get accounts
+        log.debug(self.disabled_accounts)
+        for account in sorted(gajim.contacts.get_accounts()):
+            if account not in self.disabled_accounts and \
+                    not self.is_in_accountstore(account):
+                log.debug('append')
+                self.account_store.append(row=(account,))
 
     def update_account_combobox(self):
-        self.account_store = self.B.get_object('account_store')
-        self.account_store.clear()
-        for account in sorted(gajim.contacts.get_accounts()):
-            self.account_store.append(row=(account,))
+        log.debug('update_account_combobox')
+        if self.plugin_active is False:
+            return
         if len(self.account_store) > 0:
             self.B.get_object('account_combobox').set_active(0)
+        else:
+            self.account_combobox_changed_cb(
+                self.B.get_object('account_combobox'))
 
     def account_combobox_changed_cb(self, box, *args):
-        if len(self.account_store) > 0:
-            self.update_context_list()
+        log.debug('account_combobox_changed_cb')
+        self.update_context_list()
+
+    def update_disabled_account_view(self):
+        log.debug('update_disabled_account_view')
+        self.disabled_acc_store.clear()
+        for account in self.disabled_accounts:
+            self.disabled_acc_store.append(row=(account,))
+
+    def activate_accounts_btn_clicked(self, button, *args):
+        log.debug('activate_accounts_btn_clicked')
+        mod, paths = self.disabled_acc_view.get_selection().get_selected_rows()
+        for path in paths:
+            it = mod.get_iter(path)
+            account = mod.get(it, 0)
+            if account[0] in self.disabled_accounts and \
+                    not self.is_in_accountstore(account[0]):
+                log.debug('add/remove')
+                self.account_store.append(row=(account[0],))
+                self.disabled_accounts.remove(account[0])
+        self.update_disabled_account_view()
+        self.plugin.config['DISABLED_ACCOUNTS'] = self.disabled_accounts
+        self.update_account_combobox()
+
+    def disable_accounts_btn_clicked(self, button, *args):
+        log.debug('disable_accounts_btn_clicked')
+        mod, paths = self.active_acc_view.get_selection().get_selected_rows()
+        for path in paths:
+            it = mod.get_iter(path)
+            account = mod.get(it, 0)
+            if account[0] not in self.disabled_accounts and \
+                    self.is_in_accountstore(account[0]):
+                self.disabled_accounts.append(account[0])
+                self.account_store.remove(it)
+        self.update_disabled_account_view()
+        self.plugin.config['DISABLED_ACCOUNTS'] = self.disabled_accounts
+        self.update_account_combobox()
 
     def delfpr_button_clicked(self, button, *args):
         active = self.B.get_object('account_combobox').get_active()
@@ -439,8 +507,17 @@ class OMEMOConfigDialog(GajimPluginConfigDialog):
         gtk.Clipboard(selection='PRIMARY').set_text('\n'.join(fprs))
 
     def update_context_list(self):
+        log.debug('update_context_list')
         self.fpr_model.clear()
         self.device_model.clear()
+        if len(self.account_store) == 0:
+            self.B.get_object('ID').set_markup('')
+            self.B.get_object('fingerprint_label').set_markup('')
+            self.B.get_object('trust_button').set_sensitive(False)
+            self.B.get_object('delfprbutton').set_sensitive(False)
+            self.B.get_object('refresh').set_sensitive(False)
+            self.B.get_object('cleardevice_button').set_sensitive(False)
+            return
         active = self.B.get_object('account_combobox').get_active()
         account = self.account_store[active][0]
 

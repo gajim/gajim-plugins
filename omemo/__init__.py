@@ -127,6 +127,12 @@ class OmemoPlugin(GajimPlugin):
         self.plugin = self
         self.announced = []
         self.query_for_bundles = []
+        self.disabled_accounts = []
+
+        self.config_default_values = {'DISABLED_ACCOUNTS': ([], ''), }
+
+        for account in self.plugin.config['DISABLED_ACCOUNTS']:
+            self.disabled_accounts.append(account)
 
     def migrate_dbpath(self, account, my_jid):
         old_dbpath = os.path.join(DB_DIR_OLD, 'omemo_' + account + '.db')
@@ -157,6 +163,8 @@ class OmemoPlugin(GajimPlugin):
             -------
             OmemoState
         """
+        if account in self.disabled_accounts:
+            return
         if account not in self.omemo_states:
             self.deactivate_gajim_e2e(account)
             my_jid = gajim.get_jid_from_account(account)
@@ -186,6 +194,8 @@ class OmemoPlugin(GajimPlugin):
             event : SignedInEvent
         """
         account = event.conn.name
+        if account in self.disabled_accounts:
+            return
         log.debug(account +
                   ' => Announce Support after Sign In')
         self.query_for_bundles = []
@@ -199,11 +209,15 @@ class OmemoPlugin(GajimPlugin):
         """ Method called when the Plugin is activated in the PluginManager
         """
         self.query_for_bundles = []
-        if NS_NOTIFY not in gajim.gajim_common_features:
-            gajim.gajim_common_features.append(NS_NOTIFY)
-        self._compute_caps_hash()
-        # Publish bundle information
+        # Publish bundle information and Entity Caps
         for account in gajim.connections:
+            if account in self.disabled_accounts:
+                log.debug(account +
+                          ' => Account is disabled')
+                continue
+            if NS_NOTIFY not in gajim.gajim_optional_features[account]:
+                gajim.gajim_optional_features[account].append(NS_NOTIFY)
+            self._compute_caps_hash(account)
             if account not in self.announced:
                 if gajim.account_is_connected(account):
                     log.debug(account +
@@ -218,23 +232,25 @@ class OmemoPlugin(GajimPlugin):
 
             Removes OMEMO from the Entity Capabilities list
         """
-        if NS_NOTIFY in gajim.gajim_common_features:
-            gajim.gajim_common_features.remove(NS_NOTIFY)
-        self._compute_caps_hash()
+        for account in gajim.connections:
+            if account in self.disabled_accounts:
+                continue
+            if NS_NOTIFY in gajim.gajim_optional_features[account]:
+                gajim.gajim_optional_features[account].remove(NS_NOTIFY)
+            self._compute_caps_hash(account)
 
     @staticmethod
-    def _compute_caps_hash():
+    def _compute_caps_hash(account):
         """ Computes the hash for Entity Capabilities and publishes it """
-        for acc in gajim.connections:
-            gajim.caps_hash[acc] = caps_cache.compute_caps_hash(
-                [gajim.gajim_identity],
-                gajim.gajim_common_features +
-                gajim.gajim_optional_features[acc])
-            # re-send presence with new hash
-            connected = gajim.connections[acc].connected
-            if connected > 1 and gajim.SHOW_LIST[connected] != 'invisible':
-                gajim.connections[acc].change_status(
-                    gajim.SHOW_LIST[connected], gajim.connections[acc].status)
+        gajim.caps_hash[account] = caps_cache.compute_caps_hash(
+            [gajim.gajim_identity],
+            gajim.gajim_common_features +
+            gajim.gajim_optional_features[account])
+        # re-send presence with new hash
+        connected = gajim.connections[account].connected
+        if connected > 1 and gajim.SHOW_LIST[connected] != 'invisible':
+            gajim.connections[account].change_status(
+                gajim.SHOW_LIST[connected], gajim.connections[account].status)
 
     @log_calls('OmemoPlugin')
     def mam_message_received(self, msg):
@@ -251,12 +267,15 @@ class OmemoPlugin(GajimPlugin):
             -------
             Return means that the Event is passed on to Gajim
         """
+        account = msg.conn.name
+        if account in self.disabled_accounts:
+            return
+
         if msg.msg_.getTag('openpgp', namespace=NS_PGP):
             return
 
         omemo_encrypted_tag = msg.msg_.getTag('encrypted', namespace=NS_OMEMO)
         if omemo_encrypted_tag:
-            account = msg.conn.name
             log.debug(account + ' => OMEMO MAM msg received')
 
             state = self.get_omemo_state(account)
@@ -309,12 +328,15 @@ class OmemoPlugin(GajimPlugin):
             -------
             Return means that the Event is passed on to Gajim
         """
+        account = msg.conn.name
+        if account in self.disabled_accounts:
+            return
+
         if msg.stanza.getTag('openpgp', namespace=NS_PGP):
             return
 
         if msg.stanza.getTag('encrypted', namespace=NS_OMEMO) and \
                 msg.mtype == 'chat':
-            account = msg.conn.name
             log.debug(account + ' => OMEMO msg received')
 
             state = self.get_omemo_state(account)
@@ -379,6 +401,8 @@ class OmemoPlugin(GajimPlugin):
             Return if encryption is not activated
         """
         account = event.account
+        if account in self.disabled_accounts:
+            return
         state = self.get_omemo_state(account)
 
         if not state.encryption.is_active(event.jid):
@@ -401,11 +425,13 @@ class OmemoPlugin(GajimPlugin):
             Return if encryption is not activated or any other
             exception or error occurs
         """
+        account = event.conn.name
+        if account in self.disabled_accounts:
+            return
         try:
             if not event.msg_iq.getTag('body'):
                 return
 
-            account = event.conn.name
             state = self.get_omemo_state(account)
             full_jid = str(event.msg_iq.getAttr('to'))
             to_jid = gajim.get_jid_without_resource(full_jid)
@@ -479,6 +505,11 @@ class OmemoPlugin(GajimPlugin):
             4.2 Discovering peer support
                 http://conversations.im/xeps/multi-end.html#usecases-discovering
         """
+
+        account = event.conn.name
+        if account in self.disabled_accounts:
+            return False
+
         if event.pep_type != 'headline':
             return False
 
@@ -486,7 +517,6 @@ class OmemoPlugin(GajimPlugin):
                                                           event.conn.name)))
         if len(devices_list) == 0:
             return False
-        account = event.conn.name
         contact_jid = gajim.get_jid_without_resource(event.fjid)
         state = self.get_omemo_state(account)
         my_jid = gajim.get_jid_from_account(account)
@@ -573,6 +603,8 @@ class OmemoPlugin(GajimPlugin):
                 Gajim ChatControl object
         """
         account = chat_control.contact.account.name
+        if account in self.disabled_accounts:
+            return
         contact_jid = chat_control.contact.jid
         if account not in self.ui_list:
             self.ui_list[account] = {}
@@ -604,6 +636,8 @@ class OmemoPlugin(GajimPlugin):
         """
         contact_jid = chat_control.contact.jid
         account = chat_control.contact.account.name
+        if account in self.disabled_accounts:
+            return
         self.ui_list[account][contact_jid].removeUi()
 
     def are_keys_missing(self, account, contact_jid):
