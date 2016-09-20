@@ -17,25 +17,21 @@
 
 import gtk
 import gobject
-import re
 import os
-import sys
 import hashlib
 from urlparse import urlparse
 from io import BytesIO
 import shutil
-import webbrowser
 
 import logging
 import nbxmpp
-import gtkgui_helpers
 from common import gajim
 from common import ged
 from common import helpers
 from common import configpaths
 import dialogs
 from plugins import GajimPlugin
-from plugins.helpers import log_calls, log
+from plugins.helpers import log_calls
 from plugins.gui import GajimPluginConfigDialog
 from conversation_textview import TextViewImage
 from .http_functions import get_http_head, get_http_file

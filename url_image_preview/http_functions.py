@@ -17,6 +17,7 @@
 
 import urllib2
 import socket
+import re
 
 from common import helpers
 from common import gajim
