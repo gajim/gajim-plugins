@@ -97,7 +97,8 @@ class PluginInstaller(GajimPlugin):
             self.upgrading = True
             self.pl_menuitem.activate()
             nb = gajim.interface.instances['plugins'].plugins_notebook
-            gobject.idle_add(nb.set_current_page, 1)
+            page = nb.page_num(self.hpaned)
+            gobject.idle_add(nb.set_current_page, page)
         if plugins:
             plugins_str = '\n'.join(plugins)
             YesNoDialog(_('Plugins updates'), _('Some updates are available for'
