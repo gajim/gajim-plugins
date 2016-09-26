@@ -317,7 +317,9 @@ class PluginInstaller(GajimPlugin):
         for i in range(len(self.available_plugins_model)):
             self.available_plugins_model[i][C_UPGRADE] = False
         self.progressbar.hide()
-        WarningDialog(_('Ftp error'), error_text, self.window)
+        def warn():
+            WarningDialog(_('Ftp error'), error_text, self.window)
+        GLib.idle_add(warn)
 
     def on_plugin_downloaded(self, widget, plugin_dirs):
         dialog = HigDialog(None, Gtk.MessageType.INFO, Gtk.ButtonsType.OK,
