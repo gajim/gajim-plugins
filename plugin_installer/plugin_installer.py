@@ -114,15 +114,14 @@ class PluginInstaller(GajimPlugin):
                 '\n%s') % plugins_str, on_response_yes=open_update)
 
     def ftp_connect(self):
-        if sys.version_info >= (3, 4):
+        if os.name == 'nt':
             ctx = ssl.create_default_context()
             con = ftplib.FTP_TLS(self.config['ftp_server'], context=ctx)
-            log.debug('Plugin Server Cert verified')
         else:
             con = ftplib.FTP_TLS(self.config['ftp_server'])
+
         con.login()
         con.prot_p()
-
         return con
 
     @log_calls('PluginInstallerPlugin')
