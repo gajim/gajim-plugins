@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- Generated with glade 3.18.3 -->
 <interface>
-  <!-- interface-requires gtk+ 3.0 -->
+  <requires lib="gtk+" version="3.0"/>
   <object class="GtkWindow" id="window1">
     <property name="can_focus">False</property>
     <child>
@@ -65,10 +66,10 @@
               <object class="GtkLabel" id="plugin_name_label1">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="xalign">0</property>
                 <property name="label">&lt;empty&gt;</property>
                 <property name="selectable">True</property>
                 <property name="ellipsize">end</property>
+                <property name="xalign">0</property>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -97,11 +98,11 @@
                   <object class="GtkLabel" id="plugin_authors_label1">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
-                    <property name="xalign">0</property>
                     <property name="xpad">6</property>
                     <property name="label">&lt;empty&gt;</property>
                     <property name="selectable">True</property>
                     <property name="ellipsize">end</property>
+                    <property name="xalign">0</property>
                   </object>
                   <packing>
                     <property name="expand">True</property>
@@ -139,7 +140,6 @@
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">True</property>
-                    <property name="use_action_appearance">False</property>
                     <property name="relief">none</property>
                     <property name="focus_on_click">False</property>
                     <property name="xalign">0</property>
@@ -238,7 +238,6 @@
                         <property name="sensitive">False</property>
                         <property name="can_focus">False</property>
                         <property name="receives_default">True</property>
-                        <property name="use_action_appearance">False</property>
                         <signal name="clicked" handler="on_inslall_upgrade_clicked" swapped="no"/>
                         <child>
                           <object class="GtkHBox" id="hbox1">
@@ -260,8 +259,8 @@
                               <object class="GtkLabel" id="label1">
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
-                                <property name="xalign">0</property>
                                 <property name="label" translatable="yes">Install/Upgrade</property>
+                                <property name="xalign">0</property>
                               </object>
                               <packing>
                                 <property name="expand">True</property>
@@ -316,8 +315,8 @@
               <object class="GtkLabel" id="label2">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="xalign">0</property>
                 <property name="label" translatable="yes">Ftp server:</property>
+                <property name="xalign">0</property>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -351,7 +350,6 @@
             <property name="visible">True</property>
             <property name="can_focus">False</property>
             <property name="receives_default">False</property>
-            <property name="use_action_appearance">False</property>
             <property name="focus_on_click">False</property>
             <property name="xalign">0.5</property>
             <property name="draw_indicator">True</property>
@@ -370,7 +368,6 @@
             <property name="visible">True</property>
             <property name="can_focus">False</property>
             <property name="receives_default">False</property>
-            <property name="use_action_appearance">False</property>
             <property name="focus_on_click">False</property>
             <property name="xalign">0.5</property>
             <property name="draw_indicator">True</property>
@@ -383,23 +380,7 @@
           </packing>
         </child>
         <child>
-          <object class="GtkCheckButton" id="TLS">
-            <property name="label" translatable="yes">Use TLS transport</property>
-            <property name="use_action_appearance">False</property>
-            <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <property name="receives_default">False</property>
-            <property name="use_action_appearance">False</property>
-            <property name="focus_on_click">False</property>
-            <property name="xalign">0.5</property>
-            <property name="draw_indicator">True</property>
-            <signal name="toggled" handler="on_tls_toggled" swapped="no"/>
-          </object>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">True</property>
-            <property name="position">3</property>
-          </packing>
+          <placeholder/>
         </child>
       </object>
     </child>

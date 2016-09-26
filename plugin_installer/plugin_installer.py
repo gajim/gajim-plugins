@@ -33,6 +33,8 @@ import os
 import fnmatch
 import sys
 import zipfile
+import ssl
+import logging
 
 from common import gajim
 from plugins import GajimPlugin
@@ -40,6 +42,8 @@ from plugins.helpers import log_calls, log
 from htmltextview import HtmlTextView
 from dialogs import WarningDialog, HigDialog, YesNoDialog
 from plugins.gui import GajimPluginConfigDialog
+
+log = logging.getLogger('gajim.plugin_system.plugin_installer')
 
 (
 C_PIXBUF,
@@ -68,8 +72,7 @@ class PluginInstaller(GajimPlugin):
         self.config_dialog = PluginInstallerPluginConfigDialog(self)
         self.config_default_values = {'ftp_server': ('ftp.gajim.org', ''),
                                       'check_update': (True, ''),
-                                      'check_update_periodically': (True, ''),
-                                      'TLS': (True, ''),}
+                                      'check_update_periodically': (True, '')}
         self.window = None
         self.progressbar = None
         self.available_plugins_model = None
@@ -111,13 +114,15 @@ class PluginInstaller(GajimPlugin):
                 '\n%s') % plugins_str, on_response_yes=open_update)
 
     def ftp_connect(self):
-        if sys.version_info[:2] > (2, 6) and self.config['TLS'] :
-            con = ftplib.FTP_TLS(self.config['ftp_server'])
-            con.login()
-            con.prot_p()
+        if sys.version_info >= (3, 4):
+            ctx = ssl.create_default_context()
+            con = ftplib.FTP_TLS(self.config['ftp_server'], context=ctx)
+            log.debug('Plugin Server Cert verified')
         else:
-            con = ftplib.FTP(self.config['ftp_server'])
-            con.login()
+            con = ftplib.FTP_TLS(self.config['ftp_server'])
+        con.login()
+        con.prot_p()
+
         return con
 
     @log_calls('PluginInstallerPlugin')
@@ -612,7 +617,7 @@ class Ftp(threading.Thread):
 
         with zipfile.ZipFile(self.buffer_) as zip_file:
             zip_file.extractall(os.path.join(user_dir))
-        
+
         self.ftp.quit()
         GLib.idle_add(self.window.emit, 'plugin_downloaded', self.remote_dirs)
         GLib.source_remove(self.pulse)
@@ -638,7 +643,6 @@ class PluginInstallerPluginConfigDialog(GajimPluginConfigDialog):
             self.plugin.config['check_update'])
         self.xml.get_object('check_update_periodically').set_active(
             self.plugin.config['check_update_periodically'])
-        self.xml.get_object('TLS').set_active(self.plugin.config['TLS'])
 
     def on_hide(self, widget):
         widget = self.xml.get_object('ftp_server')
@@ -649,6 +653,3 @@ class PluginInstallerPluginConfigDialog(GajimPluginConfigDialog):
 
     def on_check_update_periodically_toggled(self, widget):
         self.plugin.config['check_update_periodically'] = widget.get_active()
-
-    def on_tls_toggled(self, widget):
-        self.plugin.config['TLS'] = widget.get_active()
