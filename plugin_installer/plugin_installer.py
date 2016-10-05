@@ -203,10 +203,10 @@ class PluginInstaller(GajimPlugin):
         self.page_num = self.notebook.append_page(self.hpaned,
             Gtk.Label.new(_('Available')))
 
-        widgets_to_extract = ('plugin_name_label1',
-        'available_treeview', 'progressbar', 'inslall_upgrade_button',
-        'plugin_authors_label1', 'plugin_authors_label1',
-        'plugin_homepage_linkbutton1')
+        widgets_to_extract = (
+            'plugin_name_label', 'available_treeview', 'progressbar',
+            'inslall_upgrade_button', 'plugin_authors_label',
+            'plugin_homepage_linkbutton', 'plugin_version_label')
 
         for widget_name in widgets_to_extract:
             setattr(self, widget_name, self.xml.get_object(widget_name))
@@ -266,6 +266,7 @@ class PluginInstaller(GajimPlugin):
         self._clear_available_plugin_info()
 
         self.plugin_description_textview = HtmlTextView()
+        self.plugin_description_textview.set_wrap_mode(Gtk.WrapMode.WORD)
         sw = self.xml.get_object('scrolledwindow1')
         sw.add(self.plugin_description_textview)
 
@@ -375,19 +376,21 @@ class PluginInstaller(GajimPlugin):
         model, iter = treeview_selection.get_selected()
         self.xml.get_object('scrolledwindow1').get_children()[0].destroy()
         self.plugin_description_textview = HtmlTextView()
+        self.plugin_description_textview.set_wrap_mode(Gtk.WrapMode.WORD)
         sw = self.xml.get_object('scrolledwindow1')
         sw.add(self.plugin_description_textview)
         sw.show_all()
         if iter:
-            self.plugin_name_label1.set_text(model.get_value(iter, C_NAME))
-            self.plugin_authors_label1.set_text(model.get_value(iter, C_AUTHORS))
-            self.plugin_homepage_linkbutton1.set_uri(model.get_value(iter,
+            self.plugin_name_label.set_text(model.get_value(iter, C_NAME))
+            self.plugin_version_label.set_text(model.get_value(iter, C_VERSION))
+            self.plugin_authors_label.set_text(model.get_value(iter, C_AUTHORS))
+            self.plugin_homepage_linkbutton.set_uri(model.get_value(iter,
                 C_HOMEPAGE))
-            self.plugin_homepage_linkbutton1.set_label(model.get_value(iter,
+            self.plugin_homepage_linkbutton.set_label(model.get_value(iter,
                 C_HOMEPAGE))
-            label = self.plugin_homepage_linkbutton1.get_children()[0]
+            label = self.plugin_homepage_linkbutton.get_children()[0]
             label.set_ellipsize(Pango.EllipsizeMode.END)
-            self.plugin_homepage_linkbutton1.set_property('sensitive', True)
+            self.plugin_homepage_linkbutton.set_property('sensitive', True)
             desc = _(model.get_value(iter, C_DESCRIPTION))
             if not desc.startswith('<body '):
                 desc = '<body  xmlns=\'http://www.w3.org/1999/xhtml\'>' + \
@@ -400,11 +403,12 @@ class PluginInstaller(GajimPlugin):
             self._clear_available_plugin_info()
 
     def _clear_available_plugin_info(self):
-        self.plugin_name_label1.set_text('')
-        self.plugin_authors_label1.set_text('')
-        self.plugin_homepage_linkbutton1.set_uri('')
-        self.plugin_homepage_linkbutton1.set_label('')
-        self.plugin_homepage_linkbutton1.set_property('sensitive', False)
+        self.plugin_name_label.set_text('')
+        self.plugin_version_label.set_text('')
+        self.plugin_authors_label.set_text('')
+        self.plugin_homepage_linkbutton.set_uri('')
+        self.plugin_homepage_linkbutton.set_label('')
+        self.plugin_homepage_linkbutton.set_property('sensitive', False)
 
     def scan_dir_for_plugin(self, path):
         plugins_found = []
