@@ -200,13 +200,16 @@ class Base(object):
         encrypted = False
         if len(urlparts.fragment):
             fragment = []
-            for i in range(0, len(urlparts.fragment), 2):
-                fragment.append(chr(int(urlparts.fragment[i:i + 2], 16)))
-            fragment = ''.join(fragment)
-            key = fragment[16:]
-            iv = fragment[:16]
-            if len(key) == 32 and len(iv) == 16:
-                encrypted = True
+            try:
+                for i in range(0, len(urlparts.fragment), 2):
+                    fragment.append(chr(int(urlparts.fragment[i:i + 2], 16)))
+                fragment = ''.join(fragment)
+                key = fragment[16:]
+                iv = fragment[:16]
+                if len(key) == 32 and len(iv) == 16:
+                    encrypted = True
+            except:
+                pass
 
         # file exists but thumbnail got deleted
         if os.path.exists(filepath) and not os.path.exists(thumbpath):
