@@ -623,7 +623,8 @@ class OtrPlugin(GajimPlugin):
                     sendMessage(potr.context.FRAGMENT_SEND_ALL_BUT_LAST, xhtml)
                 if xhtml != encrypted_msg.strip(): #.strip() because sendMessage() adds whitespaces
                     encrypted = True
-                    event.msg_iq.setXHTML(encrypted_msg)
+                    event.msg_iq.delChild('html')
+                    event.msg_iq.setBody(encrypted_msg)
             elif body:
                 body = escape(body).encode('utf8')
                 encrypted_msg = self.us[event.conn.name].\
