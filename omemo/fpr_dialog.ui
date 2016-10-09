@@ -2,12 +2,6 @@
 <interface>
   <requires lib="gtk+" version="2.16"/>
   <!-- interface-naming-policy toplevel-contextual -->
-  <object class="GtkListStore" id="account_store">
-    <columns>
-      <!-- column-name accountname -->
-      <column type="gchararray"/>
-    </columns>
-  </object>
   <object class="GtkListStore" id="fingerprint_store">
     <columns>
       <!-- column-name id -->
@@ -43,7 +37,9 @@
               <object class="GtkTreeView" id="fingerprint_view">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
+                <property name="has_tooltip">True</property>
                 <property name="model">fingerprint_store</property>
+                <property name="headers_clickable">False</property>
                 <property name="search_column">0</property>
                 <property name="tooltip_column">3</property>
                 <signal name="button-press-event" handler="fpr_button_pressed_cb" swapped="no"/>
@@ -51,8 +47,11 @@
                   <object class="GtkTreeViewColumn" id="name_column">
                     <property name="resizable">True</property>
                     <property name="title">Name</property>
+                    <property name="clickable">True</property>
+                    <property name="sort_indicator">True</property>
+                    <property name="sort_column_id">1</property>
                     <child>
-                      <object class="GtkCellRendererText" id="cellrenderertext2"/>
+                      <object class="GtkCellRendererText" id="NameCell"/>
                       <attributes>
                         <attribute name="text">1</attribute>
                       </attributes>
@@ -64,7 +63,7 @@
                     <property name="resizable">True</property>
                     <property name="title">Trust</property>
                     <child>
-                      <object class="GtkCellRendererText" id="cellrenderertoggle1"/>
+                      <object class="GtkCellRendererText" id="TrustCell"/>
                       <attributes>
                         <attribute name="text">2</attribute>
                       </attributes>
@@ -76,7 +75,7 @@
                     <property name="resizable">True</property>
                     <property name="title">Fingerprint</property>
                     <child>
-                      <object class="GtkCellRendererText" id="cellrenderertext4"/>
+                      <object class="GtkCellRendererText" id="FingerprintCell"/>
                       <attributes>
                         <attribute name="markup">3</attribute>
                       </attributes>
@@ -200,7 +199,7 @@
                     <property name="resizable">True</property>
                     <property name="title">Name</property>
                     <child>
-                      <object class="GtkCellRendererText" id="cellrenderertext1"/>
+                      <object class="GtkCellRendererText" id="NameCell1"/>
                       <attributes>
                         <attribute name="text">1</attribute>
                       </attributes>
@@ -212,7 +211,7 @@
                     <property name="resizable">True</property>
                     <property name="title">Trust</property>
                     <child>
-                      <object class="GtkCellRendererText" id="cellrenderertoggle2"/>
+                      <object class="GtkCellRendererText" id="TrustCell2"/>
                       <attributes>
                         <attribute name="text">2</attribute>
                       </attributes>
@@ -224,7 +223,7 @@
                     <property name="resizable">True</property>
                     <property name="title">Fingerprint</property>
                     <child>
-                      <object class="GtkCellRendererText" id="cellrenderertext3"/>
+                      <object class="GtkCellRendererText" id="FingerprintCell1"/>
                       <attributes>
                         <attribute name="markup">3</attribute>
                       </attributes>
@@ -291,8 +290,6 @@
       <object class="GtkMenuItem" id="copyfprclipboard_item">
         <property name="visible">True</property>
         <property name="can_focus">False</property>
-        <property name="label" translatable="yes" comments="Context menu item">Copy to clipboard</property>
-        <property name="use_underline">True</property>
         <signal name="activate" handler="clipboard_button_cb" swapped="no"/>
       </object>
     </child>

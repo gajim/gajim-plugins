@@ -28,6 +28,7 @@ import message_control
 # pylint: disable=import-error
 import gtkgui_helpers
 from common import gajim
+from dialogs import YesNoDialog
 from plugins.gui import GajimPluginConfigDialog
 from axolotl.state.sessionrecord import SessionRecord
 # pylint: enable=import-error
@@ -328,22 +329,13 @@ class OMEMOConfigDialog(GajimPluginConfigDialog):
             self.plugin.config['DISABLED_ACCOUNTS'] = []
             self.disabled_accounts = self.plugin.config['DISABLED_ACCOUNTS']
 
+        log.debug('Disabled Accounts:')
         log.debug(self.disabled_accounts)
 
-        self.fpr_model = gtk.ListStore(gobject.TYPE_INT,
-                                       gobject.TYPE_STRING,
-                                       gobject.TYPE_STRING,
-                                       gobject.TYPE_STRING,
-                                       gobject.TYPE_INT)
-
-        self.device_model = gtk.ListStore(gobject.TYPE_STRING)
+        self.fpr_model = self.B.get_object('fingerprint_store')
+        self.device_model = self.B.get_object('deviceid_store')
 
         self.fpr_view = self.B.get_object('fingerprint_view')
-        self.fpr_view.set_model(self.fpr_model)
-        self.fpr_view.get_selection().set_mode(gtk.SELECTION_MULTIPLE)
-
-        self.device_view = self.B.get_object('deviceid_view')
-        self.device_view.set_model(self.device_model)
 
         self.disabled_acc_store = self.B.get_object('disabled_account_store')
         self.account_store = self.B.get_object('account_store')
@@ -358,7 +350,6 @@ class OMEMOConfigDialog(GajimPluginConfigDialog):
         self.plugin_active = False
 
     def on_run(self):
-        log.debug('on_run')
         for plugin in gajim.plugin_manager.active_plugins:
             log.debug(type(plugin))
             if type(plugin).__name__ == 'OmemoPlugin':
@@ -380,17 +371,12 @@ class OMEMOConfigDialog(GajimPluginConfigDialog):
         return False
 
     def update_account_store(self):
-        log.debug('update_account_store')
-        # get accounts
-        log.debug(self.disabled_accounts)
         for account in sorted(gajim.contacts.get_accounts()):
             if account not in self.disabled_accounts and \
                     not self.is_in_accountstore(account):
-                log.debug('append')
                 self.account_store.append(row=(account,))
 
     def update_account_combobox(self):
-        log.debug('update_account_combobox')
         if self.plugin_active is False:
             return
         if len(self.account_store) > 0:
@@ -400,24 +386,20 @@ class OMEMOConfigDialog(GajimPluginConfigDialog):
                 self.B.get_object('account_combobox'))
 
     def account_combobox_changed_cb(self, box, *args):
-        log.debug('account_combobox_changed_cb')
         self.update_context_list()
 
     def update_disabled_account_view(self):
-        log.debug('update_disabled_account_view')
         self.disabled_acc_store.clear()
         for account in self.disabled_accounts:
             self.disabled_acc_store.append(row=(account,))
 
     def activate_accounts_btn_clicked(self, button, *args):
-        log.debug('activate_accounts_btn_clicked')
         mod, paths = self.disabled_acc_view.get_selection().get_selected_rows()
         for path in paths:
             it = mod.get_iter(path)
             account = mod.get(it, 0)
             if account[0] in self.disabled_accounts and \
                     not self.is_in_accountstore(account[0]):
-                log.debug('add/remove')
                 self.account_store.append(row=(account[0],))
                 self.disabled_accounts.remove(account[0])
         self.update_disabled_account_view()
@@ -425,7 +407,6 @@ class OMEMOConfigDialog(GajimPluginConfigDialog):
         self.update_account_combobox()
 
     def disable_accounts_btn_clicked(self, button, *args):
-        log.debug('disable_accounts_btn_clicked')
         mod, paths = self.active_acc_view.get_selection().get_selected_rows()
         for path in paths:
             it = mod.get_iter(path)
@@ -446,37 +427,25 @@ class OMEMOConfigDialog(GajimPluginConfigDialog):
 
         mod, paths = self.fpr_view.get_selection().get_selected_rows()
 
+        def on_yes(checked):
+            record = state.store.loadSession(jid, deviceid)
+            identity_key = record.getSessionState().getRemoteIdentityKey()
+
+            state.store.deleteSession(jid, deviceid)
+            state.store.deleteIdentity(jid, identity_key)
+            self.update_context_list()
+
         for path in paths:
             it = mod.get_iter(path)
             jid, fpr, deviceid = mod.get(it, 1, 3, 4)
             fpr = fpr[31:-12]
 
-            dlg = gtk.Dialog('Delete Fingerprint', self,
-                             gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
-                             (gtk.STOCK_YES, gtk.RESPONSE_YES,
-                              gtk.STOCK_NO, gtk.RESPONSE_NO))
-            l = gtk.Label()
-            l.set_markup('Do you want to delete the '
-                         'fingerprint of <b>%s</b> on your account <b>%s</b>?'
-                         '\n\n<tt>%s</tt>' % (jid, account, fpr))
-            l.set_line_wrap(True)
-            l.set_padding(12, 12)
-            dlg.vbox.pack_start(l)
-            dlg.show_all()
-
-            response = dlg.run()
-            if response == gtk.RESPONSE_YES:
-                record = state.store.loadSession(jid, deviceid)
-                identity_key = record.getSessionState().getRemoteIdentityKey()
-
-                state.store.deleteSession(jid, deviceid)
-                state.store.deleteIdentity(jid, identity_key)
-
-                dlg.destroy()
-            else:
-                dlg.destroy()
-
-            self.update_context_list()
+            YesNoDialog(
+                'Delete Fingerprint?',
+                'Do you want to delete the '
+                'fingerprint of <b>{}</b> on your account <b>{}</b>?'
+                '\n\n<tt>{}</tt>'.format(jid, account, fpr),
+                on_response_yes=on_yes, transient_for=self)
 
     def trust_button_clicked_cb(self, button, *args):
         active = self.B.get_object('account_combobox').get_active()
@@ -486,48 +455,42 @@ class OMEMOConfigDialog(GajimPluginConfigDialog):
 
         mod, paths = self.fpr_view.get_selection().get_selected_rows()
 
+        def on_yes(checked, identity_key):
+            state.store.setTrust(identity_key, TRUSTED)
+            try:
+                if self.plugin.ui_list[account]:
+                    self.plugin.ui_list[account][jid]. \
+                        refresh_auth_lock_icon()
+            except:
+                log.debug('UI not available')
+            self.update_context_list()
+
+        def on_no(identity_key):
+            state.store.setTrust(identity_key, UNTRUSTED)
+            try:
+                if jid in self.plugin.ui_list[account]:
+                    self.plugin.ui_list[account][jid]. \
+                        refresh_auth_lock_icon()
+            except:
+                log.debug('UI not available')
+            self.update_context_list()
+
         for path in paths:
             it = mod.get_iter(path)
             jid, fpr, deviceid = mod.get(it, 1, 3, 4)
             fpr = fpr[31:-12]
-            dlg = gtk.Dialog('Trust / Revoke Fingerprint', self,
-                             gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
-                             (gtk.STOCK_YES, gtk.RESPONSE_YES,
-                              gtk.STOCK_NO, gtk.RESPONSE_NO))
-            l = gtk.Label()
-            l.set_markup('Do you want to trust the '
-                         'fingerprint of <b>%s</b> on your account <b>%s</b>?'
-                         '\n\n<tt>%s</tt>' % (jid, account, fpr))
-            l.set_line_wrap(True)
-            l.set_padding(12, 12)
-            dlg.vbox.pack_start(l)
-            dlg.show_all()
-
-            response = dlg.run()
 
             record = state.store.loadSession(jid, deviceid)
             identity_key = record.getSessionState().getRemoteIdentityKey()
 
-            if response == gtk.RESPONSE_YES:
-                state.store.setTrust(identity_key, TRUSTED)
-                try:
-                    if self.plugin.ui_list[account]:
-                        self.plugin.ui_list[account][jid]. \
-                            refresh_auth_lock_icon()
-                except:
-                    log.debug('UI not available')
-            else:
-                if response == gtk.RESPONSE_NO:
-                    state.store.setTrust(identity_key, UNTRUSTED)
-                    try:
-                        if jid in self.plugin.ui_list[account]:
-                            self.plugin.ui_list[account][jid]. \
-                                refresh_auth_lock_icon()
-                    except:
-                        log.debug('UI not available')
-            dlg.destroy()
-
-        self.update_context_list()
+            YesNoDialog(
+                'Trust / Revoke Fingerprint?',
+                'Do you want to trust the fingerprint of <b>{}</b> '
+                'on your account <b>{}</b>?\n\n'
+                '<tt>{}</tt>'.format(jid, account, fpr),
+                on_response_yes=(on_yes, identity_key),
+                on_response_no=(on_no, identity_key),
+                transient_for=self)
 
     def cleardevice_button_clicked_cb(self, button, *args):
         active = self.B.get_object('account_combobox').get_active()
@@ -601,7 +564,7 @@ class OMEMOConfigDialog(GajimPluginConfigDialog):
 
         ownfpr = binascii.hexlify(state.store.getIdentityKeyPair()
                                   .getPublicKey().serialize())
-        ownfpr = self.human_hash(ownfpr[2:])
+        ownfpr = human_hash(ownfpr[2:])
         self.B.get_object('fingerprint_label').set_markup('<tt>%s</tt>'
                                                           % ownfpr)
 
@@ -621,7 +584,7 @@ class OMEMOConfigDialog(GajimPluginConfigDialog):
             identity_key = SessionRecord(serialized=record). \
                 getSessionState().getRemoteIdentityKey()
             fpr = binascii.hexlify(identity_key.getPublicKey().serialize())
-            fpr = self.human_hash(fpr[2:])
+            fpr = human_hash(fpr[2:])
 
             trust = state.store.isTrustedIdentity(jid, identity_key)
 
@@ -638,15 +601,6 @@ class OMEMOConfigDialog(GajimPluginConfigDialog):
         for item in state.own_devices:
             self.device_model.append([item])
 
-    def human_hash(self, fpr):
-        fpr = fpr.upper()
-        fplen = len(fpr)
-        wordsize = fplen // 8
-        buf = ''
-        for w in range(0, fplen, wordsize):
-            buf += '{0} '.format(fpr[w:w + wordsize])
-        return buf.rstrip()
-
 
 class FingerprintWindow(gtk.Dialog):
     def __init__(self, plugin, contact, parent, windowinstances,
@@ -655,6 +609,8 @@ class FingerprintWindow(gtk.Dialog):
         self.contact = contact
         self.windowinstances = windowinstances
         self.account = self.contact.account.name
+        self.plugin = plugin
+        self.omemostate = self.plugin.get_omemo_state(self.account)
         self.own_jid = gajim.get_jid_from_account(self.account)
         gtk.Dialog.__init__(self,
                             title=('Fingerprints for %s') % contact.jid,
@@ -663,43 +619,32 @@ class FingerprintWindow(gtk.Dialog):
         close_button = self.add_button(gtk.STOCK_CLOSE, gtk.RESPONSE_CLOSE)
         close_button.connect('clicked', self.on_close_button_clicked)
         self.connect('delete-event', self.on_window_delete)
-        self.plugin = plugin
+
         self.GTK_BUILDER_FILE_PATH = \
             self.plugin.local_file_path('fpr_dialog.ui')
-        self.B = gtk.Builder()
-        self.B.set_translation_domain('gajim_plugins')
-        self.B.add_from_file(self.GTK_BUILDER_FILE_PATH)
+        self.xml = gtk.Builder()
+        self.xml.add_from_file(self.GTK_BUILDER_FILE_PATH)
+        self.xml.set_translation_domain('gajim_plugins')
 
-        self.fpr_model = gtk.ListStore(gobject.TYPE_INT,
-                                       gobject.TYPE_STRING,
-                                       gobject.TYPE_STRING,
-                                       gobject.TYPE_STRING,
-                                       gobject.TYPE_INT)
+        self.fpr_model = self.xml.get_object('fingerprint_store')
 
-        self.fpr_view = self.B.get_object('fingerprint_view')
-        self.fpr_view.set_model(self.fpr_model)
-        self.fpr_view.get_selection().set_mode(gtk.SELECTION_MULTIPLE)
+        self.fpr_view = self.xml.get_object('fingerprint_view')
+        self.fpr_view_own = self.xml.get_object('fingerprint_view_own')
 
-        self.fpr_view_own = self.B.get_object('fingerprint_view_own')
-        self.fpr_view_own.set_model(self.fpr_model)
-        self.fpr_view_own.get_selection().set_mode(gtk.SELECTION_MULTIPLE)
-
-        self.notebook = self.B.get_object('notebook1')
-
+        self.notebook = self.xml.get_object('notebook1')
         self.child.pack_start(self.notebook)
 
-        self.B.connect_signals(self)
+        self.xml.connect_signals(self)
 
-        self.omemostate = self.plugin.get_omemo_state(self.account)
-
+        # Set own Fingerprint Label
         ownfpr = binascii.hexlify(self.omemostate.store.getIdentityKeyPair()
                                   .getPublicKey().serialize())
-        ownfpr = self.human_hash(ownfpr[2:])
-
-        self.B.get_object('fingerprint_label_own').set_markup('<tt>%s</tt>'
-                                                              % ownfpr)
-
+        ownfpr = human_hash(ownfpr[2:])
+        self.xml.get_object('fingerprint_label_own').set_markup('<tt>%s</tt>'
+                                                                % ownfpr)
         self.update_context_list()
+
+        self.show_all()
 
     def on_close_button_clicked(self, widget):
         del self.windowinstances['dialog']
@@ -717,42 +662,36 @@ class FingerprintWindow(gtk.Dialog):
         else:
             mod, paths = self.fpr_view.get_selection().get_selected_rows()
 
+        def on_yes(checked, identity_key):
+            state.store.setTrust(identity_key, TRUSTED)
+            if not self.groupchat:
+                self.plugin.ui_list[self.account][self.contact.jid]. \
+                    refresh_auth_lock_icon()
+            self.update_context_list()
+
+        def on_no(identity_key):
+            state.store.setTrust(identity_key, UNTRUSTED)
+            if not self.groupchat:
+                self.plugin.ui_list[self.account][self.contact.jid]. \
+                    refresh_auth_lock_icon()
+            self.update_context_list()
+
         for path in paths:
             it = mod.get_iter(path)
             jid, fpr, deviceid = mod.get(it, 1, 3, 4)
             fpr = fpr[31:-12]
-            dlg = gtk.Dialog('Trust / Revoke Fingerprint', self,
-                             gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
-                             (gtk.STOCK_YES, gtk.RESPONSE_YES,
-                              gtk.STOCK_NO, gtk.RESPONSE_NO))
-            l = gtk.Label()
-            l.set_markup('Do you want to trust the '
-                         'fingerprint of <b>%s</b> on your account <b>%s</b>?'
-                         '\n\n<tt>%s</tt>' % (jid, self.account, fpr))
-            l.set_line_wrap(True)
-            l.set_padding(12, 12)
-            dlg.vbox.pack_start(l)
-            dlg.show_all()
-            response = dlg.run()
 
             record = state.store.loadSession(jid, deviceid)
             identity_key = record.getSessionState().getRemoteIdentityKey()
 
-            if response == gtk.RESPONSE_YES:
-                state.store.setTrust(identity_key, TRUSTED)
-                if not self.groupchat:
-                    self.plugin.ui_list[self.account][self.contact.jid]. \
-                        refresh_auth_lock_icon()
-                dlg.destroy()
-            else:
-                if response == gtk.RESPONSE_NO:
-                    state.store.setTrust(identity_key, UNTRUSTED)
-                    if not self.groupchat:
-                        self.plugin.ui_list[self.account][self.contact.jid]. \
-                            refresh_auth_lock_icon()
-            dlg.destroy()
-
-        self.update_context_list()
+            YesNoDialog(
+                'Trust / Revoke Fingerprint?',
+                'Do you want to trust the fingerprint of <b>{}</b> '
+                'on your account <b>{}</b>?\n\n'
+                '<tt>{}</tt>'.format(jid, self.account, fpr),
+                on_response_yes=(on_yes, identity_key),
+                on_response_no=(on_no, identity_key),
+                transient_for=self)
 
     def fpr_button_pressed_cb(self, tw, event):
         if event.button == 3:
@@ -767,7 +706,7 @@ class FingerprintWindow(gtk.Dialog):
             # selection, otherwise we only select the new item
             keep_selection = tw.get_selection().path_is_selected(pthinfo[0])
 
-            pop = self.B.get_object('fprclipboard_menu')
+            pop = self.xml.get_object('fprclipboard_menu')
             pop.popup(None, None, None, event.button, event.time)
 
             # keep_selection=True -> no further processing of click event
@@ -822,7 +761,7 @@ class FingerprintWindow(gtk.Dialog):
             identity_key = SessionRecord(serialized=record). \
                 getSessionState().getRemoteIdentityKey()
             fpr = binascii.hexlify(identity_key.getPublicKey().serialize())
-            fpr = self.human_hash(fpr[2:])
+            fpr = human_hash(fpr[2:])
 
             trust = state.store.isTrustedIdentity(jid, identity_key)
 
@@ -835,11 +774,12 @@ class FingerprintWindow(gtk.Dialog):
                  format(color[trust], fpr),
                  deviceid))
 
-    def human_hash(self, fpr):
-        fpr = fpr.upper()
-        fplen = len(fpr)
-        wordsize = fplen // 8
-        buf = ''
-        for w in range(0, fplen, wordsize):
-            buf += '{0} '.format(fpr[w:w + wordsize])
-        return buf.rstrip()
+
+def human_hash(fpr):
+    fpr = fpr.upper()
+    fplen = len(fpr)
+    wordsize = fplen // 8
+    buf = ''
+    for w in range(0, fplen, wordsize):
+        buf += '{0} '.format(fpr[w:w + wordsize])
+    return buf.rstrip()

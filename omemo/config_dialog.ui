@@ -206,6 +206,9 @@
                   <object class="GtkTreeViewColumn" id="name_column">
                     <property name="resizable">True</property>
                     <property name="title">Name</property>
+                    <property name="clickable">True</property>
+                    <property name="sort_indicator">True</property>
+                    <property name="sort_column_id">1</property>
                     <child>
                       <object class="GtkCellRendererText" id="cellrenderertext2"/>
                       <attributes>
