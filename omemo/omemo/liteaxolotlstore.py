@@ -148,6 +148,9 @@ class LiteAxolotlStore(AxolotlStore):
     def getSessionsFromJid(self, recipientId):
         return self.sessionStore.getSessionsFromJid(recipientId)
 
+    def getSessionsFromJids(self, recipientId):
+        return self.sessionStore.getSessionsFromJids(recipientId)
+
     def getAllSessions(self):
         return self.sessionStore.getAllSessions()
 

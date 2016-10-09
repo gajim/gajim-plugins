@@ -22,6 +22,7 @@ import logging
 import os
 import sqlite3
 import shutil
+import message_control
 
 from common import caps_cache, gajim, ged, configpaths
 from common.pep import SUPPORTED_PERSONAL_USER_EVENTS
@@ -101,6 +102,7 @@ class OmemoPlugin(GajimPlugin):
 
     omemo_states = {}
     ui_list = {}
+    groupchat = {}
 
     @log_calls('OmemoPlugin')
     def init(self):
@@ -119,15 +121,24 @@ class OmemoPlugin(GajimPlugin):
             (ged.PRECORE, self.handle_outgoing_stanza),
             'message-outgoing':
             (ged.PRECORE, self.handle_outgoing_event),
+            'gc-stanza-message-outgoing':
+            (ged.PRECORE, self.handle_outgoing_gc_stanza),
+            'gc-presence-received':
+            (ged.PRECORE, self.gc_presence_received),
+            'gc-config-changed-received':
+            (ged.PRECORE, self.gc_config_changed_received),
         }
         self.config_dialog = ui.OMEMOConfigDialog(self)
         self.gui_extension_points = {'chat_control': (self.connect_ui,
-                                                      self.disconnect_ui)}
+                                                      self.disconnect_ui),
+                                     'groupchat_control': (self.connect_ui,
+                                                           self.disconnect_ui)}
         SUPPORTED_PERSONAL_USER_EVENTS.append(DevicelistPEP)
         self.plugin = self
         self.announced = []
         self.query_for_bundles = []
         self.disabled_accounts = []
+        self.gc_message = {}
 
         self.config_default_values = {'DISABLED_ACCOUNTS': ([], ''), }
 
@@ -335,8 +346,7 @@ class OmemoPlugin(GajimPlugin):
         if msg.stanza.getTag('openpgp', namespace=NS_PGP):
             return
 
-        if msg.stanza.getTag('encrypted', namespace=NS_OMEMO) and \
-                msg.mtype == 'chat':
+        if msg.stanza.getTag('encrypted', namespace=NS_OMEMO):
             log.debug(account + ' => OMEMO msg received')
 
             state = self.get_omemo_state(account)
@@ -345,14 +355,29 @@ class OmemoPlugin(GajimPlugin):
                 log.debug('message was forwarded doing magic')
             else:
                 from_jid = str(msg.stanza.getFrom())
+
+            if msg.mtype == 'groupchat':
+                from_jid = self.groupchat[msg.jid][msg.resource]
+
             self.print_msg_to_log(msg.stanza)
             msg_dict = unpack_encrypted(msg.stanza.getTag
                                         ('encrypted', namespace=NS_OMEMO))
-            msg_dict['sender_jid'] = gajim.get_jid_without_resource(from_jid)
-            plaintext = state.decrypt_msg(msg_dict)
+
+            plaintext = ''
+            if msg_dict['sid'] == state.own_device_id:
+                if msg_dict['payload'] in self.gc_message:
+                    plaintext = self.gc_message[msg_dict['payload']]
+                    del self.gc_message[msg_dict['payload']]
+                else:
+                    log.error(account + ' => Cant decrypt GroupChat Message '
+                              'from ' + from_jid)
+            else:
+                msg_dict['sender_jid'] = gajim. \
+                    get_jid_without_resource(from_jid)
+                plaintext = state.decrypt_msg(msg_dict)
 
             if not plaintext:
-                return
+                return True
 
             msg.msgtxt = plaintext
             # Gajim bug: there must be a body or the message
@@ -365,7 +390,7 @@ class OmemoPlugin(GajimPlugin):
                 self.ui_list[account][contact_jid].activate_omemo()
             return False
 
-        elif msg.stanza.getTag('body') and msg.mtype == 'chat':
+        elif msg.stanza.getTag('body'):
             account = msg.conn.name
 
             from_jid = str(msg.stanza.getFrom())
@@ -384,6 +409,86 @@ class OmemoPlugin(GajimPlugin):
                 except KeyError:
                     log.debug('No Ui present for ' + jid +
                               ', Ui Warning not shown')
+
+    @log_calls('OmemoPlugin')
+    def gc_presence_received(self, event):
+        if not event.real_jid:
+            return
+        room = event.room_jid
+        account = event.conn.name
+        jid = gajim.get_jid_without_resource(event.real_jid)
+        nick = event.nick
+
+        if room not in self.groupchat:
+            self.groupchat[room] = {}
+
+        if nick not in self.groupchat[room]:
+            self.groupchat[room][nick] = jid
+
+        log.debug('PRESENCE RECEIVED')
+        log.debug(self.groupchat[room])
+
+        if '100' in event.status_code:
+            self.ui_list[account][room].sensitive(True)
+
+    @log_calls('OmemoPlugin')
+    def gc_config_changed_received(self, event):
+        log.debug('CONFIG CHANGE')
+        log.debug(event.room_jid)
+        log.debug(event.status_code)
+
+    def handle_outgoing_gc_stanza(self, event):
+        """ Manipulates the outgoing groupchat stanza
+
+            The body is getting encrypted
+
+            Parameters
+            ----------
+            event : StanzaMessageOutgoingEvent
+
+            Returns
+            -------
+            Return if encryption is not activated or any other
+            exception or error occurs
+        """
+        try:
+            if not event.msg_iq.getTag('body'):
+                return
+            account = event.conn.name
+            state = self.get_omemo_state(account)
+            full_jid = str(event.msg_iq.getAttr('to'))
+            to_jid = gajim.get_jid_without_resource(full_jid)
+            if not state.encryption.is_active(to_jid):
+                return
+            # Delete previous Message out of Correction Message Stanza
+            if event.msg_iq.getTag('replace', namespace=NS_CORRECT):
+                event.msg_iq.delChild('encrypted', attrs={'xmlns': NS_OMEMO})
+
+            plaintext = event.msg_iq.getBody().encode('utf8')
+            msg_dict = state.create_gc_msg(
+                gajim.get_jid_from_account(account), to_jid, plaintext)
+            if not msg_dict:
+                return True
+
+            self.gc_message[msg_dict['payload']] = plaintext
+            encrypted_node = OmemoMessage(msg_dict)
+            event.msg_iq.delChild('body')
+            event.msg_iq.addChild(node=encrypted_node)
+
+            # XEP-xxxx: Explicit Message Encryption
+            if not event.msg_iq.getTag('encrypted', attrs={'xmlns': NS_EME}):
+                eme_node = Node('encrypted', attrs={'xmlns': NS_EME,
+                                                    'name': 'OMEMO',
+                                                    'namespace': NS_OMEMO})
+                event.msg_iq.addChild(node=eme_node)
+
+            # Store Hint for MAM
+            store = Node('store', attrs={'xmlns': NS_HINTS})
+            event.msg_iq.addChild(node=store)
+            self.print_msg_to_log(event.msg_iq)
+        except Exception as e:
+            log.debug(e)
+            return True
 
     @log_calls('OmemoPlugin')
     def handle_outgoing_event(self, event):
@@ -625,6 +730,11 @@ class OmemoPlugin(GajimPlugin):
         else:
             log.warning(account + " => No devices for " + contact_jid)
 
+        if chat_control.type_id == message_control.TYPE_GC:
+            self.ui_list[account][contact_jid] = Ui(self, chat_control,
+                                                    omemo_enabled, state)
+            self.ui_list[account][contact_jid].sensitive(False)
+
     @log_calls('OmemoPlugin')
     def disconnect_ui(self, chat_control):
         """ Calls the removeUi method to remove all relatad UI objects.
@@ -663,7 +773,7 @@ class OmemoPlugin(GajimPlugin):
         if my_jid not in self.query_for_bundles:
 
             devices_without_session = state \
-                    .devices_without_sessions(my_jid)
+                .devices_without_sessions(my_jid)
 
             self.query_for_bundles.append(my_jid)
 

@@ -23,6 +23,7 @@ import logging
 
 import gobject
 import gtk
+import message_control
 
 # pylint: disable=import-error
 import gtkgui_helpers
@@ -107,6 +108,12 @@ class Ui(object):
         self.account = self.contact.account.name
         self.windowinstances = {}
 
+        self.groupchat = False
+        if chat_control.type_id == message_control.TYPE_GC:
+            self.groupchat = True
+            self.omemo_capable = False
+            self.room = self.chat_control.room_jid
+
         self.display_omemo_state()
         self.refresh_auth_lock_icon()
 
@@ -135,6 +142,9 @@ class Ui(object):
             item.set_image(gtk.image_new_from_file(icon_path))
             item.set_submenu(submenu)
 
+            if self.groupchat:
+                item.set_sensitive(self.omemo_capable)
+
             # at index 8 is the separator after the esession encryption entry
             menu.insert(item, 8)
             return menu
@@ -161,7 +171,38 @@ class Ui(object):
                 log.debug(self.account + ' => Sending Message to ' +
                           self.contact.jid)
 
-        self.chat_control.send_message = omemo_send_message
+        def omemo_send_gc_message(message, xhtml=None, process_commands=True):
+            self.new_fingerprints_available()
+            if self.encryption_active():
+                missing = True
+                own_jid = gajim.get_jid_from_account(self.account)
+                for nick in self.plugin.groupchat[self.room]:
+                    real_jid = self.plugin.groupchat[self.room][nick]
+                    if real_jid == own_jid:
+                        continue
+                    if not self.plugin.are_keys_missing(self.account,
+                                                        real_jid):
+                        missing = False
+                if missing:
+                    log.debug(self.account +
+                              ' => No Trusted Fingerprints for ' +
+                              self.room)
+                    self.no_trusted_fingerprints_warning()
+                else:
+                    self.chat_control.orig_send_message(message, xhtml,
+                                                        process_commands)
+                    log.debug(self.account + ' => Sending Message to ' +
+                              self.room)
+            else:
+                self.chat_control.orig_send_message(message, xhtml,
+                                                    process_commands)
+                log.debug(self.account + ' => Sending Message to ' +
+                          self.room)
+
+        if self.groupchat:
+            self.chat_control.send_message = omemo_send_gc_message
+        else:
+            self.chat_control.send_message = omemo_send_message
 
     def set_omemo_state(self, enabled):
         """
@@ -184,6 +225,12 @@ class Ui(object):
         self.omemobutton.set_omemo_state(enabled)
         self.display_omemo_state()
 
+    def sensitive(self, value):
+        self.omemobutton.set_sensitive(value)
+        self.omemo_capable = value
+        if value:
+            self.chat_control.prepare_context_menu
+
     def encryption_active(self):
         return self.state.encryption.is_active(self.contact.jid)
 
@@ -192,16 +239,31 @@ class Ui(object):
             self.set_omemo_state(True)
 
     def new_fingerprints_available(self):
-        fingerprints = self.state.store.getNewFingerprints(self.contact.jid)
-        if fingerprints:
-            self.show_fingerprint_window(fingerprints)
+        jid = self.contact.jid
+        if self.groupchat and self.room in self.plugin.groupchat:
+            for nick in self.plugin.groupchat[self.room]:
+                real_jid = self.plugin.groupchat[self.room][nick]
+                fingerprints = self.state.store. \
+                    getNewFingerprints(real_jid)
+                if fingerprints:
+                    self.show_fingerprint_window(fingerprints)
+        elif not self.groupchat:
+            fingerprints = self.state.store.getNewFingerprints(jid)
+            if fingerprints:
+                self.show_fingerprint_window(fingerprints)
 
     def show_fingerprint_window(self, fingerprints=None):
         if 'dialog' not in self.windowinstances:
-            self.windowinstances['dialog'] = \
-                FingerprintWindow(self.plugin, self.contact,
-                                  self.chat_control.parent_win.window,
-                                  self.windowinstances)
+            if self.groupchat:
+                self.windowinstances['dialog'] = \
+                    FingerprintWindow(self.plugin, self.contact,
+                                      self.chat_control.parent_win.window,
+                                      self.windowinstances, groupchat=True)
+            else:
+                self.windowinstances['dialog'] = \
+                    FingerprintWindow(self.plugin, self.contact,
+                                      self.chat_control.parent_win.window,
+                                      self.windowinstances)
             self.windowinstances['dialog'].show_all()
             if fingerprints:
                 log.debug(self.account +
@@ -227,10 +289,12 @@ class Ui(object):
 
     def no_trusted_fingerprints_warning(self):
         msg = "To send an encrypted message, you have to " \
-                          "first trust the fingerprint of your contact!"
+              "first trust the fingerprint of your contact!"
         self.chat_control.print_conversation_line(msg, 'status', '', None)
 
     def refresh_auth_lock_icon(self):
+        if self.groupchat:
+            return
         if self.encryption_active():
             if self.state.getUndecidedFingerprints(self.contact.jid):
                 self.chat_control._show_lock_image(True, 'OMEMO', True, True,
@@ -585,9 +649,13 @@ class OMEMOConfigDialog(GajimPluginConfigDialog):
 
 
 class FingerprintWindow(gtk.Dialog):
-    def __init__(self, plugin, contact, parent, windowinstances):
+    def __init__(self, plugin, contact, parent, windowinstances,
+                 groupchat=False):
+        self.groupchat = groupchat
         self.contact = contact
         self.windowinstances = windowinstances
+        self.account = self.contact.account.name
+        self.own_jid = gajim.get_jid_from_account(self.account)
         gtk.Dialog.__init__(self,
                             title=('Fingerprints for %s') % contact.jid,
                             parent=parent,
@@ -622,7 +690,6 @@ class FingerprintWindow(gtk.Dialog):
 
         self.B.connect_signals(self)
 
-        self.account = self.contact.account.name
         self.omemostate = self.plugin.get_omemo_state(self.account)
 
         ownfpr = binascii.hexlify(self.omemostate.store.getIdentityKeyPair()
@@ -673,14 +740,16 @@ class FingerprintWindow(gtk.Dialog):
 
             if response == gtk.RESPONSE_YES:
                 state.store.setTrust(identity_key, TRUSTED)
-                self.plugin.ui_list[self.account][self.contact.jid]. \
-                    refresh_auth_lock_icon()
+                if not self.groupchat:
+                    self.plugin.ui_list[self.account][self.contact.jid]. \
+                        refresh_auth_lock_icon()
                 dlg.destroy()
             else:
                 if response == gtk.RESPONSE_NO:
                     state.store.setTrust(identity_key, UNTRUSTED)
-                    self.plugin.ui_list[self.account][self.contact.jid]. \
-                        refresh_auth_lock_icon()
+                    if not self.groupchat:
+                        self.plugin.ui_list[self.account][self.contact.jid]. \
+                            refresh_auth_lock_icon()
             dlg.destroy()
 
         self.update_context_list()
@@ -725,12 +794,21 @@ class FingerprintWindow(gtk.Dialog):
         state = self.omemostate
 
         if self.notebook.get_current_page() == 1:
-            contact_jid = gajim.get_jid_from_account(self.account)
+            contact_jid = self.own_jid
         else:
             contact_jid = self.contact.jid
 
         trust_str = {0: 'False', 1: 'True', 2: 'Undecided'}
-        session_db = state.store.getSessionsFromJid(contact_jid)
+        if self.groupchat and self.notebook.get_current_page() == 0:
+            contact_jids = []
+            for nick in self.plugin.groupchat[contact_jid]:
+                real_jid = self.plugin.groupchat[contact_jid][nick]
+                if real_jid == self.own_jid:
+                    continue
+                contact_jids.append(real_jid)
+            session_db = state.store.getSessionsFromJids(contact_jids)
+        else:
+            session_db = state.store.getSessionsFromJid(contact_jid)
 
         for item in session_db:
             color = {0: '#FF0040',  # red

@@ -266,6 +266,94 @@ class OmemoState:
         log.debug('Finished encrypting message')
         return result
 
+    def create_gc_msg(self, from_jid, jid, plaintext):
+        key = get_random_bytes(16)
+        iv = get_random_bytes(16)
+        encrypted_keys = {}
+        room = jid
+
+        devices_list = self.device_list_for(jid, True)
+
+        if len(devices_list) == 0:
+            log.error('No known devices')
+            return
+
+        for tup in devices_list:
+            self.get_session_cipher(tup[0], tup[1])
+
+        # Encrypt the message key with for each of receivers devices
+        for nick in self.plugin.groupchat[room]:
+            jid_to = self.plugin.groupchat[room][nick]
+            if jid_to == self.own_jid:
+                continue
+            for rid, cipher in self.session_ciphers[jid_to].items():
+                try:
+                    if self.isTrusted(jid_to, rid) == TRUSTED:
+                        encrypted_keys[rid] = cipher.encrypt(key). \
+                            serialize()
+                    else:
+                        log.debug('Skipped Device because Trust is: ' +
+                                  str(self.isTrusted(jid_to, rid)))
+                except:
+                    log.exception('ERROR:')
+                    log.warning('Failed to find key for device ' +
+                                str(rid))
+
+        if len(encrypted_keys) == 0:
+            log_msg = 'Encrypted keys empty'
+            log.error(log_msg)
+            raise NoValidSessions(log_msg)
+
+        my_other_devices = set(self.own_devices) - set({self.own_device_id})
+        # Encrypt the message key with for each of our own devices
+        for dev in my_other_devices:
+            try:
+                cipher = self.get_session_cipher(from_jid, dev)
+                if self.isTrusted(jid_to, dev) == TRUSTED:
+                    encrypted_keys[dev] = cipher.encrypt(key).serialize()
+                else:
+                    log.debug('Skipped own Device because Trust is: ' +
+                              str(self.isTrusted(jid_to, dev)))
+            except:
+                log.warning('Failed to find key for device ' + str(dev))
+
+        payload = encrypt(key, iv, plaintext)
+
+        result = {'sid': self.own_device_id,
+                  'keys': encrypted_keys,
+                  'jid': jid,
+                  'iv': iv,
+                  'payload': payload}
+
+        log.debug('Finished encrypting message')
+        return result
+
+    def device_list_for(self, jid, gc=False):
+        """ Return a list of known device ids for the specified jid.
+            Parameters
+            ----------
+            jid : string
+                The contacts jid
+            gc : bool
+                Groupchat Message
+        """
+        if gc:
+            room = jid
+            devicelist = []
+            for nick in self.plugin.groupchat[room]:
+                jid_to = self.plugin.groupchat[room][nick]
+                if jid_to == self.own_jid:
+                    continue
+                for device in self.device_ids[jid_to]:
+                    devicelist.append((jid_to, device))
+            return devicelist
+
+        if jid == self.own_jid:
+            return set(self.own_devices) - set({self.own_device_id})
+        if jid not in self.device_ids:
+            return set()
+        return set(self.device_ids[jid])
+
     def isTrusted(self, recipient_id, device_id):
         record = self.store.loadSession(recipient_id, device_id)
         identity_key = record.getSessionState().getRemoteIdentityKey()
@@ -284,20 +372,6 @@ class OmemoState:
         undecided = set(undecided) - set(inactive)
 
         return undecided
-
-    def device_list_for(self, jid):
-        """ Return a list of known device ids for the specified jid.
-
-            Parameters
-            ----------
-            jid : string
-                The contacts jid
-        """
-        if jid == self.own_jid:
-            return set(self.own_devices) - set({self.own_device_id})
-        if jid not in self.device_ids:
-            return set()
-        return set(self.device_ids[jid])
 
     def devices_without_sessions(self, jid):
         """ List device_ids for the given jid which have no axolotl session.

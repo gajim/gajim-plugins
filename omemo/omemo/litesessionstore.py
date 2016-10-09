@@ -99,6 +99,16 @@ class LiteSessionStore(SessionStore):
             result.append((row[0], row[1], row[2], row[3], row[4]))
         return result
 
+    def getSessionsFromJids(self, recipientId):
+        q = "SELECT _id, recipient_id, device_id, record, active from sessions" \
+            " WHERE recipient_id IN ({})" \
+            .format(', '.join(['?'] * len(recipientId)))
+        c = self.dbConn.cursor()
+        result = []
+        for row in c.execute(q, recipientId):
+            result.append((row[0], row[1], row[2], row[3], row[4]))
+        return result
+
     def setActiveState(self, deviceList, jid):
         c = self.dbConn.cursor()
 
