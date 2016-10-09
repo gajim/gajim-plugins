@@ -80,6 +80,7 @@ if not ERROR_MSG:
         ERROR_MSG = 'Error: ' + str(e)
 
 GAJIM_VER = gajim.config.get('version')
+GROUPCHAT = False
 
 if os.name != 'nt':
     try:
@@ -93,6 +94,12 @@ if os.name != 'nt':
     if not SETUPTOOLS_MISSING:
         if pkg.parse_version(GAJIM_VER) < pkg.parse_version('0.16.5'):
             ERROR_MSG = GAJIM_VERSION
+        if pkg.parse_version(GAJIM_VER) > pkg.parse_version('0.16.5'):
+            GROUPCHAT = True
+else:
+    # if GAJIM_VER < 0.16.5, the Plugin fails on missing dependencys earlier
+    if not GAJIM_VER == '0.16.5':
+        GROUPCHAT = True
 
 # pylint: disable=no-init
 # pylint: disable=attribute-defined-outside-init
@@ -120,14 +127,14 @@ class OmemoPlugin(GajimPlugin):
             'stanza-message-outgoing':
             (ged.PRECORE, self.handle_outgoing_stanza),
             'message-outgoing':
-            (ged.PRECORE, self.handle_outgoing_event),
-            'gc-stanza-message-outgoing':
-            (ged.PRECORE, self.handle_outgoing_gc_stanza),
-            'gc-presence-received':
-            (ged.PRECORE, self.gc_presence_received),
-            'gc-config-changed-received':
-            (ged.PRECORE, self.gc_config_changed_received),
-        }
+            (ged.PRECORE, self.handle_outgoing_event)}
+        if GROUPCHAT:
+            self.events_handlers['gc-stanza-message-outgoing'] =\
+                (ged.PRECORE, self.handle_outgoing_gc_stanza)
+            self.events_handlers['gc-presence-received'] =\
+                (ged.PRECORE, self.gc_presence_received)
+            self.events_handlers['gc-config-changed-received'] =\
+                (ged.PRECORE, self.gc_config_changed_received)
         self.config_dialog = ui.OMEMOConfigDialog(self)
         self.gui_extension_points = {'chat_control': (self.connect_ui,
                                                       self.disconnect_ui),
