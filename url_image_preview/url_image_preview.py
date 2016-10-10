@@ -45,7 +45,8 @@ class UrlImagePreviewPlugin(GajimPlugin):
             control.disconnect_from_chat_control()
         self.controls = []
 
-    def print_special_text(self, tv, special_text, other_tags, graphics=True):
+    def print_special_text(self, tv, special_text, other_tags, graphics=True,
+            additional_data):
         for control in self.controls:
             if control.chat_control.conv_textview != tv:
                 continue
