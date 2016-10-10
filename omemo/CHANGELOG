@@ -1,3 +1,8 @@
+0.9.5 / 2016-10-10
+- Add GroupChat BETA
+- Add Option to delete Fingerprints
+- Add Option to deactivate Accounts for OMEMO
+
 0.9.0 / 2016-08-28
 - Send INFO message to resources who dont support OMEMO
 - Check dependencys and give correct error message
