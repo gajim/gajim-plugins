@@ -29,7 +29,7 @@ from common.pep import SUPPORTED_PERSONAL_USER_EVENTS
 from plugins import GajimPlugin
 from plugins.helpers import log_calls
 from nbxmpp.simplexml import Node
-from nbxmpp import NS_CORRECT
+from nbxmpp import NS_CORRECT, NS_ADDRESS
 
 from . import ui
 from .ui import Ui
@@ -138,6 +138,7 @@ class OmemoPlugin(GajimPlugin):
                 (ged.PRECORE, self.gc_config_changed_received)
             self.events_handlers['muc-admin-received'] =\
                 (ged.PRECORE, self.room_memberlist_received)
+
         self.config_dialog = ui.OMEMOConfigDialog(self)
         self.gui_extension_points = {'chat_control': (self.connect_ui,
                                                       self.disconnect_ui),
@@ -367,7 +368,15 @@ class OmemoPlugin(GajimPlugin):
                 from_jid = str(msg.stanza.getFrom())
 
             if msg.mtype == 'groupchat':
-                from_jid = self.groupchat[msg.jid][msg.resource]
+                address_tag = msg.stanza.getTag('addresses',
+                                                namespace=NS_ADDRESS)
+                if address_tag:  # History Message from MUC
+                    from_jid = address_tag.getTag(
+                        'address', attrs={'type': 'ofrom'}).getAttr('jid')
+                else:
+                    from_jid = self.groupchat[msg.jid][msg.resource]
+
+                log.debug('GroupChat Message from: %s', from_jid)
 
             self.print_msg_to_log(msg.stanza)
             msg_dict = unpack_encrypted(msg.stanza.getTag
@@ -394,10 +403,11 @@ class OmemoPlugin(GajimPlugin):
             # gets dropped from history
             msg.stanza.setBody(plaintext)
 
-            contact_jid = gajim.get_jid_without_resource(from_jid)
-            if account in self.ui_list and \
-                    contact_jid in self.ui_list[account]:
-                self.ui_list[account][contact_jid].activate_omemo()
+            if msg.mtype != 'groupchat':
+                contact_jid = gajim.get_jid_without_resource(from_jid)
+                if account in self.ui_list and \
+                        contact_jid in self.ui_list[account]:
+                    self.ui_list[account][contact_jid].activate_omemo()
             return False
 
         elif msg.stanza.getTag('body'):
@@ -490,15 +500,13 @@ class OmemoPlugin(GajimPlugin):
             if room not in self.groupchat:
                 self.groupchat[room] = self.temp_groupchat[room]
 
-            log.debug('PRESENCE RECEIVED')
-            log.debug(room)
+            log.debug('OMEMO capable Room found: %s', room)
 
             gajim.connections[account].get_affiliation_list(room, 'owner')
             gajim.connections[account].get_affiliation_list(room, 'admin')
             gajim.connections[account].get_affiliation_list(room, 'member')
 
             self.ui_list[account][room].sensitive(True)
-
 
     @log_calls('OmemoPlugin')
     def gc_config_changed_received(self, event):
@@ -540,9 +548,11 @@ class OmemoPlugin(GajimPlugin):
             if event.msg_iq.getTag('replace', namespace=NS_CORRECT):
                 event.msg_iq.delChild('encrypted', attrs={'xmlns': NS_OMEMO})
 
-            plaintext = event.msg_iq.getBody().encode('utf8')
+            plaintext = event.msg_iq.getBody()
             msg_dict = state.create_gc_msg(
-                gajim.get_jid_from_account(account), to_jid, plaintext)
+                gajim.get_jid_from_account(account),
+                to_jid,
+                plaintext.encode('utf8'))
             if not msg_dict:
                 return True
 

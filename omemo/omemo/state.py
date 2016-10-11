@@ -271,6 +271,7 @@ class OmemoState:
         iv = get_random_bytes(16)
         encrypted_keys = {}
         room = jid
+        encrypted_jids = []
 
         devices_list = self.device_list_for(jid, True)
 
@@ -286,6 +287,8 @@ class OmemoState:
             jid_to = self.plugin.groupchat[room][nick]
             if jid_to == self.own_jid:
                 continue
+            if jid_to in encrypted_jids:  # We already encrypted to this JID
+                continue
             for rid, cipher in self.session_ciphers[jid_to].items():
                 try:
                     if self.isTrusted(jid_to, rid) == TRUSTED:
@@ -298,7 +301,7 @@ class OmemoState:
                     log.exception('ERROR:')
                     log.warning('Failed to find key for device ' +
                                 str(rid))
-
+            encrypted_jids.append(jid_to)
         if len(encrypted_keys) == 0:
             log_msg = 'Encrypted keys empty'
             log.error(log_msg)
@@ -309,12 +312,13 @@ class OmemoState:
         for dev in my_other_devices:
             try:
                 cipher = self.get_session_cipher(from_jid, dev)
-                if self.isTrusted(jid_to, dev) == TRUSTED:
+                if self.isTrusted(from_jid, dev) == TRUSTED:
                     encrypted_keys[dev] = cipher.encrypt(key).serialize()
                 else:
                     log.debug('Skipped own Device because Trust is: ' +
-                              str(self.isTrusted(jid_to, dev)))
+                              str(self.isTrusted(from_jid, dev)))
             except:
+                log.exception('ERROR:')
                 log.warning('Failed to find key for device ' + str(dev))
 
         payload = encrypt(key, iv, plaintext)
