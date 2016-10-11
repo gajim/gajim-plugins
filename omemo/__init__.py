@@ -110,6 +110,7 @@ class OmemoPlugin(GajimPlugin):
     omemo_states = {}
     ui_list = {}
     groupchat = {}
+    temp_groupchat = {}
 
     @log_calls('OmemoPlugin')
     def init(self):
@@ -135,6 +136,8 @@ class OmemoPlugin(GajimPlugin):
                 (ged.PRECORE, self.gc_presence_received)
             self.events_handlers['gc-config-changed-received'] =\
                 (ged.PRECORE, self.gc_config_changed_received)
+            self.events_handlers['muc-admin-received'] =\
+                (ged.PRECORE, self.room_memberlist_received)
         self.config_dialog = ui.OMEMOConfigDialog(self)
         self.gui_extension_points = {'chat_control': (self.connect_ui,
                                                       self.disconnect_ui),
@@ -417,29 +420,91 @@ class OmemoPlugin(GajimPlugin):
                     log.debug('No Ui present for ' + jid +
                               ', Ui Warning not shown')
 
+    def room_memberlist_received(self, event):
+        account = event.conn.name
+        if account in self.disabled_accounts:
+            return
+        log.debug('Room %s Memberlist received: %s',
+                  event.fjid, event.users_dict)
+        room = event.fjid
+
+        def jid_known(jid):
+            for nick in self.groupchat[room]:
+                if self.groupchat[room][nick] == jid:
+                    return True
+            return False
+
+        for jid in event.users_dict:
+            if not jid_known(jid):
+                # Add JID with JID because we have no Nick yet
+                self.groupchat[room][jid] = jid
+                log.debug('JID Added: ' + jid)
+
     @log_calls('OmemoPlugin')
     def gc_presence_received(self, event):
-        if not event.real_jid:
-            return
-        room = event.room_jid
         account = event.conn.name
+        if account in self.disabled_accounts:
+            return
+        if not hasattr(event, 'real_jid') or not event.real_jid:
+            return
+
+        room = event.room_jid
         jid = gajim.get_jid_without_resource(event.real_jid)
         nick = event.nick
 
+        if '303' in event.status_code:  # Nick Changed
+            if room in self.groupchat:
+                if nick in self.groupchat[room]:
+                    del self.groupchat[room][nick]
+                self.groupchat[room][event.new_nick] = jid
+                log.debug('Nick Change: old: %s, new: %s, jid: %s ',
+                          nick, event.new_nick, jid)
+                log.debug('Members after Change:  %s', self.groupchat[room])
+            else:
+                if nick in self.temp_groupchat[room]:
+                    del self.temp_groupchat[room][nick]
+                self.temp_groupchat[room][event.new_nick] = jid
+
+            return
+
         if room not in self.groupchat:
-            self.groupchat[room] = {}
 
-        if nick not in self.groupchat[room]:
-            self.groupchat[room][nick] = jid
+            if room not in self.temp_groupchat:
+                self.temp_groupchat[room] = {}
 
-        log.debug('PRESENCE RECEIVED')
-        log.debug(self.groupchat[room])
+            if nick not in self.temp_groupchat[room]:
+                self.temp_groupchat[room][nick] = jid
 
-        if '100' in event.status_code:
+        else:
+            # Check if we received JID over Memberlist
+            if jid in self.groupchat[room]:
+                del self.groupchat[room][jid]
+
+            # Add JID with Nick
+            if nick not in self.groupchat[room]:
+                self.groupchat[room][nick] = jid
+                log.debug('JID Added: ' + jid)
+
+        if '100' in event.status_code:  # non-anonymous Room (Full JID)
+
+            if room not in self.groupchat:
+                self.groupchat[room] = self.temp_groupchat[room]
+
+            log.debug('PRESENCE RECEIVED')
+            log.debug(room)
+
+            gajim.connections[account].get_affiliation_list(room, 'owner')
+            gajim.connections[account].get_affiliation_list(room, 'admin')
+            gajim.connections[account].get_affiliation_list(room, 'member')
+
             self.ui_list[account][room].sensitive(True)
+
 
     @log_calls('OmemoPlugin')
     def gc_config_changed_received(self, event):
+        account = event.conn.name
+        if account in self.disabled_accounts:
+            return
         log.debug('CONFIG CHANGE')
         log.debug(event.room_jid)
         log.debug(event.status_code)
@@ -458,13 +523,17 @@ class OmemoPlugin(GajimPlugin):
             Return if encryption is not activated or any other
             exception or error occurs
         """
+        account = event.conn.name
+        if account in self.disabled_accounts:
+            return
         try:
             if not event.msg_iq.getTag('body'):
                 return
-            account = event.conn.name
             state = self.get_omemo_state(account)
             full_jid = str(event.msg_iq.getAttr('to'))
             to_jid = gajim.get_jid_without_resource(full_jid)
+            if to_jid not in self.groupchat:
+                return
             if not state.encryption.is_active(to_jid):
                 return
             # Delete previous Message out of Correction Message Stanza
