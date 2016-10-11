@@ -46,7 +46,7 @@ class UrlImagePreviewPlugin(GajimPlugin):
         self.controls = []
 
     def print_special_text(self, tv, special_text, other_tags, graphics=True,
-            additional_data):
+            additional_data={}):
         for control in self.controls:
             if control.chat_control.conv_textview != tv:
                 continue
@@ -142,7 +142,12 @@ class UrlImagePreviewPluginConfigDialog(GajimPluginConfigDialog):
         self.xml.set_translation_domain('gajim_plugins')
         self.xml.add_objects_from_file(self.GTK_BUILDER_FILE_PATH, ['vbox1'])
         self.preview_size_spinbutton = self.xml.get_object('preview_size')
-        adjustment = Gtk.Adjustment(20, 10, 512, 1, 10, 0)
+        adjustment = Gtk.Adjustment(value=20,
+                                    lower=10,
+                                    upper=512,
+                                    step_increment=1,
+                                    page_increment=10,
+                                    page_size=0)
         self.preview_size_spinbutton.set_adjustment(adjustment)
         vbox = self.xml.get_object('vbox1')
         self.get_child().pack_start(vbox, True, True, 0)
