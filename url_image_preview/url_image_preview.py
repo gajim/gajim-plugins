@@ -53,7 +53,7 @@ class UrlImagePreviewPlugin(GajimPlugin):
             control.print_special_text(special_text, other_tags, graphics=True)
 
     def print_special_text1(self, chat_control, special_text, other_tags=None,
-        graphics=True):
+        graphics=True, additional_data={}):
         for control in self.controls:
             if control.chat_control == chat_control:
                 control.disconnect_from_chat_control()
