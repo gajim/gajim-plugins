@@ -10,13 +10,16 @@ Rewriten from Ubuntu Ayatana Integration plugin
 import os
 import time
 import gobject
-#GTK
+# GTK
 import gtkgui_helpers
 import gtk
+ERRORMSG = ''
 try:
     import appindicator
 except:
-    appindicator = None
+    ERRORMSG = 'python-appindicator is missing!<br/>Please install it.'
+if os.name == 'nt':
+    ERRORMSG = 'This is a Plugin for Linux'
 # Gajim
 from common import gajim, ged
 from plugins import GajimPlugin
@@ -28,16 +31,15 @@ class AppindicatorIntegrationPlugin(GajimPlugin):
 
     @log_calls("AppindicatorIntegrationPlugin")
     def init(self):
-        self.config_dialog = None
-        self.test_activatable()
-        self.events_handlers = {'our-show': (ged.GUI2, self.set_indicator_icon)}
-
-
-    def test_activatable(self):
-        self.available_text = ''
-        if not appindicator:
+        if ERRORMSG:
             self.activatable = False
-            self.available_text += _('<br/><br/> Error: python-appindicator is missing!<br/>Please install it.')
+            self.available_text += _(ERRORMSG)
+            return
+        else:
+            self.config_dialog = None
+            self.events_handlers = {'our-show': (ged.GUI2,
+                                                 self.set_indicator_icon)}
+            self.windowstate = None
 
     @log_calls("AppindicatorIntegrationPlugin")
     def activate(self):
@@ -85,18 +87,28 @@ class AppindicatorIntegrationPlugin(GajimPlugin):
         gajim.events.event_added_subscribe(self.on_event_added)
         gajim.events.event_removed_subscribe(self.on_event_removed)
 
+        self.roster = gajim.interface.roster.window
+        self.handlerid = self.roster.connect('window-state-event',
+                                             self.window_state_event_cb)
+
     def connect(self, widget, data=None):
         for account in gajim.connections:
             if gajim.config.get_per('accounts', account,
-            'sync_with_global_status'):
-                gajim.connections[account].change_status('online','online')
+                                    'sync_with_global_status'):
+                gajim.connections[account].change_status('online',
+                                                         'online')
 
+    def window_state_event_cb(self, win, event):
+        if event.new_window_state & gtk.gdk.WINDOW_STATE_ICONIFIED:
+            self.windowstate = 'iconified'
+        elif event.new_window_state & gtk.gdk.WINDOW_STATE_WITHDRAWN:
+            self.windowstate = 'hidden'
 
     def set_indicator_icon(self, obj=''):
         is_connected = 0
         for account in gajim.connections:
             if not gajim.config.get_per('accounts', account,
-            'sync_with_global_status'):
+                                        'sync_with_global_status'):
                 continue
             if gajim.account_is_connected(account):
                 is_connected = 1
@@ -119,17 +131,17 @@ class AppindicatorIntegrationPlugin(GajimPlugin):
             self.indicator.set_status(appindicator.STATUS_PASSIVE)
             del self.indicator
 
+        self.roster.disconnect(self.handlerid)
+
     def roster_raise(self, widget, data=None):
         win = gajim.interface.roster.window
-        if win.is_active():
+        if win.get_property("visible") and self.windowstate != 'iconified':
             gobject.idle_add(win.hide)
         else:
             win.present()
-        # preserve the 'steal focus preservation'
-        #if self._is_first():
-        #    win.window.focus(gtk.get_current_event_time())
-        #else:
-        win.window.focus(long(time.time()))
+            self.windowstate = 'shown'
+
+        win.window.focus(gtk.get_current_event_time())
 
     def on_exit_menuitem_activate(self, widget, data=None):
             gajim.interface.roster.on_quit_request()
@@ -143,7 +155,7 @@ class AppindicatorIntegrationPlugin(GajimPlugin):
     def on_event_added(self, event):
         account = event.account
         jid = event.jid
-        when = time.time()
+        when = time.localtime()
         contact = ""
         key = (account, jid)
 
