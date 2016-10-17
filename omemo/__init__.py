@@ -568,6 +568,11 @@ class OmemoPlugin(GajimPlugin):
                                                     'namespace': NS_OMEMO})
                 event.msg_iq.addChild(node=eme_node)
 
+            # Add Message for devices that dont support OMEMO
+            support_msg = 'You received a message encrypted with ' \
+                          'OMEMO but your client doesnt support OMEMO.'
+            event.msg_iq.setBody(support_msg)
+
             # Store Hint for MAM
             store = Node('store', attrs={'xmlns': NS_HINTS})
             event.msg_iq.addChild(node=store)
