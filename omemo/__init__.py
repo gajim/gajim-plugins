@@ -367,6 +367,10 @@ class OmemoPlugin(GajimPlugin):
             else:
                 from_jid = str(msg.stanza.getFrom())
 
+            self.print_msg_to_log(msg.stanza)
+            msg_dict = unpack_encrypted(msg.stanza.getTag
+                                        ('encrypted', namespace=NS_OMEMO))
+
             if msg.mtype == 'groupchat':
                 address_tag = msg.stanza.getTag('addresses',
                                                 namespace=NS_ADDRESS)
@@ -374,13 +378,21 @@ class OmemoPlugin(GajimPlugin):
                     from_jid = address_tag.getTag(
                         'address', attrs={'type': 'ofrom'}).getAttr('jid')
                 else:
-                    from_jid = self.groupchat[msg.jid][msg.resource]
+                    try:
+                        from_jid = self.groupchat[msg.jid][msg.resource]
+                    except KeyError:
+                        log.debug('Groupchat: Last resort trying to '
+                                  'find SID in DB')
+                        from_jid = state.store. \
+                            getJidFromDevice(msg_dict['sid'])
+                        if not from_jid:
+                            log.error(account +
+                                      ' => Cant decrypt GroupChat Message '
+                                      'from ' + msg.resource)
+                            return True
+                        self.groupchat[msg.jid][msg.resource] = from_jid
 
                 log.debug('GroupChat Message from: %s', from_jid)
-
-            self.print_msg_to_log(msg.stanza)
-            msg_dict = unpack_encrypted(msg.stanza.getTag
-                                        ('encrypted', namespace=NS_OMEMO))
 
             plaintext = ''
             if msg_dict['sid'] == state.own_device_id:
@@ -388,8 +400,8 @@ class OmemoPlugin(GajimPlugin):
                     plaintext = self.gc_message[msg_dict['payload']]
                     del self.gc_message[msg_dict['payload']]
                 else:
-                    log.error(account + ' => Cant decrypt GroupChat Message '
-                              'from ' + from_jid)
+                    log.error(account + ' => Cant decrypt own GroupChat '
+                              'Message')
             else:
                 msg_dict['sender_jid'] = gajim. \
                     get_jid_without_resource(from_jid)

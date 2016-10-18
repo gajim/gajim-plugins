@@ -48,6 +48,14 @@ class LiteSessionStore(SessionStore):
         deviceIds = [r[0] for r in result]
         return deviceIds
 
+    def getJidFromDevice(self, device_id):
+        q = "SELECT recipient_id from sessions WHERE device_id = ?"
+        c = self.dbConn.cursor()
+        c.execute(q, (device_id, ))
+        result = c.fetchone()
+
+        return result[0]
+
     def getActiveDeviceTuples(self):
         q = "SELECT recipient_id, device_id FROM sessions WHERE active = 1"
         c = self.dbConn.cursor()

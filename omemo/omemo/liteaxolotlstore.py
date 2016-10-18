@@ -133,6 +133,9 @@ class LiteAxolotlStore(AxolotlStore):
         # TODO Reuse this
         return self.sessionStore.getSubDeviceSessions(recepientId)
 
+    def getJidFromDevice(self, device_id):
+        return self.sessionStore.getJidFromDevice(device_id)
+
     def storeSession(self, recepientId, deviceId, sessionRecord):
         self.sessionStore.storeSession(recepientId, deviceId, sessionRecord)
 
