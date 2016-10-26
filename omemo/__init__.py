@@ -31,8 +31,6 @@ from plugins.helpers import log_calls
 from nbxmpp.simplexml import Node
 from nbxmpp import NS_CORRECT, NS_ADDRESS
 
-from . import ui
-from .ui import Ui
 from .xmpp import (
     NS_NOTIFY, NS_OMEMO, NS_EME, BundleInformationAnnouncement,
     BundleInformationQuery, DeviceListAnnouncement, DevicelistQuery,
@@ -75,6 +73,7 @@ except Exception as e:
 if not ERROR_MSG:
     try:
         from .omemo.state import OmemoState
+        from .ui import Ui, OMEMOConfigDialog
     except Exception as e:
         log.error(e)
         ERROR_MSG = 'Error: ' + str(e)
@@ -118,6 +117,7 @@ class OmemoPlugin(GajimPlugin):
         if ERROR_MSG:
             self.activatable = False
             self.available_text = ERROR_MSG
+            self.config_dialog = None
             return
         self.events_handlers = {
             'mam-message-received': (ged.PRECORE, self.mam_message_received),
@@ -139,7 +139,7 @@ class OmemoPlugin(GajimPlugin):
             self.events_handlers['muc-admin-received'] =\
                 (ged.PRECORE, self.room_memberlist_received)
 
-        self.config_dialog = ui.OMEMOConfigDialog(self)
+        self.config_dialog = OMEMOConfigDialog(self)
         self.gui_extension_points = {'chat_control': (self.connect_ui,
                                                       self.disconnect_ui),
                                      'groupchat_control': (self.connect_ui,
