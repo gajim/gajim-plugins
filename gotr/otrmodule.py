@@ -707,8 +707,12 @@ class HTMLStripper(HTMLParser):
             self.stripped_data += '\n'
 
     def handle_entityref(self, name):
-        c = unichr(name2codepoint[name])
+        try:
+            c = unichr(name2codepoint[name])
+        except KeyError:
+            c = '&{};'.format(name)
         self.stripped_data += c
+
     def handle_charref(self, name):
         if name.startswith('x'):
             c = unichr(int(name[1:], 16))
