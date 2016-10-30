@@ -82,6 +82,7 @@ sys.path.insert(0, os.path.dirname(ui.__file__))
 
 from HTMLParser import HTMLParser
 from htmlentitydefs import name2codepoint
+name2codepoint['apos'] = 0x0027
 
 HAS_CRYPTO = True
 try:
