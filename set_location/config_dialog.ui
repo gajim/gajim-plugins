@@ -1,22 +1,50 @@
-<?xml version="1.0"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <interface>
   <requires lib="gtk+" version="2.16"/>
   <!-- interface-naming-policy toplevel-contextual -->
+  <object class="GtkImage" id="image1">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <property name="stock">gtk-delete</property>
+  </object>
+  <object class="GtkImage" id="image2">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <property name="stock">gtk-save-as</property>
+  </object>
+  <object class="GtkListStore" id="preview_provider_list">
+    <columns>
+      <!-- column-name prov -->
+      <column type="gchararray"/>
+    </columns>
+    <data>
+      <row>
+        <col id="0" translatable="yes">Google</col>
+      </row>
+      <row>
+        <col id="0" translatable="yes">MapQuest OSM</col>
+      </row>
+    </data>
+  </object>
   <object class="GtkWindow" id="window1">
+    <property name="can_focus">False</property>
     <child>
       <object class="GtkHBox" id="hbox1">
         <property name="visible">True</property>
+        <property name="can_focus">False</property>
         <property name="border_width">9</property>
         <child>
           <object class="GtkVBox" id="vbox2">
             <property name="visible">True</property>
-            <property name="orientation">vertical</property>
+            <property name="can_focus">False</property>
             <child>
               <object class="GtkHBox" id="hbox2">
                 <property name="visible">True</property>
+                <property name="can_focus">False</property>
                 <child>
                   <object class="GtkLabel" id="preset">
                     <property name="visible">True</property>
+                    <property name="can_focus">False</property>
                     <property name="xalign">0</property>
                     <property name="label" translatable="yes">Preset:</property>
                   </object>
@@ -30,9 +58,12 @@
                 <child>
                   <object class="GtkComboBox" id="preset_combobox">
                     <property name="visible">True</property>
-                    <signal name="changed" handler="on_preset_combobox_changed"/>
+                    <property name="can_focus">False</property>
+                    <signal name="changed" handler="on_preset_combobox_changed" swapped="no"/>
                   </object>
                   <packing>
+                    <property name="expand">True</property>
+                    <property name="fill">True</property>
                     <property name="position">1</property>
                   </packing>
                 </child>
@@ -45,7 +76,7 @@
                     <property name="image">image2</property>
                     <property name="use_underline">True</property>
                     <property name="xalign">0</property>
-                    <signal name="clicked" handler="on_preset_button_clicked"/>
+                    <signal name="clicked" handler="on_preset_button_clicked" swapped="no"/>
                   </object>
                   <packing>
                     <property name="expand">False</property>
@@ -63,7 +94,7 @@
                     <property name="receives_default">True</property>
                     <property name="image">image1</property>
                     <property name="use_underline">True</property>
-                    <signal name="clicked" handler="on_del_preset_clicked"/>
+                    <signal name="clicked" handler="on_del_preset_clicked" swapped="no"/>
                   </object>
                   <packing>
                     <property name="expand">False</property>
@@ -81,14 +112,16 @@
             <child>
               <object class="GtkTable" id="config_table">
                 <property name="visible">True</property>
+                <property name="can_focus">False</property>
                 <property name="border_width">6</property>
-                <property name="n_rows">16</property>
+                <property name="n_rows">17</property>
                 <property name="n_columns">2</property>
                 <property name="column_spacing">7</property>
                 <property name="row_spacing">5</property>
                 <child>
                   <object class="GtkLabel" id="label1">
                     <property name="visible">True</property>
+                    <property name="can_focus">False</property>
                     <property name="xalign">0</property>
                     <property name="label" translatable="yes">alt:</property>
                   </object>
@@ -100,6 +133,7 @@
                 <child>
                   <object class="GtkLabel" id="label2">
                     <property name="visible">True</property>
+                    <property name="can_focus">False</property>
                     <property name="xalign">0</property>
                     <property name="label" translatable="yes">area:</property>
                   </object>
@@ -113,6 +147,7 @@
                 <child>
                   <object class="GtkLabel" id="label3">
                     <property name="visible">True</property>
+                    <property name="can_focus">False</property>
                     <property name="xalign">0</property>
                     <property name="label" translatable="yes">building:</property>
                   </object>
@@ -126,6 +161,7 @@
                 <child>
                   <object class="GtkLabel" id="label4">
                     <property name="visible">True</property>
+                    <property name="can_focus">False</property>
                     <property name="xalign">0</property>
                     <property name="label" translatable="yes">country:</property>
                   </object>
@@ -137,6 +173,7 @@
                 <child>
                   <object class="GtkLabel" id="label5">
                     <property name="visible">True</property>
+                    <property name="can_focus">False</property>
                     <property name="xalign">0</property>
                     <property name="label" translatable="yes">countrycode:</property>
                   </object>
@@ -148,6 +185,7 @@
                 <child>
                   <object class="GtkLabel" id="label6">
                     <property name="visible">True</property>
+                    <property name="can_focus">False</property>
                     <property name="xalign">0</property>
                     <property name="label" translatable="yes">description:</property>
                   </object>
@@ -159,6 +197,7 @@
                 <child>
                   <object class="GtkLabel" id="label7">
                     <property name="visible">True</property>
+                    <property name="can_focus">False</property>
                     <property name="xalign">0</property>
                     <property name="label" translatable="yes">floor:</property>
                   </object>
@@ -170,6 +209,7 @@
                 <child>
                   <object class="GtkLabel" id="label8">
                     <property name="visible">True</property>
+                    <property name="can_focus">False</property>
                     <property name="xalign">0</property>
                     <property name="label" translatable="yes">locality:</property>
                   </object>
@@ -181,6 +221,7 @@
                 <child>
                   <object class="GtkLabel" id="label9">
                     <property name="visible">True</property>
+                    <property name="can_focus">False</property>
                     <property name="xalign">0</property>
                     <property name="label" translatable="yes">lat:</property>
                   </object>
@@ -192,6 +233,7 @@
                 <child>
                   <object class="GtkLabel" id="label10">
                     <property name="visible">True</property>
+                    <property name="can_focus">False</property>
                     <property name="xalign">0</property>
                     <property name="label" translatable="yes">lon:</property>
                   </object>
@@ -203,6 +245,7 @@
                 <child>
                   <object class="GtkLabel" id="label11">
                     <property name="visible">True</property>
+                    <property name="can_focus">False</property>
                     <property name="xalign">0</property>
                     <property name="label" translatable="yes">postalcode:</property>
                   </object>
@@ -214,6 +257,7 @@
                 <child>
                   <object class="GtkLabel" id="label12">
                     <property name="visible">True</property>
+                    <property name="can_focus">False</property>
                     <property name="xalign">0</property>
                     <property name="label" translatable="yes">region:</property>
                   </object>
@@ -225,6 +269,7 @@
                 <child>
                   <object class="GtkLabel" id="label13">
                     <property name="visible">True</property>
+                    <property name="can_focus">False</property>
                     <property name="xalign">0</property>
                     <property name="label" translatable="yes">room:</property>
                   </object>
@@ -236,6 +281,7 @@
                 <child>
                   <object class="GtkLabel" id="label14">
                     <property name="visible">True</property>
+                    <property name="can_focus">False</property>
                     <property name="xalign">0</property>
                     <property name="label" translatable="yes">street:</property>
                   </object>
@@ -247,6 +293,7 @@
                 <child>
                   <object class="GtkLabel" id="label15">
                     <property name="visible">True</property>
+                    <property name="can_focus">False</property>
                     <property name="xalign">0</property>
                     <property name="label" translatable="yes">text:</property>
                   </object>
@@ -258,6 +305,7 @@
                 <child>
                   <object class="GtkLabel" id="label16">
                     <property name="visible">True</property>
+                    <property name="can_focus">False</property>
                     <property name="xalign">0</property>
                     <property name="label" translatable="yes">uri:</property>
                   </object>
@@ -272,7 +320,11 @@
                     <property name="can_focus">True</property>
                     <property name="has_tooltip">True</property>
                     <property name="tooltip_text" translatable="yes">Altitude in meters above or below sea level</property>
-                    <property name="invisible_char">&#x25CF;</property>
+                    <property name="invisible_char">●</property>
+                    <property name="primary_icon_activatable">False</property>
+                    <property name="secondary_icon_activatable">False</property>
+                    <property name="primary_icon_sensitive">True</property>
+                    <property name="secondary_icon_sensitive">True</property>
                   </object>
                   <packing>
                     <property name="left_attach">1</property>
@@ -285,7 +337,11 @@
                     <property name="can_focus">True</property>
                     <property name="has_tooltip">True</property>
                     <property name="tooltip_text" translatable="yes">A named area such as a campus or neighborhood</property>
-                    <property name="invisible_char">&#x25CF;</property>
+                    <property name="invisible_char">●</property>
+                    <property name="primary_icon_activatable">False</property>
+                    <property name="secondary_icon_activatable">False</property>
+                    <property name="primary_icon_sensitive">True</property>
+                    <property name="secondary_icon_sensitive">True</property>
                   </object>
                   <packing>
                     <property name="left_attach">1</property>
@@ -300,7 +356,11 @@
                     <property name="can_focus">True</property>
                     <property name="has_tooltip">True</property>
                     <property name="tooltip_text" translatable="yes">A specific building on a street or in an area</property>
-                    <property name="invisible_char">&#x25CF;</property>
+                    <property name="invisible_char">●</property>
+                    <property name="primary_icon_activatable">False</property>
+                    <property name="secondary_icon_activatable">False</property>
+                    <property name="primary_icon_sensitive">True</property>
+                    <property name="secondary_icon_sensitive">True</property>
                   </object>
                   <packing>
                     <property name="left_attach">1</property>
@@ -315,7 +375,11 @@
                     <property name="can_focus">True</property>
                     <property name="has_tooltip">True</property>
                     <property name="tooltip_text" translatable="yes">The nation where the user is located</property>
-                    <property name="invisible_char">&#x25CF;</property>
+                    <property name="invisible_char">●</property>
+                    <property name="primary_icon_activatable">False</property>
+                    <property name="secondary_icon_activatable">False</property>
+                    <property name="primary_icon_sensitive">True</property>
+                    <property name="secondary_icon_sensitive">True</property>
                   </object>
                   <packing>
                     <property name="left_attach">1</property>
@@ -330,7 +394,11 @@
                     <property name="can_focus">True</property>
                     <property name="has_tooltip">True</property>
                     <property name="tooltip_text" translatable="yes">The ISO 3166 two-letter country code</property>
-                    <property name="invisible_char">&#x25CF;</property>
+                    <property name="invisible_char">●</property>
+                    <property name="primary_icon_activatable">False</property>
+                    <property name="secondary_icon_activatable">False</property>
+                    <property name="primary_icon_sensitive">True</property>
+                    <property name="secondary_icon_sensitive">True</property>
                   </object>
                   <packing>
                     <property name="left_attach">1</property>
@@ -345,7 +413,11 @@
                     <property name="can_focus">True</property>
                     <property name="has_tooltip">True</property>
                     <property name="tooltip_text" translatable="yes">A natural-language name for or description of the location</property>
-                    <property name="invisible_char">&#x25CF;</property>
+                    <property name="invisible_char">●</property>
+                    <property name="primary_icon_activatable">False</property>
+                    <property name="secondary_icon_activatable">False</property>
+                    <property name="primary_icon_sensitive">True</property>
+                    <property name="secondary_icon_sensitive">True</property>
                   </object>
                   <packing>
                     <property name="left_attach">1</property>
@@ -360,7 +432,11 @@
                     <property name="can_focus">True</property>
                     <property name="has_tooltip">True</property>
                     <property name="tooltip_text" translatable="yes">A particular floor in a building</property>
-                    <property name="invisible_char">&#x25CF;</property>
+                    <property name="invisible_char">●</property>
+                    <property name="primary_icon_activatable">False</property>
+                    <property name="secondary_icon_activatable">False</property>
+                    <property name="primary_icon_sensitive">True</property>
+                    <property name="secondary_icon_sensitive">True</property>
                   </object>
                   <packing>
                     <property name="left_attach">1</property>
@@ -375,7 +451,11 @@
                     <property name="can_focus">True</property>
                     <property name="has_tooltip">True</property>
                     <property name="tooltip_text" translatable="yes">A locality within the administrative region, such as a town or city</property>
-                    <property name="invisible_char">&#x25CF;</property>
+                    <property name="invisible_char">●</property>
+                    <property name="primary_icon_activatable">False</property>
+                    <property name="secondary_icon_activatable">False</property>
+                    <property name="primary_icon_sensitive">True</property>
+                    <property name="secondary_icon_sensitive">True</property>
                   </object>
                   <packing>
                     <property name="left_attach">1</property>
@@ -390,7 +470,11 @@
                     <property name="can_focus">True</property>
                     <property name="has_tooltip">True</property>
                     <property name="tooltip_text" translatable="yes">Latitude in decimal degrees North</property>
-                    <property name="invisible_char">&#x25CF;</property>
+                    <property name="invisible_char">●</property>
+                    <property name="primary_icon_activatable">False</property>
+                    <property name="secondary_icon_activatable">False</property>
+                    <property name="primary_icon_sensitive">True</property>
+                    <property name="secondary_icon_sensitive">True</property>
                   </object>
                   <packing>
                     <property name="left_attach">1</property>
@@ -405,7 +489,11 @@
                     <property name="can_focus">True</property>
                     <property name="has_tooltip">True</property>
                     <property name="tooltip_text" translatable="yes">Longitude in decimal degrees East</property>
-                    <property name="invisible_char">&#x25CF;</property>
+                    <property name="invisible_char">●</property>
+                    <property name="primary_icon_activatable">False</property>
+                    <property name="secondary_icon_activatable">False</property>
+                    <property name="primary_icon_sensitive">True</property>
+                    <property name="secondary_icon_sensitive">True</property>
                   </object>
                   <packing>
                     <property name="left_attach">1</property>
@@ -420,7 +508,11 @@
                     <property name="can_focus">True</property>
                     <property name="has_tooltip">True</property>
                     <property name="tooltip_text" translatable="yes">A code used for postal delivery</property>
-                    <property name="invisible_char">&#x25CF;</property>
+                    <property name="invisible_char">●</property>
+                    <property name="primary_icon_activatable">False</property>
+                    <property name="secondary_icon_activatable">False</property>
+                    <property name="primary_icon_sensitive">True</property>
+                    <property name="secondary_icon_sensitive">True</property>
                   </object>
                   <packing>
                     <property name="left_attach">1</property>
@@ -435,7 +527,11 @@
                     <property name="can_focus">True</property>
                     <property name="has_tooltip">True</property>
                     <property name="tooltip_text" translatable="yes">An administrative region of the nation, such as a state or province</property>
-                    <property name="invisible_char">&#x25CF;</property>
+                    <property name="invisible_char">●</property>
+                    <property name="primary_icon_activatable">False</property>
+                    <property name="secondary_icon_activatable">False</property>
+                    <property name="primary_icon_sensitive">True</property>
+                    <property name="secondary_icon_sensitive">True</property>
                   </object>
                   <packing>
                     <property name="left_attach">1</property>
@@ -450,7 +546,11 @@
                     <property name="can_focus">True</property>
                     <property name="has_tooltip">True</property>
                     <property name="tooltip_text" translatable="yes">A particular room in a building</property>
-                    <property name="invisible_char">&#x25CF;</property>
+                    <property name="invisible_char">●</property>
+                    <property name="primary_icon_activatable">False</property>
+                    <property name="secondary_icon_activatable">False</property>
+                    <property name="primary_icon_sensitive">True</property>
+                    <property name="secondary_icon_sensitive">True</property>
                   </object>
                   <packing>
                     <property name="left_attach">1</property>
@@ -465,7 +565,11 @@
                     <property name="can_focus">True</property>
                     <property name="has_tooltip">True</property>
                     <property name="tooltip_text" translatable="yes">A thoroughfare within the locality, or a crossing of two thoroughfares</property>
-                    <property name="invisible_char">&#x25CF;</property>
+                    <property name="invisible_char">●</property>
+                    <property name="primary_icon_activatable">False</property>
+                    <property name="secondary_icon_activatable">False</property>
+                    <property name="primary_icon_sensitive">True</property>
+                    <property name="secondary_icon_sensitive">True</property>
                   </object>
                   <packing>
                     <property name="left_attach">1</property>
@@ -480,7 +584,11 @@
                     <property name="can_focus">True</property>
                     <property name="has_tooltip">True</property>
                     <property name="tooltip_text" translatable="yes">A catch-all element that captures any other information about the location</property>
-                    <property name="invisible_char">&#x25CF;</property>
+                    <property name="invisible_char">●</property>
+                    <property name="primary_icon_activatable">False</property>
+                    <property name="secondary_icon_activatable">False</property>
+                    <property name="primary_icon_sensitive">True</property>
+                    <property name="secondary_icon_sensitive">True</property>
                   </object>
                   <packing>
                     <property name="left_attach">1</property>
@@ -495,13 +603,48 @@
                     <property name="can_focus">True</property>
                     <property name="has_tooltip">True</property>
                     <property name="tooltip_text" translatable="yes">A URI or URL pointing to information about the location</property>
-                    <property name="invisible_char">&#x25CF;</property>
+                    <property name="invisible_char">●</property>
+                    <property name="primary_icon_activatable">False</property>
+                    <property name="secondary_icon_activatable">False</property>
+                    <property name="primary_icon_sensitive">True</property>
+                    <property name="secondary_icon_sensitive">True</property>
                   </object>
                   <packing>
                     <property name="left_attach">1</property>
                     <property name="right_attach">2</property>
                     <property name="top_attach">15</property>
                     <property name="bottom_attach">16</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkLabel" id="label17">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="xalign">0</property>
+                    <property name="label" translatable="yes">map preview:</property>
+                  </object>
+                  <packing>
+                    <property name="top_attach">16</property>
+                    <property name="bottom_attach">17</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkComboBox" id="preview_provider">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="model">preview_provider_list</property>
+                    <child>
+                      <object class="GtkCellRendererText" id="cellrenderertext1"/>
+                      <attributes>
+                        <attribute name="text">0</attribute>
+                      </attributes>
+                    </child>
+                  </object>
+                  <packing>
+                    <property name="left_attach">1</property>
+                    <property name="right_attach">2</property>
+                    <property name="top_attach">16</property>
+                    <property name="bottom_attach">17</property>
                   </packing>
                 </child>
               </object>
@@ -521,9 +664,9 @@
         <child>
           <object class="GtkVBox" id="vbox1">
             <property name="visible">True</property>
+            <property name="can_focus">False</property>
             <property name="extension_events">all</property>
             <property name="resize_mode">immediate</property>
-            <property name="orientation">vertical</property>
             <child>
               <placeholder/>
             </child>
@@ -532,19 +675,13 @@
             </child>
           </object>
           <packing>
+            <property name="expand">True</property>
+            <property name="fill">True</property>
             <property name="padding">6</property>
             <property name="position">1</property>
           </packing>
         </child>
       </object>
     </child>
-  </object>
-  <object class="GtkImage" id="image1">
-    <property name="visible">True</property>
-    <property name="stock">gtk-delete</property>
-  </object>
-  <object class="GtkImage" id="image2">
-    <property name="visible">True</property>
-    <property name="stock">gtk-save-as</property>
   </object>
 </interface>

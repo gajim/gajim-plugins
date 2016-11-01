@@ -47,7 +47,8 @@ class SetLocationPlugin(GajimPlugin):
             'street': ('34th and Broadway', ''),
             'text': ('Northwest corner of the lobby', ''),
             'uri': ('http://beta.plazes.com/plazes/1940:jabber_inc', ''),
-            'presets': ({'default': {}}, ''), }
+            'presets': ({'default': {}}, ''),
+            'preview_provider': (1, '')}
 
         self.thumbpath = os.path.join(configpaths.gajimpaths['MY_CACHE'],
                                       'downloads.thumb')
@@ -82,6 +83,8 @@ class SetLocationPlugin(GajimPlugin):
         if not iter_:
             iter_ = buffer_.get_end_iter()
 
+        textview.plugin_modified = True
+
         # Show URL, until image is loaded (if ever)
         ttt = buffer_.get_tag_table()
         repl_start = buffer_.create_mark(None, iter_, True)
@@ -90,7 +93,7 @@ class SetLocationPlugin(GajimPlugin):
         repl_end = buffer_.create_mark(None, iter_, True)
 
         zoom = 17
-        size = 200
+        size = 250
         color = 'blue'
 
         coordinates = special_text.split(':')[1]
@@ -98,18 +101,32 @@ class SetLocationPlugin(GajimPlugin):
         lat = coordinates.split(',')[0]
         lon = coordinates.split(',')[1]
 
-        if not (len(lat) == 10 and len(lon) == 10):
-            return
-
         filename = coordinates.replace(',', '_').replace('.', '-')
         filepath = os.path.join(self.thumbpath, filename)
 
-        url = 'https://maps.googleapis.com/maps/api/staticmap?center={}' \
-              '&zoom={}&size={}x{}&markers=color:{}' \
-              '|label:S|{}'.format(coordinates, zoom, size, size,
-                                   color, coordinates)
+        provider = self.config['preview_provider']
 
-        weburl = 'https://www.google.at/maps/place/{}'.format(coordinates)
+        # Google
+        if provider == 0:
+            url = 'https://maps.googleapis.com/maps/api/staticmap?center={}' \
+                  '&zoom={}&size={}x{}&markers=color:{}' \
+                  '|label:S|{}'.format(coordinates, zoom, size, size,
+                                       color, coordinates)
+
+            weburl = 'https://www.google.at/maps/place/{}'.format(coordinates)
+        else:
+            # Mapquest / OSM
+            apikey = 'F7x36jLVv2hiANVAXmhwvUB044XvGASh'
+
+            url = 'https://open.mapquestapi.com/staticmap/v4/' \
+                  'getmap?key={}&center={}&zoom={}&size={},{}&type=map' \
+                  '&imagetype=png&pois={},{}&scalebar=false' \
+                  .format(apikey, coordinates, zoom, size, size, color,
+                          coordinates)
+
+            weburl = 'http://www.openstreetmap.org/' \
+                     '?mlat={}&mlon={}#map={}/{}/{}&layers=N' \
+                     .format(lat, lon, zoom, lat, lon)
 
         log.debug(url)
 
@@ -219,6 +236,8 @@ class SetLocationPlugin(GajimPlugin):
         timestamp = timestamp.strftime('%Y-%m-%dT%H:%M:%SZ')
         self._data['timestamp'] = timestamp
         for name in self.config_default_values:
+            if name == 'preview_provider':
+                continue
             self._data[name] = self.config[name]
 
         if not acct:
@@ -253,7 +272,8 @@ class SetLocationPluginConfigDialog(GajimPluginConfigDialog):
         self.xml = gtk.Builder()
         self.xml.set_translation_domain('gajim_plugins')
         self.xml.add_objects_from_file(self.GTK_BUILDER_FILE_PATH,
-                                       ['hbox1', 'image1', 'image2'])
+                                       ['hbox1', 'image1', 'image2',
+                                        'preview_provider_list'])
         hbox = self.xml.get_object('hbox1')
         self.child.pack_start(hbox)
         self.xml.connect_signals(self)
@@ -278,6 +298,10 @@ class SetLocationPluginConfigDialog(GajimPluginConfigDialog):
 
         for name in self.plugin.config_default_values:
             if name == 'presets':
+                continue
+            if name == 'preview_provider':
+                self.xml.get_object(name).set_active(
+                    self.plugin.config[name])
                 continue
             widget = self.xml.get_object(name)
             widget.set_text(str(self.plugin.config[name]))
@@ -329,6 +353,9 @@ class SetLocationPluginConfigDialog(GajimPluginConfigDialog):
     def on_hide(self, widget):
         for name in self.plugin.config_default_values:
             if name in ['presets', 'lat', 'lon']:
+                continue
+            if name == 'preview_provider':
+                self.plugin.config[name] = self.xml.get_object(name).get_active()
                 continue
             widget = self.xml.get_object(name)
             self.plugin.config[name] = widget.get_text()
@@ -409,6 +436,9 @@ class SetLocationPluginConfigDialog(GajimPluginConfigDialog):
             for name in self.plugin.config_default_values:
                 if name == 'presets':
                     continue
+                if name == 'preview_provider':
+                    preset[name] = self.xml.get_object(name).get_active()
+                    continue
                 widget = self.xml.get_object(name)
                 preset[name] = widget.get_text()
             preset = {preset_name: preset}
@@ -432,6 +462,9 @@ class SetLocationPluginConfigDialog(GajimPluginConfigDialog):
         pres_name = model[active][0].decode('utf-8')
         for name in self.plugin.config['presets'][pres_name].keys():
             widget = self.xml.get_object(name)
+            if name == 'preview_provider':
+                widget.set_active(self.plugin.config['presets'][pres_name][name])
+                continue
             widget.set_text(
                 str(self.plugin.config['presets'][pres_name][name]))
 
