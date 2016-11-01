@@ -547,6 +547,10 @@ class OmemoPlugin(GajimPlugin):
         if account in self.disabled_accounts:
             return
         try:
+            # If we send a correction msg, the stanza is saved
+            # in correction_msg
+            if event.correction_msg:
+                event.msg_iq = event.correction_msg
             if not event.msg_iq.getTag('body'):
                 return
             state = self.get_omemo_state(account)
@@ -588,7 +592,12 @@ class OmemoPlugin(GajimPlugin):
             # Store Hint for MAM
             store = Node('store', attrs={'xmlns': NS_HINTS})
             event.msg_iq.addChild(node=store)
-            self.print_msg_to_log(event.msg_iq)
+            if event.correction_msg:
+                event.correction_msg = event.msg_iq
+                event.msg_iq = None
+                self.print_msg_to_log(event.correction_msg)
+            else:
+                self.print_msg_to_log(event.msg_iq)
         except Exception as e:
             log.debug(e)
             return True
