@@ -20,24 +20,20 @@ See [Windows Wiki](https://github.com/omemo/gajim-omemo/wiki/Installing-on-Windo
 #### Arch
 See [Arch Wiki](https://wiki.archlinux.org/index.php/Gajim#OMEMO_Support)
 
+#### Debian
+Packagename `gajim-omemo` available in backports and testing
+
 #### Gentoo
 `layman -a flow && emerge gajim-omemo`
 
-### Via PluginInstallerPlugin
+### Via Gajim PluginManager
 
 Install the current stable version via the Gajim PluginManager. You *need* Gajim
-version *0.16.5*. If your package manager does not provide an up to date version
-you can install it from the official Mercurial repository. *DO NOT USE* gajim
-0.16.4 it contains a vulnerability, which is fixed in 0.16.5.
-```shell
-hg clone https://hg.gajim.org/gajim
-cd gajim
-hg update gajim-0.16.5 --clean
-```
+version *0.16.5* or higher. If your package manager does not provide an up to date version
+you can visit gajim.org for further install instructions.
 
-**NOTE:** You *have* to install `python-axolotl` via `pip`. Depending on your setup you might
-want to use `pip2` as Gajim is using python2.7. If you are using the official repository,
-do not forget to install the `nbxmpp` dependency via pip or you package manager.
+**NOTE:** You *have* to install `python-axolotl` via PackageManager or depending on your setup you might
+want to use `pip2` as Gajim is using python2.7.
 
 if you still have problems, we have written down the most common problems [here](https://github.com/omemo/gajim-omemo/wiki/It-doesnt-work,-what-should-i-do%3F-(Linux))
 
@@ -71,6 +67,15 @@ For Filetransfer use the **httpupload** plugin.
 For decrypting and showing pictures in chat use the **url_image_preview** plugin.
 
 If you want to use these plugins together with *OMEMO* you have to install the `python-cryptography` package
+
+## Performance
+If you experience lag when sending a message, install `python-cryptography`
+If that doesnt help, you can convert your database to WAL mode with 
+```
+sqlite3 omemo_your@jid.com.db
+PRAGMA journal_mode=WAL
+```
+Warning: This mode could lead to data loss if Gajim crashes
 
 ## Debugging
 To see OMEMO related debug output start Gajim with the parameter `-l
