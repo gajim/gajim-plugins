@@ -27,6 +27,13 @@ class SQLDatabase():
         :type dbConn: Connection
         """
         self.dbConn = dbConn
+        c = self.dbConn.cursor()
+        c.execute("PRAGMA synchronous=NORMAL;")
+        c.execute("PRAGMA journal_mode;")
+        mode = c.fetchone()[0]
+        # WAL is a persistent DB mode, dont override it if user has set it
+        if mode != 'wal':
+            c.execute("PRAGMA journal_mode=MEMORY;")
         self.createDb()
         self.migrateDb()
 
