@@ -732,9 +732,13 @@ class OmemoPlugin(GajimPlugin):
 
         devices_list = list(set(unpack_device_list_update(event.stanza,
                                                           event.conn.name)))
-        if len(devices_list) == 0:
-            return False
         contact_jid = gajim.get_jid_without_resource(event.fjid)
+        if len(devices_list) == 0:
+            log.error(account +
+                      ' => Received empty or invalid Devicelist from: ' +
+                      contact_jid)
+            return False
+
         state = self.get_omemo_state(account)
         my_jid = gajim.get_jid_from_account(account)
 
@@ -1068,15 +1072,16 @@ class OmemoPlugin(GajimPlugin):
         state = self.get_omemo_state(account)
 
         if successful(stanza):
-            log.info(account + ' => Devicelistquery was successful')
             devices_list = list(set(unpack_device_list_update(stanza, account)))
             if len(devices_list) == 0:
+                log.error(account + ' => Devicelistquery was NOT successful')
+                self.publish_own_devices_list(account)
                 return False
             contact_jid = stanza.getAttr('from')
             if contact_jid == my_jid:
                 state.set_own_devices(devices_list)
                 state.store.sessionStore.setActiveState(devices_list, my_jid)
-
+                log.info(account + ' => Devicelistquery was successful')
                 # remove contact from list, so on send button pressed
                 # we query for bundle and build a session
                 if contact_jid in self.query_for_bundles:
