@@ -27,6 +27,8 @@ class SQLDatabase():
         :type dbConn: Connection
         """
         self.dbConn = dbConn
+        self.createDb()
+        self.migrateDb()
         c = self.dbConn.cursor()
         c.execute("PRAGMA synchronous=NORMAL;")
         c.execute("PRAGMA journal_mode;")
@@ -34,8 +36,7 @@ class SQLDatabase():
         # WAL is a persistent DB mode, dont override it if user has set it
         if mode != 'wal':
             c.execute("PRAGMA journal_mode=MEMORY;")
-        self.createDb()
-        self.migrateDb()
+        self.dbConn.commit()
 
     def createDb(self):
         if user_version(self.dbConn) == 0:
