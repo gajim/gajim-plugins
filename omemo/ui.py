@@ -20,7 +20,7 @@
 
 import binascii
 import logging
-
+import os
 import gobject
 import gtk
 import message_control
@@ -31,7 +31,10 @@ from common import gajim
 from dialogs import YesNoDialog
 from plugins.gui import GajimPluginConfigDialog
 from axolotl.state.sessionrecord import SessionRecord
+from common import configpaths
 # pylint: enable=import-error
+
+from .qrcode.main import QRCode
 
 log = logging.getLogger('gajim.plugin_system.omemo')
 
@@ -332,6 +335,8 @@ class OMEMOConfigDialog(GajimPluginConfigDialog):
         log.debug('Disabled Accounts:')
         log.debug(self.disabled_accounts)
 
+        self.qrcode = self.B.get_object('qrcode')
+
         self.fpr_model = self.B.get_object('fingerprint_store')
         self.device_model = self.B.get_object('deviceid_store')
 
@@ -359,11 +364,6 @@ class OMEMOConfigDialog(GajimPluginConfigDialog):
         self.update_account_combobox()
         self.update_disabled_account_view()
 
-        if len(self.account_store) > 0 and \
-                self.plugin_active is True:
-            self.account_combobox_changed_cb(
-                self.B.get_object('account_combobox'))
-
     def is_in_accountstore(self, account):
         for row in self.account_store:
             if row[0] == account:
@@ -387,6 +387,24 @@ class OMEMOConfigDialog(GajimPluginConfigDialog):
 
     def account_combobox_changed_cb(self, box, *args):
         self.update_context_list()
+
+    def get_qrcode(self, jid, sid, fingerprint):
+        file_name = 'omemo_{}.png'.format(jid)
+        path = os.path.join(
+            configpaths.gajimpaths['MY_DATA'], file_name)
+
+        ver_string = 'xmpp:{}?omemo-sid-{}={}'.format(jid, sid, fingerprint)
+        log.debug('Verification String: ' + ver_string)
+
+        if os.path.exists(path):
+            return path
+
+        qr = QRCode(version=None, error_correction=2, box_size=4, border=1)
+        qr.add_data(ver_string)
+        qr.make(fit=True)
+        img = qr.make_image()
+        img.save(path)
+        return path
 
     def update_disabled_account_view(self):
         self.disabled_acc_store.clear()
@@ -534,7 +552,6 @@ class OMEMOConfigDialog(GajimPluginConfigDialog):
         gtk.Clipboard(selection='PRIMARY').set_text('\n'.join(fprs))
 
     def update_context_list(self):
-        log.debug('update_context_list')
         self.fpr_model.clear()
         self.device_model.clear()
         if len(self.account_store) == 0:
@@ -544,6 +561,7 @@ class OMEMOConfigDialog(GajimPluginConfigDialog):
             self.B.get_object('delfprbutton').set_sensitive(False)
             self.B.get_object('refresh').set_sensitive(False)
             self.B.get_object('cleardevice_button').set_sensitive(False)
+            self.B.get_object('qrcode').clear()
             return
         active = self.B.get_object('account_combobox').get_active()
         account = self.account_store[active][0]
@@ -564,9 +582,9 @@ class OMEMOConfigDialog(GajimPluginConfigDialog):
 
         ownfpr = binascii.hexlify(state.store.getIdentityKeyPair()
                                   .getPublicKey().serialize())
-        ownfpr = human_hash(ownfpr[2:])
+        human_ownfpr = human_hash(ownfpr[2:])
         self.B.get_object('fingerprint_label').set_markup('<tt>%s</tt>'
-                                                          % ownfpr)
+                                                          % human_ownfpr)
 
         # Set Fingerprint List
         trust_str = {0: 'False', 1: 'True', 2: 'Undecided'}
@@ -600,6 +618,11 @@ class OMEMOConfigDialog(GajimPluginConfigDialog):
         # Set Device ID List
         for item in state.own_devices:
             self.device_model.append([item])
+
+        # Set QR Verification Code
+        path = self.get_qrcode(
+            gajim.get_jid_from_account(account), deviceid, ownfpr[2:])
+        self.qrcode.set_from_pixbuf(gtk.gdk.pixbuf_new_from_file(path))
 
 
 class FingerprintWindow(gtk.Dialog):
