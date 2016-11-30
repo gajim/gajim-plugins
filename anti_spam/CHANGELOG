@@ -1,0 +1,15 @@
+## [Unreleased]
+### Changed
+- User from private conference conversation permanently stored in file
+
+### Fixed
+- Messages sent before correct answer marked as received
+
+## [0.4.2] - 2016-11-28
+### Added
+- Anti spam question functionality
+- This CHANGELOG
+- README with some explanation of functionality
+
+### Changed
+- homepage in manifest.ini
