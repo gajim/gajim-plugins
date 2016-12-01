@@ -174,11 +174,29 @@
             <property name="can_focus">False</property>
             <property name="xalign">0</property>
             <property name="stock">gtk-missing-image</property>
+            <property name="icon-size">0</property>
           </object>
           <packing>
             <property name="expand">True</property>
             <property name="fill">True</property>
             <property name="position">3</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkLabel" id="qrinfo">
+            <property name="can_focus">False</property>
+            <property name="no_show_all">True</property>
+            <property name="xalign">0</property>
+            <property name="label" translatable="yes">For Verification QRCode please install python-qrcode</property>
+            <attributes>
+              <attribute name="weight" value="bold"/>
+              <attribute name="foreground" value="#ffff00000000"/>
+            </attributes>
+          </object>
+          <packing>
+            <property name="expand">True</property>
+            <property name="fill">True</property>
+            <property name="position">4</property>
           </packing>
         </child>
       </object>

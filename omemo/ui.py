@@ -32,12 +32,22 @@ from dialogs import YesNoDialog
 from plugins.gui import GajimPluginConfigDialog
 from axolotl.state.sessionrecord import SessionRecord
 from common import configpaths
-# pylint: enable=import-error
-
-from .qrcode.main import QRCode
 
 log = logging.getLogger('gajim.plugin_system.omemo')
 
+PILLOW = False
+try:
+    if os.name != 'nt':
+        qrcode = __import__('qrcode')
+        from PIL import Image, ImageDraw
+    else:
+        import qrcodewin.main as qrcode
+    PILLOW = True
+except Exception as e:
+    log.exception('Error:')
+    log.error('pyton-qrcode or dependencies of it, are not available')
+
+# pylint: enable=import-error
 UNDECIDED = 2
 TRUSTED = 1
 UNTRUSTED = 0
@@ -335,8 +345,6 @@ class OMEMOConfigDialog(GajimPluginConfigDialog):
         log.debug('Disabled Accounts:')
         log.debug(self.disabled_accounts)
 
-        self.qrcode = self.B.get_object('qrcode')
-
         self.fpr_model = self.B.get_object('fingerprint_store')
         self.device_model = self.B.get_object('deviceid_store')
 
@@ -399,7 +407,7 @@ class OMEMOConfigDialog(GajimPluginConfigDialog):
         if os.path.exists(path):
             return path
 
-        qr = QRCode(version=None, error_correction=2, box_size=4, border=1)
+        qr = qrcode.QRCode(version=None, error_correction=2, box_size=4, border=1)
         qr.add_data(ver_string)
         qr.make(fit=True)
         img = qr.make_image()
@@ -554,6 +562,8 @@ class OMEMOConfigDialog(GajimPluginConfigDialog):
     def update_context_list(self):
         self.fpr_model.clear()
         self.device_model.clear()
+        self.qrcode = self.B.get_object('qrcode')
+        self.qrinfo = self.B.get_object('qrinfo')
         if len(self.account_store) == 0:
             self.B.get_object('ID').set_markup('')
             self.B.get_object('fingerprint_label').set_markup('')
@@ -620,9 +630,13 @@ class OMEMOConfigDialog(GajimPluginConfigDialog):
             self.device_model.append([item])
 
         # Set QR Verification Code
-        path = self.get_qrcode(
-            gajim.get_jid_from_account(account), deviceid, ownfpr[2:])
-        self.qrcode.set_from_pixbuf(gtk.gdk.pixbuf_new_from_file(path))
+        if PILLOW:
+            path = self.get_qrcode(
+                gajim.get_jid_from_account(account), deviceid, ownfpr[2:])
+            self.qrcode.set_from_pixbuf(gtk.gdk.pixbuf_new_from_file(path))
+            self.qrinfo.hide()
+        else:
+            self.qrinfo.show()
 
 
 class FingerprintWindow(gtk.Dialog):
