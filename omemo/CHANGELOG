@@ -1,3 +1,6 @@
+0.9.9 / 2016-12-01
+- Bugfixes
+
 0.9.8 / 2016-11-28
 - Fix a Problem where OMEMO wouldnt activate after the plugin is updated
 - Add QR Verification Code to Plugin Config
