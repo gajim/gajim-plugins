@@ -31,7 +31,6 @@ from common import gajim, ged
 from plugins import GajimPlugin
 from plugins.helpers import log, log_calls
 from plugins.gui import GajimPluginConfigDialog
-from common.connection_handlers_events import MessageOutgoingEvent
 
 class AntiSpamPlugin(GajimPlugin):
 
@@ -51,6 +50,8 @@ class AntiSpamPlugin(GajimPlugin):
                 self._nec_decrypted_message_received_received),
             'subscribe-presence-received': (ged.POSTCORE,
                 self._nec_subscribe_presence_received),
+            'message-outgoing': (ged.OUT_PRECORE,
+                self._nec_message_outgoing)
         }
 
         self.config_default_values = {
@@ -62,10 +63,13 @@ class AntiSpamPlugin(GajimPlugin):
             'msgtxt_question': ('Please answer: 12 x 12 =', ''),
             'msgtxt_answer': ('', ''),
             'antispam_for_conference': (False, ''),
+            'conference_white_list': ([], ''), # conference private chat jid's
         }
 
-        # Temporary white list
-        self.conference_white_list = []
+        # List of outgoing jid's
+        # Needs to avoid chat of two anti spam plugins
+        # Contain all jid's where are you initiate a chat
+        self.outgoing_jids = []
 
     @log_calls('AntiSpamPlugin')
     def _nec_atom_entry_received(self, obj):
@@ -102,8 +106,13 @@ class AntiSpamPlugin(GajimPlugin):
 
     @log_calls('AntiSpamPlugin')
     def _nec_decrypted_message_received_question(self, obj):
-        if obj.mtype != 'chat':
+        if obj.mtype != 'chat' and obj.mtype != 'normal':
             return False
+
+        tjid = obj.jid if obj.mtype == 'normal' else obj.fjid
+        if tjid in self.outgoing_jids:
+            return False
+        
         answer = self.config['msgtxt_answer']
         if len(answer) == 0:
             return False
@@ -118,22 +127,58 @@ class AntiSpamPlugin(GajimPlugin):
         #     1. Using XML console
         #     2. Running Gajim with log info messages and see logs (probably gajim.log file)
         if is_conference or not gajim.contacts.get_contacts(obj.conn.name, jid):
-            if obj.msgtxt != answer:
-                if is_conference and self.conference_white_list.count(jid) > 0:
+            if not self.contain_answer(obj.msgtxt, answer):
+                if is_conference and jid in self.config['conference_white_list']:
                     return False
                 self.send_question(obj, jid)
                 return True
             else:
-                if is_conference and self.conference_white_list.count(jid) == 0:
-                    self.conference_white_list.append(jid)
+                if is_conference and jid not in self.config['conference_white_list']:
+                    self.config['conference_white_list'].append(jid)
+                    # Need to save because 'append' method does not implement __setitem__ method
+                    self.config.save()
         return False
 
+    @log_calls('AntiSpamPlugin')
+    def _nec_message_outgoing(self, obj):
+        if obj.type_ != 'chat' and obj.type_ != 'normal':
+            return
+        
+        if isinstance(obj.jid, list):
+            for i in obj.jid:
+                if i not in self.outgoing_jids:
+                    self.outgoing_jids.append(i)
+        else:
+            if obj.jid not in self.outgoing_jids:
+                self.outgoing_jids.append(obj.jid)
+               
     def send_question(self, obj, jid):
+        if obj.mtype != 'chat' and obj.mtype != 'normal':
+            log.info('Anti_spam wrong message type: %s', obj.mtype)
+            return
+
+        # only for 'chat' messages
+        if obj.receipt_request_tag and obj.mtype == 'chat':
+            receipt = nbxmpp.Message(to=obj.fjid, typ='chat')
+            receipt.setTag('received', namespace='urn:xmpp:receipts', attrs={'id': obj.id_})
+            if obj.thread_id:
+                receipt.setThread(obj.thread_id)
+            gajim.connections[obj.conn.name].connection.send(receipt, now=True)
         question = self.config['msgtxt_question']
         log.info('Anti_spam enabled for %s, question: %s', jid, question)
-        message = _('Antispam enabled. Please answer the question: ') + question
-        stanza = nbxmpp.Message(to=jid, body=message, typ='chat')
+        message = _('Antispam enabled. Please answer the question. The message must only ' + \
+                    'contain the answer. (Messages sent before the correct answer, will be lost): ') \
+                    + question
+            
+        if obj.mtype == 'chat':
+            stanza = nbxmpp.Message(to=jid, body=message, typ=obj.mtype)
+        else: # for 'normal' type
+            stanza = nbxmpp.Message(to=jid, body=message, subject='Antispam enabled', typ=obj.mtype)
+
         gajim.connections[obj.conn.name].connection.send(stanza, now=True)
+
+    def contain_answer(self, msg, answer):
+        return answer in msg.split('\n')
 	
     def remove_xhtml(self, obj):
         html_node = obj.stanza.getTag('html')
