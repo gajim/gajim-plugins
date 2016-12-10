@@ -1,0 +1,24 @@
+## [Unreleased]
+### Added
+- Sending confirmation message that anti spam check was passed. It can be disabled in plugin gui config.
+
+## [1.4.3] - 2016-12-04
+### Added
+- Filtering 'normal' type messages
+
+### Changed
+- User from private conference conversation permanently stored in file
+- Switched to GTK3
+
+### Fixed
+- Messages that was sent before correct answer was marked as received
+- Chat between the two antispam plugins
+
+## [0.4.2] - 2016-11-28
+### Added
+- Anti spam question functionality
+- This CHANGELOG
+- README with some explanation of functionality
+
+### Changed
+- homepage in manifest.ini

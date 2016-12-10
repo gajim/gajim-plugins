@@ -25,7 +25,8 @@ Block some incoming messages
 '''
 
 from gi.repository import Gtk
-from common import ged
+import nbxmpp
+from common import gajim, ged
 
 from plugins import GajimPlugin
 from plugins.helpers import log, log_calls
@@ -45,9 +46,13 @@ class AntiSpamPlugin(GajimPlugin):
             'atom-entry-received': (ged.POSTCORE,
                 self._nec_atom_entry_received),
             'message-received': (ged.PRECORE,
+                self._nec_message_received_received),
+            'decrypted-message-received': (ged.PRECORE,
                 self._nec_decrypted_message_received_received),
             'subscribe-presence-received': (ged.POSTCORE,
                 self._nec_subscribe_presence_received),
+            'message-outgoing': (ged.OUT_PRECORE,
+                self._nec_message_outgoing)
         }
 
         self.config_default_values = {
@@ -55,7 +60,17 @@ class AntiSpamPlugin(GajimPlugin):
             'disable_xhtml_muc': (False, ''),
             'disable_xhtml_pm': (False, ''),
             'block_subscription_requests': (False, ''),
+            'msgtxt_limit': (-1, ''),
+            'msgtxt_question': ('Please answer: 12 x 12 =', ''),
+            'msgtxt_answer': ('', ''),
+            'antispam_for_conference': (False, ''),
+            'conference_white_list': ([], ''), # conference private chat jid's
         }
+
+        # List of outgoing jid's
+        # Needs to avoid chat of two anti spam plugins
+        # Contain all jid's where are you initiate a chat
+        self.outgoing_jids = []
 
     @log_calls('AntiSpamPlugin')
     def _nec_atom_entry_received(self, obj):
@@ -64,12 +79,23 @@ class AntiSpamPlugin(GajimPlugin):
             return True
 
     @log_calls('AntiSpamPlugin')
-    def _nec_decrypted_message_received_received(self, obj):
+    def _nec_message_received_received(self, obj):
         if self.config['disable_xhtml_muc'] and obj.mtype == 'groupchat':
             self.remove_xhtml(obj)
         if self.config['disable_xhtml_pm'] and obj.gc_control and \
         obj.resource and obj.mtype == 'chat':
             self.remove_xhtml(obj)
+        return False
+
+    @log_calls('AntiSpamPlugin')
+    def _nec_decrypted_message_received_received(self, obj):
+        if not obj.msgtxt:
+            return False
+        if self._nec_decrypted_message_received_question(obj):
+            return True
+        limit = self.config['msgtxt_limit']
+        if limit > -1 and len(obj.msgtxt) > limit:
+            return True
         return False
 
     @log_calls('AntiSpamPlugin')
@@ -79,6 +105,82 @@ class AntiSpamPlugin(GajimPlugin):
             log.info('discarding subscription request from %s' % obj.jid)
             return True
 
+    @log_calls('AntiSpamPlugin')
+    def _nec_decrypted_message_received_question(self, obj):
+        if obj.mtype != 'chat' and obj.mtype != 'normal':
+            return False
+
+        tjid = obj.jid if obj.mtype == 'normal' else obj.fjid
+        if tjid in self.outgoing_jids:
+            return False
+        
+        answer = self.config['msgtxt_answer']
+        if len(answer) == 0:
+            return False
+        block_conference = self.config['antispam_for_conference']
+        is_conference = gajim.contacts.is_gc_contact(obj.conn.name, obj.fjid)
+        if not block_conference and is_conference:
+            return False
+        jid = obj.jid if not is_conference else obj.fjid
+        # If we receive conference privat message or direct message from unknown user than
+        # anti spam question will send in background mode, without any notification for us
+        # There are two methods to see who wrote you and not passed filter:
+        #     1. Using XML console
+        #     2. Running Gajim with log info messages and see logs (probably gajim.log file)
+        if is_conference or not gajim.contacts.get_contacts(obj.conn.name, jid):
+            if not self.contain_answer(obj.msgtxt, answer):
+                if is_conference and jid in self.config['conference_white_list']:
+                    return False
+                self.send_question(obj, jid)
+                return True
+            else:
+                if is_conference and jid not in self.config['conference_white_list']:
+                    self.config['conference_white_list'].append(jid)
+                    # Need to save because 'append' method does not implement __setitem__ method
+                    self.config.save()
+        return False
+
+    @log_calls('AntiSpamPlugin')
+    def _nec_message_outgoing(self, obj):
+        if obj.type_ != 'chat' and obj.type_ != 'normal':
+            return
+        
+        if isinstance(obj.jid, list):
+            for i in obj.jid:
+                if i not in self.outgoing_jids:
+                    self.outgoing_jids.append(i)
+        else:
+            if obj.jid not in self.outgoing_jids:
+                self.outgoing_jids.append(obj.jid)
+               
+    def send_question(self, obj, jid):
+        if obj.mtype != 'chat' and obj.mtype != 'normal':
+            log.info('Anti_spam wrong message type: %s', obj.mtype)
+            return
+
+        # only for 'chat' messages
+        if obj.receipt_request_tag and obj.mtype == 'chat':
+            receipt = nbxmpp.Message(to=obj.fjid, typ='chat')
+            receipt.setTag('received', namespace='urn:xmpp:receipts', attrs={'id': obj.id_})
+            if obj.thread_id:
+                receipt.setThread(obj.thread_id)
+            gajim.connections[obj.conn.name].connection.send(receipt, now=True)
+        question = self.config['msgtxt_question']
+        log.info('Anti_spam enabled for %s, question: %s', jid, question)
+        message = _('Antispam enabled. Please answer the question. The message must only ' + \
+                    'contain the answer. (Messages sent before the correct answer, will be lost): ') \
+                    + question
+
+        if obj.mtype == 'chat':
+            stanza = nbxmpp.Message(to=jid, body=message, typ=obj.mtype)
+        else: # for 'normal' type
+            stanza = nbxmpp.Message(to=jid, body=message, subject='Antispam enabled', typ=obj.mtype)
+
+        gajim.connections[obj.conn.name].connection.send(stanza, now=True)
+
+    def contain_answer(self, msg, answer):
+        return answer in msg.split('\n')
+	
     def remove_xhtml(self, obj):
         html_node = obj.stanza.getTag('html')
         if html_node:
@@ -110,6 +212,14 @@ class AntiSpamPluginConfigDialog(GajimPluginConfigDialog):
         widget.set_active(self.plugin.config['disable_xhtml_pm'])
         widget = self.xml.get_object('block_subscription_requests_checkbutton')
         widget.set_active(self.plugin.config['block_subscription_requests'])
+        widget = self.xml.get_object('message_size_limit_entry')
+        widget.set_text(str(self.plugin.config['msgtxt_limit']))
+        widget = self.xml.get_object('antispam_question')
+        widget.set_text(str(self.plugin.config['msgtxt_question']))
+        widget = self.xml.get_object('antispam_answer')
+        widget.set_text(str(self.plugin.config['msgtxt_answer']))
+        widget = self.xml.get_object('antispam_for_conference')
+        widget.set_active(self.plugin.config['antispam_for_conference'])
 
     def on_block_pubsub_messages_checkbutton_toggled(self, button):
         self.plugin.config['block_pubsub_messages'] = button.get_active()
@@ -122,3 +232,25 @@ class AntiSpamPluginConfigDialog(GajimPluginConfigDialog):
 
     def on_block_subscription_requests_checkbutton_toggled(self, button):
         self.plugin.config['block_subscription_requests'] = button.get_active()
+
+    def on_message_size_limit_entry_changed(self, entry):
+        try:
+            self.plugin.config['msgtxt_limit'] = int(entry.get_text())
+        except Exception:
+            pass
+			
+    def on_message_question_entry_changed(self, entry):
+        try:
+            self.plugin.config['msgtxt_question'] = entry.get_text()
+        except Exception:
+            pass
+			
+    def on_message_answer_entry_changed(self, entry):
+        try:
+            self.plugin.config['msgtxt_answer'] = entry.get_text()
+        except Exception:
+            pass
+
+    def on_antispam_for_conference_checkbutton_toggled(self, button):
+        self.plugin.config['antispam_for_conference'] = button.get_active()
+			
