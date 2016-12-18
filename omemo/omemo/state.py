@@ -211,10 +211,15 @@ class OmemoState:
             log.warning('Duplicate message found ' + str(e.args))
             return
 
-        result = unicode(decrypt(key, iv, payload))
+        log.debug("Decrypted key: %s, iv: %s", ''.join(x.encode('hex') for x in key), ''.join(x.encode('hex') for x in iv))
 
-        log.debug("Decrypted Message => " + result)
-        return result
+        plaintext = None
+        if payload:
+            plaintext = decrypt(key, iv, payload)
+            if plaintext:
+                log.debug("Decrypted message: %s", plaintext)
+
+        return plaintext, key, iv
 
     def create_msg(self, from_jid, jid, plaintext):
         key = get_random_bytes(16)
@@ -266,6 +271,7 @@ class OmemoState:
         result = {'sid': self.own_device_id,
                   'keys': encrypted_keys,
                   'jid': jid,
+                  'key': key[:16],
                   'iv': iv,
                   'payload': payload}
 

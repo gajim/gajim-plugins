@@ -327,7 +327,7 @@ class OmemoPlugin(GajimPlugin):
 
             msg_dict['sender_jid'] = from_jid
 
-            plaintext = state.decrypt_msg(msg_dict)
+            plaintext, _, _ = state.decrypt_msg(msg_dict) or (None, None, None)
 
             if not plaintext:
                 return
@@ -423,7 +423,7 @@ class OmemoPlugin(GajimPlugin):
             else:
                 msg_dict['sender_jid'] = gajim. \
                     get_jid_without_resource(from_jid)
-                plaintext = state.decrypt_msg(msg_dict)
+                plaintext, _, _ = state.decrypt_msg(msg_dict) or (None, None, None)
 
             if not plaintext:
                 return True

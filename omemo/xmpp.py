@@ -89,7 +89,9 @@ class OmemoMessage(Node):
             child.addData(b64encode(key))
         header.addChild('iv').addData(b64encode(msg_dict['iv']))
         self.addChild(node=header)
-        self.addChild('payload').addData(b64encode(msg_dict['payload']))
+        payload = msg_dict['payload']
+        if payload:
+            self.addChild('payload').addData(b64encode(payload))
 
 
 class BundleInformationQuery(Iq):

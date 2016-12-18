@@ -30,8 +30,11 @@ def encrypt(key, iv, plaintext):
     return aes_encrypt(key, iv, plaintext)
 
 
-def decrypt(key, iv, ciphertext):
-    plaintext = aes_decrypt(key, iv, ciphertext).decode('utf-8')
+def decrypt(key, iv, ciphertext, raw_mode=None):
+    plaintext = aes_decrypt(key, iv, ciphertext)
+    if raw_mode:
+        return plaintext
+    plaintext = plaintext.decode('utf-8')
     if sys.version_info < (3, 0):
         return unicode(plaintext)
     else:
