@@ -20,6 +20,7 @@
 
 import logging
 import os
+import tempfile
 import sqlite3
 import shutil
 import message_control
@@ -42,6 +43,8 @@ from common import demandimport
 demandimport.enable()
 demandimport.ignore += ['_imp', '_thread', 'axolotl', 'PIL',
                         '__builtin__', 'builtins']
+
+from .omemo.aes_gcm import decrypt, encrypt
 
 IQ_CALLBACK = {}
 
@@ -86,6 +89,7 @@ if not ERROR_MSG:
         ERROR_MSG = 'Error: ' + str(e)
 
 GAJIM_VER = gajim.config.get('version')
+JINGLE_FT = False
 
 if os.name != 'nt':
     try:
@@ -99,6 +103,11 @@ if os.name != 'nt':
     if not SETUPTOOLS_MISSING:
         if pkg.parse_version(GAJIM_VER) < pkg.parse_version('0.16.6'):
             ERROR_MSG = GAJIM_VERSION
+        if pkg.parse_version(GAJIM_VER) >= pkg.parse_version('0.16.6'):
+            JINGLE_FT = True
+else:
+    if GAJIM_VER >= '0.16.6':
+        JINGLE_FT = True
 
 # pylint: disable=no-init
 # pylint: disable=attribute-defined-outside-init
@@ -122,6 +131,7 @@ class OmemoPlugin(GajimPlugin):
     ui_list = {}
     groupchat = {}
     temp_groupchat = {}
+    jingle_key_iv = {}
 
     @log_calls('OmemoPlugin')
     def init(self):
@@ -150,6 +160,17 @@ class OmemoPlugin(GajimPlugin):
             (ged.PRECORE, self.gc_config_changed_received)
         self.events_handlers['muc-admin-received'] =\
             (ged.PRECORE, self.room_memberlist_received)
+        if JINGLE_FT:
+            self.events_handlers['file-request-received'] =\
+                (ged.PRECORE, self.file_request_received)
+            self.events_handlers['jingleFT-cancelled-received'] =\
+                (ged.PRECORE, self.jingleFT_cancelled_received)
+            self.events_handlers['file-transfer-completed'] =\
+                (ged.PRECORE, self.file_transfer_completed)
+            self.events_handlers['jingle-disconnected-received'] =\
+                (ged.PRECORE, self.jingle_disconnected_received)
+            self.events_handlers['jingle-session-initiate-sending'] =\
+                (ged.PRECORE, self.jingle_session_initiate_sending)
 
         self.config_dialog = OMEMOConfigDialog(self)
         self.gui_extension_points = {'chat_control': (self.connect_ui,
@@ -459,6 +480,204 @@ class OmemoPlugin(GajimPlugin):
                 except KeyError:
                     log.debug('No Ui present for ' + jid +
                               ', Ui Warning not shown')
+
+    @log_calls('OmemoPlugin')
+    def file_request_received(self, event):
+        if event.file_props.type_ == 's':
+            return True
+
+        file_tag = None
+        account = event.conn.name
+        if account in self.disabled_accounts:
+            return
+        self.print_msg_to_log(event.stanza)
+        if event.jingle_content:
+            desc_tag = event.jingle_content.getTag('description')
+            if desc_tag:
+                offer_tag = desc_tag.getTag('offer')
+                if offer_tag:
+                    file_tag = offer_tag.getTag('file')
+        if file_tag and file_tag.getTag('encrypted', namespace=NS_OMEMO):
+            log.debug(account + ' => OMEMO encrypted file request received')
+
+            file_pathname = event.FT_content.file_props.file_name
+            log.debug('Saving to file %s', file_pathname)
+
+            state = self.get_omemo_state(account)
+            from_jid = str(event.stanza.getFrom())
+
+            self.print_msg_to_log(event.stanza)
+            msg_dict = unpack_encrypted(file_tag.getTag
+                                        ('encrypted', namespace=NS_OMEMO))
+            log.debug(account + 'msg_dict: ' + str(msg_dict))
+            msg_dict['sender_jid'] = gajim.get_jid_without_resource(from_jid)
+            _, key, iv = state.decrypt_msg(msg_dict) or (None, None, None)
+            if not key or not iv:
+                log.debug('no KEY and/or IV for file decryption found')
+                return
+            #TODO: how to reference (ID) a particular file in a session?
+            #self.jingle_key_iv[event.file_props.sid] = [key, iv]
+            self.jingle_key_iv[event.sid] = [key, iv]
+            log.debug('for KEY/IV using jingle sid: %s', event.sid)
+        else:
+            log.debug(account + ' => not OMEMO encrypted file request received')
+
+    @log_calls('OmemoPlugin')
+    def jingleFT_cancelled_received(self, event):
+        self.jingle_key_iv.pop(event.sid, None)
+
+    @log_calls('OmemoPlugin')
+    def file_transfer_completed(self, event):
+        if event.file_props.type_ == 's':
+            log.debug('Deleting temporary encrypted file %s', event.file_props.file_name)
+            try:
+                os.unlink(event.file_props.file_name)
+            except Exception as e:
+                log.debug('Failed to delete')
+                log.debug(e)
+            return True
+
+        #key_iv = self.jingle_key_iv.pop(event.file_props.sid, None)
+        key_iv = self.jingle_key_iv.pop(event.sid, None)
+        file_pathname = event.file_props.file_name
+        if key_iv:
+            key = key_iv[0]
+            iv = key_iv[1]
+        else:
+            #log.debug('sid: %s, MISSING KEY/IV', event.file_props.sid)
+            log.debug('sid: %s, MISSING KEY/IV', event.sid)
+            return True
+
+        try:
+            in_file = open(file_pathname, "rb")
+            payload = in_file.read()
+            in_file.close()
+        except Exception as e:
+            log.debug('Failed opening file %s for decryption', file_pathname)
+            log.debug(e)
+            return True
+        try:
+            plaindata = decrypt(key, iv, payload, raw_mode=True)
+        except Exception as e:
+            log.debug('Failed decrypting file')
+            log.debug(e)
+            return True
+        try: # hard to not loose decrypted (or received) file
+            path = os.path.dirname(file_pathname)
+            name = os.path.basename(file_pathname)
+            out_tmpfile_fd, out_tmpfile_pathname = tempfile.mkstemp(dir=path, prefix=name+'.', suffix='.decrypted')
+            out_tmpfile = os.fdopen(out_tmpfile_fd, 'wb')
+            out_tmpfile.write(plaindata)
+            os.fsync(out_tmpfile_fd)
+            out_tmpfile.close()
+            in_tmpfile_bak_fd, in_tmpfile_bak_pathname = tempfile.mkstemp(dir=path, prefix=name+'.', suffix='.bak')
+            os.rename(file_pathname, in_tmpfile_bak_pathname)
+            os.rename(out_tmpfile_pathname, file_pathname)
+            os.unlink(in_tmpfile_bak_pathname)
+        except Exception as e:
+            log.debug('Failed saving decrypted file')
+            log.debug(e)
+            # show KEY/IV in dialog for manual decryption?
+            return True
+
+    @log_calls('OmemoPlugin')
+    def jingle_disconnected_received(self, event):
+        key_iv = self.jingle_key_iv.pop(event.sid, None)
+
+    @log_calls('OmemoPlugin')
+    def jingle_session_initiate_sending(self, event):
+        account = event.conn.name
+        if account in self.disabled_accounts:
+            return
+        state = self.get_omemo_state(account)
+        full_jid = str(event.stanza.getAttr('to'))
+        to_jid = gajim.get_jid_without_resource(full_jid)
+        if not state.encryption.is_active(to_jid):
+            return
+
+        file_pathname = event.FT_content.file_props.file_name
+        # avoid sending non-encrypted file in case of an error later
+        event.FT_content.file_props.file_name = ''
+        event.FT_content.file_props.size = 0
+
+        try:
+            desc_tag = event.jingle_content.getTag('description')
+            offer_tag = desc_tag.getTag('offer')
+            file_tag = offer_tag.getTag('file')
+        except Exception as e:
+            log.debug('Failed to find description or offer or file tag')
+            log.debug(e)
+            return
+
+        msg_dict = state.create_msg(
+            gajim.get_jid_from_account(account), to_jid, '')
+        if not msg_dict:
+            return
+
+        key = msg_dict['key']
+        iv = msg_dict['iv']
+
+        sid = unicode(event.stanza.getTag('jingle').getAttr('sid'))
+
+        try:
+            in_file = open(file_pathname, "rb")
+            payload = in_file.read()
+            in_file.close()
+        except Exception as e:
+            log.debug('Failed opening file %s for encryption', file_pathname)
+            log.debug(e)
+            return
+        try:
+            cipherdata, tag = encrypt(key, iv, payload)
+            cipherdata += tag
+        except Exception as e:
+            log.debug('Failed encrypting file')
+            log.debug(e)
+            return
+        try:
+            path = os.path.dirname(file_pathname)
+            name = os.path.basename(file_pathname)
+            out_tmpfile_fd, out_tmpfile_pathname = tempfile.mkstemp(dir=path, prefix=name+'.', suffix='.encrypted')
+            log.debug('Saving encrypted original file %s as temporary file %s', file_pathname, out_tmpfile_pathname)
+        except Exception as e:
+            log.debug('Failed to create temporary file %s', out_tmpfile_pathname)
+            log.debug(e)
+            return
+        try:
+            out_tmpfile = os.fdopen(out_tmpfile_fd, 'wb')
+            out_tmpfile.write(cipherdata)
+            os.fsync(out_tmpfile_fd)
+            out_tmpfile.close()
+            file_size = os.stat(out_tmpfile_pathname).st_size
+            event.FT_content.file_props.file_name = out_tmpfile_pathname
+            event.FT_content.file_props.size = file_size
+            log.debug('Will send this temporary file instead of the original one')
+        except Exception as e:
+            log.debug('Failed to save encrypted data into temporary file')
+            log.debug(e)
+            os.unlink(out_tmpfile_pathname)
+            return
+        encrypted_node = OmemoMessage(msg_dict)
+        # self.print_msg_to_log(event.stanza) # original
+        file_tag.delChild('name')
+        file_tag.delChild('date')
+        file_tag.delChild('size')
+        try:
+            file_tag.delChild('hash')
+        except ValueError:
+            log.debug('No hash was present')
+            pass
+        file_tag.delChild('desc')
+        node = Node(tag='name')
+        node.addData(gajim.get_an_id() + os.path.splitext(file_pathname)[1])
+        file_tag.addChild(node=node)
+        node = Node(tag='size')
+        node.addData(file_size)
+        file_tag.addChild(node=node)
+        node = Node(tag='desc')
+        file_tag.addChild(node=node)
+        file_tag.addChild(node=encrypted_node)
+        self.print_msg_to_log(event.stanza) # replaced
 
     def room_memberlist_received(self, event):
         account = event.conn.name
