@@ -64,6 +64,7 @@ First, Thanks for that! Here is how to do that:
  * [ServerStatusIconsPlugin](https://dev.gajim.org/gajim/gajim-plugins/wikis/ServerStatusIconsPlugin) Replace standard Gajim status icons with server specific for known XMPP server accounts.
  * [SetLocationPlugin](https://dev.gajim.org/gajim/gajim-plugins/wikis/SetLocationPlugin) Allows you to manually specify your geographical location.
  * [SnarlNotifications](https://dev.gajim.org/gajim/gajim-plugins/wikis/SnarlNotifications) Shows events notification using [Snarl](http://snarl.fullphat.net/) under Microsoft Windows.
+ * [SyntaxHighlightPlugin](https://dev.gajim.org/gajim/gajim-plugins/wikis/syntaxhighlightplugin) Highlights Code in the Chat Window for many languages.
  * [TictactoePlugin](https://dev.gajim.org/gajim/gajim-plugins/wikis/TictactoePlugin) Play Tic tac toe with your contacts.
  * [TriggersPlugin](https://dev.gajim.org/gajim/gajim-plugins/wikis/TriggersPlugin) Configure Gajim's behaviour when receiving some events.
  * [ThemeSwitcherPlugin](https://dev.gajim.org/gajim/gajim-plugins/wikis/ThemeSwitcherPlugin) Change the active GTK+ theme.
