@@ -68,7 +68,7 @@ class PluginInstaller(GajimPlugin):
     @log_calls('PluginInstallerPlugin')
     def init(self):
         self.config_dialog = PluginInstallerPluginConfigDialog(self)
-        self.config_default_values = {'ftp_server': ('https://ftp.gajim.org', ''),
+        self.config_default_values = {'http_server': ('https://ftp.gajim.org', ''),
                                       'check_update': (True, ''),
                                       }
         self.window = None
@@ -126,11 +126,16 @@ class PluginInstaller(GajimPlugin):
             plugins.add(config)
 
     def retrieve_path(self, directory, fname):
-        location = posixpath.join(directory, fname)
-        uri = urlparse.urljoin(self.config['ftp_server'], location)
-        if urlparse.urlparse(uri).scheme != 'https':
+        server = self.config['http_server']
+        if not server:
+            server = self.config_default_values['http_server'][0]
+        if not urlparse.urlparse(server).scheme:
+            server = 'https://' + server
+        if urlparse.urlparse(server).scheme != 'https':
             log.warn('Warning: not using HTTPS is a '
                      'very serious security issue!')
+        location = posixpath.join(directory, fname)
+        uri = urlparse.urljoin(server, location)
         log.debug('Fetching {}'.format(uri))
         request = urllib2.urlopen(uri)
         manifest_buffer = io.BytesIO(request.read())
@@ -614,9 +619,11 @@ class Ftp(threading.Thread):
             gobject.idle_add(self.progressbar.set_text,
                 _('Downloading "%s"') % filename)
             try:
-                buf = self.plugin.retrieve_path(self.plugin.server_folder, filename)
-            except ftplib.error_perm:
-                print 'ERROR: cannot read file "%s"' % filename
+                buf = self.plugin.retrieve_path(self.plugin.server_folder,
+                                                filename)
+            except:
+                log.exception("Error downloading plugin %s" % filename)
+                continue
             with zipfile.ZipFile(buf) as zip_file:
                 zip_file.extractall(os.path.join(local_dir, 'plugins'))
 
@@ -639,14 +646,14 @@ class PluginInstallerPluginConfigDialog(GajimPluginConfigDialog):
         self.connect('hide', self.on_hide)
 
     def on_run(self):
-        widget = self.xml.get_object('ftp_server')
-        widget.set_text(str(self.plugin.config['ftp_server']))
+        widget = self.xml.get_object('http_server')
+        widget.set_text(str(self.plugin.config['http_server']))
         self.xml.get_object('check_update').set_active(
             self.plugin.config['check_update'])
 
     def on_hide(self, widget):
-        widget = self.xml.get_object('ftp_server')
-        self.plugin.config['ftp_server'] = widget.get_text()
+        widget = self.xml.get_object('http_server')
+        self.plugin.config['http_server'] = widget.get_text()
 
     def on_check_update_toggled(self, widget):
         self.plugin.config['check_update'] = widget.get_active()
