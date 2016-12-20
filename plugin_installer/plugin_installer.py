@@ -115,35 +115,55 @@ class PluginInstaller(GajimPlugin):
             con.login()
         return con
 
+    def parse_manifest(self, buf):
+        '''
+        given the buffer of the zipfile, returns the list of plugin manifests
+        '''
+        zip_file = zipfile.ZipFile(buf)
+        manifest_list = zip_file.namelist()
+        plugins = []
+        for filename in manifest_list:
+            config = ConfigParser.ConfigParser()
+            config.readfp(zip_file.open(filename))
+            if not config.has_section('info'):
+                continue
+            plugins.add(config)
+
+    def retrieve_path(self, directory, fname):
+        con = self.ftp_connect()
+        con.cwd(directory)
+        manifest_buffer = io.BytesIO()
+
+        def dl_handler(block):
+            manifest_buffer.write(block)
+        con.retrbinary('RETR %s' % fname, dl_handler)
+        con.quit()
+        return manifest_buffer
+
+    def retrieve_manifest(self):
+        return self.retrieve_path(self.server_folder, 'manifests.zip')
+
     @log_calls('PluginInstallerPlugin')
     def check_update(self):
         def _run():
             try:
                 to_update = []
-                con = self.ftp_connect()
-                con.cwd(self.server_folder)
-                con.retrbinary('RETR manifests.zip', ftp.handleDownload)
-                zip_file = zipfile.ZipFile(ftp.buffer_)
-                manifest_list = zip_file.namelist()
-                for filename in manifest_list:
-                    config = ConfigParser.ConfigParser()
-                    config.readfp(zip_file.open(filename))
-                    if not config.has_section('info'):
-                        continue
+                zipbuf = self.retrieve_manifest()
+                plugin_manifests = self.parse_manifest(zipbuf)
+                for config in plugin_manifests:
                     opts = config.options('info')
                     if 'name' not in opts or 'version' not in opts or \
-                    'description' not in opts or 'authors' not in opts or \
-                    'homepage' not in opts:
+                       'description' not in opts or 'authors' not in opts or \
+                       'homepage' not in opts:
                         continue
                     local_version = ftp.get_plugin_version(config.get(
                         'info', 'name'))
                     if local_version:
                         local = convert_version_to_list(local_version)
                         remote = convert_version_to_list(config.get('info',
-                            'version'))
+                                                                    'version'))
                         if remote > local:
                             to_update.append(config.get('info', 'name'))
-                con.quit()
                 gobject.idle_add(self.warn_update, to_update)
             except Exception, e:
                 log.debug('Ftp error when check updates: %s' % str(e))
