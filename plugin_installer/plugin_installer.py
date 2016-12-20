@@ -32,6 +32,7 @@ import urllib2
 import urlparse
 import posixpath
 import traceback
+import ssl
 
 import gtk
 import pango
@@ -139,11 +140,22 @@ class PluginInstaller(GajimPlugin):
         uri = urlparse.urljoin(server, location)
         log.debug('Fetching {}'.format(uri))
         ssl_args = {}
-        if 'cafile' in inspect.getargspec(urllib2.urlopen).args:
-            log.info('You are using HTTPS CA pinning, very good!')
-            ssl_args['cafile'] = self.local_file_path('DST_Root_CA_X3.pem')
-        else:
-            log.warning('Your python version does not support HTTPS CA pinning')
+        if hasattr(ssl, 'create_default_context'):
+            if 'cafile' in inspect.getargspec(ssl.create_default_context).args:
+                ssl_args['context'] = ssl.create_default_context(
+                    cafile=self.local_file_path('DST_Root_CA_X3.pem'))
+            else:
+                log.warning('Your python version does not '
+                            'support HTTPS CA pinning')
+                ssl_args['context'] = ssl.create_default_context()
+
+            for flag in ('OP_NO_SSLv2', 'OP_NO_SSLv3',
+                         'OP_NO_TLSv1', 'OP_NO_TLSv1_1',
+                         'OP_NO_COMPRESSION',
+                         ):
+                log.debug('Installer SSL: +%s' % flag)
+                if hasattr(ssl, flag):
+                    ssl_args['context'].options |= getattr(ssl, flag)
         request = urllib2.urlopen(uri, **ssl_args)
 
         manifest_buffer = io.BytesIO(request.read())
