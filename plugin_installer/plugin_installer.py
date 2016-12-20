@@ -537,9 +537,13 @@ class Ftp(threading.Thread):
                 _('Connecting to server'))
             if not self.remote_dirs:
                 gobject.idle_add(self.progressbar.set_text,
-                    _('Scan files on the server'))
-                zip_file = zipfile.ZipFile(self.plugin.retrieve_path(self.plugin.server_folder,
-                                                              'manifests_images.zip'))
+                                 _('Scan files on the server'))
+                try:
+                    buf = self.plugin.retrieve_path(self.plugin.server_folder, 'manifests_images.zip')
+                except:
+                    log.exception("Error fetching plugin list")
+                    return
+                zip_file = zipfile.ZipFile(buf)
                 manifest_list = zip_file.namelist()
                 progress_step = 1.0 / len(manifest_list)
                 for filename in manifest_list:
@@ -610,14 +614,14 @@ class Ftp(threading.Thread):
             base_dir, user_dir = gajim.PLUGINS_DIRS
             if not os.path.isdir(user_dir):
                 os.mkdir(user_dir)
-            local_dir = ld = os.path.join(user_dir, remote_dir)
+            local_dir = os.path.join(user_dir, remote_dir)
             if not os.path.isdir(local_dir):
                 os.mkdir(local_dir)
             local_dir = os.path.split(user_dir)[0]
 
             # downloading zip file
             gobject.idle_add(self.progressbar.set_text,
-                _('Downloading "%s"') % filename)
+                             _('Downloading "%s"') % filename)
             try:
                 buf = self.plugin.retrieve_path(self.plugin.server_folder,
                                                 filename)
@@ -628,7 +632,7 @@ class Ftp(threading.Thread):
                 zip_file.extractall(os.path.join(local_dir, 'plugins'))
 
         gobject.idle_add(self.window.emit, 'plugin_downloaded',
-            self.remote_dirs)
+                         self.remote_dirs)
         gobject.source_remove(self.pulse)
 
 
