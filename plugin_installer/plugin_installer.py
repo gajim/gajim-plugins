@@ -19,10 +19,6 @@
 ## You should have received a copy of the GNU General Public License
 ## along with Gajim. If not, see <http://www.gnu.org/licenses/>.
 ##
-import gtk
-import pango
-import gobject
-import ftplib
 import io
 import threading
 import ConfigParser
@@ -30,6 +26,11 @@ import os
 import fnmatch
 import sys
 import zipfile
+
+import gtk
+import pango
+import gobject
+import ftplib
 
 from common import gajim
 from plugins import GajimPlugin
