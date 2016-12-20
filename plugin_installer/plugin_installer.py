@@ -26,6 +26,7 @@ import os
 import fnmatch
 import sys
 import zipfile
+import inspect
 
 import gtk
 import pango
@@ -108,7 +109,14 @@ class PluginInstaller(GajimPlugin):
 
     def ftp_connect(self):
         if sys.version_info[:2] > (2, 6) and self.config['TLS'] :
-            con = ftplib.FTP_TLS(self.config['ftp_server'])
+            # context argument added in python 2.7.9
+            if 'context' in inspect.getargspec(ftplib.FTP_TLS.__init__).args:
+                import ssl
+                log.info('we are using context')
+                con = ftplib.FTP_TLS(self.config['ftp_server'],
+                                     context=ssl.create_default_context())
+            else:
+                con = ftplib.FTP_TLS(self.config['ftp_server'])
             con.login()
             con.prot_p()
         else:
