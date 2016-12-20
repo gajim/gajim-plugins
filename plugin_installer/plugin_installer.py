@@ -19,6 +19,7 @@
 ## You should have received a copy of the GNU General Public License
 ## along with Gajim. If not, see <http://www.gnu.org/licenses/>.
 ##
+
 import io
 import threading
 import ConfigParser
@@ -27,11 +28,14 @@ import fnmatch
 import sys
 import zipfile
 import inspect
+import urllib2
+import urlparse
+import posixpath
+import traceback
 
 import gtk
 import pango
 import gobject
-import ftplib
 
 from common import gajim
 from plugins import GajimPlugin
@@ -64,9 +68,9 @@ class PluginInstaller(GajimPlugin):
     @log_calls('PluginInstallerPlugin')
     def init(self):
         self.config_dialog = PluginInstallerPluginConfigDialog(self)
-        self.config_default_values = {'ftp_server': ('ftp.gajim.org', ''),
+        self.config_default_values = {'ftp_server': ('https://ftp.gajim.org', ''),
                                       'check_update': (True, ''),
-                                      'TLS': (True, ''),}
+                                      }
         self.window = None
         self.progressbar = None
         self.available_plugins_model = None
@@ -107,23 +111,6 @@ class PluginInstaller(GajimPlugin):
                 ' your installer plugins. Do you want to update those plugins:'
                 '\n%s') % plugins_str, on_response_yes=open_update)
 
-    def ftp_connect(self):
-        if sys.version_info[:2] > (2, 6) and self.config['TLS'] :
-            # context argument added in python 2.7.9
-            if 'context' in inspect.getargspec(ftplib.FTP_TLS.__init__).args:
-                import ssl
-                log.info('we are using context')
-                con = ftplib.FTP_TLS(self.config['ftp_server'],
-                                     context=ssl.create_default_context())
-            else:
-                con = ftplib.FTP_TLS(self.config['ftp_server'])
-            con.login()
-            con.prot_p()
-        else:
-            con = ftplib.FTP(self.config['ftp_server'])
-            con.login()
-        return con
-
     def parse_manifest(self, buf):
         '''
         given the buffer of the zipfile, returns the list of plugin manifests
@@ -139,14 +126,15 @@ class PluginInstaller(GajimPlugin):
             plugins.add(config)
 
     def retrieve_path(self, directory, fname):
-        con = self.ftp_connect()
-        con.cwd(directory)
-        manifest_buffer = io.BytesIO()
+        location = posixpath.join(directory, fname)
+        uri = urlparse.urljoin(self.config['ftp_server'], location)
+        if urlparse.urlparse(uri).scheme != 'https':
+            log.warn('Warning: not using HTTPS is a '
+                     'very serious security issue!')
+        log.debug('Fetching {}'.format(uri))
+        request = urllib2.urlopen(uri)
+        manifest_buffer = io.BytesIO(request.read())
 
-        def dl_handler(block):
-            manifest_buffer.write(block)
-        con.retrbinary('RETR %s' % fname, dl_handler)
-        con.quit()
         return manifest_buffer
 
     def retrieve_manifest(self):
@@ -338,6 +326,8 @@ class PluginInstaller(GajimPlugin):
         for i in xrange(len(self.available_plugins_model)):
             self.available_plugins_model[i][C_UPGRADE] = False
         self.progressbar.hide()
+        log.error(error_text)
+        traceback.print_exc()
         WarningDialog(_('Ftp error'), error_text, self.window)
 
     def on_plugin_downloaded(self, widget, plugin_dirs):
@@ -598,7 +588,6 @@ class Ftp(threading.Thread):
                         config.get('info', 'description'),
                         config.get('info', 'authors'),
                         config.get('info', 'homepage'), ])
-                self.ftp.quit()
             gobject.idle_add(self.progressbar.set_fraction, 0)
             if self.remote_dirs:
                 self.download_plugin()
@@ -654,7 +643,6 @@ class PluginInstallerPluginConfigDialog(GajimPluginConfigDialog):
         widget.set_text(str(self.plugin.config['ftp_server']))
         self.xml.get_object('check_update').set_active(
             self.plugin.config['check_update'])
-        self.xml.get_object('TLS').set_active(self.plugin.config['TLS'])
 
     def on_hide(self, widget):
         widget = self.xml.get_object('ftp_server')
@@ -662,6 +650,3 @@ class PluginInstallerPluginConfigDialog(GajimPluginConfigDialog):
 
     def on_check_update_toggled(self, widget):
         self.plugin.config['check_update'] = widget.get_active()
-
-    def on_tls_toggled(self, widget):
-        self.plugin.config['TLS'] = widget.get_active()

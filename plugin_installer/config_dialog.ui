@@ -284,21 +284,6 @@
             <property name="position">1</property>
           </packing>
         </child>
-        <child>
-          <object class="GtkCheckButton" id="TLS">
-            <property name="label" translatable="yes">Use TLS transport</property>
-            <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <property name="receives_default">False</property>
-            <property name="focus_on_click">False</property>
-            <property name="draw_indicator">True</property>
-            <signal name="toggled" handler="on_tls_toggled"/>
-          </object>
-          <packing>
-            <property name="expand">False</property>
-            <property name="position">2</property>
-          </packing>
-        </child>
       </object>
     </child>
   </object>
