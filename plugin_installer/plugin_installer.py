@@ -507,7 +507,6 @@ class Ftp(threading.Thread):
         self.window = plugin.window
         self.progressbar = plugin.progressbar
         self.model = plugin.available_plugins_model
-        self.buffer_ = io.BytesIO()
         self.remote_dirs = None
         self.append_to_model = True
         self.upgrading = False
@@ -532,13 +531,11 @@ class Ftp(threading.Thread):
         try:
             gobject.idle_add(self.progressbar.set_text,
                 _('Connecting to server'))
-            self.ftp = self.plugin.ftp_connect()
-            self.ftp.cwd(self.plugin.server_folder)
             if not self.remote_dirs:
                 gobject.idle_add(self.progressbar.set_text,
                     _('Scan files on the server'))
-                self.ftp.retrbinary('RETR manifests_images.zip', self.handleDownload)
-                zip_file = zipfile.ZipFile(self.buffer_)
+                zip_file = zipfile.ZipFile(self.plugin.retrieve_path(self.plugin.server_folder,
+                                                              'manifests_images.zip'))
                 manifest_list = zip_file.namelist()
                 progress_step = 1.0 / len(manifest_list)
                 for filename in manifest_list:
@@ -601,9 +598,6 @@ class Ftp(threading.Thread):
         except Exception, e:
             self.window.emit('error_signal', str(e))
 
-    def handleDownload(self, block):
-        self.buffer_.write(block)
-
     def download_plugin(self):
         gobject.idle_add(self.progressbar.show)
         self.pulse = gobject.timeout_add(150, self.progressbar_pulse)
@@ -621,15 +615,13 @@ class Ftp(threading.Thread):
             # downloading zip file
             gobject.idle_add(self.progressbar.set_text,
                 _('Downloading "%s"') % filename)
-            self.buffer_ = io.BytesIO()
             try:
-                self.ftp.retrbinary('RETR %s' % filename, self.handleDownload)
+                buf = self.plugin.retrieve_path(self.plugin.server_folder, filename)
             except ftplib.error_perm:
                 print 'ERROR: cannot read file "%s"' % filename
-            with zipfile.ZipFile(self.buffer_) as zip_file:
+            with zipfile.ZipFile(buf) as zip_file:
                 zip_file.extractall(os.path.join(local_dir, 'plugins'))
 
-        self.ftp.quit()
         gobject.idle_add(self.window.emit, 'plugin_downloaded',
             self.remote_dirs)
         gobject.source_remove(self.pulse)
