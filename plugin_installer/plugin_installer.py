@@ -406,7 +406,7 @@ class PluginInstaller(GajimPlugin):
             self.plugin_homepage_linkbutton1.set_property('sensitive', True)
             desc = _(model.get_value(iter, C_DESCRIPTION))
             if not desc.startswith('<body '):
-                desc = '<body  xmlns=\'http://www.w3.org/1999/xhtml\'>' + \
+                desc = "<body  xmlns='http://www.w3.org/1999/xhtml'>" + \
                     desc + ' </body>'
                 desc = desc.replace('\n', '<br/>')
             self.plugin_description_textview.display_html(desc,
