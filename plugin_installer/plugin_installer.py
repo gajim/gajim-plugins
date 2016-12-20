@@ -138,7 +138,14 @@ class PluginInstaller(GajimPlugin):
         location = posixpath.join(directory, fname)
         uri = urlparse.urljoin(server, location)
         log.debug('Fetching {}'.format(uri))
-        request = urllib2.urlopen(uri)
+        ssl_args = {}
+        if 'cafile' in inspect.getargspec(urllib2.urlopen).args:
+            log.info('You are using HTTPS CA pinning, very good!')
+            ssl_args['cafile'] = self.local_file_path('DST_Root_CA_X3.pem')
+        else:
+            log.warning('Your python version does not support HTTPS CA pinning')
+        request = urllib2.urlopen(uri, **ssl_args)
+
         manifest_buffer = io.BytesIO(request.read())
 
         return manifest_buffer
