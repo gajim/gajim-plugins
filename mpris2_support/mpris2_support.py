@@ -9,8 +9,15 @@ from plugins.helpers import log_calls
 from plugins.plugin import GajimPluginException
 from common import dbus_support
 
+ERR_MSG = ''
+
 if dbus_support.supported:
     from music_track_listener import MusicTrackListener
+else:
+    ERR_MSG = 'D-Bus Python bindings are missing'
+
+if os.name == 'nt':
+    ERR_MSG = 'Plugin can\'t be run under Windows.'
 
 
 class MusicTrackInfo(object):
@@ -24,11 +31,12 @@ class Mpris2Plugin(GajimPlugin):
         self.description = _('MPRIS2 support. Allows to update status message '
         'according to the music you\'re listening via the MPRIS2 D-Bus API.')
         self.config_dialog = None
+        if ERR_MSG:
+            self.available_text = ERR_MSG
+            self.activatable = False
+            return
         self.artist = self.title = self.source = ''
         self.listener = MusicTrackListener().get()
-        if os.name == 'nt':
-            self.available_text = _('Plugin can\'t be run under Windows.')
-            self.activatable = False
 
     @log_calls('NowListenPlugin')
     def activate(self):
