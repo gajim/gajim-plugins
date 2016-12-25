@@ -1,12 +1,9 @@
 # -*- coding: utf-8 -*-
 
-
 import os
 
-from common import gajim
 from plugins import GajimPlugin
 from plugins.helpers import log_calls
-from plugins.plugin import GajimPluginException
 from common import dbus_support
 
 ERR_MSG = ''
