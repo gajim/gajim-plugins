@@ -123,7 +123,8 @@ class PluginInstaller(GajimPlugin):
             config.readfp(zip_file.open(filename))
             if not config.has_section('info'):
                 continue
-            plugins.add(config)
+            plugins.append(config)
+        return plugins
 
     def retrieve_path(self, directory, fname):
         server = self.config['http_server']
@@ -167,8 +168,8 @@ class PluginInstaller(GajimPlugin):
                         if remote > local:
                             to_update.append(config.get('info', 'name'))
                 gobject.idle_add(self.warn_update, to_update)
-            except Exception, e:
-                log.debug('Ftp error when check updates: %s' % str(e))
+            except Exception as e:
+                log.exception('Ftp error when check for updates: ')
         ftp = Ftp(self)
         ftp.run = _run
         ftp.start()
