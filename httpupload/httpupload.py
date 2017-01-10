@@ -282,13 +282,10 @@ class Base(object):
         account = self.chat_control.account
         for plugin in gajim.plugin_manager.active_plugins:
             if type(plugin).__name__ == 'OmemoPlugin':
-                omemo = plugin
-                break
-        if omemo:
-            state = omemo.get_omemo_state(account)
-            log.info('Encryption is: ' +
-                      str(state.encryption.is_active(jid)))
-            return state.encryption.is_active(jid)
+                state = plugin.get_omemo_state(account)
+                log.info('Encryption is: ' +
+                          str(state.encryption.is_active(jid)))
+                return state.encryption.is_active(jid)
         log.info('Encryption is: False / OMEMO not found')
         return False
 
