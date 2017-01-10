@@ -378,8 +378,12 @@ class Base(object):
                 return
 
             def upload_complete(response_code):
-                if response_code == 0:
-                    return      # Upload was aborted
+                if isinstance(response_code, str):
+                    # We got a error Message
+                    ErrorDialog(
+                        _('Error'), response_code,
+                        transient_for=self.chat_control.parent_win.window)
+                    return
                 if response_code >= 200 and response_code < 300:
                     log.info("Upload completed successfully")
                     xhtml = None
@@ -475,15 +479,10 @@ class Base(object):
                     transfer = urllib2.urlopen(request, timeout=30)
                     log.debug("urllib2 upload request done, response code: " + str(transfer.getcode()))
                     return transfer.getcode()
-                except UploadAbortedException:
-                    log.info("Upload aborted")
-                except:
-                    progress_window.close_dialog()
-                    ErrorDialog(_('Could not upload file'),
-                                _('Got unexpected exception while uploading file (see error log for more information)'),
-                                transient_for=self.chat_control.parent_win.window)
-                    raise       # fill error log with useful information
-                return 0
+                except Exception as error:
+                    gobject.idle_add(progress_window.close_dialog)
+                    log.exception('Error')
+                return str(error)
 
             log.info("Uploading file to '%s'..." % str(put.getData()))
             log.info("Please download from '%s' later..." % str(get.getData()))
