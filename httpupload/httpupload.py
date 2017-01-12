@@ -334,20 +334,26 @@ class Base(object):
         progress_messages = Queue(8)
         event = threading.Event()
         progress_window = ProgressWindow(_('HTTP Upload'), _('Requesting HTTP Upload Slot...'), progress_messages, self.plugin, event)
+
         def upload_file(stanza):
-            slot = stanza.getTag("slot")
-            if not slot:
+            if stanza.getType() == 'error':
+                ErrorDialog(_('Could not request upload slot'),
+                            stanza.getErrorMsg(),
+                            transient_for=self.chat_control.parent_win.window)
+                log.error(stanza)
                 progress_window.close_dialog()
-                log.error("got unexpected stanza: "+str(stanza))
-                error = stanza.getTag("error")
-                if error and error.getTag("text"):
-                    ErrorDialog(_('Could not request upload slot'), 
-                                _('Got unexpected response from server: %s') % str(error.getTagData("text")),
-                                transient_for=self.chat_control.parent_win.window)
-                else:
-                    ErrorDialog(_('Could not request upload slot'), 
-                                _('Got unexpected response from server (protocol mismatch??)'),
-                                transient_for=self.chat_control.parent_win.window)
+                return
+
+            slot = stanza.getTag("slot")
+            if slot:
+                put = slot.getTag("put")
+                get = slot.getTag("get")
+            else:
+                progress_window.close_dialog()
+                log.error("got unexpected stanza: " + str(stanza))
+                ErrorDialog(_('Could not request upload slot'),
+                            _('Got unexpected response from server (see log)'),
+                            transient_for=self.chat_control.parent_win.window)
                 return
 
             try:
@@ -368,16 +374,6 @@ class Base(object):
                             _('Exception raised while opening file (see error log for more information)'),
                             transient_for=self.chat_control.parent_win.window)
                 raise       # fill error log with useful information
-
-            put = slot.getTag("put")
-            get = slot.getTag("get")
-            if not put or not get:
-                progress_window.close_dialog()
-                log.error("got unexpected stanza: " + str(stanza))
-                ErrorDialog(_('Could not request upload slot'), 
-                            _('Got unexpected response from server (protocol mismatch??)'),
-                            transient_for=self.chat_control.parent_win.window)
-                return
 
             def upload_complete(response_code):
                 if isinstance(response_code, str):
