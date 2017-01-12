@@ -619,6 +619,7 @@ class ProgressWindow:
         self.xml = gtkgui_helpers.get_gtk_builder(self.plugin.local_file_path('upload_progress_dialog.ui'))
         self.messages_queue = messages_queue
         self.dialog = self.xml.get_object('progress_dialog')
+        self.dialog.set_transient_for(plugin.chat_control.parent_win.window)
         self.label = self.xml.get_object('label')
         self.cancel_button = self.xml.get_object('close_button')
         self.label.set_markup('<big>' + during_text + '</big>')
