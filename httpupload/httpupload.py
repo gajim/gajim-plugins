@@ -623,7 +623,6 @@ class ProgressWindow:
         self.progressbar.set_text("")
         self.dialog.set_title(title_text)
         self.dialog.set_geometry_hints(min_width=400, min_height=96)
-        self.dialog.set_position(gtk.WIN_POS_CENTER_ON_PARENT)
         self.dialog.show_all()
         self.xml.connect_signals(self)
 

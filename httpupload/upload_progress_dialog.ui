@@ -5,6 +5,7 @@
   <object class="GtkDialog" id="progress_dialog">
     <property name="can_focus">True</property>
     <property name="resizable">False</property>
+    <property name="window_position">center-on-parent</property>
     <property name="icon_name">upload-media</property>
     <property name="type_hint">dialog</property>
     <signal name="delete-event" handler="on_progress_dialog_delete_event" swapped="no"/>
