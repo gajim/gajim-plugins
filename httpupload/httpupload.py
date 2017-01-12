@@ -479,6 +479,8 @@ class Base(object):
                     transfer = urllib2.urlopen(request, timeout=30)
                     log.debug("urllib2 upload request done, response code: " + str(transfer.getcode()))
                     return transfer.getcode()
+                except UploadAbortedException as error:
+                    log.info('Upload Aborted')
                 except Exception as error:
                     gobject.idle_add(progress_window.close_dialog)
                     log.exception('Error')
