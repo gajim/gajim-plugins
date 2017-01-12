@@ -622,7 +622,6 @@ class ProgressWindow:
         self.progressbar = self.xml.get_object('progressbar')
         self.progressbar.set_text("")
         self.dialog.set_title(title_text)
-        self.dialog.set_geometry_hints(min_width=400, min_height=96)
         self.dialog.show_all()
         self.xml.connect_signals(self)
 

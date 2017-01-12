@@ -11,6 +11,7 @@
     <signal name="delete-event" handler="on_progress_dialog_delete_event" swapped="no"/>
     <child internal-child="vbox">
       <object class="GtkBox" id="dialog-vbox">
+        <property name="width_request">250</property>
         <property name="visible">True</property>
         <property name="can_focus">False</property>
         <property name="orientation">vertical</property>
