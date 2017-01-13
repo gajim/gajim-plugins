@@ -333,7 +333,7 @@ class Base(object):
         log.info("Detected MIME Type of file: " + str(mime_type))
         progress_messages = Queue(8)
         event = threading.Event()
-        progress_window = ProgressWindow(_('HTTP Upload'), _('Requesting HTTP Upload Slot...'), progress_messages, self.plugin, event)
+        progress_window = ProgressWindow(_('Requesting HTTP Upload Slot...'), progress_messages, self.plugin, event)
 
         def upload_file(stanza):
             if stanza.getType() == 'error':
@@ -613,7 +613,7 @@ class StreamFileWithProgress(file):
 
 
 class ProgressWindow:
-    def __init__(self, title_text, during_text, messages_queue, plugin, event):
+    def __init__(self, during_text, messages_queue, plugin, event):
         self.plugin = plugin
         self.event = event
         self.xml = gtkgui_helpers.get_gtk_builder(self.plugin.local_file_path('upload_progress_dialog.ui'))
@@ -624,7 +624,6 @@ class ProgressWindow:
         self.label.set_markup('<big>' + during_text + '</big>')
         self.progressbar = self.xml.get_object('progressbar')
         self.progressbar.set_text("")
-        self.dialog.set_title(title_text)
         self.dialog.show_all()
         self.xml.connect_signals(self)
 

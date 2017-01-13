@@ -4,6 +4,7 @@
   <requires lib="gtk+" version="2.16"/>
   <object class="GtkDialog" id="progress_dialog">
     <property name="can_focus">True</property>
+    <property name="title" translatable="yes">HTTP Upload</property>
     <property name="resizable">False</property>
     <property name="window_position">center-on-parent</property>
     <property name="destroy_with_parent">True</property>
