@@ -237,7 +237,9 @@ class OmemoState:
             try:
                 if self.isTrusted(jid, device) == TRUSTED:
                     cipher = self.get_session_cipher(jid, device)
-                    encrypted_keys[device] = cipher.encrypt(key).serialize()
+                    cipher_key = cipher.encrypt(key)
+                    prekey = isinstance(cipher_key, PreKeyWhisperMessage)
+                    encrypted_keys[device] = (cipher_key.serialize(), prekey)
                 else:
                     log.debug('Skipped Device because Trust is: ' +
                               str(self.isTrusted(jid, device)))
@@ -254,7 +256,9 @@ class OmemoState:
             try:
                 if self.isTrusted(from_jid, device) == TRUSTED:
                     cipher = self.get_session_cipher(from_jid, device)
-                    encrypted_keys[device] = cipher.encrypt(key).serialize()
+                    cipher_key = cipher.encrypt(key)
+                    prekey = isinstance(cipher_key, PreKeyWhisperMessage)
+                    encrypted_keys[device] = (cipher_key.serialize(), prekey)
                 else:
                     log.debug('Skipped own Device because Trust is: ' +
                               str(self.isTrusted(from_jid, device)))
@@ -302,8 +306,9 @@ class OmemoState:
             for rid, cipher in self.session_ciphers[jid_to].items():
                 try:
                     if self.isTrusted(jid_to, rid) == TRUSTED:
-                        encrypted_keys[rid] = cipher.encrypt(key). \
-                            serialize()
+                        cipher_key = cipher.encrypt(key)
+                        prekey = isinstance(cipher_key, PreKeyWhisperMessage)
+                        encrypted_keys[rid] = (cipher_key.serialize(), prekey)
                     else:
                         log.debug('Skipped Device because Trust is: ' +
                                   str(self.isTrusted(jid_to, rid)))
@@ -323,7 +328,9 @@ class OmemoState:
             try:
                 cipher = self.get_session_cipher(from_jid, dev)
                 if self.isTrusted(from_jid, dev) == TRUSTED:
-                    encrypted_keys[dev] = cipher.encrypt(key).serialize()
+                    cipher_key = cipher.encrypt(key)
+                    prekey = isinstance(cipher_key, PreKeyWhisperMessage)
+                    encrypted_keys[dev] = (cipher_key.serialize(), prekey)
                 else:
                     log.debug('Skipped own Device because Trust is: ' +
                               str(self.isTrusted(from_jid, dev)))
