@@ -226,6 +226,12 @@ class OmemoState:
             log.error('No known devices')
             return
 
+        payload, tag = encrypt(key, iv, plaintext)
+
+        # for XEP-384 Compliance uncomment
+        # key += tag
+        payload += tag
+
         # Encrypt the message key with for each of receivers devices
         for device in devices_list:
             try:
@@ -255,8 +261,6 @@ class OmemoState:
             except:
                 log.warning('Failed to find key for device ' + str(device))
 
-        payload = encrypt(key, iv, plaintext)
-
         result = {'sid': self.own_device_id,
                   'keys': encrypted_keys,
                   'jid': jid,
@@ -278,6 +282,12 @@ class OmemoState:
         if len(devices_list) == 0:
             log.error('No known devices')
             return
+
+        payload, tag = encrypt(key, iv, plaintext)
+
+        # for XEP-384 Compliance uncomment
+        # key += tag
+        payload += tag
 
         for tup in devices_list:
             self.get_session_cipher(tup[0], tup[1])
@@ -320,8 +330,6 @@ class OmemoState:
             except:
                 log.exception('ERROR:')
                 log.warning('Failed to find key for device ' + str(dev))
-
-        payload = encrypt(key, iv, plaintext)
 
         result = {'sid': self.own_device_id,
                   'keys': encrypted_keys,
