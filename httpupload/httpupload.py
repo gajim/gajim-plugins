@@ -28,6 +28,7 @@ import tempfile
 import urllib2
 import mimetypes        # better use the magic packet, but that's not a standard lib
 import gtkgui_helpers
+import threading
 from Queue import Queue
 try:
     from PIL import Image
@@ -331,21 +332,28 @@ class Base(object):
             mime_type = 'application/octet-stream'  # fallback mime type
         log.info("Detected MIME Type of file: " + str(mime_type))
         progress_messages = Queue(8)
-        progress_window = ProgressWindow(_('HTTP Upload'), _('Requesting HTTP Upload Slot...'), progress_messages, self.plugin)
+        event = threading.Event()
+        progress_window = ProgressWindow(_('Requesting HTTP Upload Slot...'), progress_messages, self.plugin, event)
+
         def upload_file(stanza):
-            slot = stanza.getTag("slot")
-            if not slot:
+            if stanza.getType() == 'error':
+                ErrorDialog(_('Could not request upload slot'),
+                            stanza.getErrorMsg(),
+                            transient_for=self.chat_control.parent_win.window)
+                log.error(stanza)
                 progress_window.close_dialog()
-                log.error("got unexpected stanza: "+str(stanza))
-                error = stanza.getTag("error")
-                if error and error.getTag("text"):
-                    ErrorDialog(_('Could not request upload slot'), 
-                                _('Got unexpected response from server: %s') % str(error.getTagData("text")),
-                                transient_for=self.chat_control.parent_win.window)
-                else:
-                    ErrorDialog(_('Could not request upload slot'), 
-                                _('Got unexpected response from server (protocol mismatch??)'),
-                                transient_for=self.chat_control.parent_win.window)
+                return
+
+            slot = stanza.getTag("slot")
+            if slot:
+                put = slot.getTag("put")
+                get = slot.getTag("get")
+            else:
+                progress_window.close_dialog()
+                log.error("got unexpected stanza: " + str(stanza))
+                ErrorDialog(_('Could not request upload slot'),
+                            _('Got unexpected response from server (see log)'),
+                            transient_for=self.chat_control.parent_win.window)
                 return
 
             try:
@@ -354,28 +362,18 @@ class Base(object):
                     iv = os.urandom(16)
                     data = StreamFileWithProgress(path_to_file,
                                                   "rb",
-                                                  progress_window.update_progress,
+                                                  progress_window.update_progress, event,
                                                   self.encrypted_upload, key, iv)
                 else:
                     data = StreamFileWithProgress(path_to_file,
                                                   "rb",
-                                                  progress_window.update_progress)
+                                                  progress_window.update_progress, event)
             except:
                 progress_window.close_dialog()
                 ErrorDialog(_('Could not open file'), 
                             _('Exception raised while opening file (see error log for more information)'),
                             transient_for=self.chat_control.parent_win.window)
                 raise       # fill error log with useful information
-
-            put = slot.getTag("put")
-            get = slot.getTag("get")
-            if not put or not get:
-                progress_window.close_dialog()
-                log.error("got unexpected stanza: " + str(stanza))
-                ErrorDialog(_('Could not request upload slot'), 
-                            _('Got unexpected response from server (protocol mismatch??)'),
-                            transient_for=self.chat_control.parent_win.window)
-                return
 
             def upload_complete(response_code):
                 if isinstance(response_code, str):
@@ -479,6 +477,8 @@ class Base(object):
                     transfer = urllib2.urlopen(request, timeout=30)
                     log.debug("urllib2 upload request done, response code: " + str(transfer.getcode()))
                     return transfer.getcode()
+                except UploadAbortedException as error:
+                    log.info('Upload Aborted')
                 except Exception as error:
                     gobject.idle_add(progress_window.close_dialog)
                     log.exception('Error')
@@ -564,9 +564,10 @@ class Base(object):
 
 
 class StreamFileWithProgress(file):
-    def __init__(self, path, mode, callback=None,
+    def __init__(self, path, mode, callback, event,
                  encrypted_upload=False, key=None, iv=None, *args):
         file.__init__(self, path, mode)
+        self.event = event
         self.encrypted_upload = encrypted_upload
         self.seek(0, os.SEEK_END)
         if self.encrypted_upload:
@@ -590,6 +591,8 @@ class StreamFileWithProgress(file):
         return self._total
 
     def read(self, size):
+        if self.event.isSet():
+            raise UploadAbortedException
         if self.encrypted_upload:
             data = file.read(self, size)
             if len(data) > 0:
@@ -600,37 +603,32 @@ class StreamFileWithProgress(file):
                     data += self.encryptor.tag
                     self._seen += TAGSIZE
                 if self._callback:
-                    self._callback(self._seen, self._total, *self._args)
-            return data
+                    gobject.idle_add(self._callback, self._seen, self._total, *self._args)
         else:
             data = file.read(self, size)
             self._seen += len(data)
             if self._callback:
-                self._callback(self._seen, self._total, *self._args)
-            return data
+                gobject.idle_add(self._callback, self._seen, self._total, *self._args)
+        return data
 
 
 class ProgressWindow:
-    def __init__(self, title_text, during_text, messages_queue, plugin):
+    def __init__(self, during_text, messages_queue, plugin, event):
         self.plugin = plugin
+        self.event = event
         self.xml = gtkgui_helpers.get_gtk_builder(self.plugin.local_file_path('upload_progress_dialog.ui'))
         self.messages_queue = messages_queue
         self.dialog = self.xml.get_object('progress_dialog')
+        self.dialog.set_transient_for(plugin.chat_control.parent_win.window)
         self.label = self.xml.get_object('label')
-        self.cancel_button = self.xml.get_object('close_button')
         self.label.set_markup('<big>' + during_text + '</big>')
         self.progressbar = self.xml.get_object('progressbar')
         self.progressbar.set_text("")
-        self.dialog.set_title(title_text)
-        self.dialog.set_geometry_hints(min_width=400, min_height=96)
-        self.dialog.set_position(gtk.WIN_POS_CENTER_ON_PARENT)
         self.dialog.show_all()
         self.xml.connect_signals(self)
 
-        self.stopped = False
         self.pulse_progressbar_timeout_id = gobject.timeout_add(100, self.pulse_progressbar)
         self.process_messages_queue_timeout_id = gobject.timeout_add(100, self.process_messages_queue)
-
 
     def pulse_progressbar(self):
         if self.dialog:
@@ -645,22 +643,9 @@ class ProgressWindow:
             return True # loop forever
         return False
 
-    def on_progress_dialog_delete_event(self, widget, event):
-        self.stopped = True
-        if self.pulse_progressbar_timeout_id:
-            gobject.source_remove(self.pulse_progressbar_timeout_id)
-        gobject.source_remove(self.process_messages_queue_timeout_id)
-
-    def on_cancel(self, widget):
-        self.stopped = True
-        if self.pulse_progressbar_timeout_id:
-            gobject.source_remove(self.pulse_progressbar_timeout_id)
-        gobject.source_remove(self.process_messages_queue_timeout_id)
-        self.dialog.destroy()
-
     def update_progress(self, seen, total):
-        if self.stopped == True:
-            raise UploadAbortedException
+        if self.event.isSet():
+            return
         if self.pulse_progressbar_timeout_id:
             gobject.source_remove(self.pulse_progressbar_timeout_id)
             self.pulse_progressbar_timeout_id = None
@@ -669,8 +654,15 @@ class ProgressWindow:
         self.progressbar.set_text(str(int(pct)) + "%")
         log.debug('upload progress: %.2f%% (%d of %d bytes)' % (pct, seen, total))
 
-    def close_dialog(self):
-        self.on_cancel(None)
+    def close_dialog(self, *args):
+        self.dialog.destroy()
+
+    def on_destroy(self, event, *args):
+        self.event.set()
+        if self.pulse_progressbar_timeout_id:
+            gobject.source_remove(self.pulse_progressbar_timeout_id)
+        gobject.source_remove(self.process_messages_queue_timeout_id)
+
 
 class UploadAbortedException(Exception):
     def __str__(self):
