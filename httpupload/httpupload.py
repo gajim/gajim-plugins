@@ -621,7 +621,6 @@ class ProgressWindow:
         self.dialog = self.xml.get_object('progress_dialog')
         self.dialog.set_transient_for(plugin.chat_control.parent_win.window)
         self.label = self.xml.get_object('label')
-        self.cancel_button = self.xml.get_object('close_button')
         self.label.set_markup('<big>' + during_text + '</big>')
         self.progressbar = self.xml.get_object('progressbar')
         self.progressbar.set_text("")
@@ -645,19 +644,6 @@ class ProgressWindow:
             return True # loop forever
         return False
 
-    def on_progress_dialog_delete_event(self, widget, event):
-        self.event.set()
-        if self.pulse_progressbar_timeout_id:
-            gobject.source_remove(self.pulse_progressbar_timeout_id)
-        gobject.source_remove(self.process_messages_queue_timeout_id)
-
-    def on_cancel(self, widget):
-        self.event.set()
-        if self.pulse_progressbar_timeout_id:
-            gobject.source_remove(self.pulse_progressbar_timeout_id)
-        gobject.source_remove(self.process_messages_queue_timeout_id)
-        self.dialog.destroy()
-
     def update_progress(self, seen, total):
         if self.event.isSet():
             return
@@ -669,8 +655,15 @@ class ProgressWindow:
         self.progressbar.set_text(str(int(pct)) + "%")
         log.debug('upload progress: %.2f%% (%d of %d bytes)' % (pct, seen, total))
 
-    def close_dialog(self):
-        self.on_cancel(None)
+    def close_dialog(self, *args):
+        self.dialog.destroy()
+
+    def on_destroy(self, event, *args):
+        self.event.set()
+        if self.pulse_progressbar_timeout_id:
+            gobject.source_remove(self.pulse_progressbar_timeout_id)
+        gobject.source_remove(self.process_messages_queue_timeout_id)
+
 
 class UploadAbortedException(Exception):
     def __str__(self):

@@ -6,9 +6,9 @@
     <property name="can_focus">True</property>
     <property name="resizable">False</property>
     <property name="window_position">center-on-parent</property>
+    <property name="destroy_with_parent">True</property>
     <property name="icon_name">upload-media</property>
     <property name="type_hint">dialog</property>
-    <signal name="delete-event" handler="on_progress_dialog_delete_event" swapped="no"/>
     <child internal-child="vbox">
       <object class="GtkBox" id="dialog-vbox">
         <property name="width_request">250</property>
@@ -36,7 +36,8 @@
                     <property name="can_default">True</property>
                     <property name="receives_default">False</property>
                     <property name="use_stock">True</property>
-                    <signal name="clicked" handler="on_cancel" swapped="no"/>
+                    <signal name="clicked" handler="close_dialog" swapped="no"/>
+                    <signal name="destroy" handler="on_destroy" swapped="no"/>
                   </object>
                 </child>
               </object>
