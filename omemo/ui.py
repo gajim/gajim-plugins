@@ -322,6 +322,8 @@ class Ui(object):
 
     def removeUi(self):
         self.actions_hbox.remove(self.omemobutton)
+        self.chat_control._show_lock_image(False, 'OMEMO', False, True,
+                                           False)
         self.chat_control.prepare_context_menu = \
             self.chat_control.omemo_orig_prepare_context_menu
         self.chat_control.send_message = self.chat_control.orig_send_message
