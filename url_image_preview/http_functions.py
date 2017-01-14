@@ -23,6 +23,11 @@ from common import helpers
 from common import gajim
 import logging
 
+if gajim.HAVE_PYCURL:
+    import pycurl
+    from cStringIO import StringIO
+
+
 log = logging.getLogger('gajim.plugin_system.url_image_preview.http_functions')
 
 def get_http_head(account, url):
@@ -70,8 +75,6 @@ def _get_http_head_proxy(url, proxy):
     if not gajim.HAVE_PYCURL:
         log.error('PYCURL not installed')
         return ('', 0)
-    import pycurl
-    from cStringIO import StringIO
 
     headers = ''
     try:
