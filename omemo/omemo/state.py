@@ -226,12 +226,20 @@ class OmemoState:
             log.error('No known devices')
             return
 
+        payload, tag = encrypt(key, iv, plaintext)
+
+        # for XEP-384 Compliance uncomment
+        # key += tag
+        payload += tag
+
         # Encrypt the message key with for each of receivers devices
         for device in devices_list:
             try:
                 if self.isTrusted(jid, device) == TRUSTED:
                     cipher = self.get_session_cipher(jid, device)
-                    encrypted_keys[device] = cipher.encrypt(key).serialize()
+                    cipher_key = cipher.encrypt(key)
+                    prekey = isinstance(cipher_key, PreKeyWhisperMessage)
+                    encrypted_keys[device] = (cipher_key.serialize(), prekey)
                 else:
                     log.debug('Skipped Device because Trust is: ' +
                               str(self.isTrusted(jid, device)))
@@ -248,14 +256,14 @@ class OmemoState:
             try:
                 if self.isTrusted(from_jid, device) == TRUSTED:
                     cipher = self.get_session_cipher(from_jid, device)
-                    encrypted_keys[device] = cipher.encrypt(key).serialize()
+                    cipher_key = cipher.encrypt(key)
+                    prekey = isinstance(cipher_key, PreKeyWhisperMessage)
+                    encrypted_keys[device] = (cipher_key.serialize(), prekey)
                 else:
                     log.debug('Skipped own Device because Trust is: ' +
                               str(self.isTrusted(from_jid, device)))
             except:
                 log.warning('Failed to find key for device ' + str(device))
-
-        payload = encrypt(key, iv, plaintext)
 
         result = {'sid': self.own_device_id,
                   'keys': encrypted_keys,
@@ -279,6 +287,12 @@ class OmemoState:
             log.error('No known devices')
             return
 
+        payload, tag = encrypt(key, iv, plaintext)
+
+        # for XEP-384 Compliance uncomment
+        # key += tag
+        payload += tag
+
         for tup in devices_list:
             self.get_session_cipher(tup[0], tup[1])
 
@@ -292,8 +306,9 @@ class OmemoState:
             for rid, cipher in self.session_ciphers[jid_to].items():
                 try:
                     if self.isTrusted(jid_to, rid) == TRUSTED:
-                        encrypted_keys[rid] = cipher.encrypt(key). \
-                            serialize()
+                        cipher_key = cipher.encrypt(key)
+                        prekey = isinstance(cipher_key, PreKeyWhisperMessage)
+                        encrypted_keys[rid] = (cipher_key.serialize(), prekey)
                     else:
                         log.debug('Skipped Device because Trust is: ' +
                                   str(self.isTrusted(jid_to, rid)))
@@ -313,15 +328,15 @@ class OmemoState:
             try:
                 cipher = self.get_session_cipher(from_jid, dev)
                 if self.isTrusted(from_jid, dev) == TRUSTED:
-                    encrypted_keys[dev] = cipher.encrypt(key).serialize()
+                    cipher_key = cipher.encrypt(key)
+                    prekey = isinstance(cipher_key, PreKeyWhisperMessage)
+                    encrypted_keys[dev] = (cipher_key.serialize(), prekey)
                 else:
                     log.debug('Skipped own Device because Trust is: ' +
                               str(self.isTrusted(from_jid, dev)))
             except:
                 log.exception('ERROR:')
                 log.warning('Failed to find key for device ' + str(dev))
-
-        payload = encrypt(key, iv, plaintext)
 
         result = {'sid': self.own_device_id,
                   'keys': encrypted_keys,
