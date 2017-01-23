@@ -93,8 +93,6 @@ try:
 except ImportError:
     HAS_CRYPTO = False
 
-import nbxmpp
-
 HAS_POTR = True
 try:
     import potr
