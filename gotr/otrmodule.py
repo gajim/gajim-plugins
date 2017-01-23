@@ -530,7 +530,7 @@ class OtrPlugin(GajimPlugin):
 
         # otherwise try without the resource
         ctrl = gajim.interface.msg_win_mgr.get_control(
-                gajim.get_jid_without_resource(fjid), account)
+                gajim.get_jid_without_resource(str(fjid)), account)
         # but only use it when it's not a GC window
         if ctrl and ctrl.TYPE_ID == TYPE_CHAT:
             return ctrl
