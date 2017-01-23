@@ -129,9 +129,9 @@ try:
 
             stanza = nbxmpp.Message(to=self.peer, body=msg, typ='chat')
             if appdata is not None:
-                session = appdata.get('session', None)
-                if session is not None:
-                    stanza.setThread(session.thread_id)
+                thread_id = appdata.get('thread', None)
+                if thread_id is not None:
+                    stanza.setThread(thread_id)
             add_message_processing_hints(stanza)
             gajim.connections[account].connection.send(stanza, now=True)
 
@@ -378,7 +378,7 @@ class OtrPlugin(GajimPlugin):
         thread_id = control.session.thread_id if control.session else None
 
         self.us[control.account].getContext(fjid).disconnect(
-                appdata={'session':control.session})
+                appdata={'thread':thread_id})
 
     def menu_smp_cb(self, item, control):
         ctx = self.us[control.account].getContext(control.contact.get_full_jid())
@@ -558,7 +558,7 @@ class OtrPlugin(GajimPlugin):
         try:
             ctx = self.us[account].getContext(event.fjid)
             msgtxt, tlvs = ctx.receiveMessage(event.msgtxt.encode('utf8'),
-                            appdata={'session':event.session})
+                            appdata={'thread':event.session.thread_id if event.session else None})
         except potr.context.NotOTRMessage, e:
             # received message was not OTR - pass it on
             return PASS
@@ -670,7 +670,7 @@ class OtrPlugin(GajimPlugin):
             try:
                 newmsg = self.us[event.account].getContext(fjid).sendMessage(
                         potr.context.FRAGMENT_SEND_ALL_BUT_LAST, message,
-                        appdata={'session':event.session})
+                        appdata={'thread':event.session.thread_id if event.session else None})
                 potrrootlog.debug('processed message={0!r}'.format(newmsg))
             except potr.context.NotEncryptedError, e:
                 if e.args[0] == potr.context.EXC_FINISHED:
