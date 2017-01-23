@@ -607,6 +607,8 @@ class OtrPlugin(GajimPlugin):
         stripper.feed((msgtxt or '').decode('utf8'))
         event.msgtxt = stripper.stripped_data
         event.stanza.setBody(event.msgtxt)
+        if event.stanza.getXHTML():
+            event.stanza.delChild('html')
         event.stanza.setXHTML((msgtxt or '').decode('utf8'))
 
         return PASS
