@@ -285,6 +285,7 @@ class OtrPlugin(GajimPlugin):
         else:
             self.events_handlers['stanza-message-outgoing'] = (ged.OUT_PRECORE,
                     self.handle_outgoing_msg_stanza)
+            DEFAULTFLAGS['SEND_TAG'] = False
 
         self.gui_extension_points = {
                     'chat_control' : (self.cc_connect, self.cc_disconnect)
