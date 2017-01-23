@@ -625,18 +625,20 @@ class OtrPlugin(GajimPlugin):
                     getContext(event.msg_iq.getTo()).\
                     sendMessage(potr.context.FRAGMENT_SEND_ALL_BUT_LAST, xhtml,
                         appdata={'thread': thread_id})
-                if xhtml != encrypted_msg.strip(): #.strip() because sendMessage() adds whitespaces
-                    encrypted = True
-                    event.msg_iq.delChild('html')
-                    event.msg_iq.setBody(encrypted_msg)
+                if xhtml != encrypted_msg:
+                    if xhtml != encrypted_msg.strip(): #.strip() because sendMessage() adds whitespaces
+                        encrypted = True
+                        event.msg_iq.delChild('html')
+                    event.msg_iq.setBody(encrypted_msg) # whitespace tag only makes sense in plaintext message...
             elif body:
                 body = escape(body).encode('utf8')
                 encrypted_msg = self.us[event.conn.name].\
                     getContext(event.msg_iq.getTo()).\
                     sendMessage(potr.context.FRAGMENT_SEND_ALL_BUT_LAST, body,
                         appdata={'thread': thread_id})
-                if body != encrypted_msg.strip():
-                    encrypted = True
+                if body != encrypted_msg:
+                    if body != encrypted_msg.strip():
+                        encrypted = True
                     event.msg_iq.setBody(encrypted_msg)
         except potr.context.NotEncryptedError, e:
             if e.args[0] == potr.context.EXC_FINISHED:
