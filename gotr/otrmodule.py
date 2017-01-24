@@ -93,8 +93,6 @@ try:
 except ImportError:
     HAS_CRYPTO = False
 
-import nbxmpp
-
 HAS_POTR = True
 try:
     import potr
@@ -131,9 +129,9 @@ try:
 
             stanza = nbxmpp.Message(to=self.peer, body=msg, typ='chat')
             if appdata is not None:
-                session = appdata.get('session', None)
-                if session is not None:
-                    stanza.setThread(session.thread_id)
+                thread_id = appdata.get('thread', None)
+                if thread_id is not None:
+                    stanza.setThread(thread_id)
             add_message_processing_hints(stanza)
             gajim.connections[account].connection.send(stanza, now=True)
 
@@ -287,6 +285,7 @@ class OtrPlugin(GajimPlugin):
         else:
             self.events_handlers['stanza-message-outgoing'] = (ged.OUT_PRECORE,
                     self.handle_outgoing_msg_stanza)
+            DEFAULTFLAGS['SEND_TAG'] = False
 
         self.gui_extension_points = {
                     'chat_control' : (self.cc_connect, self.cc_disconnect)
@@ -380,7 +379,7 @@ class OtrPlugin(GajimPlugin):
         thread_id = control.session.thread_id if control.session else None
 
         self.us[control.account].getContext(fjid).disconnect(
-                appdata={'session':control.session})
+                appdata={'thread':thread_id})
 
     def menu_smp_cb(self, item, control):
         ctx = self.us[control.account].getContext(control.contact.get_full_jid())
@@ -531,7 +530,7 @@ class OtrPlugin(GajimPlugin):
 
         # otherwise try without the resource
         ctrl = gajim.interface.msg_win_mgr.get_control(
-                gajim.get_jid_without_resource(fjid), account)
+                gajim.get_jid_without_resource(str(fjid)), account)
         # but only use it when it's not a GC window
         if ctrl and ctrl.TYPE_ID == TYPE_CHAT:
             return ctrl
@@ -560,7 +559,7 @@ class OtrPlugin(GajimPlugin):
         try:
             ctx = self.us[account].getContext(event.fjid)
             msgtxt, tlvs = ctx.receiveMessage(event.msgtxt.encode('utf8'),
-                            appdata={'session':event.session})
+                            appdata={'thread':event.session.thread_id if event.session else None})
         except potr.context.NotOTRMessage, e:
             # received message was not OTR - pass it on
             return PASS
@@ -608,6 +607,8 @@ class OtrPlugin(GajimPlugin):
         stripper.feed((msgtxt or '').decode('utf8'))
         event.msgtxt = stripper.stripped_data
         event.stanza.setBody(event.msgtxt)
+        if event.stanza.getXHTML():
+            event.stanza.delChild('html')
         event.stanza.setXHTML((msgtxt or '').decode('utf8'))
 
         return PASS
@@ -616,23 +617,28 @@ class OtrPlugin(GajimPlugin):
         xhtml = event.msg_iq.getXHTML()
         body = event.msg_iq.getBody()
         encrypted = False
+        thread_id = event.msg_iq.getThread()
         try:
             if xhtml:
                 xhtml = xhtml.encode('utf8')
                 encrypted_msg = self.us[event.conn.name].\
                     getContext(event.msg_iq.getTo()).\
-                    sendMessage(potr.context.FRAGMENT_SEND_ALL_BUT_LAST, xhtml)
-                if xhtml != encrypted_msg.strip(): #.strip() because sendMessage() adds whitespaces
-                    encrypted = True
-                    event.msg_iq.delChild('html')
-                    event.msg_iq.setBody(encrypted_msg)
+                    sendMessage(potr.context.FRAGMENT_SEND_ALL_BUT_LAST, xhtml,
+                        appdata={'thread': thread_id})
+                if xhtml != encrypted_msg:
+                    if xhtml != encrypted_msg.strip(): #.strip() because sendMessage() adds whitespaces
+                        encrypted = True
+                        event.msg_iq.delChild('html')
+                    event.msg_iq.setBody(encrypted_msg) # whitespace tag only makes sense in plaintext message...
             elif body:
                 body = escape(body).encode('utf8')
                 encrypted_msg = self.us[event.conn.name].\
                     getContext(event.msg_iq.getTo()).\
-                    sendMessage(potr.context.FRAGMENT_SEND_ALL_BUT_LAST, body)
-                if body != encrypted_msg.strip():
-                    encrypted = True
+                    sendMessage(potr.context.FRAGMENT_SEND_ALL_BUT_LAST, body,
+                        appdata={'thread': thread_id})
+                if body != encrypted_msg:
+                    if body != encrypted_msg.strip():
+                        encrypted = True
                     event.msg_iq.setBody(encrypted_msg)
         except potr.context.NotEncryptedError, e:
             if e.args[0] == potr.context.EXC_FINISHED:
@@ -672,7 +678,7 @@ class OtrPlugin(GajimPlugin):
             try:
                 newmsg = self.us[event.account].getContext(fjid).sendMessage(
                         potr.context.FRAGMENT_SEND_ALL_BUT_LAST, message,
-                        appdata={'session':event.session})
+                        appdata={'thread':event.session.thread_id if event.session else None})
                 potrrootlog.debug('processed message={0!r}'.format(newmsg))
             except potr.context.NotEncryptedError, e:
                 if e.args[0] == potr.context.EXC_FINISHED:
