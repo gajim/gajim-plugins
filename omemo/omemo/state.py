@@ -200,8 +200,8 @@ class OmemoState:
                 key = self.handleWhisperMessage(sender_jid, sid, encrypted_key)
             except (NoSessionException, InvalidMessageException) as e:
                 log.warning('No Session found ' + e.message)
-                log.warning('sender_jid =>  ' + str(sender_jid) +
-                            ' sid =>' + sid)
+                log.warning('sender_jid =>  ' + str(sender_jid) + ' sid =>' +
+                            str(sid))
                 return
             except (DuplicateMessageException) as e:
                 log.warning('Duplicate message found ' + str(e.args))
@@ -211,7 +211,7 @@ class OmemoState:
             log.warning('Duplicate message found ' + str(e.args))
             return
 
-        result = decrypt(key, iv, payload).decode('utf-8')
+        result = decrypt(key, iv, payload)
 
         log.debug("Decrypted Message => " + result)
         return result
@@ -226,43 +226,44 @@ class OmemoState:
             log.error('No known devices')
             return
 
-        for dev in devices_list:
-            self.get_session_cipher(jid, dev)
-        session_ciphers = self.session_ciphers[jid]
-        if not session_ciphers:
-            log.warning('No session ciphers for ' + jid)
-            return
+        payload, tag = encrypt(key, iv, plaintext)
+
+        # for XEP-384 Compliance uncomment
+        # key += tag
+        payload += tag
 
         # Encrypt the message key with for each of receivers devices
-        for rid, cipher in session_ciphers.items():
+        for device in devices_list:
             try:
-                if self.isTrusted(cipher) == TRUSTED:
-                    encrypted_keys[rid] = cipher.encrypt(key).serialize()
+                if self.isTrusted(jid, device) == TRUSTED:
+                    cipher = self.get_session_cipher(jid, device)
+                    cipher_key = cipher.encrypt(key)
+                    prekey = isinstance(cipher_key, PreKeyWhisperMessage)
+                    encrypted_keys[device] = (cipher_key.serialize(), prekey)
                 else:
                     log.debug('Skipped Device because Trust is: ' +
-                              str(self.isTrusted(cipher)))
+                              str(self.isTrusted(jid, device)))
             except:
-                log.warning('Failed to find key for device ' + str(rid))
+                log.warning('Failed to find key for device ' + str(device))
 
         if len(encrypted_keys) == 0:
-            log_msg = 'Encrypted keys empty'
-            log.error(log_msg)
-            raise NoValidSessions(log_msg)
+            log.error('Encrypted keys empty')
+            raise NoValidSessions('Encrypted keys empty')
 
         my_other_devices = set(self.own_devices) - set({self.own_device_id})
         # Encrypt the message key with for each of our own devices
-        for dev in my_other_devices:
+        for device in my_other_devices:
             try:
-                cipher = self.get_session_cipher(from_jid, dev)
-                if self.isTrusted(cipher) == TRUSTED:
-                    encrypted_keys[dev] = cipher.encrypt(key).serialize()
+                if self.isTrusted(from_jid, device) == TRUSTED:
+                    cipher = self.get_session_cipher(from_jid, device)
+                    cipher_key = cipher.encrypt(key)
+                    prekey = isinstance(cipher_key, PreKeyWhisperMessage)
+                    encrypted_keys[device] = (cipher_key.serialize(), prekey)
                 else:
                     log.debug('Skipped own Device because Trust is: ' +
-                              str(self.isTrusted(cipher)))
+                              str(self.isTrusted(from_jid, device)))
             except:
-                log.warning('Failed to find key for device ' + str(dev))
-
-        payload = encrypt(key, iv, plaintext)
+                log.warning('Failed to find key for device ' + str(device))
 
         result = {'sid': self.own_device_id,
                   'keys': encrypted_keys,
@@ -273,14 +274,109 @@ class OmemoState:
         log.debug('Finished encrypting message')
         return result
 
-    def isTrusted(self, cipher):
-        self.cipher = cipher
-        self.state = self.cipher.sessionStore. \
-            loadSession(self.cipher.recipientId, self.cipher.deviceId). \
-            getSessionState()
-        self.key = self.state.getRemoteIdentityKey()
-        return self.store.identityKeyStore. \
-            isTrustedIdentity(self.cipher.recipientId, self.key)
+    def create_gc_msg(self, from_jid, jid, plaintext):
+        key = get_random_bytes(16)
+        iv = get_random_bytes(16)
+        encrypted_keys = {}
+        room = jid
+        encrypted_jids = []
+
+        devices_list = self.device_list_for(jid, True)
+
+        if len(devices_list) == 0:
+            log.error('No known devices')
+            return
+
+        payload, tag = encrypt(key, iv, plaintext)
+
+        # for XEP-384 Compliance uncomment
+        # key += tag
+        payload += tag
+
+        for tup in devices_list:
+            self.get_session_cipher(tup[0], tup[1])
+
+        # Encrypt the message key with for each of receivers devices
+        for nick in self.plugin.groupchat[room]:
+            jid_to = self.plugin.groupchat[room][nick]
+            if jid_to == self.own_jid:
+                continue
+            if jid_to in encrypted_jids:  # We already encrypted to this JID
+                continue
+            for rid, cipher in self.session_ciphers[jid_to].items():
+                try:
+                    if self.isTrusted(jid_to, rid) == TRUSTED:
+                        cipher_key = cipher.encrypt(key)
+                        prekey = isinstance(cipher_key, PreKeyWhisperMessage)
+                        encrypted_keys[rid] = (cipher_key.serialize(), prekey)
+                    else:
+                        log.debug('Skipped Device because Trust is: ' +
+                                  str(self.isTrusted(jid_to, rid)))
+                except:
+                    log.exception('ERROR:')
+                    log.warning('Failed to find key for device ' +
+                                str(rid))
+            encrypted_jids.append(jid_to)
+        if len(encrypted_keys) == 0:
+            log_msg = 'Encrypted keys empty'
+            log.error(log_msg)
+            raise NoValidSessions(log_msg)
+
+        my_other_devices = set(self.own_devices) - set({self.own_device_id})
+        # Encrypt the message key with for each of our own devices
+        for dev in my_other_devices:
+            try:
+                cipher = self.get_session_cipher(from_jid, dev)
+                if self.isTrusted(from_jid, dev) == TRUSTED:
+                    cipher_key = cipher.encrypt(key)
+                    prekey = isinstance(cipher_key, PreKeyWhisperMessage)
+                    encrypted_keys[dev] = (cipher_key.serialize(), prekey)
+                else:
+                    log.debug('Skipped own Device because Trust is: ' +
+                              str(self.isTrusted(from_jid, dev)))
+            except:
+                log.exception('ERROR:')
+                log.warning('Failed to find key for device ' + str(dev))
+
+        result = {'sid': self.own_device_id,
+                  'keys': encrypted_keys,
+                  'jid': jid,
+                  'iv': iv,
+                  'payload': payload}
+
+        log.debug('Finished encrypting message')
+        return result
+
+    def device_list_for(self, jid, gc=False):
+        """ Return a list of known device ids for the specified jid.
+            Parameters
+            ----------
+            jid : string
+                The contacts jid
+            gc : bool
+                Groupchat Message
+        """
+        if gc:
+            room = jid
+            devicelist = []
+            for nick in self.plugin.groupchat[room]:
+                jid_to = self.plugin.groupchat[room][nick]
+                if jid_to == self.own_jid:
+                    continue
+                for device in self.device_ids[jid_to]:
+                    devicelist.append((jid_to, device))
+            return devicelist
+
+        if jid == self.own_jid:
+            return set(self.own_devices) - set({self.own_device_id})
+        if jid not in self.device_ids:
+            return set()
+        return set(self.device_ids[jid])
+
+    def isTrusted(self, recipient_id, device_id):
+        record = self.store.loadSession(recipient_id, device_id)
+        identity_key = record.getSessionState().getRemoteIdentityKey()
+        return self.store.isTrustedIdentity(recipient_id, identity_key)
 
     def getTrustedFingerprints(self, recipient_id):
         inactive = self.store.getInactiveSessionsKeys(recipient_id)
@@ -295,20 +391,6 @@ class OmemoState:
         undecided = set(undecided) - set(inactive)
 
         return undecided
-
-    def device_list_for(self, jid):
-        """ Return a list of known device ids for the specified jid.
-
-            Parameters
-            ----------
-            jid : string
-                The contacts jid
-        """
-        if jid == self.own_jid:
-            return set(self.own_devices) - set({self.own_device_id})
-        if jid not in self.device_ids:
-            return set()
-        return set(self.device_ids[jid])
 
     def devices_without_sessions(self, jid):
         """ List device_ids for the given jid which have no axolotl session.
@@ -364,10 +446,10 @@ class OmemoState:
 
     def handleWhisperMessage(self, recipient_id, device_id, key):
         whisperMessage = WhisperMessage(serialized=key)
-        sessionCipher = self.get_session_cipher(recipient_id, device_id)
         log.debug(self.account + " => Received WhisperMessage from " +
                   recipient_id)
-        if self.isTrusted(sessionCipher) >= TRUSTED:
+        if self.isTrusted(recipient_id, device_id):
+            sessionCipher = self.get_session_cipher(recipient_id, device_id)
             key = sessionCipher.decryptMsg(whisperMessage, textMsg=False)
             return key
         else:

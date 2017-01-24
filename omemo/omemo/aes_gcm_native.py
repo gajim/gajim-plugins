@@ -19,6 +19,7 @@
 
 
 import os
+import logging
 from cryptography.hazmat.primitives.ciphers import Cipher
 from cryptography.hazmat.primitives.ciphers import algorithms
 from cryptography.hazmat.primitives.ciphers.modes import GCM
@@ -32,11 +33,22 @@ if os.name == 'nt':
 else:
     from cryptography.hazmat.backends import default_backend
 
+log = logging.getLogger('gajim.plugin_system.omemo')
 
-def aes_decrypt(key, iv, payload):
+def aes_decrypt(_key, iv, payload):
     """ Use AES128 GCM with the given key and iv to decrypt the payload. """
-    data = payload[:-16]
-    tag = payload[-16:]
+    if len(_key) >= 32:
+        # XEP-0384
+        log.debug('XEP Compliant Key/Tag')
+        data = payload
+        key = _key[:16]
+        tag = _key[16:]
+    else:
+        # Legacy
+        log.debug('Legacy Key/Tag')
+        data = payload[:-16]
+        key = _key
+        tag = payload[-16:]
     if os.name == 'nt':
         _backend = backend
     else:
@@ -58,4 +70,4 @@ def aes_encrypt(key, iv, plaintext):
         algorithms.AES(key),
         GCM(iv),
         backend=_backend).encryptor()
-    return encryptor.update(plaintext) + encryptor.finalize() + encryptor.tag
+    return encryptor.update(plaintext) + encryptor.finalize(), encryptor.tag

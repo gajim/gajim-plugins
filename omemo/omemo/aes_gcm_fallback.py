@@ -29,10 +29,13 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+import logging
 from struct import pack, unpack
 
 from Crypto.Cipher import AES
 from Crypto.Util import strxor
+
+log = logging.getLogger('gajim.plugin_system.omemo')
 
 
 def gcm_rightshift(vec):
@@ -140,13 +143,20 @@ def gcm_encrypt(k, iv, plaintext, auth_data):
 
 def aes_encrypt(key, nonce, plaintext):
     """ Use AES128 GCM with the given key and iv to encrypt the payload. """
-    c, t = gcm_encrypt(key, nonce, plaintext, '')
-    result = c + t
-    return result
+    return gcm_encrypt(key, nonce, plaintext, '')
 
-
-def aes_decrypt(key, nonce, payload):
+def aes_decrypt(_key, nonce, payload):
     """ Use AES128 GCM with the given key and iv to decrypt the payload. """
-    ciphertext = payload[:-16]
-    mac = payload[-16:]
+    if len(_key) >= 32:
+        # XEP-0384
+        log.debug('XEP Compliant Key/Tag')
+        ciphertext = payload
+        key = _key[:16]
+        mac = _key[16:]
+    else:
+        # Legacy
+        log.debug('Legacy Key/Tag')
+        ciphertext = payload[:-16]
+        key = _key
+        mac = payload[-16:]
     return gcm_decrypt(key, nonce, ciphertext, '', mac)

@@ -79,10 +79,14 @@ class OmemoMessage(Node):
         # , contact_jid, key, iv, payload, dev_id, my_dev_id):
         Node.__init__(self, 'encrypted', attrs={'xmlns': NS_OMEMO})
         header = Node('header', attrs={'sid': msg_dict['sid']})
-        for rid, key in msg_dict['keys'].items():
-            header.addChild('key', attrs={'rid': rid}).addData(b64encode(key)
-                                                               .decode('utf-8'))
-
+        for rid, (key, prekey) in msg_dict['keys'].items():
+            if prekey:
+                child = header.addChild('key',
+                                        attrs={'prekey': 'true', 'rid': rid})
+            else:
+                child = header.addChild('key',
+                                        attrs={'rid': rid})
+            child.addData(b64encode(key).decode('utf-8'))
         header.addChild('iv').addData(b64encode(msg_dict['iv']).decode('utf-8'))
         self.addChild(node=header)
         self.addChild('payload').addData(b64encode(msg_dict['payload'])
