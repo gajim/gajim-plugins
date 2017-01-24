@@ -1,8 +1,33 @@
+1.0.1 / 2017-01-14
+- Better XEP Compliance
+- Bugfixes
+
+1.0.0 / 2016-12-04
+- Bugfixes
+
+0.9.9 / 2016-12-01
+- Bugfixes
+
+0.9.8 / 2016-11-28
+- Fix a Problem where OMEMO wouldnt activate after the plugin is updated
+- Add QR Verification Code to Plugin Config
+
+0.9.7 / 2016-11-12
+- Bugfixes
+
+0.9.6 / 2016-11-01
+- Bugfixes
+
+0.9.5 / 2016-10-10
+- Add GroupChat BETA
+- Add Option to delete Fingerprints
+- Add Option to deactivate Accounts for OMEMO
+
 0.9.0 / 2016-08-28
- - Send INFO message to resources who dont support OMEMO
- - Check dependencys and give correct error message
- - Dont process PreKeyWhisperMessages without PreKey
- - Dont process PGP messages
+- Send INFO message to resources who dont support OMEMO
+- Check dependencys and give correct error message
+- Dont process PreKeyWhisperMessages without PreKey
+- Dont process PGP messages
 
 0.8.1 / 2016-08-05
 - Query own Device Bundles on send button press
