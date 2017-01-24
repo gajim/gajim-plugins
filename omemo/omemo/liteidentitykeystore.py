@@ -86,6 +86,13 @@ class LiteIdentityKeyStore(IdentityKeyStore):
 
         return result is not None
 
+    def deleteIdentity(self, recipientId, identityKey):
+        q = "DELETE FROM identities WHERE recipient_id = ? AND public_key = ?"
+        c = self.dbConn.cursor()
+        c.execute(q, (recipientId,
+                      identityKey.getPublicKey().serialize()))
+        self.dbConn.commit()
+
     def isTrustedIdentity(self, recipientId, identityKey):
         q = "SELECT trust FROM identities WHERE recipient_id = ? " \
             "AND public_key = ?"
@@ -160,8 +167,8 @@ class LiteIdentityKeyStore(IdentityKeyStore):
         c.execute(q, fingerprints)
         self.dbConn.commit()
 
-    def setTrust(self, _id, trust):
-        q = "UPDATE identities SET trust = ? WHERE _id = ?"
+    def setTrust(self, identityKey, trust):
+        q = "UPDATE identities SET trust = ? WHERE public_key = ?"
         c = self.dbConn.cursor()
-        c.execute(q, (trust, _id))
+        c.execute(q, (trust, identityKey.getPublicKey().serialize()))
         self.dbConn.commit()

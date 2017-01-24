@@ -18,6 +18,7 @@
 #
 
 
+import sys
 import logging
 log = logging.getLogger('gajim.plugin_system.omemo')
 try:
@@ -35,7 +36,11 @@ def encrypt(key, iv, plaintext):
 
 
 def decrypt(key, iv, ciphertext):
-    return aes_decrypt(key, iv, ciphertext)
+    plaintext = aes_decrypt(key, iv, ciphertext).decode('utf-8')
+    if sys.version_info < (3, 0):
+        return unicode(plaintext)
+    else:
+        return plaintext
 
 
 class NoValidSessions(Exception):
