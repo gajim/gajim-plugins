@@ -557,7 +557,7 @@ class OMEMOConfigDialog(GajimPluginConfigDialog):
         for path in paths:
             it = mod.get_iter(path)
             jid, fpr = mod.get(it, 1, 3)
-            fprs.append('%s: %s' % (jid, fpr[4:-5]))
+            fprs.append('%s: %s' % (jid, fpr[31:-12]))
         gtk.Clipboard().set_text('\n'.join(fprs))
         gtk.Clipboard(selection='PRIMARY').set_text('\n'.join(fprs))
 
