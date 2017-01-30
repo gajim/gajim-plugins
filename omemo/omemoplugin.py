@@ -617,6 +617,9 @@ class OmemoPlugin(GajimPlugin):
             -------
             Return if encryption is not activated
         """
+        if event.type_ == 'normal':
+            return False
+
         account = event.account
         if account in self.disabled_accounts:
             return
