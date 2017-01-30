@@ -4,11 +4,10 @@ from gi.repository import Gtk
 from gi.repository import Gdk
 import os
 
-from common import gajim
 from plugins import GajimPlugin
 from plugins.helpers import log_calls
 from plugins.gui import GajimPluginConfigDialog
-from plugins.plugin import GajimPluginException
+from plugins.gajimplugin import GajimPluginException
 from common import dbus_support
 
 if dbus_support.supported:

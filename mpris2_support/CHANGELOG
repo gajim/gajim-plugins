@@ -1,0 +1,4 @@
+0.3.3 - 26-12-2016
+
+- Dont activate Plugin on missing dependencys
+- Remove unused imports
