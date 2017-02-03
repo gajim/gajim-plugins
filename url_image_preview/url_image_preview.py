@@ -133,7 +133,7 @@ class Base(object):
         self.textview = self.chat_control.conv_textview
         self.handlers = {}
 
-        self.directory = os.path.join(configpaths.gajimpaths['MY_DATA'],
+        self.directory = os.path.join(configpaths.gajimpaths['MY_CACHE'],
                                       'downloads')
         self.thumbpath = os.path.join(configpaths.gajimpaths['MY_CACHE'],
                                       'downloads.thumb')
