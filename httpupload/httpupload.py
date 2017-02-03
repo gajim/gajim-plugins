@@ -361,7 +361,7 @@ class Base(object):
                     def add_oob_tag():
                         pass
                     if self.encrypted_upload:
-                        keyAndIv = '#' + binascii.hexlify(iv) + binascii.hexlify(key)
+                        keyAndIv = '#' + (binascii.hexlify(iv) + binascii.hexlify(key)).decode('utf-8')
                         self.chat_control.send_message(message=get.getData() + keyAndIv, xhtml=None)
                     else:
                         self.chat_control.send_message(message=get.getData(), xhtml=xhtml)
