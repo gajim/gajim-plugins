@@ -23,12 +23,11 @@ import gtk
 from common import gajim
 from plugins.gui import GajimPluginConfigDialog
 
-import otrmodule
 try:
     import potr
     import potr.proto
-except ImportError:
-    pass
+except ImportError as e:
+    print(e)
 
 
 class OtrPluginConfigDialog(GajimPluginConfigDialog):
