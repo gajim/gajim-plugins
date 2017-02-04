@@ -76,9 +76,8 @@ from message_control import TYPE_CHAT, MessageControl
 from plugins.helpers import log_calls, log
 from plugins.plugin import GajimPluginException
 
+sys.path.insert(0, os.path.dirname(__file__))
 import ui
-
-sys.path.insert(0, os.path.dirname(ui.__file__))
 
 from HTMLParser import HTMLParser
 from htmlentitydefs import name2codepoint
@@ -247,8 +246,9 @@ try:
             except IOError, e:
                 log.exception('IOError occurred when loading fpr file for %s',
                         self.name)
-except ImportError:
+except ImportError as e:
     HAS_POTR = False
+    print(e)
 
 def otr_dialog_destroy(widget, *args, **kwargs):
     widget.destroy()
