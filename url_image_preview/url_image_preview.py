@@ -133,10 +133,10 @@ class Base(object):
         self.textview = self.chat_control.conv_textview
         self.handlers = {}
 
-        self.directory = os.path.join(configpaths.gajimpaths['MY_DATA'],
-                                      'downloads')
+        self.directory = os.path.join(configpaths.gajimpaths['MY_CACHE'],
+                                      'url_image_preview')
         self.thumbpath = os.path.join(configpaths.gajimpaths['MY_CACHE'],
-                                      'downloads.thumb')
+                                      'url_image_preview.thumb')
 
         try:
             self._create_path(self.directory)
