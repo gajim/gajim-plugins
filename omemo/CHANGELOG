@@ -1,3 +1,6 @@
+1.0.3 / 2017-02-12
+- Set an inactive device active again after receiving a message from it
+
 1.0.2 / 2017-02-04
 - Fix a bug when publishing devices
 - Fix copying fingerprint
