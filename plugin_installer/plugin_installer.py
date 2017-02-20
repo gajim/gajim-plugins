@@ -629,26 +629,18 @@ class Ftp(threading.Thread):
 
 class PluginInstallerPluginConfigDialog(GajimPluginConfigDialog):
     def init(self):
-        self.Gtk_BUILDER_FILE_PATH = self.plugin.local_file_path(
-            'config_dialog.ui')
+        glade_file_path = self.plugin.local_file_path('config_dialog.ui')
         self.xml = Gtk.Builder()
         self.xml.set_translation_domain('gajim_plugins')
-        self.xml.add_objects_from_file(self.Gtk_BUILDER_FILE_PATH, ['hbox111'])
-        hbox = self.xml.get_object('hbox111')
-        self.get_child().pack_start(hbox, True, True, 0)
+        self.xml.add_objects_from_file(glade_file_path, ['config_grid'])
+        grid = self.xml.get_object('config_grid')
+        self.get_child().pack_start(grid, True, True, 0)
 
         self.xml.connect_signals(self)
-        self.connect('hide', self.on_hide)
 
     def on_run(self):
-        widget = self.xml.get_object('http_server')
-        widget.set_text(str(self.plugin.config['http_server']))
         self.xml.get_object('check_update').set_active(
             self.plugin.config['check_update'])
-
-    def on_hide(self, widget):
-        widget = self.xml.get_object('ftp_server')
-        self.plugin.config['ftp_server'] = widget.get_text()
 
     def on_check_update_toggled(self, widget):
         self.plugin.config['check_update'] = widget.get_active()
