@@ -25,7 +25,6 @@ from gi.repository import Pango
 from gi.repository import GLib
 from gi.repository import GObject
 
-import ftplib
 import io
 import threading
 import configparser
@@ -33,9 +32,11 @@ import os
 import fnmatch
 import sys
 import zipfile
-import ssl
 import logging
+import posixpath
 
+from urllib.request import urlopen
+from urllib.parse import urlparse, urljoin
 from common import gajim
 from plugins import GajimPlugin
 from plugins.helpers import log_calls, log
@@ -68,11 +69,11 @@ class PluginInstaller(GajimPlugin):
 
     @log_calls('PluginInstallerPlugin')
     def init(self):
-        self.description = _('Install and upgrade plugins from ftp')
+        self.description = _('Install and Upgrade Plugins')
         self.config_dialog = PluginInstallerPluginConfigDialog(self)
-        self.config_default_values = {'ftp_server': ('ftp.gajim.org', ''),
+        self.config_default_values = {'http_server': ('https://ftp.gajim.org', ''),
                                       'check_update': (True, ''),
-                                      'check_update_periodically': (True, '')}
+                                      }
         self.window = None
         self.progressbar = None
         self.available_plugins_model = None
@@ -82,20 +83,10 @@ class PluginInstaller(GajimPlugin):
         icon = Gtk.Image()
         self.def_icon = icon.render_icon(Gtk.STOCK_PREFERENCES,
             Gtk.IconSize.MENU)
-        if gajim.version.startswith('0.15'):
-            self.server_folder = 'plugins_0.15'
-        elif gajim.version.startswith('0.16.10'):
-            self.server_folder = 'plugins_1'
-        else:
-            self.server_folder = 'plugins_0.16'
+        self.server_folder = 'plugins_1'
 
     @log_calls('PluginInstallerPlugin')
     def activate(self):
-        self.pl_menuitem = gajim.interface.roster.xml.get_object(
-            'plugins_menuitem')
-        self.id_ = self.pl_menuitem.connect_after('activate', self.on_activate)
-        if 'plugins' in gajim.interface.instances:
-            self.on_activate(None)
         if self.config['check_update']:
             self.timeout_id = GLib.timeout_add_seconds(30, self.check_update)
 
@@ -113,34 +104,53 @@ class PluginInstaller(GajimPlugin):
                 ' your installer plugins. Do you want to update those plugins:'
                 '\n%s') % plugins_str, on_response_yes=open_update)
 
-    def ftp_connect(self):
-        if os.name == 'nt':
-            ctx = ssl.create_default_context()
-            con = ftplib.FTP_TLS(self.config['ftp_server'], context=ctx)
-        else:
-            con = ftplib.FTP_TLS(self.config['ftp_server'])
+    def parse_manifest(self, buf):
+        '''
+        given the buffer of the zipfile, returns the list of plugin manifests
+        '''
+        zip_file = zipfile.ZipFile(buf)
+        manifest_list = zip_file.namelist()
+        plugins = []
+        for filename in manifest_list:
+            config = configparser.ConfigParser()
+            conf_file = zip_file.open(filename)
+            config.read_file(io.TextIOWrapper(conf_file, encoding='utf-8'))
+            conf_file.close()
+            if not config.has_section('info'):
+                continue
+            plugins.append(config)
+        return plugins
 
-        con.login()
-        con.prot_p()
-        return con
+    def retrieve_path(self, directory, fname):
+        print('retrive path')
+        server = self.config['http_server']
+        if not server:
+            server = self.config_default_values['http_server'][0]
+        if not urlparse(server).scheme:
+            server = 'https://' + server
+        if urlparse(server).scheme != 'https':
+            log.warn('Warning: not using HTTPS is a '
+                     'very serious security issue!')
+        location = posixpath.join(directory, fname)
+        uri = urljoin(server, location)
+        log.debug('Fetching {}'.format(uri))
+        request = urlopen(uri)
+
+        manifest_buffer = io.BytesIO(request.read())
+
+        return manifest_buffer
+
+    def retrieve_manifest(self):
+        return self.retrieve_path(self.server_folder, 'manifests.zip')
 
     @log_calls('PluginInstallerPlugin')
     def check_update(self):
         def _run():
             try:
                 to_update = []
-                con = self.ftp_connect()
-                con.cwd(self.server_folder)
-                con.retrbinary('RETR manifests.zip', ftp.handleDownload)
-                zip_file = zipfile.ZipFile(ftp.buffer_)
-                manifest_list = zip_file.namelist()
-                for filename in manifest_list:
-                    config = configparser.ConfigParser()
-                    conf_file = zip_file.open(filename)
-                    config.read_file(io.TextIOWrapper(conf_file, encoding='utf-8'))
-                    conf_file.close()
-                    if not config.has_section('info'):
-                        continue
+                zipbuf = self.retrieve_manifest()
+                plugin_manifests = self.parse_manifest(zipbuf)
+                for config in plugin_manifests:
                     opts = config.options('info')
                     if 'name' not in opts or 'version' not in opts or \
                     'description' not in opts or 'authors' not in opts or \
@@ -154,13 +164,9 @@ class PluginInstaller(GajimPlugin):
                             'version'))
                         if remote > local:
                             to_update.append(config.get('info', 'name'))
-                con.quit()
                 GLib.idle_add(self.warn_update, to_update)
-                # check for updates at least once every 24 hours
-                if self.config['check_update_periodically']:
-                    self.timeout_id = GLib.timeout_add_seconds(24*3600, self.check_update)
             except Exception as e:
-                log.debug('Ftp error when check updates: %s' % str(e))
+                log.error('Ftp error when check updates: %s' % str(e), exc_info=True)
         ftp = Ftp(self)
         ftp.run = _run
         ftp.start()
@@ -181,18 +187,15 @@ class PluginInstaller(GajimPlugin):
             GLib.source_remove(self.timeout_id)
             self.timeout_id = 0
 
-    def on_activate(self, widget):
-        if 'plugins' not in gajim.interface.instances:
-            return
+    def on_activate(self, plugin_win):
         if hasattr(self, 'page_num'):
             # 'Available' tab exists
             return
-        self.installed_plugins_model = gajim.interface.instances[
-            'plugins'].installed_plugins_model
-        self.notebook = gajim.interface.instances['plugins'].plugins_notebook
+        self.installed_plugins_model = plugin_win.installed_plugins_model
+        self.notebook = plugin_win.plugins_notebook
         id_ = self.notebook.connect('switch-page', self.on_notebook_switch_page)
         self.connected_ids[id_] = self.notebook
-        self.window = gajim.interface.instances['plugins'].window
+        self.window = plugin_win.window
         id_ = self.window.connect('destroy', self.on_win_destroy)
         self.connected_ids[id_] = self.window
         self.Gtk_BUILDER_FILE_PATH = self.local_file_path('config_dialog.ui')
@@ -461,11 +464,10 @@ class PluginInstaller(GajimPlugin):
                         file_path))
 
                     # read metadata from manifest.ini
-                    with open(manifest_path) as _file:
-                        conf.read_file(_file)
+                    conf.readfp(open(manifest_path, 'r'))
                     for option in fields:
                         if conf.get('info', option) is '':
-                            raise configparser.NoOptionError('field empty')
+                            raise configparser.NoOptionError
                         setattr(module_attr, option, conf.get('info', option))
                     conf.remove_section('info')
                     plugins_found.append(module_attr)
@@ -496,13 +498,12 @@ class Ftp(threading.Thread):
         self.window = plugin.window
         self.progressbar = plugin.progressbar
         self.model = plugin.available_plugins_model
-        self.buffer_ = io.BytesIO()
         self.remote_dirs = None
         self.append_to_model = True
         self.upgrading = False
         icon = Gtk.Image()
-        self.def_icon = icon.render_icon(Gtk.STOCK_PREFERENCES,
-            Gtk.IconSize.MENU)
+        self.def_icon = icon.render_icon(
+            Gtk.STOCK_PREFERENCES, Gtk.IconSize.MENU)
 
     def model_append(self, row):
         self.model.append(row)
@@ -521,14 +522,15 @@ class Ftp(threading.Thread):
         try:
             GLib.idle_add(self.progressbar.set_text,
                 _('Connecting to server'))
-            self.ftp = self.plugin.ftp_connect()
-            self.ftp.cwd(self.plugin.server_folder)
-            self.progressbar.set_show_text(True)
             if not self.remote_dirs:
                 GLib.idle_add(self.progressbar.set_text,
-                    _('Scan files on the server'))
-                self.ftp.retrbinary('RETR manifests_images.zip', self.handleDownload)
-                zip_file = zipfile.ZipFile(self.buffer_)
+                                 _('Scan files on the server'))
+                try:
+                    buf = self.plugin.retrieve_path(self.plugin.server_folder, 'manifests_images.zip')
+                except:
+                    log.exception("Error fetching plugin list")
+                    return
+                zip_file = zipfile.ZipFile(buf)
                 manifest_list = zip_file.namelist()
                 progress_step = 1.0 / len(manifest_list)
                 for filename in manifest_list:
@@ -593,9 +595,6 @@ class Ftp(threading.Thread):
         except Exception as e:
             self.window.emit('error_signal', str(e))
 
-    def handleDownload(self, block):
-        self.buffer_.write(block)
-
     def download_plugin(self):
         GLib.idle_add(self.progressbar.show)
         self.pulse = GLib.timeout_add(150, self.progressbar_pulse)
@@ -605,24 +604,22 @@ class Ftp(threading.Thread):
             base_dir, user_dir = gajim.PLUGINS_DIRS
             if not os.path.isdir(user_dir):
                 os.mkdir(user_dir)
-            local_dir = ld = os.path.join(user_dir, remote_dir)
+            local_dir = os.path.join(user_dir, remote_dir)
             if not os.path.isdir(local_dir):
                 os.mkdir(local_dir)
             local_dir = os.path.split(user_dir)[0]
 
             # downloading zip file
             GLib.idle_add(self.progressbar.set_text,
-                _('Downloading "%s"') % filename)
-            full_filename = os.path.join(user_dir, filename)
-            self.buffer_ = io.BytesIO()
+                             _('Downloading "%s"') % filename)
             try:
-                self.ftp.retrbinary('RETR %s' % filename, self.handleDownload)
-            except ftplib.all_errors as e:
-                print (str(e))
-
-        with zipfile.ZipFile(self.buffer_) as zip_file:
-            zip_file.extractall(os.path.join(user_dir))
-
+                buf = self.plugin.retrieve_path(self.plugin.server_folder,
+                                                filename)
+            except:
+                log.exception("Error downloading plugin %s" % filename)
+                continue
+            with zipfile.ZipFile(buf) as zip_file:
+                zip_file.extractall(os.path.join(local_dir, 'plugins'))
         self.ftp.quit()
         GLib.idle_add(self.window.emit, 'plugin_downloaded', self.remote_dirs)
         GLib.source_remove(self.pulse)
@@ -642,12 +639,10 @@ class PluginInstallerPluginConfigDialog(GajimPluginConfigDialog):
         self.connect('hide', self.on_hide)
 
     def on_run(self):
-        widget = self.xml.get_object('ftp_server')
-        widget.set_text(str(self.plugin.config['ftp_server']))
+        widget = self.xml.get_object('http_server')
+        widget.set_text(str(self.plugin.config['http_server']))
         self.xml.get_object('check_update').set_active(
             self.plugin.config['check_update'])
-        self.xml.get_object('check_update_periodically').set_active(
-            self.plugin.config['check_update_periodically'])
 
     def on_hide(self, widget):
         widget = self.xml.get_object('ftp_server')
@@ -655,6 +650,3 @@ class PluginInstallerPluginConfigDialog(GajimPluginConfigDialog):
 
     def on_check_update_toggled(self, widget):
         self.plugin.config['check_update'] = widget.get_active()
-
-    def on_check_update_periodically_toggled(self, widget):
-        self.plugin.config['check_update_periodically'] = widget.get_active()
