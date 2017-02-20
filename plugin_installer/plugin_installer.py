@@ -43,20 +43,22 @@ from plugins.helpers import log_calls, log
 from htmltextview import HtmlTextView
 from dialogs import WarningDialog, HigDialog, YesNoDialog
 from plugins.gui import GajimPluginConfigDialog
+from enum import IntEnum
 
 log = logging.getLogger('gajim.plugin_system.plugin_installer')
 
-(
-C_PIXBUF,
-C_DIR,
-C_NAME,
-C_LOCAL_VERSION,
-C_VERSION,
-C_UPGRADE,
-C_DESCRIPTION,
-C_AUTHORS,
-C_HOMEPAGE
-) = range(9)
+
+class Column(IntEnum):
+    PIXBUF = 0
+    DIR = 1
+    NAME = 2
+    LOCAL_VERSION = 3
+    VERSION = 4
+    UPGRADE = 5
+    DESCRIPTION = 6
+    AUTHORS = 7
+    HOMEPAGE = 8
+
 
 def convert_version_to_list(version_str):
     version_list = version_str.split('.')
@@ -225,18 +227,18 @@ class PluginInstaller(GajimPlugin):
         col = Gtk.TreeViewColumn(_('Plugin'))
         cell = Gtk.CellRendererPixbuf()
         col.pack_start(cell, False)
-        col.add_attribute(cell, 'pixbuf', C_PIXBUF)
+        col.add_attribute(cell, 'pixbuf', Column.PIXBUF)
         col.pack_start(renderer, True)
-        col.add_attribute(renderer, 'text', C_NAME)
+        col.add_attribute(renderer, 'text', Column.NAME)
         col.set_resizable(True)
         col.set_property('expand', True)
         col.set_sizing(Gtk.TreeViewColumnSizing.GROW_ONLY)
         self.available_treeview.append_column(col)
         col = Gtk.TreeViewColumn(_('Installed\nversion'), renderer,
-            text=C_LOCAL_VERSION)
+            text=Column.LOCAL_VERSION)
         self.available_treeview.append_column(col)
         col = Gtk.TreeViewColumn(_('Available\nversion'), renderer,
-            text=C_VERSION)
+            text=Column.VERSION)
         col.set_property('expand', False)
         self.available_treeview.append_column(col)
 
@@ -244,7 +246,7 @@ class PluginInstaller(GajimPlugin):
         renderer.set_property('activatable', True)
         renderer.connect('toggled', self.available_plugins_toggled_cb)
         col = Gtk.TreeViewColumn(_('Install /\nUpgrade'), renderer,
-            active=C_UPGRADE)
+            active=Column.UPGRADE)
         self.available_treeview.append_column(col)
 
         if GObject.signal_lookup('error_signal', self.window) is 0:
@@ -283,12 +285,12 @@ class PluginInstaller(GajimPlugin):
             del self.page_num
 
     def available_plugins_toggled_cb(self, cell, path):
-        is_active = self.available_plugins_model[path][C_UPGRADE]
-        self.available_plugins_model[path][C_UPGRADE] = not is_active
+        is_active = self.available_plugins_model[path][Column.UPGRADE]
+        self.available_plugins_model[path][Column.UPGRADE] = not is_active
         dir_list = []
         for i in range(len(self.available_plugins_model)):
-            if self.available_plugins_model[i][C_UPGRADE]:
-                dir_list.append(self.available_plugins_model[i][C_DIR])
+            if self.available_plugins_model[i][Column.UPGRADE]:
+                dir_list.append(self.available_plugins_model[i][Column.DIR])
         if not dir_list:
             self.inslall_upgrade_button.set_property('sensitive', False)
         else:
@@ -310,8 +312,8 @@ class PluginInstaller(GajimPlugin):
         self.inslall_upgrade_button.set_property('sensitive', False)
         dir_list = []
         for i in range(len(self.available_plugins_model)):
-            if self.available_plugins_model[i][C_UPGRADE]:
-                dir_list.append(self.available_plugins_model[i][C_DIR])
+            if self.available_plugins_model[i][Column.UPGRADE]:
+                dir_list.append(self.available_plugins_model[i][Column.DIR])
 
         ftp = Ftp(self)
         ftp.remote_dirs = dir_list
@@ -319,7 +321,7 @@ class PluginInstaller(GajimPlugin):
 
     def on_some_ftp_error(self, widget, error_text):
         for i in range(len(self.available_plugins_model)):
-            self.available_plugins_model[i][C_UPGRADE] = False
+            self.available_plugins_model[i][Column.UPGRADE] = False
         self.progressbar.hide()
         def warn():
             WarningDialog(_('Ftp error'), error_text, self.window)
@@ -355,10 +357,10 @@ class PluginInstaller(GajimPlugin):
             gajim.plugin_manager.add_plugin(plugins[0])
             plugin = gajim.plugin_manager.plugins[-1]
             for row in range(len(self.available_plugins_model)):
-                if plugin.name == self.available_plugins_model[row][C_NAME]:
-                    self.available_plugins_model[row][C_LOCAL_VERSION] = \
+                if plugin.name == self.available_plugins_model[row][Column.NAME]:
+                    self.available_plugins_model[row][Column.LOCAL_VERSION] = \
                         plugin.version
-                    self.available_plugins_model[row][C_UPGRADE] = False
+                    self.available_plugins_model[row][Column.UPGRADE] = False
             if is_active:
                 GLib.idle_add(gajim.plugin_manager.activate_plugin, plugin)
             # get plugin icon
@@ -384,17 +386,17 @@ class PluginInstaller(GajimPlugin):
         sw.add(self.plugin_description_textview)
         sw.show_all()
         if iter:
-            self.plugin_name_label.set_text(model.get_value(iter, C_NAME))
-            self.plugin_version_label.set_text(model.get_value(iter, C_VERSION))
-            self.plugin_authors_label.set_text(model.get_value(iter, C_AUTHORS))
+            self.plugin_name_label.set_text(model.get_value(iter, Column.NAME))
+            self.plugin_version_label.set_text(model.get_value(iter, Column.VERSION))
+            self.plugin_authors_label.set_text(model.get_value(iter, Column.AUTHORS))
             self.plugin_homepage_linkbutton.set_uri(model.get_value(iter,
-                C_HOMEPAGE))
+                Column.HOMEPAGE))
             self.plugin_homepage_linkbutton.set_label(model.get_value(iter,
-                C_HOMEPAGE))
+                Column.HOMEPAGE))
             label = self.plugin_homepage_linkbutton.get_children()[0]
             label.set_ellipsize(Pango.EllipsizeMode.END)
             self.plugin_homepage_linkbutton.set_property('sensitive', True)
-            desc = _(model.get_value(iter, C_DESCRIPTION))
+            desc = _(model.get_value(iter, Column.DESCRIPTION))
             if not desc.startswith('<body '):
                 desc = '<body  xmlns=\'http://www.w3.org/1999/xhtml\'>' + \
                     desc + ' </body>'
