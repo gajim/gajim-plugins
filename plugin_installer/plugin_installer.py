@@ -203,51 +203,32 @@ class PluginInstaller(GajimPlugin):
         self.Gtk_BUILDER_FILE_PATH = self.local_file_path('config_dialog.ui')
         self.xml = Gtk.Builder()
         self.xml.set_translation_domain('gajim_plugins')
-        self.xml.add_objects_from_file(self.Gtk_BUILDER_FILE_PATH, ['hpaned2'])
-        self.hpaned = self.xml.get_object('hpaned2')
-        self.page_num = self.notebook.append_page(self.hpaned,
-            Gtk.Label.new(_('Available')))
+        self.xml.add_objects_from_file(self.Gtk_BUILDER_FILE_PATH,
+                                       ['refresh', 'paned', 'plugin_store'])
 
         widgets_to_extract = (
-            'plugin_name_label', 'available_treeview', 'progressbar',
-            'inslall_upgrade_button', 'plugin_authors_label',
-            'plugin_homepage_linkbutton', 'plugin_version_label')
+            'name_label', 'available_treeview', 'progressbar', 'paned',
+            'install_button', 'authors_label',
+            'homepage_linkbutton', 'version_label', 'scrolled_description_window')
 
         for widget_name in widgets_to_extract:
             setattr(self, widget_name, self.xml.get_object(widget_name))
 
-        self.available_plugins_model = Gtk.ListStore(GdkPixbuf.Pixbuf,
-            object, str, str, str, bool,object, object, object)
-        self.available_treeview.set_model(self.available_plugins_model)
-        self.available_treeview.set_rules_hint(True)
+        # Make Link in LinkButton not centered
+        style_provider = Gtk.CssProvider()
+        css = '.link { padding-left: 0px; padding-right: 0px; }'
+        style_provider.load_from_data(css.encode())
+        context = self.homepage_linkbutton.get_style_context()
+        context.add_provider(style_provider,
+                             Gtk.STYLE_PROVIDER_PRIORITY_USER)
+
+        self.page_num = self.notebook.append_page(
+            self.paned, Gtk.Label.new(_('Available')))
+
+        self.available_plugins_model = self.xml.get_object('plugin_store')
         self.available_plugins_model.set_sort_column_id(2, Gtk.SortType.ASCENDING)
 
         self.progressbar.set_property('no-show-all', True)
-        renderer = Gtk.CellRendererText()
-        col = Gtk.TreeViewColumn(_('Plugin'))
-        cell = Gtk.CellRendererPixbuf()
-        col.pack_start(cell, False)
-        col.add_attribute(cell, 'pixbuf', Column.PIXBUF)
-        col.pack_start(renderer, True)
-        col.add_attribute(renderer, 'text', Column.NAME)
-        col.set_resizable(True)
-        col.set_property('expand', True)
-        col.set_sizing(Gtk.TreeViewColumnSizing.GROW_ONLY)
-        self.available_treeview.append_column(col)
-        col = Gtk.TreeViewColumn(_('Installed\nversion'), renderer,
-            text=Column.LOCAL_VERSION)
-        self.available_treeview.append_column(col)
-        col = Gtk.TreeViewColumn(_('Available\nversion'), renderer,
-            text=Column.VERSION)
-        col.set_property('expand', False)
-        self.available_treeview.append_column(col)
-
-        renderer = Gtk.CellRendererToggle()
-        renderer.set_property('activatable', True)
-        renderer.connect('toggled', self.available_plugins_toggled_cb)
-        col = Gtk.TreeViewColumn(_('Install /\nUpgrade'), renderer,
-            active=Column.UPGRADE)
-        self.available_treeview.append_column(col)
 
         if GObject.signal_lookup('error_signal', self.window) is 0:
             GObject.signal_new('error_signal', self.window,
@@ -264,16 +245,15 @@ class PluginInstaller(GajimPlugin):
         self.connected_ids[id_] = self.window
 
         selection = self.available_treeview.get_selection()
-        selection.connect('changed',
-            self.available_plugins_treeview_selection_changed)
+        selection.connect(
+            'changed', self.available_plugins_treeview_selection_changed)
         selection.set_mode(Gtk.SelectionMode.SINGLE)
 
         self._clear_available_plugin_info()
 
-        self.plugin_description_textview = HtmlTextView()
-        self.plugin_description_textview.set_wrap_mode(Gtk.WrapMode.WORD)
-        sw = self.xml.get_object('scrolledwindow1')
-        sw.add(self.plugin_description_textview)
+        self.description_textview = HtmlTextView()
+        self.description_textview.set_wrap_mode(Gtk.WrapMode.WORD)
+        self.scrolled_description_window.add(self.description_textview)
 
         self.xml.connect_signals(self)
         self.window.show_all()
@@ -292,12 +272,12 @@ class PluginInstaller(GajimPlugin):
             if self.available_plugins_model[i][Column.UPGRADE]:
                 dir_list.append(self.available_plugins_model[i][Column.DIR])
         if not dir_list:
-            self.inslall_upgrade_button.set_property('sensitive', False)
+            self.install_button.set_property('sensitive', False)
         else:
-            self.inslall_upgrade_button.set_property('sensitive', True)
+            self.install_button.set_property('sensitive', True)
 
     def on_notebook_switch_page(self, widget, page, page_num):
-        tab_label_text = self.notebook.get_tab_label_text(self.hpaned)
+        tab_label_text = self.notebook.get_tab_label_text(self.paned)
         if tab_label_text != (_('Available')):
             return
         if not hasattr(self, 'ftp'):
@@ -308,8 +288,8 @@ class PluginInstaller(GajimPlugin):
             self.ftp.upgrading = True
             self.ftp.start()
 
-    def on_inslall_upgrade_clicked(self, widget):
-        self.inslall_upgrade_button.set_property('sensitive', False)
+    def on_install_upgrade_clicked(self, widget):
+        self.install_button.set_property('sensitive', False)
         dir_list = []
         for i in range(len(self.available_plugins_model)):
             if self.available_plugins_model[i][Column.UPGRADE]:
@@ -379,41 +359,41 @@ class PluginInstaller(GajimPlugin):
 
     def available_plugins_treeview_selection_changed(self, treeview_selection):
         model, iter = treeview_selection.get_selected()
-        self.xml.get_object('scrolledwindow1').get_children()[0].destroy()
-        self.plugin_description_textview = HtmlTextView()
-        self.plugin_description_textview.set_wrap_mode(Gtk.WrapMode.WORD)
-        sw = self.xml.get_object('scrolledwindow1')
-        sw.add(self.plugin_description_textview)
+        self.xml.get_object('scrolled_description_window').get_children()[0].destroy()
+        self.description_textview = HtmlTextView()
+        self.description_textview.set_wrap_mode(Gtk.WrapMode.WORD)
+        sw = self.xml.get_object('scrolled_description_window')
+        sw.add(self.description_textview)
         sw.show_all()
         if iter:
-            self.plugin_name_label.set_text(model.get_value(iter, Column.NAME))
-            self.plugin_version_label.set_text(model.get_value(iter, Column.VERSION))
-            self.plugin_authors_label.set_text(model.get_value(iter, Column.AUTHORS))
-            self.plugin_homepage_linkbutton.set_uri(model.get_value(iter,
+            self.name_label.set_text(model.get_value(iter, Column.NAME))
+            self.version_label.set_text(model.get_value(iter, Column.VERSION))
+            self.authors_label.set_text(model.get_value(iter, Column.AUTHORS))
+            self.homepage_linkbutton.set_uri(model.get_value(iter,
                 Column.HOMEPAGE))
-            self.plugin_homepage_linkbutton.set_label(model.get_value(iter,
+            self.homepage_linkbutton.set_label(model.get_value(iter,
                 Column.HOMEPAGE))
-            label = self.plugin_homepage_linkbutton.get_children()[0]
+            label = self.homepage_linkbutton.get_children()[0]
             label.set_ellipsize(Pango.EllipsizeMode.END)
-            self.plugin_homepage_linkbutton.set_property('sensitive', True)
+            self.homepage_linkbutton.set_property('sensitive', True)
             desc = _(model.get_value(iter, Column.DESCRIPTION))
             if not desc.startswith('<body '):
                 desc = '<body  xmlns=\'http://www.w3.org/1999/xhtml\'>' + \
                     desc + ' </body>'
                 desc = desc.replace('\n', '<br/>')
-            self.plugin_description_textview.display_html(
-                desc, self.plugin_description_textview, None)
-            self.plugin_description_textview.set_property('sensitive', True)
+            self.description_textview.display_html(
+                desc, self.description_textview, None)
+            self.description_textview.set_property('sensitive', True)
         else:
             self._clear_available_plugin_info()
 
     def _clear_available_plugin_info(self):
-        self.plugin_name_label.set_text('')
-        self.plugin_version_label.set_text('')
-        self.plugin_authors_label.set_text('')
-        self.plugin_homepage_linkbutton.set_uri('')
-        self.plugin_homepage_linkbutton.set_label('')
-        self.plugin_homepage_linkbutton.set_property('sensitive', False)
+        self.name_label.set_text('')
+        self.version_label.set_text('')
+        self.authors_label.set_text('')
+        self.homepage_linkbutton.set_uri('')
+        self.homepage_linkbutton.set_label('')
+        self.homepage_linkbutton.set_property('sensitive', False)
 
     def scan_dir_for_plugin(self, path):
         plugins_found = []
@@ -487,7 +467,7 @@ class PluginInstaller(GajimPlugin):
             if selection.count_selected_rows() == 0:
                 root_iter = self.available_plugins_model.get_iter_first()
                 selection.select_iter(root_iter)
-        scr_win = self.xml.get_object('scrolledwindow2')
+        scr_win = self.xml.get_object('scrolled_description_window')
         vadjustment = scr_win.get_vadjustment()
         if vadjustment:
             vadjustment.set_value(0)
@@ -566,7 +546,7 @@ class Ftp(threading.Thread):
                         if remote > local:
                             upgrade = True
                             GLib.idle_add(
-                                self.plugin.inslall_upgrade_button.set_property,
+                                self.plugin.install_button.set_property,
                                 'sensitive', True)
                     png_filename = dir_ + '/' + dir_ + '.png'
                     if png_filename in manifest_list:
@@ -581,7 +561,6 @@ class Ftp(threading.Thread):
                     if local_version:
                         base_dir, user_dir = gajim.PLUGINS_DIRS
                         local_dir = os.path.join(user_dir, dir_)
-
                     GLib.idle_add(self.model_append, [def_icon, dir_,
                         config.get('info', 'name'), local_version,
                         config.get('info', 'version'), upgrade,
