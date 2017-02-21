@@ -106,72 +106,9 @@ class PluginInstaller(GajimPlugin):
                 ' your installer plugins. Do you want to update those plugins:'
                 '\n%s') % plugins_str, on_response_yes=open_update)
 
-    def parse_manifest(self, buf):
-        '''
-        given the buffer of the zipfile, returns the list of plugin manifests
-        '''
-        zip_file = zipfile.ZipFile(buf)
-        manifest_list = zip_file.namelist()
-        plugins = []
-        for filename in manifest_list:
-            config = configparser.ConfigParser()
-            conf_file = zip_file.open(filename)
-            config.read_file(io.TextIOWrapper(conf_file, encoding='utf-8'))
-            conf_file.close()
-            if not config.has_section('info'):
-                continue
-            plugins.append(config)
-        return plugins
-
-    def retrieve_path(self, directory, fname):
-        print('retrive path')
-        server = self.config['http_server']
-        if not server:
-            server = self.config_default_values['http_server'][0]
-        if not urlparse(server).scheme:
-            server = 'https://' + server
-        if urlparse(server).scheme != 'https':
-            log.warn('Warning: not using HTTPS is a '
-                     'very serious security issue!')
-        location = posixpath.join(directory, fname)
-        uri = urljoin(server, location)
-        log.debug('Fetching {}'.format(uri))
-        request = urlopen(uri)
-
-        manifest_buffer = io.BytesIO(request.read())
-
-        return manifest_buffer
-
-    def retrieve_manifest(self):
-        return self.retrieve_path(self.server_folder, 'manifests.zip')
-
-    @log_calls('PluginInstallerPlugin')
     def check_update(self):
-        def _run():
-            try:
-                to_update = []
-                zipbuf = self.retrieve_manifest()
-                plugin_manifests = self.parse_manifest(zipbuf)
-                for config in plugin_manifests:
-                    opts = config.options('info')
-                    if 'name' not in opts or 'version' not in opts or \
-                    'description' not in opts or 'authors' not in opts or \
-                    'homepage' not in opts:
-                        continue
-                    local_version = ftp.get_plugin_version(config.get(
-                        'info', 'name'))
-                    if local_version:
-                        local = convert_version_to_list(local_version)
-                        remote = convert_version_to_list(config.get('info',
-                            'version'))
-                        if remote > local:
-                            to_update.append(config.get('info', 'name'))
-                GLib.idle_add(self.warn_update, to_update)
-            except Exception as e:
-                log.error('Ftp error when check updates: %s' % str(e), exc_info=True)
-        ftp = Ftp(self)
-        ftp.run = _run
-        ftp.start()
+        self.thread = download_async(self, check_update=True)
+        self.thread.start()
         self.timeout_id = 0
 
     @log_calls('PluginInstallerPlugin')
@@ -183,8 +120,8 @@ class PluginInstaller(GajimPlugin):
             for id_, widget in list(self.connected_ids.items()):
                 widget.disconnect(id_)
             del self.page_num
-        if hasattr(self, 'ftp'):
-            del self.ftp
+        if hasattr(self, 'thread'):
+            del self.thread
         if self.timeout_id > 0:
             GLib.source_remove(self.timeout_id)
             self.timeout_id = 0
@@ -259,8 +196,8 @@ class PluginInstaller(GajimPlugin):
         self.window.show_all()
 
     def on_win_destroy(self, widget):
-        if hasattr(self, 'ftp'):
-            del self.ftp
+        if hasattr(self, 'thread'):
+            del self.thread
         if hasattr(self, 'page_num'):
             del self.page_num
 
@@ -280,13 +217,11 @@ class PluginInstaller(GajimPlugin):
         tab_label_text = self.notebook.get_tab_label_text(self.paned)
         if tab_label_text != (_('Available')):
             return
-        if not hasattr(self, 'ftp'):
+        if not hasattr(self, 'thread'):
             self.available_plugins_model.clear()
             self.progressbar.show()
-            self.ftp = Ftp(self)
-            self.ftp.remote_dirs = None
-            self.ftp.upgrading = True
-            self.ftp.start()
+            self.thread = download_async(self, upgrading=True)
+            self.thread.start()
 
     def on_install_upgrade_clicked(self, widget):
         self.install_button.set_property('sensitive', False)
@@ -295,9 +230,8 @@ class PluginInstaller(GajimPlugin):
             if self.available_plugins_model[i][Column.UPGRADE]:
                 dir_list.append(self.available_plugins_model[i][Column.DIR])
 
-        ftp = Ftp(self)
-        ftp.remote_dirs = dir_list
-        ftp.start()
+        self.thread = download_async(self, remote=dir_list)
+        self.thread.start()
 
     def on_some_ftp_error(self, widget, error_text):
         for i in range(len(self.available_plugins_model)):
@@ -473,16 +407,17 @@ class PluginInstaller(GajimPlugin):
             vadjustment.set_value(0)
 
 
-class Ftp(threading.Thread):
-    def __init__(self, plugin):
-        super(Ftp, self).__init__()
+class download_async(threading.Thread):
+    def __init__(self, plugin, remote_dirs=None,
+                 upgrading=False, check_update=False):
+        threading.Thread.__init__(self)
         self.plugin = plugin
         self.window = plugin.window
         self.progressbar = plugin.progressbar
         self.model = plugin.available_plugins_model
-        self.remote_dirs = None
-        self.append_to_model = True
-        self.upgrading = False
+        self.remote_dirs = remote_dirs
+        self.upgrading = upgrading
+        self.check_update = check_update
         icon = Gtk.Image()
         self.def_icon = icon.render_icon(
             Gtk.STOCK_PREFERENCES, Gtk.IconSize.MENU)
@@ -501,6 +436,73 @@ class Ftp(threading.Thread):
                 return plugin.version
 
     def run(self):
+        if self.check_update:
+            self.run_check_update()
+        else:
+            self.run_download_plugin_list()
+
+    def parse_manifest(self, buf):
+        '''
+        given the buffer of the zipfile, returns the list of plugin manifests
+        '''
+        zip_file = zipfile.ZipFile(buf)
+        manifest_list = zip_file.namelist()
+        plugins = []
+        for filename in manifest_list:
+            config = configparser.ConfigParser()
+            conf_file = zip_file.open(filename)
+            config.read_file(io.TextIOWrapper(conf_file, encoding='utf-8'))
+            conf_file.close()
+            if not config.has_section('info'):
+                continue
+            plugins.append(config)
+        return plugins
+
+    def retrieve_path(self, directory, fname):
+        server = self.plugin.config['http_server']
+        if not server:
+            server = self.plugin.config_default_values['http_server'][0]
+        if not urlparse(server).scheme:
+            server = 'https://' + server
+        if urlparse(server).scheme != 'https':
+            log.warn('Warning: not using HTTPS is a '
+                     'very serious security issue!')
+        location = posixpath.join(directory, fname)
+        uri = urljoin(server, location)
+        log.debug('Fetching {}'.format(uri))
+        request = urlopen(uri)
+
+        manifest_buffer = io.BytesIO(request.read())
+
+        return manifest_buffer
+
+    def retrieve_manifest(self):
+        return self.retrieve_path(self.plugin.server_folder, 'manifests.zip')
+
+    def run_check_update(self):
+        try:
+            to_update = []
+            zipbuf = self.retrieve_manifest()
+            plugin_manifests = self.parse_manifest(zipbuf)
+            for config in plugin_manifests:
+                opts = config.options('info')
+                if 'name' not in opts or 'version' not in opts or \
+                'description' not in opts or 'authors' not in opts or \
+                'homepage' not in opts:
+                    continue
+                local_version = self.get_plugin_version(config.get(
+                    'info', 'name'))
+                if local_version:
+                    local = convert_version_to_list(local_version)
+                    remote = convert_version_to_list(config.get('info',
+                        'version'))
+                    if remote > local:
+                        to_update.append(config.get('info', 'name'))
+            GLib.idle_add(self.warn_update, to_update)
+        except Exception as e:
+            log.error('Ftp error when check updates: %s' % str(e), exc_info=True)
+
+    def run_download_plugin_list(self):
         try:
             GLib.idle_add(self.progressbar.set_text,
                 _('Connecting to server'))
@@ -508,7 +510,7 @@ class Ftp(threading.Thread):
                 GLib.idle_add(self.progressbar.set_text,
                                  _('Scan files on the server'))
                 try:
-                    buf = self.plugin.retrieve_path(self.plugin.server_folder, 'manifests_images.zip')
+                    buf = self.retrieve_path(self.plugin.server_folder, 'manifests_images.zip')
                 except:
                     log.exception("Error fetching plugin list")
                     return
@@ -567,7 +569,6 @@ class Ftp(threading.Thread):
                         config.get('info', 'description'),
                         config.get('info', 'authors'),
                         config.get('info', 'homepage'), ])
-                self.ftp.quit()
             GLib.idle_add(self.progressbar.set_fraction, 0)
             if self.remote_dirs:
                 self.download_plugin()
@@ -601,7 +602,6 @@ class Ftp(threading.Thread):
                 continue
             with zipfile.ZipFile(buf) as zip_file:
                 zip_file.extractall(os.path.join(local_dir, 'plugins'))
-        self.ftp.quit()
         GLib.idle_add(self.window.emit, 'plugin_downloaded', self.remote_dirs)
         GLib.source_remove(self.pulse)
 
