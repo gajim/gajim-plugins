@@ -128,7 +128,7 @@ class PluginInstaller(GajimPlugin):
         return plugins
 
     def retrieve_path(self, directory, fname, secure=True, degradation=True,
-                      callback=None):
+    callback=None):
         '''move to async'''
         log.info('Installer retrieve {}'.format(directory + '/' + fname))
         server = self.config['http_server']
@@ -165,39 +165,37 @@ class PluginInstaller(GajimPlugin):
             log.error("error while fetching {} ({}".format(uri, str(exc)))
             if secure is False:
                 raise
+            def _show_warning_dialog(pritxt, sectxt):
+                WarningDialog(pritxt, sectxt, self.window)
+
             if isinstance(exc.reason, ssl.SSLError):
                 ssl_reason = exc.reason.reason
                 if ssl_reason == 'CERTIFICATE_VERIFY_FAILED' and \
                    degradation is True:
                     log.exception('Certificate verify failed')
-                    YesNoDialog(_('Security error during download'),
-                                _('A security error occurred when '
-                                  'downloading %s: the certificate of the '
-                                  'plugin archive could not be verified ; '
-                                  'this might be a security attack'
-                                  '\n\nYou can continue downloading this file '
-                                  'at your risk. Do you want to do so? '
-                                  '(not recommended)'
-                                  ) % uri,
-                                on_response_yes=lambda dlg: self.retrieve_path(directory, fname,
-                                                                               secure=False,
-                                                                               degradation=False,
-                                                                               callback=callback)
-                                )
+                    def _yes_no_dialog():
+                        YesNoDialog(_('Security error during download'),
+                            _('A security error occurred when downloading %s: '
+                            'the certificate of the plugin archive could not '
+                            'be verified. This might be a security attack\n\n'
+                            'You can continue downloading this file at your '
+                            'risk. Do you want to do so? (not recommended)') %
+                            uri, on_response_yes=self.retrieve_path(directory,
+                            fname, secure=False, degradation=False,
+                            callback=callback))
+
+                    gobject.idle_add(_yes_no_dialog)
                     return
-                WarningDialog(_("Security error in download"),
-                              _("A security error occurred when downloading\n"
-                                "%s\n[%s]\n"
-                                "This can be a security attack, or a misconfiguration"
-                                "of the plugin server; please report the bug to"
-                                "developers!" % (uri, str(exc))),
-                              self.window)
+                
+                gobject.idle_add(_show_warning_dialog, _('Security error in '
+                    'download'), _('A security error occurred when downloading '
+                    '\n%s\n[%s]\nThis can be a security attack, or a '
+                    'misconfiguration of the plugin server. Please report the '
+                    'bug to developers!' % (uri, str(exc))))
             else:
-                WarningDialog(_("Error in download"),
-                              _("A error occurred when downloading\n"
-                                "<tt>%s</tt>\n<tt>[%s]</tt>"
-                                % (uri, str(exc))),
-                              self.window)
+                gobject.idle_add(_show_warning_dialog, _('Error in download'),
+                    _('An error occurred when downloading\n'
+                    '<tt>%s</tt>\n<tt>[%s]</tt>' % (uri, str(exc))))
             return
 
         manifest_buffer = io.BytesIO(request.read())
@@ -208,7 +206,7 @@ class PluginInstaller(GajimPlugin):
             return manifest_buffer
 
     def retrieve_manifest(self, callback=None):
-        return self.retrieve_path(self.server_folder, 'manifests.zip', callback=callback)
+        self.retrieve_path(self.server_folder, 'manifests.zip', callback=callback)
 
     @log_calls('PluginInstallerPlugin')
     def check_update(self):
@@ -662,7 +660,7 @@ class Ftp(threading.Thread):
                 gobject.idle_add(self.progressbar.set_text,
                                  _('Scan files on the server'))
                 try:
-                    buf = self.plugin.retrieve_path(self.plugin.server_folder, 'manifests_images.zip',
+                    self.plugin.retrieve_path(self.plugin.server_folder, 'manifests_images.zip',
                                                    callback=_process_images)
                 except:
                     log.exception("Error fetching plugin list")
@@ -679,6 +677,10 @@ class Ftp(threading.Thread):
         gobject.idle_add(self.progressbar.show)
         self.pulse = gobject.timeout_add(150, self.progressbar_pulse)
         gobject.idle_add(self.progressbar.set_text, _('Creating a list of files'))
+        def _use_plugin(zipbuf, uri):
+            with zipfile.ZipFile(zipbuf) as zip_file:
+                zip_file.extractall(os.path.join(local_dir, 'plugins'))
+
         for remote_dir in self.remote_dirs:
             filename = remote_dir + '.zip'
             base_dir, user_dir = gajim.PLUGINS_DIRS
@@ -694,12 +696,10 @@ class Ftp(threading.Thread):
                              _('Downloading "%s"') % filename)
             try:
                 buf = self.plugin.retrieve_path(self.plugin.server_folder,
-                                                filename)
+                    filename, callback=_use_plugin)
             except:
                 log.exception("Error downloading plugin %s" % filename)
                 continue
-            with zipfile.ZipFile(buf) as zip_file:
-                zip_file.extractall(os.path.join(local_dir, 'plugins'))
 
         gobject.idle_add(self.window.emit, 'plugin_downloaded',
                          self.remote_dirs)
