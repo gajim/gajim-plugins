@@ -28,8 +28,6 @@ import io
 import threading
 import configparser
 import os
-import fnmatch
-import sys
 import zipfile
 import logging
 import posixpath
@@ -257,7 +255,8 @@ class PluginInstaller(GajimPlugin):
                         model.remove(model.get_iter((row, 0)))
                         break
 
-            plugins = self.scan_dir_for_plugin(plugin_dir)
+            plugins = gajim.plugin_manager.scan_dir_for_plugins(
+                plugin_dir, package=True)
             if not plugins:
                 continue
             gajim.plugin_manager.add_plugin(plugins[0])
@@ -316,72 +315,6 @@ class PluginInstaller(GajimPlugin):
         self.homepage_linkbutton.set_uri('')
         self.homepage_linkbutton.set_label('')
         self.homepage_linkbutton.set_property('sensitive', False)
-
-    def scan_dir_for_plugin(self, path):
-        plugins_found = []
-        conf = configparser.ConfigParser()
-        fields = ('name', 'short_name', 'version', 'description', 'authors',
-            'homepage')
-        if not os.path.isdir(path):
-            return plugins_found
-
-        dir_list = os.listdir(path)
-        dir_, mod = os.path.split(path)
-        sys.path.insert(0, dir_)
-
-        manifest_path = os.path.join(path, 'manifest.ini')
-        if not os.path.isfile(manifest_path):
-            return plugins_found
-
-        for elem_name in dir_list:
-            file_path = os.path.join(path, elem_name)
-            module = None
-
-            if os.path.isfile(file_path) and fnmatch.fnmatch(file_path, '*.py'):
-                module_name = os.path.splitext(elem_name)[0]
-                if module_name == '__init__':
-                    continue
-                try:
-                    full_module_name = '%s.%s' % (mod, module_name)
-                    if full_module_name in sys.modules:
-                        from imp import reload
-                        module = reload(sys.modules[full_module_name])
-                    else:
-                        module = __import__(full_module_name)
-                except ValueError as value_error:
-                    pass
-                except ImportError as import_error:
-                    pass
-                except AttributeError as attribute_error:
-                    pass
-            if module is None:
-                continue
-
-            for module_attr_name in [attr_name for attr_name in dir(module)
-            if not (attr_name.startswith('__') or attr_name.endswith('__'))]:
-                module_attr = getattr(module, module_attr_name)
-                try:
-                    if not issubclass(module_attr, GajimPlugin) or \
-                    module_attr is GajimPlugin:
-                        continue
-                    module_attr.__path__ = os.path.abspath(os.path.dirname(
-                        file_path))
-
-                    # read metadata from manifest.ini
-                    conf.readfp(open(manifest_path, 'r'))
-                    for option in fields:
-                        if conf.get('info', option) is '':
-                            raise configparser.NoOptionError
-                        setattr(module_attr, option, conf.get('info', option))
-                    conf.remove_section('info')
-                    plugins_found.append(module_attr)
-
-                except TypeError as type_error:
-                    pass
-                except configparser.NoOptionError as type_error:
-                    # all fields are required
-                    pass
-        return plugins_found
 
     def select_root_iter(self):
         if hasattr(self, 'available_page'):
