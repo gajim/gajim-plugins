@@ -28,9 +28,11 @@ import io
 import threading
 import configparser
 import os
+import ssl
 import zipfile
 import logging
 import posixpath
+import urllib.error
 
 from urllib.request import urlopen
 from common import gajim
@@ -115,8 +117,7 @@ class PluginInstaller(GajimPlugin):
     def check_update(self):
         if hasattr(self, 'thread'):
             return
-        self.thread = DownloadAsync(self, check_update=True)
-        self.thread.start()
+        self.start_download(check_update=True)
         self.timeout_id = 0
 
     @log_calls('PluginInstallerPlugin')
@@ -211,8 +212,7 @@ class PluginInstaller(GajimPlugin):
             return
         if not hasattr(self, 'thread'):
             self.available_plugins_model.clear()
-            self.thread = DownloadAsync(self, upgrading=True)
-            self.thread.start()
+            self.start_download(upgrading=True)
 
     def on_install_upgrade_clicked(self, widget):
         self.install_button.set_property('sensitive', False)
@@ -221,16 +221,38 @@ class PluginInstaller(GajimPlugin):
             if self.available_plugins_model[i][Column.UPGRADE]:
                 dir_list.append(self.available_plugins_model[i][Column.DIR])
 
-        self.thread = DownloadAsync(self, remote_dirs=dir_list)
-        self.thread.start()
+        self.start_download(remote_dirs=dir_list)
 
-    def on_error(self, error_text):
-        if self.available_plugins_model:
-            for i in range(len(self.available_plugins_model)):
-                self.available_plugins_model[i][Column.UPGRADE] = False
-            self.progressbar.hide()
-        text = GLib.markup_escape_text(error_text)
-        WarningDialog(_('Error'), text, self.window)
+    def on_error(self, reason):
+        if reason == 'CERTIFICATE_VERIFY_FAILED':
+            YesNoDialog(
+                _('Security error during download'),
+                _('A security error occurred when '
+                  'downloading. The certificate of the '
+                  'plugin archive could not be verified. '
+                  'this might be a security attack. '
+                  '\n\nYou can continue at your risk. '
+                  'Do you want to do so? '
+                  '(not recommended)'
+                  ),
+                on_response_yes=lambda dlg: self.start_download(
+                    secure=False, upgrading=True))
+        else:
+            if self.available_plugins_model:
+                for i in range(len(self.available_plugins_model)):
+                    self.available_plugins_model[i][Column.UPGRADE] = False
+                self.progressbar.hide()
+            text = GLib.markup_escape_text(reason)
+            WarningDialog(_('Error in download'),
+                          _('An error occurred when downloading\n\n'
+                          '<tt>[%s]</tt>' % (str(text))), self.window)
+
+    def start_download(self, secure=True, remote_dirs=None,
+                       upgrading=False, check_update=False):
+        self.thread = DownloadAsync(
+            self, secure=secure, remote_dirs=remote_dirs,
+            upgrading=upgrading, check_update=check_update)
+        self.thread.start()
 
     def on_plugin_downloaded(self, plugin_dirs):
         dialog = HigDialog(None, Gtk.MessageType.INFO, Gtk.ButtonsType.OK,
@@ -329,7 +351,7 @@ class PluginInstaller(GajimPlugin):
 
 
 class DownloadAsync(threading.Thread):
-    def __init__(self, plugin, remote_dirs=None,
+    def __init__(self, plugin, secure=True, remote_dirs=None,
                  upgrading=False, check_update=False):
         threading.Thread.__init__(self)
         self.plugin = plugin
@@ -338,6 +360,7 @@ class DownloadAsync(threading.Thread):
         self.model = plugin.available_plugins_model
         self.remote_dirs = remote_dirs
         self.upgrading = upgrading
+        self.secure = secure
         self.check_update = check_update
         icon = Gtk.Image()
         self.def_icon = icon.render_icon(
@@ -357,9 +380,19 @@ class DownloadAsync(threading.Thread):
                 self.run_check_update()
             else:
                 self.run_download_plugin_list()
-        except Exception as e:
-            GLib.idle_add(self.plugin.on_error, str(e))
+        except urllib.error.URLError as exc:
+            if isinstance(exc.reason, ssl.SSLError):
+                ssl_reason = exc.reason.reason
+                if ssl_reason == 'CERTIFICATE_VERIFY_FAILED':
+                    log.exception('Certificate verify failed')
+                    GLib.idle_add(self.plugin.on_error, ssl_reason)
+        except Exception as exc:
+            GLib.idle_add(self.plugin.on_error, str(exc))
             log.exception('Error fetching plugin list')
+        finally:
+            if 'plugins' in gajim.interface.instances:
+                GLib.source_remove(self.pulse)
+                GLib.idle_add(self.progressbar.hide)
 
     def parse_manifest(self, buf):
         '''
@@ -380,7 +413,23 @@ class DownloadAsync(threading.Thread):
 
     def download_url(self, url):
         log.debug('Fetching {}'.format(url))
-        request = urlopen(url)
+        ssl_args = {}
+        if self.secure:
+            ssl_args['context'] = ssl.create_default_context(
+                cafile=self.plugin.local_file_path('DST_Root_CA_X3.pem'))
+        else:
+            ssl_args['context'] = ssl.create_default_context()
+            ssl_args['context'].check_hostname = False
+            ssl_args['context'].verify_mode = ssl.CERT_NONE
+
+        for flag in ('OP_NO_SSLv2', 'OP_NO_SSLv3',
+                     'OP_NO_TLSv1', 'OP_NO_TLSv1_1',
+                     'OP_NO_COMPRESSION',
+                     ):
+            log.info('Installer SSL: +%s' % flag)
+            ssl_args['context'].options |= getattr(ssl, flag)
+        request = urlopen(url, **ssl_args)
+
         return io.BytesIO(request.read())
 
     def run_check_update(self):
