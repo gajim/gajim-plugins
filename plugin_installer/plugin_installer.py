@@ -275,9 +275,6 @@ class PluginInstaller(GajimPlugin):
             icon = self.def_icon
             if os.path.isfile(icon_file):
                 icon = GdkPixbuf.Pixbuf.new_from_file_at_size(icon_file, 16, 16)
-            if not hasattr(plugin, 'activatable'):
-                # version 0.15
-                plugin.activatable = False
             row = [plugin, plugin.name, is_active, plugin.activatable, icon]
             self.installed_plugins_model.append(row)
         dialog.popup()
