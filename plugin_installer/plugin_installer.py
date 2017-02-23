@@ -248,8 +248,7 @@ class PluginInstaller(GajimPlugin):
             if plugin:
                 if plugin.active:
                     is_active = True
-                    GLib.idle_add(gajim.plugin_manager.deactivate_plugin,
-                        plugin)
+                    gajim.plugin_manager.deactivate_plugin(plugin)
                 gajim.plugin_manager.plugins.remove(plugin)
 
                 model = self.installed_plugins_model
@@ -269,7 +268,7 @@ class PluginInstaller(GajimPlugin):
                         plugin.version
                     self.available_plugins_model[row][Column.UPGRADE] = False
             if is_active:
-                GLib.idle_add(gajim.plugin_manager.activate_plugin, plugin)
+                gajim.plugin_manager.activate_plugin(plugin)
             # get plugin icon
             icon_file = os.path.join(plugin.__path__, os.path.split(
                 plugin.__path__)[1]) + '.png'
