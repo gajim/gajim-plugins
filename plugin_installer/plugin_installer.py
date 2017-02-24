@@ -365,6 +365,7 @@ class DownloadAsync(threading.Thread):
         self.upgrading = upgrading
         self.secure = secure
         self.check_update = check_update
+        self.pulse = None
         icon = Gtk.Image()
         self.def_icon = icon.render_icon(
             Gtk.STOCK_PREFERENCES, Gtk.IconSize.MENU)
@@ -382,6 +383,8 @@ class DownloadAsync(threading.Thread):
             if self.check_update:
                 self.run_check_update()
             else:
+                GLib.idle_add(self.progressbar.show)
+                self.pulse = GLib.timeout_add(150, self.progressbar_pulse)
                 self.run_download_plugin_list()
         except urllib.error.URLError as exc:
             if isinstance(exc.reason, ssl.SSLError):
@@ -393,9 +396,10 @@ class DownloadAsync(threading.Thread):
             GLib.idle_add(self.plugin.on_error, str(exc))
             log.exception('Error fetching plugin list')
         finally:
-            if 'plugins' in gajim.interface.instances:
+            if self.pulse:
                 GLib.source_remove(self.pulse)
                 GLib.idle_add(self.progressbar.hide)
+                self.pulse = None
 
     def parse_manifest(self, buf):
         '''
@@ -451,8 +455,6 @@ class DownloadAsync(threading.Thread):
         GLib.idle_add(self.plugin.warn_update, to_update)
 
     def run_download_plugin_list(self):
-        GLib.idle_add(self.progressbar.show)
-        self.pulse = GLib.timeout_add(150, self.progressbar_pulse)
         if not self.remote_dirs:
             log.info('Downloading Pluginlist...')
             buf = self.download_url(MANIFEST_IMAGE_URL)
@@ -500,8 +502,6 @@ class DownloadAsync(threading.Thread):
                     config.get('info', 'homepage'), ])
         else:
             self.download_plugin()
-        GLib.source_remove(self.pulse)
-        GLib.idle_add(self.progressbar.hide)
         GLib.idle_add(self.plugin.select_root_iter)
 
     def download_plugin(self):
