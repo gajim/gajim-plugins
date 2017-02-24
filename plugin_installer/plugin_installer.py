@@ -34,6 +34,7 @@ import logging
 import posixpath
 import urllib.error
 
+from distutils.version import LooseVersion as V
 from urllib.request import urlopen
 from common import gajim
 from plugins import GajimPlugin
@@ -67,14 +68,6 @@ def get_plugin_version(plugin_name):
     for plugin in gajim.plugin_manager.plugins:
         if plugin.name == plugin_name:
             return plugin.version
-
-
-def convert_version_to_list(version_str):
-    version_list = version_str.split('.')
-    l = []
-    while len(version_list):
-        l.append(int(version_list.pop(0)))
-    return l
 
 
 class PluginInstaller(GajimPlugin):
@@ -453,10 +446,7 @@ class DownloadAsync(threading.Thread):
             local_version = get_plugin_version(config.get(
                 'info', 'name'))
             if local_version:
-                local = convert_version_to_list(local_version)
-                remote = convert_version_to_list(config.get('info',
-                    'version'))
-                if remote > local:
+                if V(config.get('info', 'version')) > V(local_version):
                     to_update.append(config.get('info', 'name'))
         GLib.idle_add(self.plugin.warn_update, to_update)
 
@@ -484,10 +474,7 @@ class DownloadAsync(threading.Thread):
                     config.get('info', 'name'))
                 upgrade = False
                 if self.upgrading and local_version:
-                    local = convert_version_to_list(local_version)
-                    remote = convert_version_to_list(config.get('info',
-                        'version'))
-                    if remote > local:
+                    if V(config.get('info', 'version')) > V(local_version):
                         upgrade = True
                         GLib.idle_add(
                             self.plugin.install_button.set_property,
