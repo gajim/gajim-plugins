@@ -48,6 +48,7 @@ log = logging.getLogger('gajim.plugin_system.plugin_installer')
 PLUGINS_URL = 'https://ftp.gajim.org/plugins_1/'
 MANIFEST_URL = 'https://ftp.gajim.org/plugins_1/manifests.zip'
 MANIFEST_IMAGE_URL = 'https://ftp.gajim.org/plugins_1/manifests_images.zip'
+MANDATORY_FIELDS = ['name', 'version', 'description', 'authors', 'homepage']
 
 
 class Column(IntEnum):
@@ -75,6 +76,7 @@ def convert_version_to_list(version_str):
         l.append(int(version_list.pop(0)))
     return l
 
+
 class PluginInstaller(GajimPlugin):
     def init(self):
         self.description = _('Install and Upgrade Plugins')
@@ -86,8 +88,8 @@ class PluginInstaller(GajimPlugin):
         self.timeout_id = 0
         self.connected_ids = {}
         icon = Gtk.Image()
-        self.def_icon = icon.render_icon(Gtk.STOCK_PREFERENCES,
-            Gtk.IconSize.MENU)
+        self.def_icon = icon.render_icon(
+            Gtk.STOCK_PREFERENCES, Gtk.IconSize.MENU)
 
     def activate(self):
         if self.config['check_update']:
@@ -102,9 +104,11 @@ class PluginInstaller(GajimPlugin):
             self.notebook.set_current_page(page)
         if plugins:
             plugins_str = '\n' + '\n'.join(plugins)
-            YesNoDialog(_('Plugins updates'), _('Some updates are available for'
-                ' your installer plugins. Do you want to update those plugins:'
-                '\n%s') % plugins_str, on_response_yes=open_update)
+            YesNoDialog(
+                _('Plugins updates'),
+                _('Some updates are available for your installer plugins. '
+                  'Do you want to update those plugins:\n%s')
+                % plugins_str, on_response_yes=open_update)
         else:
             log.info('No updates found')
             if hasattr(self, 'thread'):
@@ -151,8 +155,8 @@ class PluginInstaller(GajimPlugin):
 
         widgets_to_extract = (
             'name_label', 'available_treeview', 'progressbar', 'paned',
-            'install_button', 'authors_label',
-            'homepage_linkbutton', 'version_label', 'scrolled_description_window')
+            'install_button', 'authors_label', 'homepage_linkbutton',
+            'version_label', 'scrolled_description_window')
 
         for widget_name in widgets_to_extract:
             setattr(self, widget_name, self.xml.get_object(widget_name))
@@ -169,7 +173,8 @@ class PluginInstaller(GajimPlugin):
             self.paned, Gtk.Label.new(_('Available')))
 
         self.available_plugins_model = self.xml.get_object('plugin_store')
-        self.available_plugins_model.set_sort_column_id(2, Gtk.SortType.ASCENDING)
+        self.available_plugins_model.set_sort_column_id(
+            2, Gtk.SortType.ASCENDING)
 
         self.progressbar.set_property('no-show-all', True)
 
@@ -231,8 +236,8 @@ class PluginInstaller(GajimPlugin):
                   'Do you want to do so? '
                   '(not recommended)'
                   ),
-                on_response_yes=lambda dlg: self.start_download(
-                    secure=False, upgrading=True))
+                on_response_yes=lambda dlg:
+                self.start_download(secure=False, upgrading=True))
         else:
             if self.available_plugins_model:
                 for i in range(len(self.available_plugins_model)):
@@ -255,11 +260,6 @@ class PluginInstaller(GajimPlugin):
         self.thread.start()
 
     def on_plugin_downloaded(self, plugin_dirs):
-        dialog = HigDialog(None, Gtk.MessageType.INFO, Gtk.ButtonsType.OK,
-            '', _('All selected plugins downloaded'))
-        dialog.set_modal(False)
-        dialog.set_transient_for(self.window)
-
         for _dir in plugin_dirs:
             is_active = False
             plugins = None
@@ -288,10 +288,10 @@ class PluginInstaller(GajimPlugin):
             plugin = gajim.plugin_manager.plugins[-1]
             log.info('Loading successful')
             for row in range(len(self.available_plugins_model)):
-                if plugin.name == self.available_plugins_model[row][Column.NAME]:
-                    self.available_plugins_model[row][Column.LOCAL_VERSION] = \
-                        plugin.version
-                    self.available_plugins_model[row][Column.UPGRADE] = False
+                model_row = self.available_plugins_model[row]
+                if plugin.name == model_row[Column.NAME]:
+                    model_row[Column.LOCAL_VERSION] = plugin.version
+                    model_row[Column.UPGRADE] = False
             if is_active:
                 log.info('Activate Plugin: %s', plugin)
                 gajim.plugin_manager.activate_plugin(plugin)
@@ -303,11 +303,17 @@ class PluginInstaller(GajimPlugin):
                 icon = GdkPixbuf.Pixbuf.new_from_file_at_size(icon_file, 16, 16)
             row = [plugin, plugin.name, is_active, plugin.activatable, icon]
             self.installed_plugins_model.append(row)
+
+        dialog = HigDialog(
+            self.window, Gtk.MessageType.INFO, Gtk.ButtonsType.OK,
+            '', _('All selected plugins downloaded'))
+        dialog.set_modal(False)
         dialog.popup()
 
     def available_plugins_treeview_selection_changed(self, treeview_selection):
         model, iter = treeview_selection.get_selected()
-        self.xml.get_object('scrolled_description_window').get_children()[0].destroy()
+        self.xml.get_object('scrolled_description_window'). \
+            get_children()[0].destroy()
         self.description_textview = HtmlTextView()
         self.description_textview.set_wrap_mode(Gtk.WrapMode.WORD)
         sw = self.xml.get_object('scrolled_description_window')
@@ -317,17 +323,17 @@ class PluginInstaller(GajimPlugin):
             self.name_label.set_text(model.get_value(iter, Column.NAME))
             self.version_label.set_text(model.get_value(iter, Column.VERSION))
             self.authors_label.set_text(model.get_value(iter, Column.AUTHORS))
-            self.homepage_linkbutton.set_uri(model.get_value(iter,
-                Column.HOMEPAGE))
-            self.homepage_linkbutton.set_label(model.get_value(iter,
-                Column.HOMEPAGE))
+            self.homepage_linkbutton.set_uri(
+                model.get_value(iter, Column.HOMEPAGE))
+            self.homepage_linkbutton.set_label(
+                model.get_value(iter, Column.HOMEPAGE))
             label = self.homepage_linkbutton.get_children()[0]
             label.set_ellipsize(Pango.EllipsizeMode.END)
             self.homepage_linkbutton.set_property('sensitive', True)
             desc = _(model.get_value(iter, Column.DESCRIPTION))
             if not desc.startswith('<body '):
-                desc = '<body  xmlns=\'http://www.w3.org/1999/xhtml\'>' + \
-                    desc + ' </body>'
+                desc = ('<body xmlns=\'http://www.w3.org/1999/xhtml\'>'
+                        '%s</body>') % desc
                 desc = desc.replace('\n', '<br/>')
             self.description_textview.display_html(
                 desc, self.description_textview, None)
@@ -442,9 +448,7 @@ class DownloadAsync(threading.Thread):
         plugin_manifests = self.parse_manifest(zipbuf)
         for config in plugin_manifests:
             opts = config.options('info')
-            if 'name' not in opts or 'version' not in opts or \
-            'description' not in opts or 'authors' not in opts or \
-            'homepage' not in opts:
+            if not set(MANDATORY_FIELDS).issubset(opts):
                 continue
             local_version = get_plugin_version(config.get(
                 'info', 'name'))
@@ -472,12 +476,8 @@ class DownloadAsync(threading.Thread):
                 conf_file = zip_file.open(filename)
                 config.read_file(io.TextIOWrapper(conf_file, encoding='utf-8'))
                 conf_file.close()
-                if not config.has_section('info'):
-                    continue
                 opts = config.options('info')
-                if 'name' not in opts or 'version' not in opts or \
-                'description' not in opts or 'authors' not in opts or \
-                'homepage' not in opts:
+                if not set(MANDATORY_FIELDS).issubset(opts):
                     continue
 
                 local_version = get_plugin_version(
