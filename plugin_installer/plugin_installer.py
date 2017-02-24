@@ -37,7 +37,6 @@ import urllib.error
 from urllib.request import urlopen
 from common import gajim
 from plugins import GajimPlugin
-from plugins.helpers import log_calls, log
 from htmltextview import HtmlTextView
 from dialogs import WarningDialog, HigDialog, YesNoDialog
 from plugins.gui import GajimPluginConfigDialog
@@ -77,8 +76,6 @@ def convert_version_to_list(version_str):
     return l
 
 class PluginInstaller(GajimPlugin):
-
-    @log_calls('PluginInstallerPlugin')
     def init(self):
         self.description = _('Install and Upgrade Plugins')
         self.config_dialog = PluginInstallerPluginConfigDialog(self)
@@ -92,14 +89,12 @@ class PluginInstaller(GajimPlugin):
         self.def_icon = icon.render_icon(Gtk.STOCK_PREFERENCES,
             Gtk.IconSize.MENU)
 
-    @log_calls('PluginInstallerPlugin')
     def activate(self):
         if self.config['check_update']:
             self.timeout_id = GLib.timeout_add_seconds(30, self.check_update)
         if 'plugins' in gajim.interface.instances:
             self.on_activate(gajim.interface.instances['plugins'])
 
-    @log_calls('PluginInstallerPlugin')
     def warn_update(self, plugins):
         def open_update(dummy):
             get_action('plugins').activate()
@@ -111,16 +106,17 @@ class PluginInstaller(GajimPlugin):
                 ' your installer plugins. Do you want to update those plugins:'
                 '\n%s') % plugins_str, on_response_yes=open_update)
         else:
+            log.info('No updates found')
             if hasattr(self, 'thread'):
                 del self.thread
 
     def check_update(self):
         if hasattr(self, 'thread'):
             return
+        log.info('Checking for Updates...')
         self.start_download(check_update=True)
         self.timeout_id = 0
 
-    @log_calls('PluginInstallerPlugin')
     def deactivate(self):
         if hasattr(self, 'available_page'):
             self.notebook.remove_page(self.notebook.page_num(self.paned))
@@ -247,8 +243,12 @@ class PluginInstaller(GajimPlugin):
                           _('An error occurred when downloading\n\n'
                           '<tt>[%s]</tt>' % (str(text))), self.window)
 
-    def start_download(self, secure=True, remote_dirs=None,
+    def start_download(self, secure=True, remote_dirs=False,
                        upgrading=False, check_update=False):
+        log.info('Start Download...')
+        log.debug(
+            'secure: %s, remote_dirs: %s, upgrading: %s, check_update: %s',
+            secure, remote_dirs, upgrading, check_update)
         self.thread = DownloadAsync(
             self, secure=secure, remote_dirs=remote_dirs,
             upgrading=upgrading, check_update=check_update)
@@ -268,6 +268,7 @@ class PluginInstaller(GajimPlugin):
             if plugin:
                 if plugin.active:
                     is_active = True
+                    log.info('Deactivate Plugin: %s', plugin)
                     gajim.plugin_manager.deactivate_plugin(plugin)
                 gajim.plugin_manager.plugins.remove(plugin)
 
@@ -277,18 +278,22 @@ class PluginInstaller(GajimPlugin):
                         model.remove(model.get_iter((row, 0)))
                         break
 
+            log.info('Load Plugin from: %s', plugin_dir)
             plugins = gajim.plugin_manager.scan_dir_for_plugins(
                 plugin_dir, package=True)
             if not plugins:
+                log.warn('Loading Plugin failed')
                 continue
             gajim.plugin_manager.add_plugin(plugins[0])
             plugin = gajim.plugin_manager.plugins[-1]
+            log.info('Loading successful')
             for row in range(len(self.available_plugins_model)):
                 if plugin.name == self.available_plugins_model[row][Column.NAME]:
                     self.available_plugins_model[row][Column.LOCAL_VERSION] = \
                         plugin.version
                     self.available_plugins_model[row][Column.UPGRADE] = False
             if is_active:
+                log.info('Activate Plugin: %s', plugin)
                 gajim.plugin_manager.activate_plugin(plugin)
             # get plugin icon
             icon_file = os.path.join(plugin.__path__, os.path.split(
@@ -351,8 +356,7 @@ class PluginInstaller(GajimPlugin):
 
 
 class DownloadAsync(threading.Thread):
-    def __init__(self, plugin, secure=True, remote_dirs=None,
-                 upgrading=False, check_update=False):
+    def __init__(self, plugin, secure, remote_dirs, upgrading, check_update):
         threading.Thread.__init__(self)
         self.plugin = plugin
         self.window = plugin.window
@@ -412,7 +416,7 @@ class DownloadAsync(threading.Thread):
         return plugins
 
     def download_url(self, url):
-        log.debug('Fetching {}'.format(url))
+        log.info('Fetching %s', url)
         ssl_args = {}
         if self.secure:
             ssl_args['context'] = ssl.create_default_context(
@@ -426,7 +430,7 @@ class DownloadAsync(threading.Thread):
                      'OP_NO_TLSv1', 'OP_NO_TLSv1_1',
                      'OP_NO_COMPRESSION',
                      ):
-            log.info('Installer SSL: +%s' % flag)
+            log.debug('SSL Options: +%s' % flag)
             ssl_args['context'].options |= getattr(ssl, flag)
         request = urlopen(url, **ssl_args)
 
@@ -456,6 +460,7 @@ class DownloadAsync(threading.Thread):
         GLib.idle_add(self.progressbar.show)
         self.pulse = GLib.timeout_add(150, self.progressbar_pulse)
         if not self.remote_dirs:
+            log.info('Downloading Pluginlist...')
             buf = self.download_url(MANIFEST_IMAGE_URL)
             zip_file = zipfile.ZipFile(buf)
             manifest_list = zip_file.namelist()
@@ -515,6 +520,7 @@ class DownloadAsync(threading.Thread):
     def download_plugin(self):
         for remote_dir in self.remote_dirs:
             filename = remote_dir + '.zip'
+            log.info('Download: %s', filename)
             base_dir, user_dir = gajim.PLUGINS_DIRS
             if not os.path.isdir(user_dir):
                 os.mkdir(user_dir)
