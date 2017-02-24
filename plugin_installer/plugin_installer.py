@@ -343,15 +343,12 @@ class PluginInstaller(GajimPlugin):
         self.homepage_linkbutton.set_property('sensitive', False)
 
     def select_root_iter(self):
-        if hasattr(self, 'available_page'):
-            selection = self.available_treeview.get_selection()
-            if selection.count_selected_rows() == 0:
-                root_iter = self.available_plugins_model.get_iter_first()
-                selection.select_iter(root_iter)
-        scr_win = self.xml.get_object('scrolled_description_window')
-        vadjustment = scr_win.get_vadjustment()
-        if vadjustment:
-            vadjustment.set_value(0)
+        selection = self.available_treeview.get_selection()
+        if selection.count_selected_rows() == 0:
+            root_iter = self.available_plugins_model.get_iter_first()
+            path = self.available_plugins_model.get_path(root_iter)
+            selection.select_iter(root_iter)
+        self.available_treeview.scroll_to_cell(path)
 
 
 class DownloadAsync(threading.Thread):
@@ -500,9 +497,9 @@ class DownloadAsync(threading.Thread):
                     config.get('info', 'description'),
                     config.get('info', 'authors'),
                     config.get('info', 'homepage'), ])
+            GLib.idle_add(self.plugin.select_root_iter)
         else:
             self.download_plugin()
-        GLib.idle_add(self.plugin.select_root_iter)
 
     def download_plugin(self):
         for remote_dir in self.remote_dirs:
