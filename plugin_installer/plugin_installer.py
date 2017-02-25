@@ -29,11 +29,11 @@ import threading
 import configparser
 import os
 import ssl
-import zipfile
 import logging
 import posixpath
 import urllib.error
 
+from zipfile import ZipFile
 from distutils.version import LooseVersion as V
 from urllib.request import urlopen
 from common import gajim
@@ -64,7 +64,7 @@ class Column(IntEnum):
     HOMEPAGE = 8
 
 
-def get_plugin_version(plugin_name):
+def get_local_version(plugin_name):
     for plugin in gajim.plugin_manager.plugins:
         if plugin.name == plugin_name:
             return plugin.version
@@ -347,7 +347,12 @@ class DownloadAsync(threading.Thread):
             Gtk.STOCK_PREFERENCES, Gtk.IconSize.MENU)
 
     def model_append(self, row):
-        self.model.append(row)
+        row_data = [
+            row['icon'], row['remote_dir'], row['name'], row['local_version'],
+            row['version'], row['upgrade'], row['description'], row['authors'],
+            row['homepage']
+            ]
+        self.model.append(row_data)
         return False
 
     def progressbar_pulse(self):
@@ -381,17 +386,48 @@ class DownloadAsync(threading.Thread):
         '''
         given the buffer of the zipfile, returns the list of plugin manifests
         '''
-        zip_file = zipfile.ZipFile(buf)
+        zip_file = ZipFile(buf)
         manifest_list = zip_file.namelist()
         plugins = []
         for filename in manifest_list:
+            # Parse manifest
+            if not filename.endswith('manifest.ini'):
+                continue
             config = configparser.ConfigParser()
             conf_file = zip_file.open(filename)
             config.read_file(io.TextIOWrapper(conf_file, encoding='utf-8'))
             conf_file.close()
             if not config.has_section('info'):
+                log.warn('Plugin is missing INFO section in manifest.ini. '
+                         'Plugin not loaded.')
                 continue
-            plugins.append(config)
+            opts = config.options('info')
+            if not set(MANDATORY_FIELDS).issubset(opts):
+                log.warn('Plugin is missing mandatory fields in manifest.ini. '
+                         'Plugin not loaded.')
+                continue
+            # Add icon and remote dir
+            icon = None
+            remote_dir = filename.split('/')[0]
+            png_filename = '{0}/{0}.png'.format(remote_dir)
+            icon = self.def_icon
+            if png_filename in manifest_list:
+                data = zip_file.open(png_filename).read()
+                pix = GdkPixbuf.PixbufLoader()
+                pix.set_size(16, 16)
+                pix.write(data)
+                pix.close()
+                icon = pix.get_pixbuf()
+
+            # transform to dictonary
+            config_dict = {}
+            for key, value in config.items('info'):
+                config_dict[key] = value
+            config_dict['icon'] = icon
+            config_dict['remote_dir'] = remote_dir
+            config_dict['upgrade'] = False
+
+            plugins.append(config_dict)
         return plugins
 
     def download_url(self, url):
@@ -418,64 +454,28 @@ class DownloadAsync(threading.Thread):
     def run_check_update(self):
         to_update = []
         zipbuf = self.download_url(MANIFEST_URL)
-        plugin_manifests = self.parse_manifest(zipbuf)
-        for config in plugin_manifests:
-            opts = config.options('info')
-            if not set(MANDATORY_FIELDS).issubset(opts):
-                continue
-            local_version = get_plugin_version(config.get(
-                'info', 'name'))
+        plugin_list = self.parse_manifest(zipbuf)
+        for plugin in plugin_list:
+            local_version = get_local_version(plugin['name'])
             if local_version:
-                if V(config.get('info', 'version')) > V(local_version):
-                    to_update.append(config.get('info', 'name'))
+                if V(plugin['version']) > V(local_version):
+                    to_update.append(plugin['name'])
         GLib.idle_add(self.plugin.warn_update, to_update)
 
     def run_download_plugin_list(self):
         if not self.remote_dirs:
             log.info('Downloading Pluginlist...')
-            buf = self.download_url(MANIFEST_IMAGE_URL)
-            zip_file = zipfile.ZipFile(buf)
-            manifest_list = zip_file.namelist()
-            for filename in manifest_list:
-                if not filename.endswith('manifest.ini'):
-                    continue
-                dir_ = filename.split('/')[0]
-                config = configparser.ConfigParser()
-                conf_file = zip_file.open(filename)
-                config.read_file(io.TextIOWrapper(conf_file, encoding='utf-8'))
-                conf_file.close()
-                opts = config.options('info')
-                if not set(MANDATORY_FIELDS).issubset(opts):
-                    continue
-
-                local_version = get_plugin_version(
-                    config.get('info', 'name'))
-                upgrade = False
-                if self.upgrading and local_version:
-                    if V(config.get('info', 'version')) > V(local_version):
-                        upgrade = True
+            zipbuf = self.download_url(MANIFEST_IMAGE_URL)
+            plugin_list = self.parse_manifest(zipbuf)
+            for plugin in plugin_list:
+                plugin['local_version'] = get_local_version(plugin['name'])
+                if self.upgrading and plugin['local_version']:
+                    if V(plugin['version']) > V(plugin['local_version']):
+                        plugin['upgrade'] = True
                         GLib.idle_add(
                             self.plugin.install_button.set_property,
                             'sensitive', True)
-                png_filename = dir_ + '/' + dir_ + '.png'
-                if png_filename in manifest_list:
-                    data = zip_file.open(png_filename).read()
-                    pbl = GdkPixbuf.PixbufLoader()
-                    pbl.set_size(16, 16)
-                    pbl.write(data)
-                    pbl.close()
-                    def_icon = pbl.get_pixbuf()
-                else:
-                    def_icon = self.def_icon
-                if local_version:
-                    base_dir, user_dir = gajim.PLUGINS_DIRS
-                    local_dir = os.path.join(user_dir, dir_)
-                GLib.idle_add(self.model_append, [def_icon, dir_,
-                    config.get('info', 'name'), local_version,
-                    config.get('info', 'version'), upgrade,
-                    config.get('info', 'description'),
-                    config.get('info', 'authors'),
-                    config.get('info', 'homepage'), ])
+                GLib.idle_add(self.model_append, plugin)
             GLib.idle_add(self.plugin.select_root_iter)
         else:
             self.download_plugin()
@@ -499,7 +499,7 @@ class DownloadAsync(threading.Thread):
             except:
                 log.exception("Error downloading plugin %s" % filename)
                 continue
-            with zipfile.ZipFile(buf) as zip_file:
+            with ZipFile(buf) as zip_file:
                 zip_file.extractall(os.path.join(local_dir, 'plugins'))
         GLib.idle_add(self.plugin.on_plugin_downloaded, self.remote_dirs)
 
