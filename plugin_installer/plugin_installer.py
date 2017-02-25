@@ -4,6 +4,7 @@
 ##
 ## Copyright (C) 2010-2012 Denis Fomin <fominde AT gmail.com>
 ## Copyright (C) 2011-2012 Yann Leboulanger <asterix AT lagaule.org>
+## Copyright (C) 2017      Philipp Hörist <philipp AT hoerist.com>
 ##
 ## This file is part of Gajim.
 ##
