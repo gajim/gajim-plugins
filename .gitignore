@@ -1,6 +1,4 @@
-# use glob syntax.
 syntax: glob
-
 *.pyc
 *.pyo
-*.db
+__pycache__/
