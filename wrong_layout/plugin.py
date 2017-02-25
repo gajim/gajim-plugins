@@ -12,8 +12,6 @@ from plugins.helpers import log_calls
 class WrongLayoutPlugin(GajimPlugin):
     @log_calls('WrongLayoutPlugin')
     def init(self):
-        self.description = _('Press alt+r to convert chars typed in '
-            'wrong layout Rus<>Eng')
         self.config_dialog = None
         self.gui_extension_points = {
                 'chat_control_base': (self.connect_with_chat_control,
