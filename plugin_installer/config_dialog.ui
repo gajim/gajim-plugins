@@ -70,6 +70,7 @@
             <child>
               <object class="GtkProgressBar" id="progressbar">
                 <property name="can_focus">False</property>
+                <property name="no_show_all">True</property>
                 <property name="ellipsize">end</property>
               </object>
               <packing>
@@ -174,10 +175,9 @@ Upgrade</property>
             <property name="column_spacing">5</property>
             <child>
               <object class="GtkLabel" id="name_label">
-                <property name="visible">True</property>
                 <property name="can_focus">False</property>
+                <property name="no_show_all">True</property>
                 <property name="halign">start</property>
-                <property name="label" translatable="yes">&amp;lt;empty&amp;gt;</property>
                 <property name="selectable">True</property>
                 <attributes>
                   <attribute name="weight" value="bold"/>
@@ -245,7 +245,6 @@ Upgrade</property>
                 <property name="can_focus">False</property>
                 <property name="halign">start</property>
                 <property name="hexpand">False</property>
-                <property name="label">&lt;empty&gt;</property>
                 <property name="selectable">True</property>
               </object>
               <packing>
@@ -259,7 +258,6 @@ Upgrade</property>
                 <property name="can_focus">False</property>
                 <property name="halign">start</property>
                 <property name="valign">start</property>
-                <property name="label">&lt;empty&gt;</property>
                 <property name="wrap_mode">word-char</property>
                 <property name="selectable">True</property>
                 <property name="ellipsize">end</property>
@@ -271,10 +269,10 @@ Upgrade</property>
             </child>
             <child>
               <object class="GtkLinkButton" id="homepage_linkbutton">
-                <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="focus_on_click">False</property>
                 <property name="receives_default">True</property>
+                <property name="no_show_all">True</property>
                 <property name="halign">start</property>
                 <property name="hexpand">True</property>
                 <property name="relief">none</property>

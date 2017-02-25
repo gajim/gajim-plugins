@@ -169,14 +169,10 @@ class PluginInstaller(GajimPlugin):
         self.available_plugins_model.set_sort_column_id(
             2, Gtk.SortType.ASCENDING)
 
-        self.progressbar.set_property('no-show-all', True)
-
         selection = self.available_treeview.get_selection()
         selection.connect(
             'changed', self.available_plugins_treeview_selection_changed)
         selection.set_mode(Gtk.SelectionMode.SINGLE)
-
-        self._clear_available_plugin_info()
 
         self.description_textview = HtmlTextView()
         self.description_textview.set_wrap_mode(Gtk.WrapMode.WORD)
@@ -305,42 +301,23 @@ class PluginInstaller(GajimPlugin):
 
     def available_plugins_treeview_selection_changed(self, treeview_selection):
         model, iter = treeview_selection.get_selected()
-        self.xml.get_object('scrolled_description_window'). \
-            get_children()[0].destroy()
-        self.description_textview = HtmlTextView()
-        self.description_textview.set_wrap_mode(Gtk.WrapMode.WORD)
-        sw = self.xml.get_object('scrolled_description_window')
-        sw.add(self.description_textview)
-        sw.show_all()
-        if iter:
-            self.name_label.set_text(model.get_value(iter, Column.NAME))
-            self.version_label.set_text(model.get_value(iter, Column.VERSION))
-            self.authors_label.set_text(model.get_value(iter, Column.AUTHORS))
-            self.homepage_linkbutton.set_uri(
-                model.get_value(iter, Column.HOMEPAGE))
-            self.homepage_linkbutton.set_label(
-                model.get_value(iter, Column.HOMEPAGE))
-            label = self.homepage_linkbutton.get_children()[0]
-            label.set_ellipsize(Pango.EllipsizeMode.END)
-            self.homepage_linkbutton.set_property('sensitive', True)
-            desc = _(model.get_value(iter, Column.DESCRIPTION))
-            if not desc.startswith('<body '):
-                desc = ('<body xmlns=\'http://www.w3.org/1999/xhtml\'>'
-                        '%s</body>') % desc
-                desc = desc.replace('\n', '<br/>')
-            self.description_textview.display_html(
-                desc, self.description_textview, None)
-            self.description_textview.set_property('sensitive', True)
-        else:
-            self._clear_available_plugin_info()
-
-    def _clear_available_plugin_info(self):
-        self.name_label.set_text('')
-        self.version_label.set_text('')
-        self.authors_label.set_text('')
-        self.homepage_linkbutton.set_uri('')
-        self.homepage_linkbutton.set_label('')
-        self.homepage_linkbutton.set_property('sensitive', False)
+        self.description_textview.get_buffer().set_text('')
+        self.name_label.set_text(model.get_value(iter, Column.NAME))
+        self.version_label.set_text(model.get_value(iter, Column.VERSION))
+        self.authors_label.set_text(model.get_value(iter, Column.AUTHORS))
+        self.homepage_linkbutton.set_uri(
+            model.get_value(iter, Column.HOMEPAGE))
+        self.homepage_linkbutton.set_label(
+            model.get_value(iter, Column.HOMEPAGE))
+        link_label = self.homepage_linkbutton.get_children()[0]
+        link_label.set_ellipsize(Pango.EllipsizeMode.END)
+        desc = _(model.get_value(iter, Column.DESCRIPTION))
+        if not desc.startswith('<body '):
+            desc = ('<body xmlns=\'http://www.w3.org/1999/xhtml\'>'
+                    '%s</body>') % desc
+            desc = desc.replace('\n', '<br/>')
+        self.description_textview.display_html(
+            desc, self.description_textview, None)
 
     def select_root_iter(self):
         selection = self.available_treeview.get_selection()
@@ -348,6 +325,8 @@ class PluginInstaller(GajimPlugin):
             root_iter = self.available_plugins_model.get_iter_first()
             path = self.available_plugins_model.get_path(root_iter)
             selection.select_iter(root_iter)
+        self.name_label.show()
+        self.homepage_linkbutton.show()
         self.available_treeview.scroll_to_cell(path)
 
 
