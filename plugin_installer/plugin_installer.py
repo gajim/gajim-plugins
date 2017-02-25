@@ -76,6 +76,7 @@ class PluginInstaller(GajimPlugin):
         self.description = _('Install and Upgrade Plugins')
         self.config_dialog = PluginInstallerPluginConfigDialog(self)
         self.config_default_values = {'check_update': (True, '')}
+        self.gui_extension_points = {'plugin_window': (self.on_activate, None)}
         self.window = None
         self.progressbar = None
         self.available_plugins_model = None
