@@ -178,14 +178,10 @@ class HttpuploadPlugin(GajimPlugin):
                 log.info("Account %s: httpupload is_supported: %s" % (str(chat_control.account), str(is_supported)))
                 if not is_supported:
                     text = _('Your server does not support http uploads')
-                    image_text = text
                 else:
                     text = _('Send file via http upload')
-                    image_text = _('Send image via http upload')
                 base.button.set_sensitive(is_supported)
                 base.button.set_tooltip_text(text)
-                base.image_button.set_sensitive(is_supported)
-                base.image_button.set_tooltip_text(image_text)
 
 
 class Base(object):
@@ -204,34 +200,20 @@ class Base(object):
         self.button.set_image(img)
         self.button.set_tooltip_text(_('Your server does not support http uploads'))
         self.button.set_relief(Gtk.ReliefStyle.NONE)
-        self.image_button = Gtk.Button(label=None, stock=None, use_underline=True)
-        self.image_button.set_property('can-focus', False)
-        self.image_button.set_relief(Gtk.ReliefStyle.NONE)
-        self.image_button.set_sensitive(False)
-        img = Gtk.Image()
-        img.set_from_file(self.plugin.local_file_path('image.png'))
-        self.image_button.set_image(img)
-        self.image_button.set_tooltip_text(_('Your server does not support http uploads'))
+
         send_button = chat_control.xml.get_object('send_button')
         actions_hbox.add(self.button)
-        actions_hbox.add(self.image_button)
-
         send_button_pos = actions_hbox.child_get_property(send_button, 'position')
-        actions_hbox.child_set_property(self.image_button, 'position', send_button_pos - 1)
         actions_hbox.child_set_property(self.button, 'position', send_button_pos - 1)
 
         file_id = self.button.connect('clicked', self.on_file_button_clicked)
-        image_id = self.image_button.connect('clicked', self.on_image_button_clicked)
         chat_control.handlers[file_id] = self.button
-        chat_control.handlers[image_id] = self.image_button
         self.button.show()
-        self.image_button.show()
 
 
     def disconnect_from_chat_control(self):
         actions_hbox = self.chat_control.xml.get_object('actions_hbox')
         actions_hbox.remove(self.button)
-        actions_hbox.remove(self.image_button)
 
     def encryption_activated(self):
         if not encryption_available:
@@ -345,17 +327,6 @@ class Base(object):
                     log.info("Upload completed successfully")
                     xhtml = None
                     is_image = mime_type.split('/', 1)[0] == 'image'
-                    if ((not isinstance(self.chat_control, chat_control.ChatControl)
-                         or not self.chat_control.gpg_is_active)
-                        and self.dialog_type == 'image'
-                        and is_image
-                        and not self.encrypted_upload
-                    ):
-                        progress_messages.put(_('Calculating (possible) image thumbnail...'))
-                        thumb = thumbnail(path_to_file)
-                        if thumb:
-                            xhtml = '<body><br/><a href="%s"><img alt="%s" src="data:image/jpeg;base64,%s"/></a></body>' % \
-                                (get.getData(), get.getData(), thumb)
                     progress_window.close_dialog()
                     id_ = gajim.get_an_id()
                     def add_oob_tag():
@@ -455,11 +426,6 @@ class Base(object):
             title_text = _('Choose file to send'), action = Gtk.FileChooserAction.OPEN,
             buttons = (Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL, Gtk.STOCK_OPEN, Gtk.ResponseType.OK),
             default_response = Gtk.ResponseType.OK,)
-        self.dlg.set_transient_for(self.chat_control.parent_win.window)
-
-    def on_image_button_clicked(self, widget):
-        self.dialog_type = 'image'
-        self.dlg = ImageChooserDialog(on_response_ok=self.on_file_dialog_ok, on_response_cancel=None)
         self.dlg.set_transient_for(self.chat_control.parent_win.window)
 
 
