@@ -169,11 +169,6 @@ class PluginInstaller(GajimPlugin):
         self.available_plugins_model.set_sort_column_id(
             2, Gtk.SortType.ASCENDING)
 
-        selection = self.available_treeview.get_selection()
-        selection.connect(
-            'changed', self.available_plugins_treeview_selection_changed)
-        selection.set_mode(Gtk.SelectionMode.SINGLE)
-
         self.description_textview = HtmlTextView()
         self.description_textview.set_wrap_mode(Gtk.WrapMode.WORD)
         self.scrolled_description_window.add(self.description_textview)

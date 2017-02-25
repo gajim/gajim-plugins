@@ -94,7 +94,9 @@
                     <property name="headers_clickable">False</property>
                     <property name="search_column">1</property>
                     <child internal-child="selection">
-                      <object class="GtkTreeSelection"/>
+                      <object class="GtkTreeSelection">
+                        <signal name="changed" handler="available_plugins_treeview_selection_changed" swapped="no"/>
+                      </object>
                     </child>
                     <child>
                       <object class="GtkTreeViewColumn">
