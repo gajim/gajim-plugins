@@ -32,6 +32,7 @@ import urllib2
 import urlparse
 import posixpath
 import traceback
+import ssl
 
 import gtk
 import pango
@@ -126,7 +127,10 @@ class PluginInstaller(GajimPlugin):
             plugins.append(config)
         return plugins
 
-    def retrieve_path(self, directory, fname):
+    def retrieve_path(self, directory, fname, secure=True, degradation=True,
+    callback=None):
+        '''move to async'''
+        log.info('Installer retrieve {}'.format(directory + '/' + fname))
         server = self.config['http_server']
         if not server:
             server = self.config_default_values['http_server'][0]
@@ -138,38 +142,96 @@ class PluginInstaller(GajimPlugin):
         location = posixpath.join(directory, fname)
         uri = urlparse.urljoin(server, location)
         log.debug('Fetching {}'.format(uri))
-        request = urllib2.urlopen(uri)
+        ssl_args = {}
+        if secure is True and hasattr(ssl, 'create_default_context'):
+            if 'cafile' in inspect.getargspec(ssl.create_default_context).args:
+                ssl_args['context'] = ssl.create_default_context(
+                    cafile=self.local_file_path('DST_Root_CA_X3.pem'))
+            else:
+                log.warning('Your python version does not '
+                            'support HTTPS CA pinning')
+                ssl_args['context'] = ssl.create_default_context()
+
+            for flag in ('OP_NO_SSLv2', 'OP_NO_SSLv3',
+                         'OP_NO_TLSv1', 'OP_NO_TLSv1_1',
+                         'OP_NO_COMPRESSION',
+                         ):
+                log.debug('Installer SSL: +%s' % flag)
+                if hasattr(ssl, flag):
+                    ssl_args['context'].options |= getattr(ssl, flag)
+        try:
+            request = urllib2.urlopen(uri, **ssl_args)
+        except urllib2.URLError as exc:
+            log.error("error while fetching {} ({}".format(uri, str(exc)))
+            def _show_warning_dialog(pritxt, sectxt):
+                WarningDialog(pritxt, sectxt, self.window)
+
+            if isinstance(exc.reason, ssl.SSLError) and secure:
+                ssl_reason = exc.reason.reason
+                if ssl_reason == 'CERTIFICATE_VERIFY_FAILED' and \
+                degradation is True:
+                    log.exception('Certificate verify failed')
+                    def _yes_no_dialog():
+                        YesNoDialog(_('Security error during download'),
+                            _('A security error occurred when downloading %s: '
+                            'the certificate of the plugin archive could not '
+                            'be verified. This might be a security attack\n\n'
+                            'You can continue downloading this file at your '
+                            'risk. Do you want to do so? (not recommended)') %
+                            uri, on_response_yes=lambda dlg: self.retrieve_path(
+                            directory, fname, secure=False, degradation=False,
+                            callback=callback))
+
+                    gobject.idle_add(_yes_no_dialog)
+                    return
+                
+                gobject.idle_add(_show_warning_dialog, _('Security error in '
+                    'download'), _('A security error occurred when downloading '
+                    '\n%s\n[%s]\nThis can be a security attack, or a '
+                    'misconfiguration of the plugin server. Please report the '
+                    'bug to developers!' % (uri, str(exc))))
+            else:
+                gobject.idle_add(_show_warning_dialog, _('Error in download'),
+                    _('An error occurred when downloading\n'
+                    '<tt>%s</tt>\n<tt>[%s]</tt>' % (uri, str(exc))))
+            return
+
         manifest_buffer = io.BytesIO(request.read())
 
-        return manifest_buffer
+        if callback is not None:
+            callback(manifest_buffer, uri)
+        else:
+            return manifest_buffer
 
-    def retrieve_manifest(self):
-        return self.retrieve_path(self.server_folder, 'manifests.zip')
+    def retrieve_manifest(self, callback=None):
+        self.retrieve_path(self.server_folder, 'manifests.zip', callback=callback)
 
     @log_calls('PluginInstallerPlugin')
     def check_update(self):
+        def _use_manifest(zipbuf, uri):
+            to_update = []
+            plugin_manifests = self.parse_manifest(zipbuf)
+            for config in plugin_manifests:
+                opts = config.options('info')
+                if 'name' not in opts or 'version' not in opts or \
+                   'description' not in opts or 'authors' not in opts or \
+                   'homepage' not in opts:
+                    continue
+                local_version = ftp.get_plugin_version(config.get(
+                    'info', 'name'))
+                if local_version:
+                    local = convert_version_to_list(local_version)
+                    remote = convert_version_to_list(config.get('info',
+                                                                'version'))
+                    if remote > local:
+                        to_update.append(config.get('info', 'name'))
+            gobject.idle_add(self.warn_update, to_update)
+
         def _run():
             try:
-                to_update = []
-                zipbuf = self.retrieve_manifest()
-                plugin_manifests = self.parse_manifest(zipbuf)
-                for config in plugin_manifests:
-                    opts = config.options('info')
-                    if 'name' not in opts or 'version' not in opts or \
-                       'description' not in opts or 'authors' not in opts or \
-                       'homepage' not in opts:
-                        continue
-                    local_version = ftp.get_plugin_version(config.get(
-                        'info', 'name'))
-                    if local_version:
-                        local = convert_version_to_list(local_version)
-                        remote = convert_version_to_list(config.get('info',
-                                                                    'version'))
-                        if remote > local:
-                            to_update.append(config.get('info', 'name'))
-                gobject.idle_add(self.warn_update, to_update)
-            except Exception as e:
-                log.exception('Ftp error when check for updates: ')
+                self.retrieve_manifest(callback=_use_manifest)
+            except Exception, e:
+                log.debug('Ftp error when check updates: %s' % str(e))
         ftp = Ftp(self)
         ftp.run = _run
         ftp.start()
@@ -533,6 +595,62 @@ class Ftp(threading.Thread):
                 return plugin.version
 
     def run(self):
+        def _process_images(buf, uri):
+            zip_file = zipfile.ZipFile(buf)
+            manifest_list = zip_file.namelist()
+            progress_step = 1.0 / len(manifest_list)
+            for filename in manifest_list:
+                if not filename.endswith('manifest.ini'):
+                    continue
+                dir_ = filename.split('/')[0]
+                fract = self.progressbar.get_fraction() + progress_step
+                gobject.idle_add(self.progressbar.set_fraction, fract)
+                gobject.idle_add(self.progressbar.set_text,
+                                 _('Reading "%s"') % dir_)
+
+                config = ConfigParser.ConfigParser()
+                config.readfp(zip_file.open(filename))
+                if not config.has_section('info'):
+                    continue
+                opts = config.options('info')
+                if 'name' not in opts or 'version' not in opts or \
+                   'description' not in opts or 'authors' not in opts or \
+                   'homepage' not in opts:
+                    continue
+
+                local_version = self.get_plugin_version(
+                    config.get('info', 'name'))
+                upgrade = False
+                if self.upgrading and local_version:
+                    local = convert_version_to_list(local_version)
+                    remote = convert_version_to_list(config.get('info',
+                                                                'version'))
+                    if remote > local:
+                        upgrade = True
+                        gobject.idle_add(
+                            self.plugin.inslall_upgrade_button.set_property,
+                            'sensitive', True)
+                png_filename = dir_ + '/' + dir_ + '.png'
+                if png_filename in manifest_list:
+                    data = zip_file.open(png_filename).read()
+                    pbl = gtk.gdk.PixbufLoader()
+                    pbl.set_size(16, 16)
+                    pbl.write(data)
+                    pbl.close()
+                    def_icon = pbl.get_pixbuf()
+                else:
+                    def_icon = self.def_icon
+                if local_version:
+                    base_dir, user_dir = gajim.PLUGINS_DIRS
+                    os.path.join(user_dir, dir_)
+
+                gobject.idle_add(self.model_append, [def_icon, dir_,
+                                                     config.get('info', 'name'), local_version,
+                                                     config.get('info', 'version'), upgrade,
+                                                     config.get('info', 'description'),
+                                                     config.get('info', 'authors'),
+                                                     config.get('info', 'homepage'), ])
+
         try:
             gobject.idle_add(self.progressbar.set_text,
                 _('Connecting to server'))
@@ -540,64 +658,11 @@ class Ftp(threading.Thread):
                 gobject.idle_add(self.progressbar.set_text,
                                  _('Scan files on the server'))
                 try:
-                    buf = self.plugin.retrieve_path(self.plugin.server_folder, 'manifests_images.zip')
+                    self.plugin.retrieve_path(self.plugin.server_folder, 'manifests_images.zip',
+                                                   callback=_process_images)
                 except:
                     log.exception("Error fetching plugin list")
                     return
-                zip_file = zipfile.ZipFile(buf)
-                manifest_list = zip_file.namelist()
-                progress_step = 1.0 / len(manifest_list)
-                for filename in manifest_list:
-                    if not filename.endswith('manifest.ini'):
-                        continue
-                    dir_ = filename.split('/')[0]
-                    fract = self.progressbar.get_fraction() + progress_step
-                    gobject.idle_add(self.progressbar.set_fraction, fract)
-                    gobject.idle_add(self.progressbar.set_text,
-                        _('Reading "%s"') % dir_)
-
-                    config = ConfigParser.ConfigParser()
-                    config.readfp(zip_file.open(filename))
-                    if not config.has_section('info'):
-                        continue
-                    opts = config.options('info')
-                    if 'name' not in opts or 'version' not in opts or \
-                    'description' not in opts or 'authors' not in opts or \
-                    'homepage' not in opts:
-                        continue
-
-                    local_version = self.get_plugin_version(
-                        config.get('info', 'name'))
-                    upgrade = False
-                    if self.upgrading and local_version:
-                        local = convert_version_to_list(local_version)
-                        remote = convert_version_to_list(config.get('info',
-                            'version'))
-                        if remote > local:
-                            upgrade = True
-                            gobject.idle_add(
-                                self.plugin.inslall_upgrade_button.set_property,
-                                'sensitive', True)
-                    png_filename = dir_ + '/' + dir_ + '.png'
-                    if png_filename in manifest_list:
-                        data = zip_file.open(png_filename).read()
-                        pbl = gtk.gdk.PixbufLoader()
-                        pbl.set_size(16, 16)
-                        pbl.write(data)
-                        pbl.close()
-                        def_icon = pbl.get_pixbuf()
-                    else:
-                        def_icon = self.def_icon
-                    if local_version:
-                        base_dir, user_dir = gajim.PLUGINS_DIRS
-                        local_dir = os.path.join(user_dir, dir_)
-
-                    gobject.idle_add(self.model_append, [def_icon, dir_,
-                        config.get('info', 'name'), local_version,
-                        config.get('info', 'version'), upgrade,
-                        config.get('info', 'description'),
-                        config.get('info', 'authors'),
-                        config.get('info', 'homepage'), ])
             gobject.idle_add(self.progressbar.set_fraction, 0)
             if self.remote_dirs:
                 self.download_plugin()
@@ -610,6 +675,10 @@ class Ftp(threading.Thread):
         gobject.idle_add(self.progressbar.show)
         self.pulse = gobject.timeout_add(150, self.progressbar_pulse)
         gobject.idle_add(self.progressbar.set_text, _('Creating a list of files'))
+        def _use_plugin(zipbuf, uri):
+            with zipfile.ZipFile(zipbuf) as zip_file:
+                zip_file.extractall(os.path.join(local_dir, 'plugins'))
+
         for remote_dir in self.remote_dirs:
             filename = remote_dir + '.zip'
             base_dir, user_dir = gajim.PLUGINS_DIRS
@@ -625,12 +694,10 @@ class Ftp(threading.Thread):
                              _('Downloading "%s"') % filename)
             try:
                 buf = self.plugin.retrieve_path(self.plugin.server_folder,
-                                                filename)
+                    filename, callback=_use_plugin)
             except:
                 log.exception("Error downloading plugin %s" % filename)
                 continue
-            with zipfile.ZipFile(buf) as zip_file:
-                zip_file.extractall(os.path.join(local_dir, 'plugins'))
 
         gobject.idle_add(self.window.emit, 'plugin_downloaded',
                          self.remote_dirs)
