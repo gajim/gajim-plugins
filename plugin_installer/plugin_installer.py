@@ -163,15 +163,13 @@ class PluginInstaller(GajimPlugin):
             request = urllib2.urlopen(uri, **ssl_args)
         except urllib2.URLError as exc:
             log.error("error while fetching {} ({}".format(uri, str(exc)))
-            if secure is False:
-                raise
             def _show_warning_dialog(pritxt, sectxt):
                 WarningDialog(pritxt, sectxt, self.window)
 
-            if isinstance(exc.reason, ssl.SSLError):
+            if isinstance(exc.reason, ssl.SSLError) and secure:
                 ssl_reason = exc.reason.reason
                 if ssl_reason == 'CERTIFICATE_VERIFY_FAILED' and \
-                   degradation is True:
+                degradation is True:
                     log.exception('Certificate verify failed')
                     def _yes_no_dialog():
                         YesNoDialog(_('Security error during download'),
@@ -180,8 +178,8 @@ class PluginInstaller(GajimPlugin):
                             'be verified. This might be a security attack\n\n'
                             'You can continue downloading this file at your '
                             'risk. Do you want to do so? (not recommended)') %
-                            uri, on_response_yes=self.retrieve_path(directory,
-                            fname, secure=False, degradation=False,
+                            uri, on_response_yes=lambda dlg: self.retrieve_path(
+                            directory, fname, secure=False, degradation=False,
                             callback=callback))
 
                     gobject.idle_add(_yes_no_dialog)
