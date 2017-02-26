@@ -122,8 +122,6 @@ class HttpuploadPlugin(GajimPlugin):
 
 class Base(object):
     def __init__(self, plugin):
-        self.dlg = None
-        self.dialog_type = 'file'
         self.plugin = plugin
         self.encrypted_upload = False
         self.enabled = False
@@ -183,8 +181,9 @@ class Base(object):
         log.info('Encryption is: False / OMEMO not found')
         return False
 
-    def on_file_dialog_ok(self, widget, path_to_file=None):
-        global jid_to_servers
+    def on_file_dialog_ok(self, widget, jid, chat_control):
+        path_to_file = widget.get_filename()
+        widget.destroy()
 
         try:
             self.encrypted_upload = self.encryption_activated()
@@ -192,20 +191,15 @@ class Base(object):
             log.debug(e)
             self.encrypted_upload = False
 
-        if not path_to_file:
-            path_to_file = self.dlg.get_filename()
-            if not path_to_file:
-                self.dlg.destroy()
-                return
-        self.dlg.destroy()
-        if not os.path.exists(path_to_file):
+        if not path_to_file or not os.path.exists(path_to_file):
             return
+
         if self.encrypted_upload:
             filesize = os.path.getsize(path_to_file) + TAGSIZE  # in bytes
         else:
             filesize = os.path.getsize(path_to_file)
+
         invalid_file = False
-        msg = ''
         if os.path.isfile(path_to_file):
             stat = os.stat(path_to_file)
             if stat[6] == 0:
@@ -215,7 +209,8 @@ class Base(object):
             invalid_file = True
             msg = _('File does not exist')
         if invalid_file:
-            ErrorDialog(_('Could not open file'), msg, transient_for=self.chat_control.parent_win.window)
+            ErrorDialog(_('Could not open file'), msg,
+                        transient_for=chat_control.parent_win.window)
             return
 
         mime_type = mimetypes.MimeTypes().guess_type(path_to_file)[0]
@@ -225,6 +220,7 @@ class Base(object):
         progress_messages = Queue(8)
         progress_window = ProgressWindow(_('HTTP Upload'), _('Requesting HTTP Upload Slot...'),
                 progress_messages, self.plugin, parent=self.chat_control.parent_win.window)
+
         def upload_file(stanza):
             slot = stanza.getTag("slot")
             if not slot:
@@ -372,13 +368,15 @@ class Base(object):
         self.chat_control.msg_textview.grab_focus()
 
     def on_file_button_clicked(self, widget, jid, chat_control):
-        self.dialog_type = 'file'
-        self.dlg = FileChooserDialog(on_response_ok=self.on_file_dialog_ok, on_response_cancel=None,
-            title_text = _('Choose file to send'), action = Gtk.FileChooserAction.OPEN,
-            buttons = (Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL, Gtk.STOCK_OPEN, Gtk.ResponseType.OK),
-            default_response = Gtk.ResponseType.OK,)
-        self.dlg.set_transient_for(self.chat_control.parent_win.window)
-
+        FileChooserDialog(
+            on_response_ok=lambda widget: self.on_file_dialog_ok(widget, jid,
+                                                                 chat_control),
+            title_text=_('Choose file to send'),
+            action=Gtk.FileChooserAction.OPEN,
+            buttons=(Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL,
+                     Gtk.STOCK_OPEN, Gtk.ResponseType.OK),
+            default_response=Gtk.ResponseType.OK,
+            transient_for=chat_control.parent_win.window)
 
 class StreamFileWithProgress:
     def __init__(self, path, mode, callback=None,
