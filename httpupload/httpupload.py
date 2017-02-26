@@ -43,13 +43,13 @@ try:
     from cryptography.hazmat.primitives.ciphers import Cipher
     from cryptography.hazmat.primitives.ciphers import algorithms
     from cryptography.hazmat.primitives.ciphers.modes import GCM
-    encryption_available = True
-except Exception as e:
+    ENCRYPTION_AVAILABLE = True
+except Exception as exc:
     DEP_MSG = 'For encryption of files, ' \
               'please install python-cryptography!'
-    log.debug('Cryptography Import Error: ' + str(e))
+    log.debug('Cryptography Import Error: %s', exc)
     log.info('Decryption/Encryption disabled due to errors')
-    encryption_available = False
+    ENCRYPTION_AVAILABLE = False
 
 # XEP-0363 (http://xmpp.org/extensions/xep-0363.html)
 IQ_CALLBACK = {}
@@ -59,7 +59,7 @@ TAGSIZE = 16
 
 class HttpuploadPlugin(GajimPlugin):
     def init(self):
-        if not encryption_available:
+        if not ENCRYPTION_AVAILABLE:
             self.available_text = DEP_MSG
         self.config_dialog = None  # HttpuploadPluginConfigDialog(self)
         self.events_handlers = {}
@@ -116,13 +116,14 @@ class HttpuploadPlugin(GajimPlugin):
         try:
             return self.gui_interfaces[account]
         except KeyError:
-            self.gui_interfaces[account] = Base(self)
+            self.gui_interfaces[account] = Base(self, account)
             return self.gui_interfaces[account]
 
 
 class Base(object):
-    def __init__(self, plugin):
+    def __init__(self, plugin, account):
         self.plugin = plugin
+        self.account = account
         self.encrypted_upload = False
         self.enabled = False
         self.component = None
@@ -164,40 +165,29 @@ class Base(object):
         for jid in self.controls:
             self.set_button_state(state, self.controls[jid])
 
-    def encryption_activated(self):
-        if not encryption_available:
+    def encryption_activated(self, jid):
+        if not ENCRYPTION_AVAILABLE:
             return False
-        jid = self.chat_control.contact.jid
-        account = self.chat_control.account
         for plugin in gajim.plugin_manager.active_plugins:
             if type(plugin).__name__ == 'OmemoPlugin':
-                omemo = plugin
-                break
-        if omemo:
-            state = omemo.get_omemo_state(account)
-            log.info('Encryption is: ' +
-                      str(state.encryption.is_active(jid)))
-            return state.encryption.is_active(jid)
-        log.info('Encryption is: False / OMEMO not found')
+                state = plugin.get_omemo_state(self.account)
+                encryption = state.encryption.is_active(jid)
+                log.info('Encryption is: %s', encryption)
+                return encryption
+        log.info('OMEMO not found, encryption disabled')
         return False
 
     def on_file_dialog_ok(self, widget, jid, chat_control):
         path_to_file = widget.get_filename()
         widget.destroy()
 
-        try:
-            self.encrypted_upload = self.encryption_activated()
-        except Exception as e:
-            log.debug(e)
-            self.encrypted_upload = False
-
         if not path_to_file or not os.path.exists(path_to_file):
             return
 
-        if self.encrypted_upload:
-            filesize = os.path.getsize(path_to_file) + TAGSIZE  # in bytes
-        else:
-            filesize = os.path.getsize(path_to_file)
+        encrypted = self.encryption_activated(jid)
+        filesize = os.path.getsize(path_to_file)
+        if encrypted:
+            filesize += TAGSIZE
 
         invalid_file = False
         if os.path.isfile(path_to_file):
