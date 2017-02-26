@@ -28,13 +28,10 @@ import binascii
 
 from common import gajim
 from common import ged
-import chat_control
 from plugins import GajimPlugin
 from plugins.helpers import log_calls
-from dialogs import FileChooserDialog, ImageChooserDialog, ErrorDialog
+from dialogs import FileChooserDialog, ErrorDialog
 import nbxmpp
-
-from .thumbnail import thumbnail
 
 log = logging.getLogger('gajim.plugin_system.httpupload')
 
@@ -55,165 +52,119 @@ except Exception as e:
     encryption_available = False
 
 # XEP-0363 (http://xmpp.org/extensions/xep-0363.html)
+IQ_CALLBACK = {}
 NS_HTTPUPLOAD = 'urn:xmpp:http:upload'
 TAGSIZE = 16
 
-jid_to_servers = {}
-iq_ids_to_callbacks = {}
-last_info_query = {}
-
 
 class HttpuploadPlugin(GajimPlugin):
-
-    @log_calls('HttpuploadPlugin')
     def init(self):
         if not encryption_available:
             self.available_text = DEP_MSG
         self.config_dialog = None  # HttpuploadPluginConfigDialog(self)
-        self.controls = []
         self.events_handlers = {}
-        self.events_handlers['agent-info-received'] = (ged.PRECORE,
-                self.handle_agent_info_received)
-        self.events_handlers['raw-iq-received'] = (ged.PRECORE,
-                self.handle_iq_received)
+        self.events_handlers['agent-info-received'] = (
+            ged.PRECORE, self.handle_agent_info_received)
+        self.events_handlers['raw-iq-received'] = (
+            ged.PRECORE, self.handle_iq_received)
         self.gui_extension_points = {
             'chat_control_base': (self.connect_with_chat_control,
-                self.disconnect_from_chat_control),
-            'chat_control_base_update_toolbar': (self.update_button_state,
-                None)}
-        self.first_run = True
+                                  self.disconnect_from_chat_control),
+            'chat_control_base_update_toolbar': (self.update_chat_control,
+                                                 None)}
+        self.gui_interfaces = {}
 
-    def handle_iq_received(self, event):
-        global iq_ids_to_callbacks
+    @staticmethod
+    def handle_iq_received(event):
         id_ = event.stanza.getAttr("id")
-        if str(id_) in iq_ids_to_callbacks:
+        if id_ in IQ_CALLBACK:
             try:
-                iq_ids_to_callbacks[str(id_)](event.stanza)
+                IQ_CALLBACK[id_](event.stanza)
             except:
                 raise
             finally:
-                del iq_ids_to_callbacks[str(id_)]
+                del IQ_CALLBACK[id_]
 
     def handle_agent_info_received(self, event):
-        global jid_to_servers
-        if NS_HTTPUPLOAD in event.features and gajim.jid_is_transport(event.jid):
-            own_jid = gajim.get_jid_without_resource(str(event.stanza.getTo()))
-            jid_to_servers[own_jid] = event.jid        # map own jid to upload component's jid
-            log.info(own_jid + " can do http uploads via component " + event.jid)
-            # update all buttons
-            for base in self.controls:
-                self.update_button_state(base.chat_control)
+        if (NS_HTTPUPLOAD in event.features and
+                gajim.jid_is_transport(event.jid)):
+            account = event.conn.name
+            interface = self.get_interface(account)
+            interface.enabled = True
+            interface.component = event.jid
+            interface.update_button_states(True)
 
-    @log_calls('HttpuploadPlugin')
-    def connect_with_chat_control(self, control):
-        self.chat_control = control
-        base = Base(self, self.chat_control)
-        self.controls.append(base)
-        if self.first_run:
-            # TODO: Potentially add back keyboard shortcut
-            self.first_run = False
-        self.update_button_state(self.chat_control)
+    def connect_with_chat_control(self, chat_control):
+        account = chat_control.contact.account.name
+        self.get_interface(account).add_button(chat_control)
 
-    @log_calls('HttpuploadPlugin')
     def disconnect_from_chat_control(self, chat_control):
-        for control in self.controls:
-            control.disconnect_from_chat_control()
-        self.controls = []
+        jid = chat_control.contact.jid
+        account = chat_control.account
+        interface = self.get_interface(account)
+        if jid not in interface.controls:
+            return
+        actions_hbox = chat_control.xml.get_object('actions_hbox')
+        actions_hbox.remove(interface.controls[jid])
 
-    @log_calls('HttpuploadPlugin')
-    def update_button_state(self, chat_control):
-        global jid_to_servers
-        global iq_ids_to_callbacks
-        global last_info_query
+    def update_chat_control(self, chat_control):
+        account = chat_control.account
+        if gajim.connections[account].connection is None:
+            self.get_interface(account).update_button_states(False)
 
-        if gajim.connections[chat_control.account].connection == None and \
-            gajim.get_jid_from_account(chat_control.account) in jid_to_servers:
-            # maybe don't delete this and detect vanished upload components when actually trying to upload something
-            log.info("Deleting %s from jid_to_servers (disconnected)" % gajim.get_jid_from_account(chat_control.account))
-            del jid_to_servers[gajim.get_jid_from_account(chat_control.account)]
-
-        # query info at most every 60 seconds in case something goes wrong
-        if ((not chat_control.account in last_info_query or
-             last_info_query[chat_control.account] + 60 < time.time())
-            and not gajim.get_jid_from_account(chat_control.account) in jid_to_servers
-            and gajim.account_is_connected(chat_control.account)
-        ):
-            log.info("Account %s: Using dicovery to find jid of httpupload component" % chat_control.account)
-            id_ = gajim.get_an_id()
-            iq = nbxmpp.Iq(
-                typ='get',
-                to=gajim.get_server_from_jid(gajim.get_jid_from_account(chat_control.account)),
-                queryNS="http://jabber.org/protocol/disco#items"
-            )
-            iq.setID(id_)
-            def query_info(stanza):
-                global last_info_query
-                for item in stanza.getTag("query").getTags("item"):
-                    id_ = gajim.get_an_id()
-                    iq = nbxmpp.Iq(
-                        typ='get',
-                        to=item.getAttr("jid"),
-                        queryNS="http://jabber.org/protocol/disco#info"
-                    )
-                    iq.setID(id_)
-                    last_info_query[chat_control.account] = time.time()
-                    gajim.connections[chat_control.account].connection.send(iq)
-            iq_ids_to_callbacks[str(id_)] = query_info
-            gajim.connections[chat_control.account].connection.send(iq)
-            #send disco query to main server jid
-            id_ = gajim.get_an_id()
-            iq = nbxmpp.Iq(
-                typ='get',
-                to=gajim.get_server_from_jid(gajim.get_jid_from_account(chat_control.account)),
-                queryNS="http://jabber.org/protocol/disco#info"
-            )
-            iq.setID(id_)
-            last_info_query[chat_control.account] = time.time()
-            gajim.connections[chat_control.account].connection.send(iq)
-
-        for base in self.controls:
-            if base.chat_control == chat_control:
-                is_supported = gajim.get_jid_from_account(chat_control.account) in jid_to_servers and \
-                    gajim.connections[chat_control.account].connection != None
-                log.info("Account %s: httpupload is_supported: %s" % (str(chat_control.account), str(is_supported)))
-                if not is_supported:
-                    text = _('Your server does not support http uploads')
-                else:
-                    text = _('Send file via http upload')
-                base.button.set_sensitive(is_supported)
-                base.button.set_tooltip_text(text)
+    def get_interface(self, account):
+        try:
+            return self.gui_interfaces[account]
+        except KeyError:
+            self.gui_interfaces[account] = Base(self)
+            return self.gui_interfaces[account]
 
 
 class Base(object):
-    def __init__(self, plugin, chat_control):
+    def __init__(self, plugin):
         self.dlg = None
         self.dialog_type = 'file'
         self.plugin = plugin
         self.encrypted_upload = False
-        self.chat_control = chat_control
-        actions_hbox = chat_control.xml.get_object('actions_hbox')
-        self.button = Gtk.Button(label=None, stock=None, use_underline=True)
-        self.button.set_property('can-focus', False)
-        self.button.set_sensitive(False)
+        self.enabled = False
+        self.component = None
+        self.controls = {}
+
+    def add_button(self, chat_control):
+        jid = chat_control.contact.jid
+
         img = Gtk.Image()
         img.set_from_file(self.plugin.local_file_path('httpupload.png'))
-        self.button.set_image(img)
-        self.button.set_tooltip_text(_('Your server does not support http uploads'))
-        self.button.set_relief(Gtk.ReliefStyle.NONE)
+        actions_hbox = chat_control.xml.get_object('actions_hbox')
+        button = Gtk.Button(label=None, stock=None, use_underline=True)
+        button.set_property('can-focus', False)
+        button.set_image(img)
+        button.set_relief(Gtk.ReliefStyle.NONE)
 
+        actions_hbox.add(button)
         send_button = chat_control.xml.get_object('send_button')
-        actions_hbox.add(self.button)
-        send_button_pos = actions_hbox.child_get_property(send_button, 'position')
-        actions_hbox.child_set_property(self.button, 'position', send_button_pos - 1)
+        button_pos = actions_hbox.child_get_property(send_button, 'position')
+        actions_hbox.child_set_property(button, 'position', button_pos - 1)
 
-        file_id = self.button.connect('clicked', self.on_file_button_clicked)
-        chat_control.handlers[file_id] = self.button
-        self.button.show()
+        self.controls[jid] = button
+        id_ = button.connect('clicked', self.on_file_button_clicked, jid, chat_control)
+        chat_control.handlers[id_] = button
+        self.set_button_state(self.enabled, button)
+        button.show()
 
+    @staticmethod
+    def set_button_state(state, button):
+        if state:
+            button.set_sensitive(state)
+            button.set_tooltip_text(_('Send file via http upload'))
+        else:
+            button.set_sensitive(state)
+            button.set_tooltip_text(
+                _('Your server does not support http uploads'))
 
-    def disconnect_from_chat_control(self):
-        actions_hbox = self.chat_control.xml.get_object('actions_hbox')
-        actions_hbox.remove(self.button)
+    def update_button_states(self, state):
+        for jid in self.controls:
+            self.set_button_state(state, self.controls[jid])
 
     def encryption_activated(self):
         if not encryption_available:
@@ -420,7 +371,7 @@ class Base(object):
 
         self.chat_control.msg_textview.grab_focus()
 
-    def on_file_button_clicked(self, widget):
+    def on_file_button_clicked(self, widget, jid, chat_control):
         self.dialog_type = 'file'
         self.dlg = FileChooserDialog(on_response_ok=self.on_file_dialog_ok, on_response_cancel=None,
             title_text = _('Choose file to send'), action = Gtk.FileChooserAction.OPEN,
