@@ -21,7 +21,7 @@ import urllib
 from urllib.request import Request, urlopen
 import mimetypes
 import logging
-import binascii
+from binascii import hexlify
 import certifi
 
 import nbxmpp
@@ -35,10 +35,7 @@ from dialogs import FileChooserDialog, ErrorDialog
 log = logging.getLogger('gajim.plugin_system.httpupload')
 
 try:
-    if os.name == 'nt':
-        from cryptography.hazmat.backends.openssl import backend
-    else:
-        from cryptography.hazmat.backends import default_backend
+    from cryptography.hazmat.backends import default_backend
     from cryptography.hazmat.primitives.ciphers import Cipher
     from cryptography.hazmat.primitives.ciphers import algorithms
     from cryptography.hazmat.primitives.ciphers.modes import GCM
@@ -172,8 +169,8 @@ class Base(object):
             if type(plugin).__name__ == 'OmemoPlugin':
                 state = plugin.get_omemo_state(self.account)
                 encryption = state.encryption.is_active(jid)
-                log.info('Encryption is: %s', encryption)
-                return encryption
+                log.info('Encryption is: %s', bool(encryption))
+                return bool(encryption)
         log.info('OMEMO not found, encryption disabled')
         return False
 
@@ -298,7 +295,7 @@ class Base(object):
                 transfer = urlopen(request, timeout=30)
             file.stream.close()
             log.info('Urllib upload request done, response code: %s',
-                      transfer.getcode())
+                     transfer.getcode())
             GLib.idle_add(self.upload_complete, transfer.getcode(), file)
             return
         except UploadAbortedException as exc:
@@ -322,7 +319,7 @@ class Base(object):
             log.info("Upload completed successfully")
             message = file.get
             if file.encrypted:
-                message += '#' + binascii.hexlify(file.iv + file.key)
+                message += '#' + hexlify(file.iv + file.key).decode('utf-8')
             file.control.send_message(message=message)
             file.control.msg_textview.grab_focus()
         else:
@@ -353,17 +350,13 @@ class StreamFileWithProgress:
     def __init__(self, file, mode, *args):
         self.event = file.event
         self.backing = open(file.path, mode)
-        self.encrypted_upload = file.encrypted
+        self.encrypted = file.encrypted
         self.backing.seek(0, os.SEEK_END)
-        if self.encrypted_upload:
-            if os.name == 'nt':
-                self.backend = backend
-            else:
-                self.backend = default_backend()
+        if self.encrypted:
             self.encryptor = Cipher(
                 algorithms.AES(file.key),
                 GCM(file.iv),
-                backend=self.backend).encryptor()
+                backend=default_backend()).encryptor()
             self._total = self.backing.tell() + TAGSIZE
         else:
             self._total = self.backing.tell()
@@ -378,7 +371,7 @@ class StreamFileWithProgress:
     def read(self, size):
         if self.event.isSet():
             raise UploadAbortedException
-        if self.encrypted_upload:
+        if self.encrypted:
             data = self.backing.read(size)
             if len(data) > 0:
                 data = self.encryptor.update(data)
@@ -415,7 +408,6 @@ class ProgressWindow:
         self.dialog.set_title('HTTP Upload')
         self.label = self.xml.get_object('label')
         self.label.set_text(_('Requesting HTTP Upload Slot...'))
-        # self.label.set_markup('<big>' + during_text + '</big>')
         self.progressbar = self.xml.get_object('progressbar')
         self.dialog.show_all()
         self.xml.connect_signals(self)
