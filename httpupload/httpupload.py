@@ -19,12 +19,14 @@ from gi.repository import GObject, Gtk, GLib
 import os
 import sys
 import time
+import threading
 from urllib.request import Request, urlopen
 import mimetypes        # better use the magic packet, but that's not a standard lib
 import gtkgui_helpers
 import logging
 from queue import Queue
 import binascii
+import certifi
 
 from common import gajim
 from common import ged
@@ -210,7 +212,7 @@ class Base(object):
         mime = mimetypes.MimeTypes().guess_type(path)[0]
         if not mime:
             mime = 'application/octet-stream'  # fallback mime type
-        log.info("Detected MIME type of file: ", mime)
+        log.info("Detected MIME type of file: %s", mime)
 
         progress_messages = Queue(8)
         progress_window = ProgressWindow(_('HTTP Upload'), _('Requesting HTTP Upload Slot...'),
@@ -220,65 +222,6 @@ class Base(object):
                     key=key, iv=iv, control=chat_control,
                     progress=progress_window)
         self.request_slot(file)
-
-        def upload_file(stanza):
-
-            def upload_complete(response_code):
-                if response_code == 0:
-                    return      # Upload was aborted
-                if 200 <= response_code < 300:
-                    log.info("Upload completed successfully")
-                    xhtml = None
-                    is_image = mime_type.split('/', 1)[0] == 'image'
-                    progress_window.close_dialog()
-                    id_ = gajim.get_an_id()
-                    def add_oob_tag():
-                        pass
-                    if self.encrypted_upload:
-                        keyAndIv = '#' + binascii.hexlify(iv) + binascii.hexlify(key)
-                        self.chat_control.send_message(message=get.getData() + keyAndIv, xhtml=None)
-                    else:
-                        self.chat_control.send_message(message=get.getData(), xhtml=xhtml)
-                    self.chat_control.msg_textview.grab_focus()
-                else:
-                    progress_window.close_dialog()
-                    log.error("got unexpected http upload response code: " + str(response_code))
-                    ErrorDialog(_('Could not upload file'),
-                                _('Got unexpected http response code from server: ') + str(response_code),
-                                transient_for=self.chat_control.parent_win.window)
-
-            def on_upload_error():
-                progress_window.close_dialog()
-                ErrorDialog(_('Could not upload file'),
-                            _('Got unexpected exception while uploading file'
-                              ' (see error log for more information)'),
-                            transient_for=self.chat_control.parent_win.window)
-                return 0
-
-            def uploader():
-                progress_messages.put(_('Uploading file via HTTP...'))
-                try:
-                    headers = {'User-Agent': 'Gajim %s' % gajim.version,
-                               'Content-Type': mime_type}
-                    request = Request(put.getData(), data=data, headers=headers, method='PUT')
-                    log.debug("opening urllib upload request...")
-                    transfer = urlopen(request, timeout=30)
-                    data.close()
-                    log.debug("urllib upload request done, response code: " + str(transfer.getcode()))
-                    return transfer.getcode()
-                except UploadAbortedException:
-                    log.info("Upload aborted")
-                except:
-                    log.error("Exception during upload", exc_info=sys.exc_info())
-                    GLib.idle_add(on_upload_error)
-                return 0
-
-            log.info("Uploading file to '%s'..." % str(put.getData()))
-            log.info("Please download from '%s' later..." % str(get.getData()))
-
-            gajim.thread_interface(uploader, [], upload_complete)
-
-        self.chat_control.msg_textview.grab_focus()
 
     def on_file_button_clicked(self, widget, jid, chat_control):
         FileChooserDialog(
@@ -314,8 +257,8 @@ class Base(object):
             return
 
         try:
-            file.put = stanza.getTag("slot").getTag("put")
-            file.get = stanza.getTag("slot").getTag("get")
+            file.put = stanza.getTag("slot").getTag("put").getData()
+            file.get = stanza.getTag("slot").getTag("get").getData()
         except Exception as exc:
             file.progress.close_dialog()
             log.error("Got unexpected stanza: ", stanza)
@@ -334,6 +277,60 @@ class Base(object):
                         _('Exception raised while opening file (see log)'),
                         transient_for=file.control.parent_win.window)
             return
+
+        log.info('Uploading file to %s', file.put)
+        log.info('Please download from %s', file.get)
+
+        thread = threading.Thread(target=self.upload_file, args=(file,))
+        thread.daemon = True
+        thread.start()
+
+    def upload_file(self, file):
+
+        # progress_messages.put(_('Uploading file via HTTP...'))
+        try:
+            headers = {'User-Agent': 'Gajim %s' % gajim.version,
+                       'Content-Type': file.mime}
+            request = Request(file.put, data=file.stream, headers=headers, method='PUT')
+            log.debug("opening urllib upload request...")
+            if os.name == 'nt':
+                transfer = urlopen(request, cafile=certifi.where(), timeout=30)
+            else:
+                transfer = urlopen(request, timeout=30)
+            file.stream.close()
+            log.debug('urllib upload request done, response code: ', transfer.getcode())
+            GLib.idle_add(self.upload_complete, transfer.getcode(), file)
+        except:
+            log.error("Exception during upload", exc_info=sys.exc_info())
+            GLib.idle_add(file.progress.close_dialog)
+            GLib.idle_add(self.on_upload_error, file)
+
+    def upload_complete(self, response_code, file):
+        if response_code == 0:
+            return      # Upload was aborted
+        if 200 <= response_code < 300:
+            log.info("Upload completed successfully")
+            file.progress.close_dialog()
+            message = file.get
+            if file.encrypted:
+                message += '#' + binascii.hexlify(file.iv + file.key)
+            file.control.send_message(message=message)
+            file.control.msg_textview.grab_focus()
+        else:
+            file.progress.close_dialog()
+            log.error('Got unexpected http upload response code: ',
+                      response_code)
+            ErrorDialog(
+                _('Could not upload file'),
+                _('HTTP response code from server: %s') % response_code,
+                transient_for=file.control.parent_win.window)
+
+    def on_upload_error(self, file):
+        file.progress.close_dialog()
+        ErrorDialog(_('Could not upload file'),
+                    _('Got unexpected exception while uploading file'
+                      ' (see log)'),
+                    transient_for=file.control.parent_win.window)
 
 
 class File:
@@ -381,13 +378,15 @@ class StreamFileWithProgress:
                     data += self.encryptor.tag
                     self._seen += TAGSIZE
                 if self._callback:
-                    self._callback(self._seen, self._total, *self._args)
+                    GLib.idle_add(
+                        self._callback, self._seen, self._total, *self._args)
             return data
         else:
             data = self.backing.read(size)
             self._seen += len(data)
             if self._callback:
-                self._callback(self._seen, self._total, *self._args)
+                GLib.idle_add(
+                    self._callback, self._seen, self._total, *self._args)
             return data
 
     def close(self):
@@ -445,7 +444,7 @@ class ProgressWindow:
 
     def update_progress(self, seen, total):
         if self.stopped == True:
-            raise UploadAbortedException
+            raise
         if self.pulse_progressbar_timeout_id:
             GLib.source_remove(self.pulse_progressbar_timeout_id)
             self.pulse_progressbar_timeout_id = None
@@ -456,6 +455,7 @@ class ProgressWindow:
 
     def close_dialog(self):
         self.on_cancel(None)
+
 
 class UploadAbortedException(Exception):
     def __str__(self):
