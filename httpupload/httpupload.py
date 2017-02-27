@@ -179,15 +179,15 @@ class Base(object):
         return False
 
     def on_file_dialog_ok(self, widget, jid, chat_control):
-        path_to_file = widget.get_filename()
+        path = widget.get_filename()
         widget.destroy()
 
-        if not path_to_file or not os.path.exists(path_to_file):
+        if not path or not os.path.exists(path):
             return
 
         invalid_file = False
-        if os.path.isfile(path_to_file):
-            stat = os.stat(path_to_file)
+        if os.path.isfile(path):
+            stat = os.stat(path)
             if stat[6] == 0:
                 invalid_file = True
                 msg = _('File is empty')
@@ -200,20 +200,26 @@ class Base(object):
             return
 
         encrypted = self.encryption_activated(jid)
-        filesize = os.path.getsize(path_to_file)
+        size = os.path.getsize(path)
+        key, iv = None, None
         if encrypted:
-            filesize += TAGSIZE
+            key = os.urandom(32)
+            iv = os.urandom(16)
+            size += TAGSIZE
 
-        mime_type = mimetypes.MimeTypes().guess_type(path_to_file)[0]
-        if not mime_type:
-            mime_type = 'application/octet-stream'  # fallback mime type
-        log.info("Detected MIME type of file: ", mime_type)
+        mime = mimetypes.MimeTypes().guess_type(path)[0]
+        if not mime:
+            mime = 'application/octet-stream'  # fallback mime type
+        log.info("Detected MIME type of file: ", mime)
 
         progress_messages = Queue(8)
         progress_window = ProgressWindow(_('HTTP Upload'), _('Requesting HTTP Upload Slot...'),
                 progress_messages, self.plugin, parent=chat_control.parent_win.window)
 
-        self.request_slot(path_to_file, filesize, mime_type, encrypted)
+        file = File(path=path, size=size, mime=mime, encrypted=encrypted,
+                    key=key, iv=iv, control=chat_control,
+                    progress=progress_window)
+        self.request_slot(file)
 
         def upload_file(stanza):
             slot = stanza.getTag("slot")
@@ -342,20 +348,28 @@ class Base(object):
             default_response=Gtk.ResponseType.OK,
             transient_for=chat_control.parent_win.window)
 
-    def request_slot(self, path_to_file, filesize, mime_type, encrypted):
+    def request_slot(self, file):
         iq = nbxmpp.Iq(typ='get', to=self.component)
         id_ = gajim.get_an_id()
         iq.setID(id_)
         request = iq.setTag(name="request", namespace=NS_HTTPUPLOAD)
-        request.addChild('filename', payload=os.path.basename(path_to_file))
-        request.addChild('size', payload=filesize)
-        request.addChild('content-type', payload=mime_type)
+        request.addChild('filename', payload=os.path.basename(file.path))
+        request.addChild('size', payload=file.size)
+        request.addChild('content-type', payload=file.mime)
 
         log.info("Sending request for slot")
-        IQ_CALLBACK[id_] = \
-            lambda stanza: self.upload_file(
-                stanza, path_to_file, filesize, mime_type, encrypted)
+        IQ_CALLBACK[id_] = lambda stanza: self.received_slot(stanza, file)
         self.conn.send(iq)
+
+
+class File:
+    def __init__(self, **kwargs):
+        for k, v in kwargs.items():
+            setattr(self, k, v)
+        self.stream = None
+        self.put = None
+        self.get = None
+
 
 class StreamFileWithProgress:
     def __init__(self, path, mode, callback=None,
