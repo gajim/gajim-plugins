@@ -20,6 +20,8 @@ import os
 import sys
 import time
 import threading
+import urllib
+import ssl
 from urllib.request import Request, urlopen
 import mimetypes        # better use the magic packet, but that's not a standard lib
 import gtkgui_helpers
@@ -248,6 +250,7 @@ class Base(object):
         self.conn.send(iq)
 
     def received_slot(self, stanza, file):
+        log.info("Received slot")
         if stanza.getType() == 'error':
             file.progress.close_dialog()
             ErrorDialog(_('Could not request upload slot'),
@@ -259,9 +262,9 @@ class Base(object):
         try:
             file.put = stanza.getTag("slot").getTag("put").getData()
             file.get = stanza.getTag("slot").getTag("get").getData()
-        except Exception as exc:
+        except Exception:
             file.progress.close_dialog()
-            log.error("Got unexpected stanza: ", stanza)
+            log.error("Got unexpected stanza: %s", stanza)
             log.exception('Error')
             ErrorDialog(_('Could not request upload slot'),
                         _('Got unexpected response from server (see log)'),
@@ -286,51 +289,58 @@ class Base(object):
         thread.start()
 
     def upload_file(self, file):
-
         GLib.idle_add(file.progress.label.set_text,
                       _('Uploading file via HTTP...'))
         try:
             headers = {'User-Agent': 'Gajim %s' % gajim.version,
                        'Content-Type': file.mime}
             request = Request(file.put, data=file.stream, headers=headers, method='PUT')
-            log.debug("opening urllib upload request...")
+            log.debug("Opening Urllib upload request...")
             if os.name == 'nt':
                 transfer = urlopen(request, cafile=certifi.where(), timeout=30)
             else:
                 transfer = urlopen(request, timeout=30)
             file.stream.close()
-            log.debug('urllib upload request done, response code: ', transfer.getcode())
+            log.debug('Urllib upload request done, response code: %s',
+                      transfer.getcode())
             GLib.idle_add(self.upload_complete, transfer.getcode(), file)
-        except:
-            log.error("Exception during upload", exc_info=sys.exc_info())
-            GLib.idle_add(file.progress.close_dialog)
-            GLib.idle_add(self.on_upload_error, file)
+            return
+        except UploadAbortedException as exc:
+            log.info(exc)
+            error_msg = exc
+        except urllib.error.URLError as exc:
+            if isinstance(exc.reason, ssl.SSLError):
+                error_msg = exc.reason.reason
+                if error_msg == 'CERTIFICATE_VERIFY_FAILED':
+                    log.exception('Certificate verify failed')
+        except Exception as exc:
+            log.exception("Exception during upload")
+            error_msg = exc
+        GLib.idle_add(file.progress.close_dialog)
+        GLib.idle_add(self.on_upload_error, file, error_msg)
 
-    def upload_complete(self, response_code, file):
-        if response_code == 0:
-            return      # Upload was aborted
+    @staticmethod
+    def upload_complete(response_code, file):
+        file.progress.close_dialog()
         if 200 <= response_code < 300:
             log.info("Upload completed successfully")
-            file.progress.close_dialog()
             message = file.get
             if file.encrypted:
                 message += '#' + binascii.hexlify(file.iv + file.key)
             file.control.send_message(message=message)
             file.control.msg_textview.grab_focus()
         else:
-            file.progress.close_dialog()
-            log.error('Got unexpected http upload response code: ',
+            log.error('Got unexpected http upload response code: %s',
                       response_code)
             ErrorDialog(
                 _('Could not upload file'),
                 _('HTTP response code from server: %s') % response_code,
                 transient_for=file.control.parent_win.window)
 
-    def on_upload_error(self, file):
+    @staticmethod
+    def on_upload_error(file, reason):
         file.progress.close_dialog()
-        ErrorDialog(_('Could not upload file'),
-                    _('Got unexpected exception while uploading file'
-                      ' (see log)'),
+        ErrorDialog(_('Error'), str(reason),
                     transient_for=file.control.parent_win.window)
 
 
