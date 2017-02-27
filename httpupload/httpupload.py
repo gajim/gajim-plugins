@@ -14,28 +14,23 @@
 # You should have received a copy of the GNU General Public License
 # along with Gajim.  If not, see <http://www.gnu.org/licenses/>.
 
-
-from gi.repository import GObject, Gtk, GLib
 import os
-import sys
-import time
 import threading
-import urllib
 import ssl
+import urllib
 from urllib.request import Request, urlopen
-import mimetypes        # better use the magic packet, but that's not a standard lib
-import gtkgui_helpers
+import mimetypes
 import logging
-from queue import Queue
 import binascii
 import certifi
+
+import nbxmpp
+from gi.repository import Gtk, GLib
 
 from common import gajim
 from common import ged
 from plugins import GajimPlugin
-from plugins.helpers import log_calls
 from dialogs import FileChooserDialog, ErrorDialog
-import nbxmpp
 
 log = logging.getLogger('gajim.plugin_system.httpupload')
 
@@ -51,11 +46,10 @@ try:
 except Exception as exc:
     DEP_MSG = 'For encryption of files, ' \
               'please install python-cryptography!'
-    log.debug('Cryptography Import Error: %s', exc)
+    log.error('Cryptography Import Error: %s', exc)
     log.info('Decryption/Encryption disabled due to errors')
     ENCRYPTION_AVAILABLE = False
 
-# XEP-0363 (http://xmpp.org/extensions/xep-0363.html)
 IQ_CALLBACK = {}
 NS_HTTPUPLOAD = 'urn:xmpp:http:upload'
 TAGSIZE = 16
@@ -65,7 +59,7 @@ class HttpuploadPlugin(GajimPlugin):
     def init(self):
         if not ENCRYPTION_AVAILABLE:
             self.available_text = DEP_MSG
-        self.config_dialog = None  # HttpuploadPluginConfigDialog(self)
+        self.config_dialog = None
         self.events_handlers = {}
         self.events_handlers['agent-info-received'] = (
             ged.PRECORE, self.handle_agent_info_received)
@@ -151,7 +145,8 @@ class Base(object):
         actions_hbox.child_set_property(button, 'position', button_pos - 1)
 
         self.controls[jid] = button
-        id_ = button.connect('clicked', self.on_file_button_clicked, jid, chat_control)
+        id_ = button.connect(
+            'clicked', self.on_file_button_clicked, jid, chat_control)
         chat_control.handlers[id_] = button
         self.set_button_state(self.enabled, button)
         button.show()
@@ -294,14 +289,15 @@ class Base(object):
         try:
             headers = {'User-Agent': 'Gajim %s' % gajim.version,
                        'Content-Type': file.mime}
-            request = Request(file.put, data=file.stream, headers=headers, method='PUT')
-            log.debug("Opening Urllib upload request...")
+            request = Request(
+                file.put, data=file.stream, headers=headers, method='PUT')
+            log.info("Opening Urllib upload request...")
             if os.name == 'nt':
                 transfer = urlopen(request, cafile=certifi.where(), timeout=30)
             else:
                 transfer = urlopen(request, timeout=30)
             file.stream.close()
-            log.debug('Urllib upload request done, response code: %s',
+            log.info('Urllib upload request done, response code: %s',
                       transfer.getcode())
             GLib.idle_add(self.upload_complete, transfer.getcode(), file)
             return
@@ -411,7 +407,9 @@ class ProgressWindow:
     def __init__(self, plugin, parent, event):
         self.plugin = plugin
         self.event = event
-        self.xml = gtkgui_helpers.get_gtk_builder(self.plugin.local_file_path('upload_progress_dialog.ui'))
+        glade_file = self.plugin.local_file_path('upload_progress_dialog.ui')
+        self.xml = Gtk.Builder()
+        self.xml.add_from_file(glade_file)
         self.dialog = self.xml.get_object('progress_dialog')
         self.dialog.set_transient_for(parent)
         self.dialog.set_title('HTTP Upload')
@@ -437,12 +435,10 @@ class ProgressWindow:
 
     def update_progress(self, seen, total):
         if self.event.isSet():
-            print('abort update progress')
             return
         if self.pulse:
             GLib.source_remove(self.pulse)
             self.pulse = None
-            print('remove')
         pct = (float(seen) / total) * 100.0
         self.progressbar.set_fraction(float(seen) / total)
         self.progressbar.set_text(str(int(pct)) + "%")
