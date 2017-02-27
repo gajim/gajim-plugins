@@ -128,6 +128,7 @@ class Base(object):
         self.enabled = False
         self.component = None
         self.controls = {}
+        self.conn = gajim.connections[account].connection
 
     def add_button(self, chat_control):
         jid = chat_control.contact.jid
@@ -184,11 +185,6 @@ class Base(object):
         if not path_to_file or not os.path.exists(path_to_file):
             return
 
-        encrypted = self.encryption_activated(jid)
-        filesize = os.path.getsize(path_to_file)
-        if encrypted:
-            filesize += TAGSIZE
-
         invalid_file = False
         if os.path.isfile(path_to_file):
             stat = os.stat(path_to_file)
@@ -203,13 +199,21 @@ class Base(object):
                         transient_for=chat_control.parent_win.window)
             return
 
+        encrypted = self.encryption_activated(jid)
+        filesize = os.path.getsize(path_to_file)
+        if encrypted:
+            filesize += TAGSIZE
+
         mime_type = mimetypes.MimeTypes().guess_type(path_to_file)[0]
         if not mime_type:
             mime_type = 'application/octet-stream'  # fallback mime type
-        log.info("Detected MIME Type of file: " + str(mime_type))
+        log.info("Detected MIME type of file: ", mime_type)
+
         progress_messages = Queue(8)
         progress_window = ProgressWindow(_('HTTP Upload'), _('Requesting HTTP Upload Slot...'),
-                progress_messages, self.plugin, parent=self.chat_control.parent_win.window)
+                progress_messages, self.plugin, parent=chat_control.parent_win.window)
+
+        self.request_slot(path_to_file, filesize, mime_type, encrypted)
 
         def upload_file(stanza):
             slot = stanza.getTag("slot")
@@ -325,36 +329,6 @@ class Base(object):
                 transient_for=self.chat_control.parent_win.window)
             return
 
-        # create iq for slot request
-        id_ = gajim.get_an_id()
-        iq = nbxmpp.Iq(
-            typ='get',
-            to=jid_to_servers[gajim.get_jid_from_account(self.chat_control.account)],
-            queryNS=None
-        )
-        iq.setID(id_)
-        request = iq.addChild(
-            name="request",
-            namespace=NS_HTTPUPLOAD
-        )
-        filename = request.addChild(
-            name="filename",
-        )
-        filename.addData(os.path.basename(path_to_file))
-        size = request.addChild(
-            name="size",
-        )
-        size.addData(filesize)
-        content_type = request.addChild(
-            name="content-type",
-        )
-        content_type.addData(mime_type)
-
-        # send slot request and register callback
-        log.debug("sending httpupload slot request iq...")
-        iq_ids_to_callbacks[str(id_)] = upload_file
-        gajim.connections[self.chat_control.account].connection.send(iq)
-
         self.chat_control.msg_textview.grab_focus()
 
     def on_file_button_clicked(self, widget, jid, chat_control):
@@ -367,6 +341,21 @@ class Base(object):
                      Gtk.STOCK_OPEN, Gtk.ResponseType.OK),
             default_response=Gtk.ResponseType.OK,
             transient_for=chat_control.parent_win.window)
+
+    def request_slot(self, path_to_file, filesize, mime_type, encrypted):
+        iq = nbxmpp.Iq(typ='get', to=self.component)
+        id_ = gajim.get_an_id()
+        iq.setID(id_)
+        request = iq.setTag(name="request", namespace=NS_HTTPUPLOAD)
+        request.addChild('filename', payload=os.path.basename(path_to_file))
+        request.addChild('size', payload=filesize)
+        request.addChild('content-type', payload=mime_type)
+
+        log.info("Sending request for slot")
+        IQ_CALLBACK[id_] = \
+            lambda stanza: self.upload_file(
+                stanza, path_to_file, filesize, mime_type, encrypted)
+        self.conn.send(iq)
 
 class StreamFileWithProgress:
     def __init__(self, path, mode, callback=None,
