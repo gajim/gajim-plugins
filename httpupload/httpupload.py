@@ -222,50 +222,6 @@ class Base(object):
         self.request_slot(file)
 
         def upload_file(stanza):
-            slot = stanza.getTag("slot")
-            if not slot:
-                log.error("got unexpected stanza: "+str(stanza))
-                progress_window.close_dialog()
-                error = stanza.getTag("error")
-                if error and error.getTag("text"):
-                    ErrorDialog(_('Could not request upload slot'),
-                                _('Got unexpected response from server: %s') % str(error.getTagData("text")),
-                                transient_for=self.chat_control.parent_win.window)
-                else:
-                    ErrorDialog(_('Could not request upload slot'),
-                                _('Got unexpected response from server (protocol mismatch??)'),
-                                transient_for=self.chat_control.parent_win.window)
-                return
-
-            try:
-                if self.encrypted_upload:
-                    key = os.urandom(32)
-                    iv = os.urandom(16)
-                    data = StreamFileWithProgress(path_to_file,
-                                                  "rb",
-                                                  progress_window.update_progress,
-                                                  self.encrypted_upload, key, iv)
-                else:
-                    data = StreamFileWithProgress(path_to_file,
-                                                  "rb",
-                                                  progress_window.update_progress)
-            except:
-                log.error("Could not open file")
-                progress_window.close_dialog()
-                ErrorDialog(_('Could not open file'),
-                            _('Exception raised while opening file (see error log for more information)'),
-                            transient_for=self.chat_control.parent_win.window)
-                raise       # fill error log with useful information
-
-            put = slot.getTag("put")
-            get = slot.getTag("get")
-            if not put or not get:
-                log.error("got unexpected stanza: " + str(stanza))
-                progress_window.close_dialog()
-                ErrorDialog(_('Could not request upload slot'),
-                            _('Got unexpected response from server (protocol mismatch??)'),
-                            transient_for=self.chat_control.parent_win.window)
-                return
 
             def upload_complete(response_code):
                 if response_code == 0:
@@ -322,19 +278,6 @@ class Base(object):
 
             gajim.thread_interface(uploader, [], upload_complete)
 
-        is_supported = gajim.get_jid_from_account(self.chat_control.account) in jid_to_servers and \
-                    gajim.connections[self.chat_control.account].connection != None
-        log.info("jid_to_servers of %s: %s ; connection: %s",
-                 gajim.get_jid_from_account(self.chat_control.account),
-                 str(jid_to_servers[gajim.get_jid_from_account(self.chat_control.account)]),
-                 str(gajim.connections[self.chat_control.account].connection))
-        if not is_supported:
-            progress_window.close_dialog()
-            log.error("upload component vanished, account got disconnected??")
-            ErrorDialog(_('Your server does not support http uploads or you just got disconnected.\nPlease try to reconnect or reopen the chat window to fix this.'),
-                transient_for=self.chat_control.parent_win.window)
-            return
-
         self.chat_control.msg_textview.grab_focus()
 
     def on_file_button_clicked(self, widget, jid, chat_control):
@@ -361,6 +304,37 @@ class Base(object):
         IQ_CALLBACK[id_] = lambda stanza: self.received_slot(stanza, file)
         self.conn.send(iq)
 
+    def received_slot(self, stanza, file):
+        if stanza.getType() == 'error':
+            file.progress.close_dialog()
+            ErrorDialog(_('Could not request upload slot'),
+                        stanza.getErrorMsg(),
+                        transient_for=file.control.parent_win.window)
+            log.error(stanza)
+            return
+
+        try:
+            file.put = stanza.getTag("slot").getTag("put")
+            file.get = stanza.getTag("slot").getTag("get")
+        except Exception as exc:
+            file.progress.close_dialog()
+            log.error("Got unexpected stanza: ", stanza)
+            log.exception('Error')
+            ErrorDialog(_('Could not request upload slot'),
+                        _('Got unexpected response from server (see log)'),
+                        transient_for=file.control.parent_win.window)
+            return
+
+        try:
+            file.stream = StreamFileWithProgress(file, "rb")
+        except Exception as exc:
+            file.progress.close_dialog()
+            log.exception("Could not open file")
+            ErrorDialog(_('Could not open file'),
+                        _('Exception raised while opening file (see log)'),
+                        transient_for=file.control.parent_win.window)
+            return
+
 
 class File:
     def __init__(self, **kwargs):
@@ -372,10 +346,9 @@ class File:
 
 
 class StreamFileWithProgress:
-    def __init__(self, path, mode, callback=None,
-                 encrypted_upload=False, key=None, iv=None, *args):
-        self.backing = open(path, mode)
-        self.encrypted_upload = encrypted_upload
+    def __init__(self, file, mode, *args):
+        self.backing = open(file.path, mode)
+        self.encrypted_upload = file.encrypted
         self.backing.seek(0, os.SEEK_END)
         if self.encrypted_upload:
             if os.name == 'nt':
@@ -383,14 +356,14 @@ class StreamFileWithProgress:
             else:
                 self.backend = default_backend()
             self.encryptor = Cipher(
-                algorithms.AES(key),
-                GCM(iv),
+                algorithms.AES(file.key),
+                GCM(file.iv),
                 backend=self.backend).encryptor()
             self._total = self.backing.tell() + TAGSIZE
         else:
             self._total = self.backing.tell()
         self.backing.seek(0)
-        self._callback = callback
+        self._callback = file.progress.update_progress
         self._args = args
         self._seen = 0
 
