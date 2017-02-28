@@ -439,6 +439,7 @@ class OmemoState:
             # Publish new bundle after PreKey has been used
             # for building a new Session
             self.plugin.publish_bundle(self.account)
+            self.add_device(recipient_id, device_id)
             return key
         except UntrustedIdentityException as e:
             log.info(self.account + " => Received WhisperMessage " +
@@ -451,6 +452,7 @@ class OmemoState:
         if self.isTrusted(recipient_id, device_id):
             sessionCipher = self.get_session_cipher(recipient_id, device_id)
             key = sessionCipher.decryptMsg(whisperMessage, textMsg=False)
+            self.add_device(recipient_id, device_id)
             return key
         else:
             raise Exception("Received WhisperMessage "
