@@ -589,6 +589,9 @@ class OmemoPlugin(GajimPlugin):
             -------
             Return if encryption is not activated
         """
+        if event.type_ == 'normal':
+            return False
+
         account = event.account
         if account in self.disabled_accounts:
             return
@@ -764,19 +767,25 @@ class OmemoPlugin(GajimPlugin):
         return True
 
     @log_calls('OmemoPlugin')
-    def publish_own_devices_list(self, account):
-        """ Check if the passed event is a device list update and store the new
-            device ids.
+    def publish_own_devices_list(self, account, new=False):
+        """ Get all currently known own active device ids and publish them
 
             Parameters
             ----------
             account : str
                 the account name
+
+            new : bool
+                if True, a devicelist with only one
+                (the current id of this instance) device id is pushed
         """
         state = self.get_omemo_state(account)
-        devices_list = state.own_devices
-        devices_list.append(state.own_device_id)
-        devices_list = list(set(devices_list))
+        if new:
+            devices_list = [state.own_device_id]
+        else:
+            devices_list = state.own_devices
+            devices_list.append(state.own_device_id)
+            devices_list = list(set(devices_list))
         state.set_own_devices(devices_list)
 
         log.debug(account + ' => Publishing own Devices: ' + str(
@@ -1047,7 +1056,7 @@ class OmemoPlugin(GajimPlugin):
             devices_list = list(set(unpack_device_list_update(stanza, account)))
             if len(devices_list) == 0:
                 log.error(account + ' => Devicelistquery was NOT successful')
-                self.publish_own_devices_list(account)
+                self.publish_own_devices_list(account, new=True)
                 return False
             contact_jid = stanza.getAttr('from')
             if contact_jid == my_jid:
@@ -1065,7 +1074,7 @@ class OmemoPlugin(GajimPlugin):
                     self.publish_own_devices_list(account)
         else:
             log.error(account + ' => Devicelistquery was NOT successful')
-            self.publish_own_devices_list(account)
+            self.publish_own_devices_list(account, new=True)
 
     @log_calls('OmemoPlugin')
     def clear_device_list(self, account):
