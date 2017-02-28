@@ -23,7 +23,7 @@ import logging
 import os
 import message_control
 
-from gi.repository import GObject, Gtk, GdkPixbuf
+from gi.repository import GObject, Gtk, GdkPixbuf, Gdk
 
 # pylint: disable=import-error
 import gtkgui_helpers
@@ -539,7 +539,7 @@ class OMEMOConfigDialog(GajimPluginConfigDialog):
             keep_selection = tw.get_selection().path_is_selected(pthinfo[0])
 
             pop = self.B.get_object('fprclipboard_menu')
-            pop.popup(None, None, None, event.button, event.time)
+            pop.popup(None, None, None, None, event.button, event.time)
 
             # keep_selection=True -> no further processing of click event
             # keep_selection=False-> further processing -> GTK usually selects
@@ -553,9 +553,9 @@ class OMEMOConfigDialog(GajimPluginConfigDialog):
         for path in paths:
             it = mod.get_iter(path)
             jid, fpr = mod.get(it, 1, 3)
-            fprs.append('%s: %s' % (jid, fpr[4:-5]))
-        Gtk.Clipboard().set_text('\n'.join(fprs))
-        Gtk.Clipboard(selection='PRIMARY').set_text('\n'.join(fprs))
+            fprs.append('%s: %s' % (jid, fpr[31:-12]))
+        clipboard = Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD)
+        clipboard.set_text('\n'.join(fprs), -1)
 
     def update_context_list(self):
         self.fpr_model.clear()
@@ -744,7 +744,7 @@ class FingerprintWindow(Gtk.Dialog):
             keep_selection = tw.get_selection().path_is_selected(pthinfo[0])
 
             pop = self.xml.get_object('fprclipboard_menu')
-            pop.popup(None, None, None, event.button, event.time)
+            pop.popup(None, None, None, None, event.button, event.time)
 
             # keep_selection=True -> no further processing of click event
             # keep_selection=False-> further processing -> GTK usually selects
@@ -762,8 +762,8 @@ class FingerprintWindow(Gtk.Dialog):
             it = mod.get_iter(path)
             jid, fpr = mod.get(it, 1, 3)
             fprs.append('%s: %s' % (jid, fpr[31:-12]))
-        Gtk.Clipboard().set_text('\n'.join(fprs))
-        Gtk.Clipboard(selection='PRIMARY').set_text('\n'.join(fprs))
+        clipboard = Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD)
+        clipboard.set_text('\n'.join(fprs), -1)
 
     def update_context_list(self, *args):
         self.fpr_model.clear()
