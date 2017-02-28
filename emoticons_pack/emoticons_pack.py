@@ -5,7 +5,6 @@ from gi.repository import Gtk
 from gi.repository import GdkPixbuf
 from gi.repository import Pango
 from gi.repository import GObject
-import io
 import configparser
 import os
 import zipfile
@@ -93,7 +92,6 @@ class EmoticonsPackPlugin(GajimPlugin):
         self.available_treeview.set_rules_hint(True)
         self.model.set_sort_column_id(1, Gtk.SortType.ASCENDING)
 
-        #self.progressbar.set_property('no-show-all', True)
         renderer = Gtk.CellRendererText()
         col = Gtk.TreeViewColumn(_('Name'))
         cell = Gtk.CellRendererPixbuf()
@@ -338,4 +336,3 @@ class EmoticonsPackPlugin(GajimPlugin):
         vadjustment = scr_win.get_vadjustment()
         if vadjustment:
             vadjustment.set_value(0)
-        #GObject.idle_add(self.available_treeview.grab_focus)
