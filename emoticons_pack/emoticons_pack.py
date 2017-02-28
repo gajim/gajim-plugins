@@ -39,6 +39,7 @@ class EmoticonsPackPlugin(GajimPlugin):
         self.description = _('Install, update and view detailed legend '
             'of emoticons')
         self.config_dialog = None  # EmoticonsPackPluginConfigDialog(self)
+        self.gui_extension_points = {'plugin_window': (self.on_activate, None)}
         self.window = None
         self.model = None
         self.connected_ids = {}
@@ -46,15 +47,11 @@ class EmoticonsPackPlugin(GajimPlugin):
 
     @log_calls('EmoticonsPackPlugin')
     def activate(self):
-        self.pl_menuitem = gajim.interface.roster.xml.get_object(
-            'plugins_menuitem')
-        self.id_ = self.pl_menuitem.connect_after('activate', self.on_activate)
         if 'plugins' in gajim.interface.instances:
-            self.on_activate(None)
+            self.on_activate(gajim.interface.instances['plugins'])
 
     @log_calls('EmoticonsPackPlugin')
     def deactivate(self):
-        self.pl_menuitem.disconnect(self.id_)
         if hasattr(self, 'page_num'):
             self.notebook.remove_page(self.notebook.page_num(self.hpaned))
             self.notebook.set_current_page(0)
@@ -62,19 +59,15 @@ class EmoticonsPackPlugin(GajimPlugin):
                 widget.disconnect(id_)
             del self.page_num
 
-    def on_activate(self, widget):
-        if 'plugins' not in gajim.interface.instances:
-            return
+    def on_activate(self, plugin_win):
         if hasattr(self, 'page_num'):
             # 'Available' tab exists
             return
-        self.installed_plugins_model = gajim.interface.instances[
-            'plugins'].installed_plugins_model
-        self.notebook = gajim.interface.instances['plugins'].plugins_notebook
+        self.notebook = plugin_win.plugins_notebook
         id_ = self.notebook.connect(
             'switch-page', self.on_notebook_switch_page)
         self.connected_ids[id_] = self.notebook
-        self.window = gajim.interface.instances['plugins'].window
+        self.window = plugin_win.window
         id_ = self.window.connect('destroy', self.on_win_destroy)
         self.connected_ids[id_] = self.window
         self.Gtk_BUILDER_FILE_PATH = self.local_file_path('config_dialog.ui')
