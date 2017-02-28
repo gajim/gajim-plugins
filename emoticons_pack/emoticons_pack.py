@@ -13,7 +13,7 @@ import tempfile
 from shutil import rmtree
 import sys
 import imp
-
+from enum import IntEnum
 from common import gajim
 from plugins import GajimPlugin
 from plugins.helpers import log_calls
@@ -21,14 +21,15 @@ from htmltextview import HtmlTextView
 from conversation_textview import ConversationTextview
 from dialogs import WarningDialog, HigDialog
 
-(
-    C_PIXBUF,
-    C_NAME,
-    C_DESCRIPTION,
-    C_AUTHORS,
-    C_CONVERTER,
-    C_HOMEPAGE,
-    C_UPGRADE) = range(7)
+
+class Column(IntEnum):
+    PIXBUF = 0
+    NAME = 1
+    DESCRIPTION = 2
+    AUTHORS = 3
+    CONVERTER = 4
+    HOMEPAGE = 5
+    UPGRADE = 6
 
 
 class EmoticonsPackPlugin(GajimPlugin):
@@ -104,9 +105,9 @@ class EmoticonsPackPlugin(GajimPlugin):
         col = Gtk.TreeViewColumn(_('Name'))
         cell = Gtk.CellRendererPixbuf()
         col.pack_start(cell, False)
-        col.add_attribute(cell, 'pixbuf', C_PIXBUF)
+        col.add_attribute(cell, 'pixbuf', Column.PIXBUF)
         col.pack_start(renderer, True)
-        col.add_attribute(renderer, 'text', C_NAME)
+        col.add_attribute(renderer, 'text', Column.NAME)
         col.set_property('expand', True)
         col.set_sizing(Gtk.TreeViewColumnSizing.GROW_ONLY)
         self.available_treeview.append_column(col)
@@ -115,7 +116,7 @@ class EmoticonsPackPlugin(GajimPlugin):
         renderer.set_property('activatable', True)
         renderer.connect('toggled', self.available_emoticons_toggled_cb)
         col = Gtk.TreeViewColumn(
-            _('Install /\nUpgrade'), renderer,  active=C_UPGRADE)
+            _('Install /\nUpgrade'), renderer,  active=Column.UPGRADE)
         col.set_property('expand', False)
         col.set_resizable(False)
         self.available_treeview.append_column(col)
@@ -135,7 +136,7 @@ class EmoticonsPackPlugin(GajimPlugin):
 
         treeview_selection = self.available_treeview.get_selection()
         model, iter = treeview_selection.get_selected()
-        name = model.get_value(iter, C_NAME)
+        name = model.get_value(iter, Column.NAME)
 
         label = self.xml.get_object('label2')
         if label.get_text() == _('Legend'):
@@ -179,7 +180,7 @@ class EmoticonsPackPlugin(GajimPlugin):
             sw.add(self.emoticons_description_textview.tv)
             sw.show_all()
             label.set_text(_('Legend'))
-            desc = _(model.get_value(iter, C_DESCRIPTION))
+            desc = _(model.get_value(iter, Column.DESCRIPTION))
             if not desc.startswith('<body  '):
                 desc = '<body  xmlns=\'http://www.w3.org/1999/xhtml\'>' + \
                     desc + ' </body>'
@@ -205,8 +206,8 @@ class EmoticonsPackPlugin(GajimPlugin):
 
         name_list = []
         for i in range(len(self.model)):
-            if self.model[i][C_UPGRADE]:
-                name_list.append(self.model[i][C_NAME])
+            if self.model[i][Column.UPGRADE]:
+                name_list.append(self.model[i][Column.NAME])
         for name in name_list:
             # remove dirs
             target_dir = os.path.join(gajim.MY_EMOTS_PATH, name)
@@ -226,7 +227,7 @@ class EmoticonsPackPlugin(GajimPlugin):
                         self.errors += str(e)
         # unset all checkbattons
         for i in range(len(self.model)):
-            self.model[i][C_UPGRADE] = False
+            self.model[i][Column.UPGRADE] = False
 
         if self.errors:
             WarningDialog(
@@ -246,12 +247,12 @@ class EmoticonsPackPlugin(GajimPlugin):
             del self.page_num
 
     def available_emoticons_toggled_cb(self, cell, path):
-        is_active = self.model[path][C_UPGRADE]
-        self.model[path][C_UPGRADE] = not is_active
+        is_active = self.model[path][Column.UPGRADE]
+        self.model[path][Column.UPGRADE] = not is_active
         dir_list = []
         for i in range(len(self.model)):
-            if self.model[i][C_UPGRADE]:
-                dir_list.append(self.model[i][C_NAME])
+            if self.model[i][Column.UPGRADE]:
+                dir_list.append(self.model[i][Column.NAME])
         if not dir_list:
             self.inslall_upgrade_button.set_property('sensitive', False)
         else:
@@ -299,7 +300,7 @@ class EmoticonsPackPlugin(GajimPlugin):
         label = self.xml.get_object('label2')
         label.set_text(_('Legend'))
         if iter:
-            set_name = model.get_value(iter, C_NAME)
+            set_name = model.get_value(iter, Column.NAME)
             if os.path.isdir(self.tmp_dir):
                 rmtree(self.tmp_dir, True)
             self.tmp_dir = tempfile.mkdtemp()
@@ -313,12 +314,12 @@ class EmoticonsPackPlugin(GajimPlugin):
                     myzip.extract(n, path=self.tmp_dir)
 
             self.set_name.set_text(set_name)
-            self.authors_label.set_text(model.get_value(iter, C_AUTHORS))
-            self.converter_label.set_text(model.get_value(iter, C_CONVERTER))
+            self.authors_label.set_text(model.get_value(iter, Column.AUTHORS))
+            self.converter_label.set_text(model.get_value(iter, Column.CONVERTER))
             self.homepage_linkbutton.set_uri(
-                model.get_value(iter, C_HOMEPAGE))
+                model.get_value(iter, Column.HOMEPAGE))
             self.homepage_linkbutton.set_label(
-                model.get_value(iter, C_HOMEPAGE))
+                model.get_value(iter, Column.HOMEPAGE))
             label = self.homepage_linkbutton.get_children()[0]
             label.set_ellipsize(Pango.EllipsizeMode.END)
             self.homepage_linkbutton.set_property('sensitive', True)
@@ -328,7 +329,7 @@ class EmoticonsPackPlugin(GajimPlugin):
             sw = self.xml.get_object('scrolledwindow1')
             sw.add(self.emoticons_description_textview.tv)
             sw.show_all()
-            desc = _(model.get_value(iter, C_DESCRIPTION))
+            desc = _(model.get_value(iter, Column.DESCRIPTION))
             if not desc.startswith('<body '):
                 desc = '<body  xmlns=\'http://www.w3.org/1999/xhtml\'>' + \
                     desc + ' </body>'
