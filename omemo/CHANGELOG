@@ -1,105 +1,15 @@
-1.0.1 / 2017-01-14
+2.0.3 / 2017-02-28
+- Set an inactive device active again after receiving a message from it
+
+2.0.2 / 2017-02-28
+- Fix a bug when publishing devices
+- Fix copying fingerprint
+- Fix layout issue
+- Dont handle type 'normal' messages
+
+2.0.1 / 2017-01-14
 - Better XEP Compliance
 - Bugfixes
 
-1.0.0 / 2016-12-04
-- Bugfixes
-
-0.9.9 / 2016-12-01
-- Bugfixes
-
-0.9.8 / 2016-11-28
-- Fix a Problem where OMEMO wouldnt activate after the plugin is updated
-- Add QR Verification Code to Plugin Config
-
-0.9.7 / 2016-11-12
-- Bugfixes
-
-0.9.6 / 2016-11-01
-- Bugfixes
-
-0.9.5 / 2016-10-10
-- Add GroupChat BETA
-- Add Option to delete Fingerprints
-- Add Option to deactivate Accounts for OMEMO
-
-0.9.0 / 2016-08-28
-- Send INFO message to resources who dont support OMEMO
-- Check dependencys and give correct error message
-- Dont process PreKeyWhisperMessages without PreKey
-- Dont process PGP messages
-
-0.8.1 / 2016-08-05
-- Query own Device Bundles on send button press
-- Make Fingerprint Window higher and rename Buttons for something more appropriate
-- Bugfixes
-
-0.8.0 / 2016-08-03
-- Encryption improvements:
--- SignedPreKey renews every 24 hours
--- New PreKeys are generated and published if less then 80 are available
--- If the Python Cryptography package is installed native encryption is now used (faster on old devices)
--- Bundle Information is only pulled right before sending a Message (see Business rules of the OMEMO XEP)
--- If Contact supports OMEMO, encryption is activated automatically 
-
-- Other Stuff:
--- The Fingerprint Window pops up if the Send Button is pressed and there are new Fingerprints in the DB
--- Message Correction now works with OMEMO (Press STRG + UP Arrow to correct the last send message)
--- SQL Refactoring, so new users dont have to go through DB Migration
--- Small bugfixes
-
-0.7.5 / 2016-07-20
-================
-- Announcing of Support right after Plugin activation
-- New Context Menu for Gajim Compact View
-- Own Device Fingerprints are now available in the Fingerprint Window
-- Small bugfixes
-
-0.7 / 2016-07-16
-================
-- Reworked publishing Devicelist
-- Deactivate Gajim E2E on startup
-- Added new OMEMO popup menu
-- UI & handling of inactive Devices
-- various refactoring
-
-0.6 / 2016-06-30
-================
-- Add MAM support
-- Added Fingerprint Trustmanagment UI
-- Added Plugin Config Menu
-
-0.5 / 2016-05-02
-================
-- Add Windows support
-- Fix bugs
-
-0.4 / 2016-01-21
-==================
-
-  * Update README.md
-  * Fix #32: Add own devices as possible OMEMO partners.
-  * Fix one of the errors in #26
-  * Fix sqlite db intialization
-  * Use the standalone python-omemo library
-  * FIx LOG_DB errors / lost messages
-  * Move all OMEMO related parts to own dir
-  * Rename all links from kalkin/.. to omemo/...
-  * Update archlinux PKGBUILD to 0.3
-
-0.3 / 2016-01-10
-==================
-  * Save if OMEMO is enabled between restarts - #17
-  * Disable OMEMO if dependencies are missing - #9
-  * Make logging less verbose
-  * Add Arch Linux PKGBUILD file (Thanks Tommaso Sardelli)
-  * Extend README
-  * Fix hiding OMEMO controls in muc
-  * Fix "'ChatControl' object has no attribute 'lock_image'" bug - #16
-  * Ui clearly displays which message is encrypted (and how) - #15
-  * Plaintext messages are now always marked - #15
-
-# 2015-12-27 
-- Fix crash, if jid is not in list (Thanks Mic92)
-- Fix clear_device_list, if account is not connected  (Thanks Mic92)
-- Provide python-axolotl installation instructions in README and manifest.ini
+2.0.0 / 2016-12-04
+- Port Plugin from GTK2
