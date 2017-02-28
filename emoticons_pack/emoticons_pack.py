@@ -19,7 +19,6 @@ from common import gajim
 from plugins import GajimPlugin
 from plugins.helpers import log_calls
 from htmltextview import HtmlTextView
-from conversation_textview import ConversationTextview
 from dialogs import WarningDialog, HigDialog
 
 
@@ -119,18 +118,18 @@ class EmoticonsPackPlugin(GajimPlugin):
         selection.connect('changed', self.emoticons_treeview_selection_changed)
         selection.set_mode(Gtk.SelectionMode.SINGLE)
 
-        self.emoticons_description_textview = ConversationTextview(None)
+        self.emoticons_description_textview = HtmlTextView()
         sw = self.xml.get_object('scrolledwindow1')
-        sw.add(self.emoticons_description_textview.tv)
+        sw.add(self.emoticons_description_textview)
         self.xml.connect_signals(self)
         self.window.show_all()
 
     def on_legend_button_clicked(self, widget):
-        self.xml.get_object('scrolledwindow1').get_children()[0].destroy()
-
         treeview_selection = self.available_treeview.get_selection()
         model, iter = treeview_selection.get_selected()
         name = model.get_value(iter, Column.NAME)
+
+        self.emoticons_description_textview.get_buffer().set_text('')
 
         label = self.xml.get_object('label2')
         if label.get_text() == _('Legend'):
@@ -139,11 +138,6 @@ class EmoticonsPackPlugin(GajimPlugin):
 
             import emoticons
             imp.reload(emoticons)
-
-            self.emoticons_description_textview = Gtk.TextView()
-            sw = self.xml.get_object('scrolledwindow1')
-            sw.add(self.emoticons_description_textview)
-            sw.show_all()
 
             buff = self.emoticons_description_textview.get_buffer()
             for icon in emoticons.emoticons:
@@ -169,10 +163,6 @@ class EmoticonsPackPlugin(GajimPlugin):
             sys.path.remove(os.path.join(self.tmp_dir, name))
 
         else:
-            self.emoticons_description_textview = ConversationTextview(None)
-            sw = self.xml.get_object('scrolledwindow1')
-            sw.add(self.emoticons_description_textview.tv)
-            sw.show_all()
             label.set_text(_('Legend'))
             desc = _(model.get_value(iter, Column.DESCRIPTION))
             if not desc.startswith('<body  '):
@@ -180,9 +170,9 @@ class EmoticonsPackPlugin(GajimPlugin):
                     desc + ' </body>'
             desc = desc.replace('preview.image', ('file:' + os.path.join(
                     self.tmp_dir, name, 'preview.png'))).replace('\n', '<br/>')
-            self.emoticons_description_textview.tv.display_html(
-                desc, self.emoticons_description_textview)
-            self.emoticons_description_textview.tv.set_property(
+            self.emoticons_description_textview.display_html(
+                desc, self.emoticons_description_textview, None)
+            self.emoticons_description_textview.set_property(
                 'sensitive', True)
 
     def on_inslall_upgrade_clicked(self, widget):
@@ -319,11 +309,7 @@ class EmoticonsPackPlugin(GajimPlugin):
             label.set_ellipsize(Pango.EllipsizeMode.END)
             self.homepage_linkbutton.set_property('sensitive', True)
 
-            self.xml.get_object('scrolledwindow1').get_children()[0].destroy()
-            self.emoticons_description_textview = ConversationTextview(None)
-            sw = self.xml.get_object('scrolledwindow1')
-            sw.add(self.emoticons_description_textview.tv)
-            sw.show_all()
+            self.emoticons_description_textview.get_buffer().set_text('')
             desc = _(model.get_value(iter, Column.DESCRIPTION))
             if not desc.startswith('<body '):
                 desc = '<body  xmlns=\'http://www.w3.org/1999/xhtml\'>' + \
@@ -331,9 +317,9 @@ class EmoticonsPackPlugin(GajimPlugin):
             else:
                 desc = desc.replace('preview.image', ('file:' + os.path.join(
                     self.tmp_dir, set_name, 'preview.png')))
-            self.emoticons_description_textview.tv.display_html(
-                desc, self.emoticons_description_textview.tv, None)
-            self.emoticons_description_textview.tv.set_property(
+            self.emoticons_description_textview.display_html(
+                desc, self.emoticons_description_textview, None)
+            self.emoticons_description_textview.set_property(
                 'sensitive', True)
         else:
             self.set_name.set_text('')
