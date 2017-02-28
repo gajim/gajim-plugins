@@ -13,6 +13,7 @@ import tempfile
 from shutil import rmtree
 import sys
 import imp
+import posixpath
 from enum import IntEnum
 from common import gajim
 from plugins import GajimPlugin
@@ -252,8 +253,10 @@ class EmoticonsPackPlugin(GajimPlugin):
             self.inslall_upgrade_button.set_property('sensitive', True)
 
     def on_notebook_switch_page(self, widget, page, page_num):
-        tab_label_text = self.notebook.get_tab_label_text(self.hpaned)
+        tab_label_text = self.notebook.get_tab_label_text(page)
         if tab_label_text != (_('Emoticons')):
+            return
+        if len(self.model):
             return
 
         self.model.clear()
@@ -268,8 +271,7 @@ class EmoticonsPackPlugin(GajimPlugin):
             conf.read_file(_file)
         for section in conf.sections():
             # get icon
-            filename = conf.get(section, 'icon')
-            filename = os.path.join(section, filename)
+            filename = posixpath.join(section, conf.get(section, 'icon'))
             zip_file = os.path.join(self.__path__, 'emoticons_pack.zip')
             with zipfile.ZipFile(zip_file, 'r') as myzip:
                 icon_file = myzip.open(filename, mode='r')
@@ -330,7 +332,7 @@ class EmoticonsPackPlugin(GajimPlugin):
                 desc = desc.replace('preview.image', ('file:' + os.path.join(
                     self.tmp_dir, set_name, 'preview.png')))
             self.emoticons_description_textview.tv.display_html(
-                desc, self.emoticons_description_textview)
+                desc, self.emoticons_description_textview.tv, None)
             self.emoticons_description_textview.tv.set_property(
                 'sensitive', True)
         else:
