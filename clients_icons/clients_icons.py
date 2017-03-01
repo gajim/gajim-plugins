@@ -155,6 +155,8 @@ clients = {
     'Conversations': ['conversations.png', 'Conversations'],
     'ChatSecure': ['chatsecure.png', 'ChatSecure'],
     'SecuGab': ['secugab.png', 'Secugab'],
+    'Jappix': ['jappix.png', 'Jappix'],
+    'Movim': ['movim.png', 'Movim'],
 }
 
 
