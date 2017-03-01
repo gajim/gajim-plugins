@@ -22,7 +22,8 @@ from urllib.request import Request, urlopen
 import mimetypes
 import logging
 from binascii import hexlify
-import certifi
+if os.name == 'nt':
+    import certifi
 
 import nbxmpp
 from gi.repository import Gtk, GLib
