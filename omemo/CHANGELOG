@@ -1,3 +1,6 @@
+1.0.4 / 2017-03-01
+- Use correct tag name for EME
+
 1.0.3 / 2017-02-12
 - Set an inactive device active again after receiving a message from it
 
