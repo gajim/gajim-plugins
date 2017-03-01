@@ -124,7 +124,6 @@ class Base(object):
         self.enabled = False
         self.component = None
         self.controls = {}
-        self.conn = gajim.connections[account].connection
 
     def add_button(self, chat_control):
         jid = chat_control.contact.jid
@@ -240,7 +239,7 @@ class Base(object):
 
         log.info("Sending request for slot")
         IQ_CALLBACK[id_] = lambda stanza: self.received_slot(stanza, file)
-        self.conn.send(iq)
+        gajim.connections[self.account].connection.send(iq)
 
     def received_slot(self, stanza, file):
         log.info("Received slot")
