@@ -549,11 +549,11 @@ class OmemoPlugin(GajimPlugin):
             event.msg_iq.delChild('body')
             event.msg_iq.addChild(node=encrypted_node)
 
-            # XEP-xxxx: Explicit Message Encryption
-            if not event.msg_iq.getTag('encrypted', attrs={'xmlns': NS_EME}):
-                eme_node = Node('encrypted', attrs={'xmlns': NS_EME,
-                                                    'name': 'OMEMO',
-                                                    'namespace': NS_OMEMO})
+            # XEP-0380: Explicit Message Encryption
+            if not event.msg_iq.getTag('encryption', attrs={'xmlns': NS_EME}):
+                eme_node = Node('encryption', attrs={'xmlns': NS_EME,
+                                                     'name': 'OMEMO',
+                                                     'namespace': NS_OMEMO})
                 event.msg_iq.addChild(node=eme_node)
 
             # Add Message for devices that dont support OMEMO
@@ -662,11 +662,11 @@ class OmemoPlugin(GajimPlugin):
 
             event.msg_iq.addChild(node=encrypted_node)
 
-            # XEP-xxxx: Explicit Message Encryption
-            if not event.msg_iq.getTag('encrypted', attrs={'xmlns': NS_EME}):
-                eme_node = Node('encrypted', attrs={'xmlns': NS_EME,
-                                                    'name': 'OMEMO',
-                                                    'namespace': NS_OMEMO})
+            # XEP-0380: Explicit Message Encryption
+            if not event.msg_iq.getTag('encryption', attrs={'xmlns': NS_EME}):
+                eme_node = Node('encryption', attrs={'xmlns': NS_EME,
+                                                     'name': 'OMEMO',
+                                                     'namespace': NS_OMEMO})
                 event.msg_iq.addChild(node=eme_node)
 
             # Store Hint for MAM
