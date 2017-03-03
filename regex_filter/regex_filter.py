@@ -34,11 +34,13 @@ from common import ged
 from command_system.framework import CommandContainer, command, doc
 from command_system.implementation.hosts import *
 
+import ui
+
 class RegexFilterPlugin(GajimPlugin):
 
     @log_calls('RegexFilterPlugin')
     def init(self):
-        self.config_dialog = None
+        self.config_dialog = ui.RegexFilterPluginConfigDialog(self)
 
         self.events_handlers = {
             'decrypted-message-received': (ged.PREGUI1,
@@ -61,6 +63,7 @@ class RegexFilterPlugin(GajimPlugin):
         self.rules = {}
         for num, c in self.config.items():
             self.rules[int(num)] = [re.compile(c[0], re.MULTILINE), c[1]]
+        self.update_context_list()
 
     @log_calls('RegexFilterPlugin')
     def add_rule(self, search, replace):
@@ -100,6 +103,15 @@ class RegexFilterPlugin(GajimPlugin):
     @log_calls('RegexFilterPlugin')
     def _nec_gc_message_received(self, obj):
         self._nec_all(obj)
+
+    @log_calls('RegexFilterPlugin')
+    def update_context_list(self):
+        self.config_dialog.rules_model.clear()
+        rules_num = self.rules.keys()
+        rules_num.sort()
+        for num in rules_num:
+            rule = self.rules[num]
+            self.config_dialog.rules_model.append((num, rule[0].pattern, rule[1]))
 
 class FilterCommands(CommandContainer):
     AUTOMATIC = False

@@ -1,0 +1,116 @@
+<?xml version="1.0"?>
+
+<interface>
+
+  <requires lib="gtk+" version="2.16"/>
+
+  <object class="GtkListStore" id="rules_store">
+    <columns>
+      <!-- column-name index -->
+      <column type="gint"/>
+      <!-- column-name search -->
+      <column type="gchararray"/>
+      <!-- column-name replace -->
+      <column type="gchararray"/>
+    </columns>
+  </object>
+
+  <object class="GtkVBox" id="vbox1">
+    <property name="visible">True</property>
+    <property name="border_width">12</property>
+    <property name="orientation">vertical</property>
+
+    <child>
+      <object class="GtkScrolledWindow" id="scrolledwindow1">
+        <property name="visible">True</property>
+        <property name="can_focus">True</property>
+        <property name="hscrollbar_policy">automatic</property>
+        <property name="vscrollbar_policy">automatic</property>
+        <child>
+          <object class="GtkTreeView" id="rules_view">
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="model">rules_store</property>
+            <property name="search_column">1</property>
+            <child>
+              <object class="GtkTreeViewColumn" id="index_column">
+                <property name="visible">False</property>
+                <child>
+                  <object class="GtkCellRendererText" id="cellrenderertext1"/>
+                  <attributes>
+                    <attribute name="text">0</attribute>
+                  </attributes>
+                </child>
+              </object>
+            </child>
+            <child>
+              <object class="GtkTreeViewColumn" id="search_column">
+                <property name="resizable">True</property>
+                <property name="title">Search Pattern</property>
+                <child>
+                  <object class="GtkCellRendererText" id="cellrenderertext2"/>
+                  <attributes>
+                    <attribute name="text">1</attribute>
+                  </attributes>
+                </child>
+              </object>
+            </child>
+            <child>
+              <object class="GtkTreeViewColumn" id="replace_column">
+                <property name="resizable">True</property>
+                <property name="title">Replace String</property>
+                <child>
+                  <object class="GtkCellRendererText" id="cellrenderertext3"/>
+                  <attributes>
+                    <attribute name="text">2</attribute>
+                  </attributes>
+                </child>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+      <packing>
+        <property name="position">0</property>
+      </packing>
+    </child>
+
+    <child>
+      <object class="GtkHBox" id="hbox1">
+        <property name="visible">True</property>
+        <property name="spacing">5</property>
+        <property name="homogeneous">True</property>
+        <child>
+          <object class="GtkButton" id="add_button">
+            <property name="label" translatable="yes" comments="button">Add</property>
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="receives_default">True</property>
+            <signal name="clicked" handler="add_button_clicked_cb"/>
+          </object>
+          <packing>
+            <property name="position">0</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkButton" id="remove_button">
+            <property name="label" translatable="yes" comments="button">Remove</property>
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="receives_default">True</property>
+            <signal name="clicked" handler="remove_button_clicked_cb"/>
+          </object>
+          <packing>
+            <property name="position">1</property>
+          </packing>
+        </child>
+      </object>
+      <packing>
+        <property name="expand">False</property>
+        <property name="position">1</property>
+      </packing>
+    </child>
+
+  </object>
+
+</interface>
