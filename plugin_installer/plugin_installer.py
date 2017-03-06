@@ -51,7 +51,8 @@ PLUGINS_URL = 'https://ftp.gajim.org/plugins_1/'
 MANIFEST_URL = 'https://ftp.gajim.org/plugins_1/manifests.zip'
 MANIFEST_IMAGE_URL = 'https://ftp.gajim.org/plugins_1/manifests_images.zip'
 MANDATORY_FIELDS = ['name', 'version', 'description', 'authors', 'homepage']
-
+FALLBACK_ICON = Gtk.IconTheme.get_default().load_icon(
+    'preferences-system', Gtk.IconSize.MENU, 0)
 
 class Column(IntEnum):
     PIXBUF = 0
@@ -82,9 +83,6 @@ class PluginInstaller(GajimPlugin):
         self.available_plugins_model = None
         self.timeout_id = 0
         self.connected_ids = {}
-        icon = Gtk.Image()
-        self.def_icon = icon.render_icon(
-            Gtk.STOCK_PREFERENCES, Gtk.IconSize.MENU)
 
     def activate(self):
         if self.config['check_update']:
@@ -284,7 +282,7 @@ class PluginInstaller(GajimPlugin):
             # get plugin icon
             icon_file = os.path.join(plugin.__path__, os.path.split(
                 plugin.__path__)[1]) + '.png'
-            icon = self.def_icon
+            icon = FALLBACK_ICON
             if os.path.isfile(icon_file):
                 icon = GdkPixbuf.Pixbuf.new_from_file_at_size(icon_file, 16, 16)
             row = [plugin, plugin.name, is_active, plugin.activatable, icon]
@@ -339,9 +337,6 @@ class DownloadAsync(threading.Thread):
         self.secure = secure
         self.check_update = check_update
         self.pulse = None
-        icon = Gtk.Image()
-        self.def_icon = icon.render_icon(
-            Gtk.STOCK_PREFERENCES, Gtk.IconSize.MENU)
 
     def model_append(self, row):
         row_data = [
@@ -407,7 +402,7 @@ class DownloadAsync(threading.Thread):
             icon = None
             remote_dir = filename.split('/')[0]
             png_filename = '{0}/{0}.png'.format(remote_dir)
-            icon = self.def_icon
+            icon = FALLBACK_ICON
             if png_filename in manifest_list:
                 data = zip_file.open(png_filename).read()
                 pix = GdkPixbuf.PixbufLoader()
