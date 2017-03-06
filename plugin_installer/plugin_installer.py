@@ -268,7 +268,7 @@ class PluginInstaller(GajimPlugin):
             plugins = gajim.plugin_manager.scan_dir_for_plugins(
                 plugin_dir, package=True)
             if not plugins:
-                log.warn('Loading Plugin failed')
+                log.warning('Loading Plugin failed')
                 continue
             gajim.plugin_manager.add_plugin(plugins[0])
             plugin = gajim.plugin_manager.plugins[-1]
@@ -395,12 +395,12 @@ class DownloadAsync(threading.Thread):
             config.read_file(io.TextIOWrapper(conf_file, encoding='utf-8'))
             conf_file.close()
             if not config.has_section('info'):
-                log.warn('Plugin is missing INFO section in manifest.ini. '
+                log.warning('Plugin is missing INFO section in manifest.ini. '
                          'Plugin not loaded.')
                 continue
             opts = config.options('info')
             if not set(MANDATORY_FIELDS).issubset(opts):
-                log.warn('Plugin is missing mandatory fields in manifest.ini. '
+                log.warning('Plugin is missing mandatory fields in manifest.ini. '
                          'Plugin not loaded.')
                 continue
             # Add icon and remote dir
