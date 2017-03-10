@@ -29,13 +29,16 @@ class RegexFilterPluginConfigDialog(GajimPluginConfigDialog):
 
         self.xml.connect_signals(self)
 
-    def add_button_clicked_cb(self, button, *args):
-        message = "Add a new filter for incoming messages"
-        dialog = gtk.MessageDialog(self.parent,
-                              gtk.DIALOG_MODAL|gtk.DIALOG_DESTROY_WITH_PARENT,
-                              gtk.MESSAGE_OTHER,
-                              gtk.BUTTONS_OK_CANCEL,
-                              message)
+    def open_dialog_window(self, dialog_title, parent=None, values=None):
+        dialog = gtk.MessageDialog(
+            parent,
+            gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
+            gtk.MESSAGE_OTHER,
+            gtk.BUTTONS_OK_CANCEL,
+            None)
+        dialog.set_position(gtk.WIN_POS_CENTER_ALWAYS)
+        dialog.set_title(dialog_title)
+
         hbox = gtk.HBox(False, 4)
         hbox.show()
 
@@ -57,20 +60,47 @@ class RegexFilterPluginConfigDialog(GajimPluginConfigDialog):
 
         dialog.vbox.add(hbox)
 
+        if values:
+            searchEntry.set_text(values[0])
+            replaceEntry.set_text(values[1])
+
         searchEntry.connect('activate',
                             lambda _: dialog.response(gtk.RESPONSE_OK))
         replaceEntry.connect('activate',
                              lambda _: dialog.response(gtk.RESPONSE_OK))
 
         dialog.set_default_response(gtk.RESPONSE_OK)
-        response = dialog.run()
-        search = searchEntry.get_text().decode('utf8')
-        replace = replaceEntry.get_text().decode('utf8')
+        while True:
+            response = dialog.run()
+            search = searchEntry.get_text().decode('utf8')
+            replace = replaceEntry.get_text().decode('utf8')
+            if response == gtk.RESPONSE_OK:
+                if self.plugin.is_valid_regex(search):
+                    dialog.destroy()
+                    return [search, replace]
+                else:
+                    searchEntry.grab_focus()
+            else:
+                break
         dialog.destroy()
 
-        if response == gtk.RESPONSE_OK:
-            if search.strip():
-                self.plugin.add_rule(search, replace)
+    def add_button_clicked_cb(self, button, *args):
+        title = 'Add new filter rule'
+        response = self.open_dialog_window(title, self.parent, None)
+        if response:
+            self.plugin.add_rule(response[0], response[1])
+
+    def edit_button_clicked_cb(self, button, *args):
+        model, rules = self.rules_view.get_selection().get_selected_rows()
+
+        for rule in rules:
+            it = model.get_iter(rule)
+            ruleNum, search, replace = model.get(it, 0, 1, 2)
+            title = 'Edit filter rule #%d' % ruleNum
+            response = self.open_dialog_window(title, self.parent,
+                                               [search, replace])
+            if response:
+                self.plugin.edit_rule(ruleNum, response[0], response[1])
 
     def remove_button_clicked_cb(self, button, *args):
         model, rules = self.rules_view.get_selection().get_selected_rows()

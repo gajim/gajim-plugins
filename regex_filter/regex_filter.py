@@ -75,6 +75,11 @@ class RegexFilterPlugin(GajimPlugin):
         self.create_rules()
 
     @log_calls('RegexFilterPlugin')
+    def edit_rule(self, num, search, replace):
+        self.config[str(num)] = [search, replace]
+        self.create_rules()
+
+    @log_calls('RegexFilterPlugin')
     def remove_rule(self, num):
         if num in self.config:
             del self.config[num]
@@ -85,6 +90,17 @@ class RegexFilterPlugin(GajimPlugin):
     @log_calls('RegexFilterPlugin')
     def get_rules(self):
         return self.config
+
+
+    @log_calls('RegexFilterPlugin')
+    def is_valid_regex(self, string):
+        if string.strip():
+            try:
+                re.compile(string)
+                return True
+            except re.error:
+                None
+        return False
 
     @log_calls('RegexFilterPlugin')
     def _nec_all(self, obj):
