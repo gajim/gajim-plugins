@@ -93,6 +93,18 @@
           </packing>
         </child>
         <child>
+          <object class="GtkButton" id="edit_button">
+            <property name="label" translatable="yes" comments="button">Edit</property>
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="receives_default">True</property>
+            <signal name="clicked" handler="edit_button_clicked_cb"/>
+          </object>
+          <packing>
+            <property name="position">1</property>
+          </packing>
+        </child>
+        <child>
           <object class="GtkButton" id="remove_button">
             <property name="label" translatable="yes" comments="button">Remove</property>
             <property name="visible">True</property>
@@ -101,7 +113,7 @@
             <signal name="clicked" handler="remove_button_clicked_cb"/>
           </object>
           <packing>
-            <property name="position">1</property>
+            <property name="position">2</property>
           </packing>
         </child>
       </object>
