@@ -479,10 +479,11 @@ class Base(object):
                     return transfer.getcode()
                 except UploadAbortedException as error:
                     log.info('Upload Aborted')
+                    return str(error)
                 except Exception as error:
                     gobject.idle_add(progress_window.close_dialog)
                     log.exception('Error')
-                return str(error)
+                    return str(error)
 
             log.info("Uploading file to '%s'..." % str(put.getData()))
             log.info("Please download from '%s' later..." % str(get.getData()))
