@@ -89,7 +89,6 @@ class FlashingKeyboardPluginConfigDialog(GajimPluginConfigDialog):
         config_table = self.xml.get_object('config_table')
         self.get_child().pack_start(config_table, True, True, 0)
         self.xml.connect_signals(self)
-        self.connect('hide', self.on_close_button_clicked)
 
     def on_run(self):
         self.isactive = self.plugin.active
@@ -110,3 +109,4 @@ class FlashingKeyboardPluginConfigDialog(GajimPluginConfigDialog):
         self.plugin.config['flash'] = not widget.get_active()
         if self.isactive:
             gajim.plugin_manager.activate_plugin(self.plugin)
+        GajimPluginConfigDialog.on_close_button_clicked(self, widget)
