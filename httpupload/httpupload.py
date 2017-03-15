@@ -480,10 +480,14 @@ class Base(object):
                 except UploadAbortedException as error:
                     log.info('Upload Aborted')
                     return str(error)
+                except urllib2.URLError as error:
+                    log.exception('URLError')
+                    errormsg = error.reason
                 except Exception as error:
-                    gobject.idle_add(progress_window.close_dialog)
                     log.exception('Error')
-                    return str(error)
+                    errormsg = error
+                gobject.idle_add(progress_window.close_dialog)
+                return str(errormsg)
 
             log.info("Uploading file to '%s'..." % str(put.getData()))
             log.info("Please download from '%s' later..." % str(get.getData()))
