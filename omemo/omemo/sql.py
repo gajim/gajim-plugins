@@ -77,8 +77,7 @@ class SQLDatabase():
                 CREATE TABLE IF NOT EXISTS encryption_state (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     jid TEXT UNIQUE,
-                    encryption INTEGER,
-                    timestamp NUMERIC DEFAULT CURRENT_TIMESTAMP
+                    encryption INTEGER
                     );
                 '''
 
