@@ -306,6 +306,9 @@ class Base(object):
                 error_msg = exc.reason.reason
                 if error_msg == 'CERTIFICATE_VERIFY_FAILED':
                     log.exception('Certificate verify failed')
+            else:
+                log.exception('URLError')
+                error_msg = exc.reason
         except Exception as exc:
             log.exception("Exception during upload")
             error_msg = exc
