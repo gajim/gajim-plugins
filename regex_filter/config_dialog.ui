@@ -116,6 +116,30 @@
             <property name="position">2</property>
           </packing>
         </child>
+        <child>
+          <object class="GtkButton" id="move_up_button">
+            <property name="label" translatable="yes" comments="button">Move Up</property>
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="receives_default">True</property>
+            <signal name="clicked" handler="move_up_button_clicked_cb"/>
+          </object>
+          <packing>
+            <property name="position">3</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkButton" id="move_down_button">
+            <property name="label" translatable="yes" comments="button">Move Down</property>
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="receives_default">True</property>
+            <signal name="clicked" handler="move_down_button_clicked_cb"/>
+          </object>
+          <packing>
+            <property name="position">4</property>
+          </packing>
+        </child>
       </object>
       <packing>
         <property name="expand">False</property>
