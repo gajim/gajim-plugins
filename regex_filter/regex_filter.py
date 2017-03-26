@@ -88,6 +88,16 @@ class RegexFilterPlugin(GajimPlugin):
         return False
 
     @log_calls('RegexFilterPlugin')
+    def swap_rules(self, oldNum, newNum):
+        if newNum >= 0 and newNum < len(self.get_rules().items()):
+            temp = self.config[str(newNum)]
+            self.config[str(newNum)] = self.config[str(oldNum)]
+            self.config[str(oldNum)] = temp
+            self.create_rules()
+            return True
+        return False
+
+    @log_calls('RegexFilterPlugin')
     def get_rules(self):
         return self.config
 
@@ -138,6 +148,8 @@ class FilterCommands(CommandContainer):
     "second argument is the replace regex."))
     def add_filter(self, search, replace):
         plugin = gajim.plugin_manager.get_active_plugin('regex_filter')
+        if not plugin.is_valid_regex(search):
+            return _('Invalid regular expression %s' % search)
         plugin.add_rule(search, replace)
         return _('Added rule to replace %s by %s' % (search, replace))
 
