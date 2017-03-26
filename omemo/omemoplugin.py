@@ -37,6 +37,7 @@ from .xmpp import (
     DevicelistPEP, OmemoMessage, successful, unpack_device_bundle,
     unpack_device_list_update, unpack_encrypted)
 
+from .file_decryption import FileDecryption
 from common import demandimport
 demandimport.enable()
 demandimport.ignore += ['_imp', '_thread', 'axolotl', 'PIL',
@@ -832,6 +833,7 @@ class OmemoPlugin(GajimPlugin):
             chat_control : ChatControl
                 Gajim ChatControl object
         """
+        FileDecryption(self).activate(chat_control)
         account = chat_control.contact.account.name
         if account in self.disabled_accounts:
             return
