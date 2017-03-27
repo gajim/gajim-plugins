@@ -167,8 +167,11 @@ class FilterCommands(CommandContainer):
     def list_filters(self):
         plugin = gajim.plugin_manager.get_active_plugin('regex_filter')
         rules = plugin.get_rules()
+        rules_num = rules.keys()
+        rules_num.sort(key=int)
         st = ''
-        for num, rule in rules.items():
+        for num in rules_num:
+            rule = rules[num]
             st += _('%(num)s: %(search)s -> %(replace)s') % {'num': num,
                 'search': rule[0], 'replace': rule[1]} + '\n'
         if st:
