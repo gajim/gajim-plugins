@@ -30,6 +30,7 @@ from plugins import GajimPlugin
 from plugins.helpers import log_calls
 from nbxmpp.simplexml import Node
 from nbxmpp import NS_CORRECT, NS_ADDRESS
+from .file_decryption import FileDecryption
 
 from .xmpp import (
     NS_NOTIFY, NS_OMEMO, NS_EME, BundleInformationAnnouncement,
@@ -115,7 +116,9 @@ class OmemoPlugin(GajimPlugin):
         self.gui_extension_points = {'chat_control': (self.connect_ui,
                                                       self.disconnect_ui),
                                      'groupchat_control': (self.connect_ui,
-                                                           self.disconnect_ui)}
+                                                           self.disconnect_ui),
+                                     'hyperlink_handler': (self.file_decryption,
+                                                           None)}
         SUPPORTED_PERSONAL_USER_EVENTS.append(DevicelistPEP)
         self.plugin = self
         self.announced = []
@@ -178,6 +181,9 @@ class OmemoPlugin(GajimPlugin):
         gajim.config.set_per('accounts', account,
                              'enable_esessions', False)
         log.info(str(account) + " => Gajim E2E encryption disabled")
+
+    def file_decryption(self, url, kind, instance, window):
+        FileDecryption(self).hyperlink_handler(url, kind, instance, window)
 
     @log_calls('OmemoPlugin')
     def signed_in(self, event):
