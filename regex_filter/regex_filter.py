@@ -88,11 +88,20 @@ class RegexFilterPlugin(GajimPlugin):
         return False
 
     @log_calls('RegexFilterPlugin')
-    def swap_rules(self, oldNum, newNum):
-        if newNum >= 0 and newNum < len(self.get_rules().items()):
-            temp = self.config[str(newNum)]
-            self.config[str(newNum)] = self.config[str(oldNum)]
-            self.config[str(oldNum)] = temp
+    def swap_rules(self, old_num, down):
+        new_num = old_num
+        rules_num = self.rules.keys()
+        rules_num.sort()
+        if down:
+            rules_num = reversed(rules_num)
+        for num in rules_num:
+            if num == old_num:
+                break
+            new_num = num
+        if new_num != old_num:
+            temp = self.config[str(new_num)]
+            self.config[str(new_num)] = self.config[str(old_num)]
+            self.config[str(old_num)] = temp
             self.create_rules()
             return True
         return False

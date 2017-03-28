@@ -115,14 +115,13 @@ class RegexFilterPluginConfigDialog(GajimPluginConfigDialog):
 
         for rule in rules:
             it = model.get_iter(rule)
-            ruleNum = model.get(it, 0)
-            self.plugin.swap_rules("%d" % ruleNum, int("%d" % ruleNum) - 1)
-
+            ruleNum, _ = model.get(it, 0, 1)
+            self.plugin.swap_rules(ruleNum, False)
 
     def move_down_button_clicked_cb(self, button, *args):
         model, rules = self.rules_view.get_selection().get_selected_rows()
 
         for rule in rules:
             it = model.get_iter(rule)
-            ruleNum = model.get(it, 0)
-            self.plugin.swap_rules("%d" % ruleNum, int("%d" % ruleNum) + 1)
+            ruleNum, _ = model.get(it, 0, 1)
+            self.plugin.swap_rules(ruleNum, True)
