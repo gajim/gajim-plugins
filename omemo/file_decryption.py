@@ -184,7 +184,7 @@ class Download:
             while True:
                 try:
                     if self.event.isSet():
-                        raise UploadAbortedException
+                        raise DownloadAbortedException
                     temp = get_request.read(10000)
                     GLib.idle_add(
                         self.progressbar.update_progress, len(temp), size)
@@ -196,8 +196,8 @@ class Download:
                     stream.write(temp)
                 else:
                     return stream
-        except UploadAbortedException as error:
-            log.info('Upload Aborted')
+        except DownloadAbortedException as error:
+            log.info('Download Aborted')
             errormsg = error
         except URLError as error:
             log.exception('URLError')
@@ -238,7 +238,7 @@ class ProgressWindow:
         self.plugin = plugin
         self.event = event
         self.xml = gtkgui_helpers.get_gtk_builder(
-            self.plugin.local_file_path('upload_progress_dialog.ui'))
+            self.plugin.local_file_path('download_progress_dialog.ui'))
         self.dialog = self.xml.get_object('progress_dialog')
         self.dialog.set_transient_for(window)
         self.label = self.xml.get_object('label')
@@ -267,6 +267,6 @@ class ProgressWindow:
         self.event.set()
 
 
-class UploadAbortedException(Exception):
+class DownloadAbortedException(Exception):
     def __str__(self):
-        return _('Upload Aborted')
+        return _('Download Aborted')
