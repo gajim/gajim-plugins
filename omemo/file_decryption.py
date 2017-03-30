@@ -83,6 +83,9 @@ class FileDecryption:
     def hyperlink_handler(self, texttag, widget, event, iter_, kind):
         if event.type != gtk.gdk.BUTTON_PRESS:
             return
+        if event.button == 3:
+            self.orig_handler(texttag, widget, event, iter_, kind)
+            return
         begin_iter = iter_.copy()
         # we get the begining of the tag
         while not begin_iter.begins_tag(texttag):
