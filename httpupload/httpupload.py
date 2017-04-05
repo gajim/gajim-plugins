@@ -84,16 +84,19 @@ class HttpuploadPlugin(GajimPlugin):
             self.available_text = DEP_MSG
         self.config_dialog = None  # HttpuploadPluginConfigDialog(self)
         self.controls = []
-        self.events_handlers = {}
-        self.events_handlers['agent-info-received'] = (ged.PRECORE,
-                self.handle_agent_info_received)
-        self.events_handlers['raw-iq-received'] = (ged.PRECORE,
-                self.handle_iq_received)
+        self.events_handlers = {
+            'agent-info-received': (
+                ged.PRECORE, self.handle_agent_info_received),
+            'stanza-message-outgoing': (
+                ged.PRECORE, self.handle_outgoing_stanza),
+            'raw-iq-received': (
+                ged.PRECORE, self.handle_iq_received)}
         self.gui_extension_points = {
             'chat_control_base': (self.connect_with_chat_control,
                 self.disconnect_from_chat_control),
             'chat_control_base_update_toolbar': (self.update_button_state,
                 None)}
+        self.messages = []
         self.first_run = True
 
     def handle_iq_received(self, event):
@@ -116,6 +119,13 @@ class HttpuploadPlugin(GajimPlugin):
             # update all buttons
             for base in self.controls:
                 self.update_button_state(base.chat_control)
+
+    def handle_outgoing_stanza(self, event):
+        message = event.msg_iq.getTagData('body')
+        if message and message in self.messages:
+            self.messages.remove(message)
+            oob = event.msg_iq.addChild('x', namespace=nbxmpp.NS_X_OOB)
+            oob.addChild('url').setData(message)
 
     @log_calls('HttpuploadPlugin')
     def connect_with_chat_control(self, control):
@@ -456,12 +466,12 @@ class Base(object):
                                     (get.getData(), get.getData(), thumb)
                     progress_window.close_dialog()
                     id_ = gajim.get_an_id()
-                    def add_oob_tag():
-                        pass
+
                     if self.encrypted_upload:
                         keyAndIv = '#' + binascii.hexlify(iv) + binascii.hexlify(key)
                         self.chat_control.send_message(message=get.getData() + keyAndIv, xhtml=None)
                     else:
+                        self.plugin.messages.append(get.getData())
                         self.chat_control.send_message(message=get.getData(), xhtml=xhtml)
                     self.chat_control.msg_textview.grab_focus()
                 else:
