@@ -58,17 +58,20 @@ class HttpuploadPlugin(GajimPlugin):
         if not ENCRYPTION_AVAILABLE:
             self.available_text = DEP_MSG
         self.config_dialog = None
-        self.events_handlers = {}
-        self.events_handlers['agent-info-received'] = (
-            ged.PRECORE, self.handle_agent_info_received)
-        self.events_handlers['raw-iq-received'] = (
-            ged.PRECORE, self.handle_iq_received)
+        self.events_handlers = {
+            'agent-info-received': (
+                ged.PRECORE, self.handle_agent_info_received),
+            'stanza-message-outgoing': (
+                ged.PRECORE, self.handle_outgoing_stanza),
+            'raw-iq-received': (
+                ged.PRECORE, self.handle_iq_received)}
         self.gui_extension_points = {
             'chat_control_base': (self.connect_with_chat_control,
                                   self.disconnect_from_chat_control),
             'chat_control_base_update_toolbar': (self.update_chat_control,
                                                  None)}
         self.gui_interfaces = {}
+        self.messages = []
 
     @staticmethod
     def handle_iq_received(event):
@@ -89,6 +92,13 @@ class HttpuploadPlugin(GajimPlugin):
             interface.enabled = True
             interface.component = event.jid
             interface.update_button_states(True)
+
+    def handle_outgoing_stanza(self, event):
+        message = event.msg_iq.getTagData('body')
+        if message and message in self.messages:
+            self.messages.remove(message)
+            oob = event.msg_iq.addChild('x', namespace=nbxmpp.NS_X_OOB)
+            oob.addChild('url').setData(message)
 
     def connect_with_chat_control(self, chat_control):
         account = chat_control.contact.account.name
@@ -319,14 +329,15 @@ class Base(object):
         GLib.idle_add(file.progress.close_dialog)
         GLib.idle_add(self.on_upload_error, file, error_msg)
 
-    @staticmethod
-    def upload_complete(response_code, file):
+    def upload_complete(self, response_code, file):
         file.progress.close_dialog()
         if 200 <= response_code < 300:
             log.info("Upload completed successfully")
             message = file.get
             if file.encrypted:
                 message += '#' + hexlify(file.iv + file.key).decode('utf-8')
+            else:
+                self.plugin.messages.append(message)
             file.control.send_message(message=message)
             file.control.msg_textview.grab_focus()
         else:
