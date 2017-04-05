@@ -277,8 +277,6 @@ class Base(object):
             del self.chat_control.handlers[self.keypress_id]
 
     def encryption_activated(self):
-        if not encryption_available:
-            return False
         jid = self.chat_control.contact.jid
         account = self.chat_control.account
         for plugin in gajim.plugin_manager.active_plugins:
@@ -298,6 +296,13 @@ class Base(object):
         except Exception as e:
             log.debug(e)
             self.encrypted_upload = False
+
+        if self.encrypted_upload and not encryption_available:
+            ErrorDialog(
+                _('Error'),
+                'Please install python-cryptography for encrypted uploads',
+                transient_for=self.chat_control.parent_win.window)
+            return
 
         if not path_to_file:
             path_to_file = self.dlg.get_filename()
