@@ -37,7 +37,6 @@ from .xmpp import (
     DevicelistPEP, OmemoMessage, successful, unpack_device_bundle,
     unpack_device_list_update, unpack_encrypted)
 
-from .file_decryption import FileDecryption
 from common import demandimport
 demandimport.enable()
 demandimport.ignore += ['_imp', '_thread', 'axolotl', 'PIL',
@@ -45,6 +44,7 @@ demandimport.ignore += ['_imp', '_thread', 'axolotl', 'PIL',
 
 IQ_CALLBACK = {}
 
+CRYPTOGRAPHY_MISSING = 'You are missing Python-Cryptography'
 AXOLOTL_MISSING = 'You are missing Python-Axolotl or use an outdated version'
 PROTOBUF_MISSING = 'OMEMO cant import Google Protobuf, you can find help in ' \
                    'the GitHub Wiki'
@@ -58,6 +58,12 @@ DB_DIR_OLD = gajim.gajimpaths.data_root
 DB_DIR_NEW = configpaths.gajimpaths['MY_DATA']
 
 log = logging.getLogger('gajim.plugin_system.omemo')
+
+try:
+    from .file_decryption import FileDecryption
+except Exception as e:
+    log.exception(e)
+    ERROR_MSG = CRYPTOGRAPHY_MISSING
 
 try:
     prototest = __import__('google.protobuf')
