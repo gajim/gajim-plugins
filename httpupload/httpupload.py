@@ -163,8 +163,6 @@ class Base(object):
             self.set_button_state(state, self.controls[jid])
 
     def encryption_activated(self, jid):
-        if not ENCRYPTION_AVAILABLE:
-            return False
         for plugin in gajim.plugin_manager.active_plugins:
             if type(plugin).__name__ == 'OmemoPlugin':
                 state = plugin.get_omemo_state(self.account)
@@ -196,6 +194,12 @@ class Base(object):
             return
 
         encrypted = self.encryption_activated(jid)
+        if encrypted and not ENCRYPTION_AVAILABLE:
+            ErrorDialog(
+                _('Error'),
+                'Please install python-cryptography for encrypted uploads',
+                transient_for=chat_control.parent_win.window)
+            return
         size = os.path.getsize(path)
         key, iv = None, None
         if encrypted:
