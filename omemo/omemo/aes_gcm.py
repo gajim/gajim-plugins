@@ -20,15 +20,11 @@
 
 import sys
 import logging
+
+from .aes_gcm_native import aes_decrypt
+from .aes_gcm_native import aes_encrypt
+
 log = logging.getLogger('gajim.plugin_system.omemo')
-try:
-    from .aes_gcm_native import aes_decrypt
-    from .aes_gcm_native import aes_encrypt
-    log.debug('Using fast cryptography')
-except ImportError:
-    from .aes_gcm_fallback import aes_decrypt
-    from .aes_gcm_fallback import aes_encrypt
-    log.debug('Using slow cryptography')
 
 
 def encrypt(key, iv, plaintext):
