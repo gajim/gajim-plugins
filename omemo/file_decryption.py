@@ -80,9 +80,13 @@ class FileDecryption:
         urlparts = urlparse(url)
         file = File(urlparts.geturl())
 
-        if urlparts.scheme not in ["https"] or not urlparts.netloc:
+        if urlparts.scheme not in ['https', 'aesgcm'] or not urlparts.netloc:
             log.info("Not accepting URL for decryption: %s", url)
             return
+
+        if urlparts.scheme == 'aesgcm':
+            log.debug('aesgcm scheme detected')
+            file.url = 'https://' + file.url[9:]
 
         if not self.is_encrypted(file):
             log.info('Url not encrypted: %s', url)
