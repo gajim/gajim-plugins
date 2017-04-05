@@ -30,7 +30,6 @@ from plugins import GajimPlugin
 from plugins.helpers import log_calls
 from nbxmpp.simplexml import Node
 from nbxmpp import NS_CORRECT, NS_ADDRESS
-from .file_decryption import FileDecryption
 
 from .xmpp import (
     NS_NOTIFY, NS_OMEMO, NS_EME, BundleInformationAnnouncement,
@@ -41,6 +40,7 @@ from .xmpp import (
 
 IQ_CALLBACK = {}
 
+CRYPTOGRAPHY_MISSING = 'You are missing Python-Cryptography'
 AXOLOTL_MISSING = 'You are missing Python-Axolotl or use an outdated version'
 PROTOBUF_MISSING = 'OMEMO cant import Google Protobuf, you can find help in ' \
                    'the GitHub Wiki'
@@ -54,6 +54,12 @@ DB_DIR_OLD = gajim.gajimpaths.data_root
 DB_DIR_NEW = configpaths.gajimpaths['MY_DATA']
 
 log = logging.getLogger('gajim.plugin_system.omemo')
+
+try:
+    from .file_decryption import FileDecryption
+except Exception as e:
+    log.exception(e)
+    ERROR_MSG = CRYPTOGRAPHY_MISSING
 
 try:
     import google.protobuf
