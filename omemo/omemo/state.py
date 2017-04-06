@@ -228,9 +228,7 @@ class OmemoState:
 
         payload, tag = encrypt(key, iv, plaintext)
 
-        # for XEP-384 Compliance uncomment
-        # key += tag
-        payload += tag
+        key += tag
 
         # Encrypt the message key with for each of receivers devices
         for device in devices_list:
@@ -289,9 +287,7 @@ class OmemoState:
 
         payload, tag = encrypt(key, iv, plaintext)
 
-        # for XEP-384 Compliance uncomment
-        # key += tag
-        payload += tag
+        key += tag
 
         for tup in devices_list:
             self.get_session_cipher(tup[0], tup[1])
