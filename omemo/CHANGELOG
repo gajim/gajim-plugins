@@ -1,3 +1,9 @@
+1.2.0 / 2017-04-06
+- Add auth tag to key instead of payload
+- Support decryption of aesgcm:// uri scheme
+- Make python-cryptography mandatory
+- small bugfixes
+
 1.1.0 / 2017-03-26
 - Add file decryption
 
