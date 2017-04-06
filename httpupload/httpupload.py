@@ -62,9 +62,9 @@ class HttpuploadPlugin(GajimPlugin):
             'agent-info-received': (
                 ged.PRECORE, self.handle_agent_info_received),
             'stanza-message-outgoing': (
-                ged.PRECORE, self.handle_outgoing_stanza),
+                99, self.handle_outgoing_stanza),
             'gc-stanza-message-outgoing': (
-                ged.PRECORE, self.handle_outgoing_stanza),
+                99, self.handle_outgoing_stanza),
             'raw-iq-received': (
                 ged.PRECORE, self.handle_iq_received)}
         self.gui_extension_points = {
