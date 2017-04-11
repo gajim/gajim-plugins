@@ -1,0 +1,17 @@
+.openpgp-dark-success-color { color: darker(@success_color); }
+.openpgp-inactive-color { color: @unfocused_borders; }
+
+.openpgp-mono { font-size: 12px; font-family: monospace; }
+
+.openpgp-key-dialog > box { margin: 12px; }
+
+.openpgp-key-dialog scrolledwindow row {
+    border-bottom: 1px solid;
+    border-color: @unfocused_borders;
+    padding: 10px 20px 10px 10px;
+}
+.openpgp-key-dialog scrolledwindow row:last-child { border-bottom: 0px}
+
+.openpgp-key-dialog scrolledwindow { border: 1px solid; border-color:@unfocused_borders; }
+
+.openpgp-trust-popover row { padding: 10px 15px 10px 10px; }
