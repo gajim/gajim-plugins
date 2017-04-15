@@ -164,7 +164,7 @@ class Base(object):
             special_text = 'ftp://' + special_text
 
         urlparts = urlparse(special_text)
-        if urlparts.scheme not in ["https", "http", "ftp", "ftps"] or \
+        if urlparts.scheme not in ["https", "http", "ftp", "ftps", 'aesgcm'] or \
                 not urlparts.netloc:
             log.info("Not accepting URL for image preview: %s" % special_text)
             return
@@ -237,6 +237,8 @@ class Base(object):
                 # First get the http head request
                 # which does not fetch data, just headers
                 # then check the mime type and filesize
+                if urlparts.scheme == 'aesgcm':
+                    special_text = 'https://' + special_text[9:]
                 gajim.thread_interface(
                     get_http_head, [self.textview.account, special_text],
                     self._check_mime_size, [special_text, repl_start, repl_end,
