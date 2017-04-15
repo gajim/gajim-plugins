@@ -1,3 +1,6 @@
+1.2.1 / 2017-04-15
+- Recognize aesgcm uri scheme
+
 1.2.0 / 2017-04-06
 - Add auth tag to key instead of payload
 - Support decryption of aesgcm:// uri scheme
