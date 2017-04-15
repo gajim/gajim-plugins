@@ -137,6 +137,12 @@ class OmemoPlugin(GajimPlugin):
         for account in self.plugin.config['DISABLED_ACCOUNTS']:
             self.disabled_accounts.append(account)
 
+        # add aesgcm:// uri scheme to config
+        schemes = gajim.config.get('uri_schemes')
+        if 'aesgcm://' not in schemes.split():
+            schemes += ' aesgcm://'
+            gajim.config.set('uri_schemes', schemes)
+
     def migrate_dbpath(self, account, my_jid):
         old_dbpath = os.path.join(DB_DIR_OLD, 'omemo_' + account + '.db')
         new_dbpath = os.path.join(DB_DIR_NEW, 'omemo_' + my_jid + '.db')
