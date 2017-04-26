@@ -1,0 +1,1 @@
+from .pgpplugin import OldPGPPlugin
