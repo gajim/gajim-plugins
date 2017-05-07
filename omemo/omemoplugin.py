@@ -1,41 +1,49 @@
 # -*- coding: utf-8 -*-
-#
-# Copyright 2015 Bahtiar `kalkin-` Gadimov <bahtiar@gadimov.de>
-# Copyright 2015 Daniel Gultsch <daniel@cgultsch.de>
-#
-# This file is part of Gajim-OMEMO plugin.
-#
-# The Gajim-OMEMO plugin is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by the Free
-# Software Foundation, either version 3 of the License, or (at your option) any
-# later version.
-#
-# Gajim-OMEMO is distributed in the hope that it will be useful, but WITHOUT ANY
-# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
-# A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License along with
-# the Gajim-OMEMO plugin.  If not, see <http://www.gnu.org/licenses/>.
-#
+
+'''
+Copyright 2015 Bahtiar `kalkin-` Gadimov <bahtiar@gadimov.de>
+Copyright 2015 Daniel Gultsch <daniel@cgultsch.de>
+Copyright 2016 Philipp Hörist <philipp@hoerist.com>
+
+This file is part of Gajim-OMEMO plugin.
+
+The Gajim-OMEMO plugin is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by the Free
+Software Foundation, either version 3 of the License, or (at your option) any
+later version.
+
+Gajim-OMEMO is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License along with
+the Gajim-OMEMO plugin.  If not, see <http://www.gnu.org/licenses/>.
+'''
 
 import logging
 import os
 import sqlite3
 import shutil
 import message_control
+import nbxmpp
 
+from nbxmpp.simplexml import Node
+from nbxmpp import NS_CORRECT, NS_ADDRESS
+
+import dialogs
 from common import caps_cache, gajim, ged, configpaths
 from common.pep import SUPPORTED_PERSONAL_USER_EVENTS
 from plugins import GajimPlugin
-from plugins.helpers import log_calls
-from nbxmpp.simplexml import Node
-from nbxmpp import NS_CORRECT, NS_ADDRESS
+from groupchat_control import GroupchatControl
 
 from .xmpp import (
     NS_NOTIFY, NS_OMEMO, NS_EME, BundleInformationAnnouncement,
     BundleInformationQuery, DeviceListAnnouncement, DevicelistQuery,
     DevicelistPEP, OmemoMessage, successful, unpack_device_bundle,
     unpack_device_list_update, unpack_encrypted)
+
+from common.connection_handlers_events import (
+    MessageReceivedEvent, MamMessageReceivedEvent)
 
 
 IQ_CALLBACK = {}
@@ -49,9 +57,21 @@ GAJIM_VERSION = 'OMEMO only works with the latest Gajim version, get the ' \
 ERROR_MSG = ''
 
 NS_HINTS = 'urn:xmpp:hints'
-NS_PGP = 'urn:xmpp:openpgp:0'
 DB_DIR_OLD = gajim.gajimpaths.data_root
 DB_DIR_NEW = configpaths.gajimpaths['MY_DATA']
+
+ALLOWED_TAGS = [('request', nbxmpp.NS_RECEIPTS),
+                ('active', nbxmpp.NS_CHATSTATES),
+                ('gone', nbxmpp.NS_CHATSTATES),
+                ('inactive', nbxmpp.NS_CHATSTATES),
+                ('paused', nbxmpp.NS_CHATSTATES),
+                ('composing', nbxmpp.NS_CHATSTATES),
+                ('no-store', nbxmpp.NS_MSG_HINTS),
+                ('store', nbxmpp.NS_MSG_HINTS),
+                ('no-copy', nbxmpp.NS_MSG_HINTS),
+                ('no-permanent-store', nbxmpp.NS_MSG_HINTS),
+                ('replace', nbxmpp.NS_CORRECT),
+                ('thread', None)]
 
 log = logging.getLogger('gajim.plugin_system.omemo')
 
@@ -76,7 +96,7 @@ except Exception as e:
 if not ERROR_MSG:
     try:
         from .omemo.state import OmemoState
-        from .ui import Ui, OMEMOConfigDialog
+        from .ui import OMEMOConfigDialog, FingerprintWindow
     except Exception as e:
         log.error(e)
         ERROR_MSG = 'Error: ' + str(e)
@@ -88,11 +108,9 @@ if not ERROR_MSG:
 class OmemoPlugin(GajimPlugin):
 
     omemo_states = {}
-    ui_list = {}
     groupchat = {}
     temp_groupchat = {}
 
-    @log_calls('OmemoPlugin')
     def init(self):
         """ Init """
         if ERROR_MSG:
@@ -100,18 +118,12 @@ class OmemoPlugin(GajimPlugin):
             self.available_text = ERROR_MSG
             self.config_dialog = None
             return
+        self.encryption_name = 'OMEMO'
+        self.allow_groupchat = True
         self.events_handlers = {
-            'mam-message-received': (ged.PRECORE, self.mam_message_received),
-            'message-received': (ged.PRECORE, self.message_received),
             'pep-received': (ged.PRECORE, self.handle_device_list_update),
             'raw-iq-received': (ged.PRECORE, self.handle_iq_received),
             'signed-in': (ged.PRECORE, self.signed_in),
-            'stanza-message-outgoing':
-            (ged.PRECORE, self.handle_outgoing_stanza),
-            'message-outgoing':
-            (ged.PRECORE, self.handle_outgoing_event),
-            'gc-stanza-message-outgoing':
-            (ged.PRECORE, self.handle_outgoing_gc_stanza),
             'gc-presence-received': (ged.PRECORE, self.gc_presence_received),
             'gc-config-changed-received':
             (ged.PRECORE, self.gc_config_changed_received),
@@ -119,18 +131,25 @@ class OmemoPlugin(GajimPlugin):
             }
 
         self.config_dialog = OMEMOConfigDialog(self)
-        self.gui_extension_points = {'chat_control': (self.connect_ui,
-                                                      self.disconnect_ui),
-                                     'groupchat_control': (self.connect_ui,
-                                                           self.disconnect_ui),
-                                     'hyperlink_handler': (self.file_decryption,
-                                                           None)}
+        self.gui_extension_points = {
+            'hyperlink_handler': (self.file_decryption, None),
+            'encrypt' + self.encryption_name: (self._encrypt_message, None),
+            'gc_encrypt' + self.encryption_name: (self._gc_encrypt_message, None),
+            'decrypt': (self.message_received, None),
+            'send_message' + self.encryption_name: (
+                self.before_sendmessage, None),
+            'encryption_dialog' + self.encryption_name: (
+                self.on_encryption_button_clicked, None),
+            'encryption_state' + self.encryption_name: (
+                self.encryption_state, None)}
+
         SUPPORTED_PERSONAL_USER_EVENTS.append(DevicelistPEP)
         self.plugin = self
         self.announced = []
         self.query_for_bundles = []
         self.disabled_accounts = []
         self.gc_message = {}
+        self.windowinstances = {}
 
         self.config_default_values = {'DISABLED_ACCOUNTS': ([], ''), }
 
@@ -158,7 +177,6 @@ class OmemoPlugin(GajimPlugin):
 
         return new_dbpath
 
-    @log_calls('OmemoPlugin')
     def get_omemo_state(self, account):
         """ Returns the the OmemoState for the specified account.
             Creates the OmemoState if it does not exist yet.
@@ -175,7 +193,6 @@ class OmemoPlugin(GajimPlugin):
         if account in self.disabled_accounts:
             return
         if account not in self.omemo_states:
-            self.deactivate_gajim_e2e(account)
             my_jid = gajim.get_jid_from_account(account)
             db_path = self.migrate_dbpath(account, my_jid)
 
@@ -185,19 +202,9 @@ class OmemoPlugin(GajimPlugin):
 
         return self.omemo_states[account]
 
-    @staticmethod
-    def deactivate_gajim_e2e(account):
-        """ Deativates E2E encryption in Gajim """
-        gajim.config.set_per('accounts', account,
-                             'autonegotiate_esessions', False)
-        gajim.config.set_per('accounts', account,
-                             'enable_esessions', False)
-        log.info(str(account) + " => Gajim E2E encryption disabled")
-
     def file_decryption(self, url, kind, instance, window):
         FileDecryption(self).hyperlink_handler(url, kind, instance, window)
 
-    @log_calls('OmemoPlugin')
     def signed_in(self, event):
         """ Method called on SignIn
 
@@ -216,7 +223,6 @@ class OmemoPlugin(GajimPlugin):
         self.publish_bundle(account)
         self.query_own_devicelist(account)
 
-    @log_calls('OmemoPlugin')
     def activate(self):
         """ Method called when the Plugin is activated in the PluginManager
         """
@@ -238,7 +244,6 @@ class OmemoPlugin(GajimPlugin):
                     self.publish_bundle(account)
                     self.query_own_devicelist(account)
 
-    @log_calls('OmemoPlugin')
     def deactivate(self):
         """ Method called when the Plugin is deactivated in the PluginManager
 
@@ -250,6 +255,98 @@ class OmemoPlugin(GajimPlugin):
             if NS_NOTIFY in gajim.gajim_optional_features[account]:
                 gajim.gajim_optional_features[account].remove(NS_NOTIFY)
             self._compute_caps_hash(account)
+
+    def activate_encryption(self, chat_control):
+        if isinstance(chat_control, GroupchatControl):
+            if chat_control.room_jid not in self.groupchat:
+                dialogs.ErrorDialog(
+                _('Bad Configuration'),
+                _('To use OMEMO in a Groupchat, the Groupchat should be'
+                  ' non-anonymous and members-only.'))
+                return False
+        return True
+
+    @staticmethod
+    def encryption_state(chat_control, state):
+        state['visible'] = True
+        state['authenticated'] = True
+
+    def on_encryption_button_clicked(self, chat_control):
+        self.show_fingerprint_window(chat_control)
+
+    def before_sendmessage(self, chat_control):
+        account = chat_control.account
+        contact = chat_control.contact
+        self.new_fingerprints_available(chat_control)
+        if isinstance(chat_control, GroupchatControl):
+            missing = True
+            own_jid = gajim.get_jid_from_account(account)
+            for nick in self.plugin.groupchat[self.room]:
+                real_jid = self.plugin.groupchat[self.room][nick]
+                if real_jid == own_jid:
+                    continue
+                if not self.plugin.are_keys_missing(self.account,
+                                                    real_jid):
+                    missing = False
+            if missing:
+                log.debug(self.account +
+                          ' => No Trusted Fingerprints for ' +
+                          self.room)
+                self.no_trusted_fingerprints_warning()
+        else:
+            if self.are_keys_missing(account, contact.jid):
+                log.debug(account + ' => No Trusted Fingerprints for ' +
+                          contact.jid)
+                self.no_trusted_fingerprints_warning(chat_control)
+                chat_control.sendmessage = False
+            else:
+                log.debug(account + ' => Sending Message to ' +
+                          contact.jid)
+
+    def new_fingerprints_available(self, chat_control):
+        jid = chat_control.contact.jid
+        account = chat_control.account
+        state = self.get_omemo_state(account)
+        if isinstance(chat_control, GroupchatControl):
+            room_jid = chat_control.room_jid
+            if room_jid in self.groupchat:
+                for nick in self.groupchat[room_jid]:
+                    real_jid = self.groupchat[room_jid][nick]
+                    fingerprints = state.store. \
+                        getNewFingerprints(real_jid)
+                    if fingerprints:
+                        self.show_fingerprint_window(
+                            chat_control, fingerprints)
+        elif not isinstance(chat_control, GroupchatControl):
+            fingerprints = state.store.getNewFingerprints(jid)
+            if fingerprints:
+                self.show_fingerprint_window(
+                    chat_control, fingerprints)
+
+    def show_fingerprint_window(self, chat_control, fingerprints=None):
+        contact = chat_control.contact
+        account = chat_control.account
+        state = self.get_omemo_state(account)
+        transient = chat_control.parent_win.window
+        if 'dialog' not in self.windowinstances:
+            if isinstance(chat_control, GroupchatControl):
+                self.windowinstances['dialog'] = \
+                    FingerprintWindow(self, contact, transient,
+                                      self.windowinstances, groupchat=True)
+            else:
+                self.windowinstances['dialog'] = \
+                    FingerprintWindow(self, contact, transient,
+                                      self.windowinstances)
+            self.windowinstances['dialog'].show_all()
+            if fingerprints:
+                log.debug(account +
+                          ' => Showing Fingerprint Prompt for ' +
+                          contact.jid)
+                state.store.setShownFingerprints(fingerprints)
+        else:
+            self.windowinstances['dialog'].update_context_list()
+            if fingerprints:
+                state.store.setShownFingerprints(fingerprints)
 
     @staticmethod
     def _compute_caps_hash(account):
@@ -264,8 +361,17 @@ class OmemoPlugin(GajimPlugin):
             gajim.connections[account].change_status(
                 gajim.SHOW_LIST[connected], gajim.connections[account].status)
 
-    @log_calls('OmemoPlugin')
-    def mam_message_received(self, msg):
+    def message_received(self, conn, obj, callback):
+        if obj.encrypted:
+            return
+        if isinstance(obj, MessageReceivedEvent):
+            self._message_received(obj)
+        elif isinstance(obj, MamMessageReceivedEvent):
+            self._mam_message_received(obj)
+        if obj.encrypted == 'OMEMO':
+            callback(obj)
+
+    def _mam_message_received(self, msg):
         """ Handles an incoming MAM message
 
             Payload is decrypted and the plaintext is written into the
@@ -281,9 +387,6 @@ class OmemoPlugin(GajimPlugin):
         """
         account = msg.conn.name
         if account in self.disabled_accounts:
-            return
-
-        if msg.msg_.getTag('openpgp', namespace=NS_PGP):
             return
 
         omemo_encrypted_tag = msg.msg_.getTag('encrypted', namespace=NS_OMEMO)
@@ -302,31 +405,28 @@ class OmemoPlugin(GajimPlugin):
             plaintext = state.decrypt_msg(msg_dict)
 
             if not plaintext:
+                msg.encrypted = 'drop'
                 return
 
             self.print_msg_to_log(msg.msg_)
 
             msg.msgtxt = plaintext
-
-            contact_jid = msg.with_
-
-            if account in self.ui_list and \
-                    contact_jid in self.ui_list[account]:
-                self.ui_list[account][contact_jid].activate_omemo()
-            return False
+            msg.encrypted = 'OMEMO'
+            return
 
         elif msg.msg_.getTag('body'):
             account = msg.conn.name
 
-            jid = msg.with_
-            state = self.get_omemo_state(account)
-            omemo_enabled = state.encryption.is_active(jid)
+            from_jid = str(msg.msg_.getAttr('from'))
+            from_jid = gajim.get_jid_without_resource(from_jid)
 
-            if omemo_enabled:
+            state = self.get_omemo_state(account)
+            encryption = gajim.config.get_per('contacts', from_jid, 'encryption')
+
+            if encryption == 'OMEMO':
                 msg.msgtxt = '**Unencrypted** ' + msg.msgtxt
 
-    @log_calls('OmemoPlugin')
-    def message_received(self, msg):
+    def _message_received(self, msg):
         """ Handles an incoming message
 
             Payload is decrypted and the plaintext is written into the
@@ -342,9 +442,6 @@ class OmemoPlugin(GajimPlugin):
         """
         account = msg.conn.name
         if account in self.disabled_accounts:
-            return
-
-        if msg.stanza.getTag('openpgp', namespace=NS_PGP):
             return
 
         if msg.stanza.getTag('encrypted', namespace=NS_OMEMO):
@@ -379,7 +476,8 @@ class OmemoPlugin(GajimPlugin):
                             log.error(account +
                                       ' => Cant decrypt GroupChat Message '
                                       'from ' + msg.resource)
-                            return True
+                            msg.encrypted = 'drop'
+                            return
                         self.groupchat[msg.jid][msg.resource] = from_jid
 
                 log.debug('GroupChat Message from: %s', from_jid)
@@ -392,25 +490,21 @@ class OmemoPlugin(GajimPlugin):
                 else:
                     log.error(account + ' => Cant decrypt own GroupChat '
                               'Message')
+                    msg.encrypted = 'drop'
             else:
                 msg_dict['sender_jid'] = gajim. \
                     get_jid_without_resource(from_jid)
                 plaintext = state.decrypt_msg(msg_dict)
 
             if not plaintext:
-                return True
+                msg.encrypted = 'drop'
+                return
 
             msg.msgtxt = plaintext
             # Gajim bug: there must be a body or the message
             # gets dropped from history
             msg.stanza.setBody(plaintext)
-
-            if msg.mtype != 'groupchat':
-                contact_jid = gajim.get_jid_without_resource(from_jid)
-                if account in self.ui_list and \
-                        contact_jid in self.ui_list[account]:
-                    self.ui_list[account][contact_jid].activate_omemo()
-            return False
+            msg.encrypted = 'OMEMO'
 
         elif msg.stanza.getTag('body'):
             account = msg.conn.name
@@ -418,19 +512,15 @@ class OmemoPlugin(GajimPlugin):
             from_jid = str(msg.stanza.getFrom())
             jid = gajim.get_jid_without_resource(from_jid)
             state = self.get_omemo_state(account)
-            omemo_enabled = state.encryption.is_active(jid)
+            encryption = gajim.config.get_per('contacts', jid, 'encryption')
 
-            if omemo_enabled:
+            if encryption == 'OMEMO':
                 msg.msgtxt = '**Unencrypted** ' + msg.msgtxt
-                # msg.stanza.setBody(msg.msgtxt)
+                msg.stanza.setBody(msg.msgtxt)
 
-                try:
-                    gui = self.ui_list[account].get(jid, None)
-                    if gui and gui.encryption_active():
-                        gui.plain_warning()
-                except KeyError:
-                    log.debug('No Ui present for ' + jid +
-                              ', Ui Warning not shown')
+                ctrl = gajim.interface.msg_win_mgr.get_control(jid, account)
+                if ctrl:
+                    self.plain_warning(ctrl)
 
     def room_memberlist_received(self, event):
         account = event.conn.name
@@ -439,6 +529,9 @@ class OmemoPlugin(GajimPlugin):
         log.debug('Room %s Memberlist received: %s',
                   event.fjid, event.users_dict)
         room = event.fjid
+
+        if room not in self.groupchat:
+            self.groupchat[room] = {}
 
         def jid_known(jid):
             for nick in self.groupchat[room]:
@@ -452,7 +545,6 @@ class OmemoPlugin(GajimPlugin):
                 self.groupchat[room][jid] = jid
                 log.debug('JID Added: ' + jid)
 
-    @log_calls('OmemoPlugin')
     def gc_presence_received(self, event):
         account = event.conn.name
         if account in self.disabled_accounts:
@@ -508,18 +600,19 @@ class OmemoPlugin(GajimPlugin):
             gajim.connections[account].get_affiliation_list(room, 'admin')
             gajim.connections[account].get_affiliation_list(room, 'member')
 
-            self.ui_list[account][room].sensitive(True)
-
-    @log_calls('OmemoPlugin')
     def gc_config_changed_received(self, event):
         account = event.conn.name
+        room = event.room_jid
         if account in self.disabled_accounts:
             return
+        if '172' in event.status_code:
+            if room not in self.groupchat:
+                self.groupchat[room] = self.temp_groupchat[room]
         log.debug('CONFIG CHANGE')
         log.debug(event.room_jid)
         log.debug(event.status_code)
 
-    def handle_outgoing_gc_stanza(self, event):
+    def _gc_encrypt_message(self, conn, event, callback):
         """ Manipulates the outgoing groupchat stanza
 
             The body is getting encrypted
@@ -546,10 +639,7 @@ class OmemoPlugin(GajimPlugin):
             state = self.get_omemo_state(account)
             full_jid = str(event.msg_iq.getAttr('to'))
             to_jid = gajim.get_jid_without_resource(full_jid)
-            if to_jid not in self.groupchat:
-                return
-            if not state.encryption.is_active(to_jid):
-                return
+
             # Delete previous Message out of Correction Message Stanza
             if event.msg_iq.getTag('replace', namespace=NS_CORRECT):
                 event.msg_iq.delChild('encrypted', attrs={'xmlns': NS_OMEMO})
@@ -562,9 +652,11 @@ class OmemoPlugin(GajimPlugin):
             if not msg_dict:
                 return True
 
+            self.cleanup_stanza(event)
+
             self.gc_message[msg_dict['payload']] = plaintext
             encrypted_node = OmemoMessage(msg_dict)
-            event.msg_iq.delChild('body')
+
             event.msg_iq.addChild(node=encrypted_node)
 
             # XEP-0380: Explicit Message Encryption
@@ -588,40 +680,12 @@ class OmemoPlugin(GajimPlugin):
                 self.print_msg_to_log(event.correction_msg)
             else:
                 self.print_msg_to_log(event.msg_iq)
+            callback(event)
         except Exception as e:
             log.debug(e)
-            return True
-
-    @log_calls('OmemoPlugin')
-    def handle_outgoing_event(self, event):
-        """ Handles a message outgoing event
-
-            In this event we have no stanza. XHTML is set to None
-            so that it doesnt make its way into the stanza
-
-            Parameters
-            ----------
-            event : MessageOutgoingEvent
-
-            Returns
-            -------
-            Return if encryption is not activated
-        """
-        if event.type_ == 'normal':
-            return False
-
-        account = event.account
-        if account in self.disabled_accounts:
             return
-        state = self.get_omemo_state(account)
 
-        if not state.encryption.is_active(event.jid):
-            return False
-
-        event.xhtml = None
-
-    @log_calls('OmemoPlugin')
-    def handle_outgoing_stanza(self, event):
+    def _encrypt_message(self, conn, event, callback):
         """ Manipulates the outgoing stanza
 
             The body is getting encrypted
@@ -645,8 +709,6 @@ class OmemoPlugin(GajimPlugin):
             state = self.get_omemo_state(account)
             full_jid = str(event.msg_iq.getAttr('to'))
             to_jid = gajim.get_jid_without_resource(full_jid)
-            if not state.encryption.is_active(to_jid):
-                return
 
             # Delete previous Message out of Correction Message Stanza
             if event.msg_iq.getTag('replace', namespace=NS_CORRECT):
@@ -660,23 +722,7 @@ class OmemoPlugin(GajimPlugin):
                 return True
 
             encrypted_node = OmemoMessage(msg_dict)
-
-            # Check if non-OMEMO resource is online
-            contacts = gajim.contacts.get_contacts(account, to_jid)
-            non_omemo_resource_online = False
-            for contact in contacts:
-                if contact.show == 'offline':
-                    continue
-                if not contact.supports(NS_NOTIFY):
-                    log.debug(contact.get_full_jid() +
-                              ' => Contact doesnt support OMEMO, '
-                              'adding Info Message to Body')
-                    support_msg = 'You received a message encrypted with ' \
-                                  'OMEMO but your client doesnt support OMEMO.'
-                    event.msg_iq.setBody(support_msg)
-                    non_omemo_resource_online = True
-            if not non_omemo_resource_online:
-                event.msg_iq.delChild('body')
+            self.cleanup_stanza(event)
 
             event.msg_iq.addChild(node=encrypted_node)
 
@@ -691,11 +737,25 @@ class OmemoPlugin(GajimPlugin):
             store = Node('store', attrs={'xmlns': NS_HINTS})
             event.msg_iq.addChild(node=store)
             self.print_msg_to_log(event.msg_iq)
+            event.xhtml = None
+
+            callback(event)
         except Exception as e:
             log.debug(e)
-            return True
 
-    @log_calls('OmemoPlugin')
+    @staticmethod
+    def cleanup_stanza(obj):
+        ''' We make sure only allowed tags are in the stanza '''
+        stanza = nbxmpp.Message(
+            to=obj.msg_iq.getTo(),
+            typ=obj.msg_iq.getType())
+        stanza.setThread(obj.msg_iq.getThread())
+        for tag, ns in ALLOWED_TAGS:
+            node = obj.msg_iq.getTag(tag, namespace=ns)
+            if node:
+                stanza.addChild(node=node)
+        obj.msg_iq = stanza
+
     def handle_device_list_update(self, event):
         """ Check if the passed event is a device list update and store the new
             device ids.
@@ -762,29 +822,10 @@ class OmemoPlugin(GajimPlugin):
                 self.query_for_bundles.remove(contact_jid)
 
             # Enable Encryption on receiving first Device List
-            if not state.encryption.exist(contact_jid):
-                if account in self.ui_list and \
-                        contact_jid in self.ui_list[account]:
-                    log.debug(account +
-                              ' => Switch encryption ON automatically ...')
-                    self.ui_list[account][contact_jid].activate_omemo()
-                else:
-                    log.debug(account +
-                              ' => Switch encryption ON automatically ...')
-                    self.omemo_enable_for(contact_jid, account)
-
-            if account in self.ui_list and \
-                    contact_jid not in self.ui_list[account]:
-
-                chat_control = gajim.interface.msg_win_mgr.get_control(
-                    contact_jid, account)
-
-                if chat_control:
-                    self.connect_ui(chat_control)
+            # TODO
 
         return True
 
-    @log_calls('OmemoPlugin')
     def publish_own_devices_list(self, account, new=False):
         """ Get all currently known own active device ids and publish them
 
@@ -812,58 +853,6 @@ class OmemoPlugin(GajimPlugin):
         gajim.connections[account].connection.send(iq)
         id_ = str(iq.getAttr('id'))
         IQ_CALLBACK[id_] = lambda event: log.debug(event)
-
-    @log_calls('OmemoPlugin')
-    def connect_ui(self, chat_control):
-        """ Method called from Gajim when a Chat Window is opened
-
-            Parameters
-            ----------
-            chat_control : ChatControl
-                Gajim ChatControl object
-        """
-        account = chat_control.contact.account.name
-        if account in self.disabled_accounts:
-            return
-        contact_jid = chat_control.contact.jid
-        if account not in self.ui_list:
-            self.ui_list[account] = {}
-        state = self.get_omemo_state(account)
-        my_jid = gajim.get_jid_from_account(account)
-        omemo_enabled = state.encryption.is_active(contact_jid)
-        if omemo_enabled:
-            log.debug(account + " => Adding OMEMO ui for " + contact_jid)
-            self.ui_list[account][contact_jid] = Ui(self, chat_control,
-                                                    omemo_enabled, state)
-            self.ui_list[account][contact_jid].new_fingerprints_available()
-            return
-        if contact_jid in state.device_ids or contact_jid == my_jid:
-            log.debug(account + " => Adding OMEMO ui for " + contact_jid)
-            self.ui_list[account][contact_jid] = Ui(self, chat_control,
-                                                    omemo_enabled, state)
-            self.ui_list[account][contact_jid].new_fingerprints_available()
-        else:
-            log.warning(account + " => No devices for " + contact_jid)
-
-        if chat_control.type_id == message_control.TYPE_GC:
-            self.ui_list[account][contact_jid] = Ui(self, chat_control,
-                                                    omemo_enabled, state)
-            self.ui_list[account][contact_jid].sensitive(False)
-
-    @log_calls('OmemoPlugin')
-    def disconnect_ui(self, chat_control):
-        """ Calls the removeUi method to remove all relatad UI objects.
-
-            Parameters
-            ----------
-            chat_control : ChatControl
-                Gajim ChatControl object
-        """
-        contact_jid = chat_control.contact.jid
-        account = chat_control.contact.account.name
-        if account in self.disabled_accounts:
-            return
-        self.ui_list[account][contact_jid].removeUi()
 
     def are_keys_missing(self, account, contact_jid):
         """ Checks if devicekeys are missing and querys the
@@ -932,7 +921,6 @@ class OmemoPlugin(GajimPlugin):
             finally:
                 del IQ_CALLBACK[id_]
 
-    @log_calls('OmemoPlugin')
     def fetch_device_bundle_information(self, account, jid, device_id):
         """ Fetch bundle information for specified jid, key, and create axolotl
             session on success.
@@ -956,7 +944,6 @@ class OmemoPlugin(GajimPlugin):
                                                            device_id)
         gajim.connections[account].connection.send(iq)
 
-    @log_calls('OmemoPlugin')
     def session_from_prekey_bundle(self, account, stanza,
                                    recipient_id, device_id):
         """ Starts a session from a PreKey bundle.
@@ -995,12 +982,11 @@ class OmemoPlugin(GajimPlugin):
             log.info(account + ' => session created for: ' + recipient_id)
             # Trigger dialog to trust new Fingerprints if
             # the Chat Window is Open
-            if account in self.ui_list and \
-                    recipient_id in self.ui_list[account]:
-                self.ui_list[account][recipient_id]. \
-                    new_fingerprints_available()
+            ctrl = gajim.interface.msg_win_mgr.get_control(
+                recipient_id, account)
+            if ctrl:
+                self.new_fingerprints_available(ctrl)
 
-    @log_calls('OmemoPlugin')
     def query_own_devicelist(self, account):
         """ Query own devicelist from the server.
 
@@ -1017,7 +1003,6 @@ class OmemoPlugin(GajimPlugin):
         IQ_CALLBACK[id_] = lambda stanza: \
             self.handle_devicelist_result(account, stanza)
 
-    @log_calls('OmemoPlugin')
     def publish_bundle(self, account):
         """ Publish our bundle information to the PEP node.
 
@@ -1055,7 +1040,6 @@ class OmemoPlugin(GajimPlugin):
         else:
             log.error(account + ' => Publishing bundle was NOT successful')
 
-    @log_calls('OmemoPlugin')
     def handle_devicelist_result(self, account, stanza):
         """ If query was successful add own device to the list.
 
@@ -1094,7 +1078,6 @@ class OmemoPlugin(GajimPlugin):
             log.error(account + ' => Devicelistquery was NOT successful')
             self.publish_own_devices_list(account, new=True)
 
-    @log_calls('OmemoPlugin')
     def clear_device_list(self, account):
         """ Clears the local devicelist of our own devices and publishes
             a new one including only the current ID of this device
@@ -1126,7 +1109,18 @@ class OmemoPlugin(GajimPlugin):
         log.debug(stanzastr)
         log.debug('-'*15)
 
-    @log_calls('OmemoPlugin')
+    @staticmethod
+    def plain_warning(chat_control):
+        chat_control.print_conversation_line(
+            'Received plaintext message! ' +
+            'Your next message will still be encrypted!', 'status', '', None)
+
+    @staticmethod
+    def no_trusted_fingerprints_warning(chat_control):
+        msg = "To send an encrypted message, you have to " \
+              "first trust the fingerprint of your contact!"
+        chat_control.print_conversation_line(msg, 'status', '', None)
+
     def omemo_enable_for(self, jid, account):
         """ Used by the UI to enable OMEMO for a specified contact.
 
@@ -1144,7 +1138,6 @@ class OmemoPlugin(GajimPlugin):
         state = self.get_omemo_state(account)
         state.encryption.activate(jid)
 
-    @log_calls('OmemoPlugin')
     def omemo_disable_for(self, jid, account):
         """ Used by the UI to disable OMEMO for a specified contact.
 

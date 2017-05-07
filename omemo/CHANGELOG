@@ -1,3 +1,6 @@
+2.3.0 / 2017-05-07
+- Make plugin compatible with Gajims encryption API
+
 2.2.1 / 2017-04-15
 - Recognize aesgcm uri scheme
 
