@@ -155,7 +155,7 @@ class Base(object):
 
         self.controls[jid] = button
         id_ = button.connect(
-            'clicked', self.on_file_button_clicked, jid, chat_control)
+            'clicked', self.on_file_button_clicked, chat_control)
         chat_control.handlers[id_] = button
         self.set_button_state(self.enabled, button)
         button.show()
@@ -174,17 +174,12 @@ class Base(object):
         for jid in self.controls:
             self.set_button_state(state, self.controls[jid])
 
-    def encryption_activated(self, jid):
-        for plugin in gajim.plugin_manager.active_plugins:
-            if type(plugin).__name__ == 'OmemoPlugin':
-                state = plugin.get_omemo_state(self.account)
-                encryption = state.encryption.is_active(jid)
-                log.info('Encryption is: %s', bool(encryption))
-                return bool(encryption)
-        log.info('OMEMO not found, encryption disabled')
-        return False
+    def encryption_activated(self, chat_control):
+        encrypted = chat_control.encryption == 'OMEMO'
+        log.info('Encryption is: %s', encrypted)
+        return encrypted
 
-    def on_file_dialog_ok(self, widget, jid, chat_control):
+    def on_file_dialog_ok(self, widget, chat_control):
         path = widget.get_filename()
         widget.destroy()
 
@@ -205,7 +200,7 @@ class Base(object):
                         transient_for=chat_control.parent_win.window)
             return
 
-        encrypted = self.encryption_activated(jid)
+        encrypted = self.encryption_activated(chat_control)
         if encrypted and not ENCRYPTION_AVAILABLE:
             ErrorDialog(
                 _('Error'),
@@ -233,9 +228,9 @@ class Base(object):
                     progress=progress, event=event)
         self.request_slot(file)
 
-    def on_file_button_clicked(self, widget, jid, chat_control):
+    def on_file_button_clicked(self, widget, chat_control):
         FileChooserDialog(
-            on_response_ok=lambda widget: self.on_file_dialog_ok(widget, jid,
+            on_response_ok=lambda widget: self.on_file_dialog_ok(widget,
                                                                  chat_control),
             title_text=_('Choose file to send'),
             action=Gtk.FileChooserAction.OPEN,
