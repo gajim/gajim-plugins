@@ -1,37 +1,32 @@
 # -*- coding: utf-8 -*-
-#
-# Copyright 2015 Bahtiar `kalkin-` Gadimov <bahtiar@gadimov.de>
-# Copyright 2015 Daniel Gultsch <daniel@cgultsch.de>
-#
-# This file is part of Gajim-OMEMO plugin.
-#
-# The Gajim-OMEMO plugin is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by the Free
-# Software Foundation, either version 3 of the License, or (at your option) any
-# later version.
-#
-# Gajim-OMEMO is distributed in the hope that it will be useful, but WITHOUT ANY
-# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
-# A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License along with
-# the Gajim-OMEMO plugin.  If not, see <http://www.gnu.org/licenses/>.
-#
+
+'''
+Copyright 2015 Bahtiar `kalkin-` Gadimov <bahtiar@gadimov.de>
+Copyright 2015 Daniel Gultsch <daniel@cgultsch.de>
+Copyright 2016 Philipp Hörist <philipp@hoerist.com>
+
+This file is part of Gajim-OMEMO plugin.
+
+The Gajim-OMEMO plugin is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by the Free
+Software Foundation, either version 3 of the License, or (at your option) any
+later version.
+
+Gajim-OMEMO is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License along with
+the Gajim-OMEMO plugin.  If not, see <http://www.gnu.org/licenses/>.
+'''
 
 import binascii
 import logging
 import os
-import message_control
+from enum import IntEnum, unique
 
-from gi.repository import GObject, Gtk, GdkPixbuf, Gdk
-
-# pylint: disable=import-error
-import gtkgui_helpers
-from common import gajim
-from dialogs import YesNoDialog
-from plugins.gui import GajimPluginConfigDialog
+from gi.repository import Gtk, GdkPixbuf, Gdk
 from axolotl.state.sessionrecord import SessionRecord
-from common import configpaths
 
 log = logging.getLogger('gajim.plugin_system.omemo')
 
@@ -43,285 +38,17 @@ except Exception as e:
     log.exception('Error:')
     log.error('python-qrcode or dependencies of it, are not available')
 
-# pylint: enable=import-error
-UNDECIDED = 2
-TRUSTED = 1
-UNTRUSTED = 0
+from common import gajim
+from common import configpaths
+from dialogs import YesNoDialog
+from plugins.gui import GajimPluginConfigDialog
 
 
-class OmemoButton(Gtk.Button):
-    def __init__(self, plugin, chat_control, ui, enabled):
-        super(OmemoButton, self).__init__(label=None, stock=None)
-        self.chat_control = chat_control
-
-        self.set_property('relief', Gtk.ReliefStyle.NONE)
-        self.set_property('can-focus', False)
-        self.set_sensitive(True)
-
-        icon = Gtk.Image.new_from_file(
-            plugin.local_file_path('omemo16x16.png'))
-        self.set_image(icon)
-        self.set_tooltip_text('OMEMO Encryption')
-
-        self.connect('clicked', self.on_click)
-
-        self.menu = OmemoMenu(ui, enabled)
-
-    def on_click(self, widget):
-        """
-        Popup omemo menu
-        """
-        gtkgui_helpers.popup_emoticons_under_button(
-            self.menu, widget, self.chat_control.parent_win)
-
-    def set_omemo_state(self, state):
-        self.menu.set_omemo_state(state)
-
-
-class OmemoMenu(Gtk.Menu):
-    def __init__(self, ui, enabled):
-        super(OmemoMenu, self).__init__()
-        self.ui = ui
-
-        self.item_omemo_state = Gtk.CheckMenuItem('Activate OMEMO')
-        self.item_omemo_state.set_active(enabled)
-        self.item_omemo_state.connect('activate', self.on_toggle_omemo)
-        self.append(self.item_omemo_state)
-
-        item = Gtk.ImageMenuItem('Fingerprints')
-        icon = Gtk.Image.new_from_stock(Gtk.STOCK_DIALOG_AUTHENTICATION,
-                                        Gtk.IconSize.MENU)
-        item.set_image(icon)
-        item.connect('activate', self.on_open_fingerprint_window)
-        self.append(item)
-
-        self.show_all()
-
-    def on_toggle_omemo(self, widget):
-        self.ui.set_omemo_state(widget.get_active())
-
-    def on_open_fingerprint_window(self, widget):
-        self.ui.show_fingerprint_window()
-
-    def set_omemo_state(self, state):
-        self.item_omemo_state.handler_block_by_func(self.on_toggle_omemo)
-        self.item_omemo_state.set_active(state)
-        self.item_omemo_state.handler_unblock_by_func(self.on_toggle_omemo)
-
-
-class Ui(object):
-    def __init__(self, plugin, chat_control, enabled, state):
-        self.contact = chat_control.contact
-        self.chat_control = chat_control
-        self.plugin = plugin
-        self.state = state
-        self.account = self.contact.account.name
-        self.windowinstances = {}
-
-        self.groupchat = False
-        if chat_control.type_id == message_control.TYPE_GC:
-            self.groupchat = True
-            self.omemo_capable = False
-            self.room = self.chat_control.room_jid
-
-        self.display_omemo_state()
-        self.refresh_auth_lock_icon()
-
-        self.omemobutton = OmemoButton(plugin, chat_control, self, enabled)
-
-        self.actions_hbox = chat_control.xml.get_object('actions_hbox')
-        send_button = chat_control.xml.get_object('send_button')
-        send_button_pos = self.actions_hbox.child_get_property(send_button,
-                                                               'position')
-        self.actions_hbox.add(self.omemobutton)
-        self.actions_hbox.reorder_child(self.omemobutton, send_button_pos - 1)
-        self.omemobutton.show_all()
-
-        # add a OMEMO entry to the context/advanced menu
-        self.chat_control.omemo_orig_prepare_context_menu = \
-            self.chat_control.prepare_context_menu
-
-        def omemo_prepare_context_menu(hide_buttonbar_items=False):
-            menu = self.chat_control. \
-                omemo_orig_prepare_context_menu(hide_buttonbar_items)
-            submenu = OmemoMenu(self, self.encryption_active())
-
-            item = Gtk.ImageMenuItem('OMEMO Encryption')
-            icon_path = plugin.local_file_path('omemo16x16.png')
-            item.set_image(Gtk.Image.new_from_file(icon_path))
-            item.set_submenu(submenu)
-
-            if self.groupchat:
-                item.set_sensitive(self.omemo_capable)
-
-            # at index 8 is the separator after the esession encryption entry
-            menu.insert(item, 8)
-            return menu
-        self.chat_control.prepare_context_menu = omemo_prepare_context_menu
-
-        # Hook into Send Button so we can check Stuff before sending
-        self.chat_control.orig_send_message = \
-            self.chat_control.send_message
-
-        def omemo_send_message(message, keyID='', chatstate=None, xhtml=None,
-                               process_commands=True, attention=False):
-            self.new_fingerprints_available()
-            if self.encryption_active() and \
-                    self.plugin.are_keys_missing(self.account,
-                                                 self.contact.jid):
-
-                log.debug(self.account + ' => No Trusted Fingerprints for ' +
-                          self.contact.jid)
-                self.no_trusted_fingerprints_warning()
-            else:
-                self.chat_control.orig_send_message(message, keyID, chatstate,
-                                                    xhtml, process_commands,
-                                                    attention)
-                log.debug(self.account + ' => Sending Message to ' +
-                          self.contact.jid)
-
-        def omemo_send_gc_message(message, xhtml=None, process_commands=True):
-            self.new_fingerprints_available()
-            if self.encryption_active():
-                missing = True
-                own_jid = gajim.get_jid_from_account(self.account)
-                for nick in self.plugin.groupchat[self.room]:
-                    real_jid = self.plugin.groupchat[self.room][nick]
-                    if real_jid == own_jid:
-                        continue
-                    if not self.plugin.are_keys_missing(self.account,
-                                                        real_jid):
-                        missing = False
-                if missing:
-                    log.debug(self.account +
-                              ' => No Trusted Fingerprints for ' +
-                              self.room)
-                    self.no_trusted_fingerprints_warning()
-                else:
-                    self.chat_control.orig_send_message(message, xhtml,
-                                                        process_commands)
-                    log.debug(self.account + ' => Sending Message to ' +
-                              self.room)
-            else:
-                self.chat_control.orig_send_message(message, xhtml,
-                                                    process_commands)
-                log.debug(self.account + ' => Sending Message to ' +
-                          self.room)
-
-        if self.groupchat:
-            self.chat_control.send_message = omemo_send_gc_message
-        else:
-            self.chat_control.send_message = omemo_send_message
-
-    def set_omemo_state(self, enabled):
-        """
-        Enable or disable OMEMO for this window's contact and update the
-        window ui accordingly
-        """
-        if enabled:
-            log.debug(self.contact.account.name + ' => Enable OMEMO for ' +
-                      self.contact.jid)
-            self.plugin.omemo_enable_for(self.contact.jid,
-                                         self.contact.account.name)
-            self.refresh_auth_lock_icon()
-        else:
-            log.debug(self.contact.account.name + ' => Disable OMEMO for ' +
-                      self.contact.jid)
-            self.plugin.omemo_disable_for(self.contact.jid,
-                                          self.contact.account.name)
-            self.refresh_auth_lock_icon()
-
-        self.omemobutton.set_omemo_state(enabled)
-        self.display_omemo_state()
-
-    def sensitive(self, value):
-        self.omemobutton.set_sensitive(value)
-        self.omemo_capable = value
-        if value:
-            self.chat_control.prepare_context_menu
-
-    def encryption_active(self):
-        return self.state.encryption.is_active(self.contact.jid)
-
-    def activate_omemo(self):
-        if not self.encryption_active():
-            self.set_omemo_state(True)
-
-    def new_fingerprints_available(self):
-        jid = self.contact.jid
-        if self.groupchat and self.room in self.plugin.groupchat:
-            for nick in self.plugin.groupchat[self.room]:
-                real_jid = self.plugin.groupchat[self.room][nick]
-                fingerprints = self.state.store. \
-                    getNewFingerprints(real_jid)
-                if fingerprints:
-                    self.show_fingerprint_window(fingerprints)
-        elif not self.groupchat:
-            fingerprints = self.state.store.getNewFingerprints(jid)
-            if fingerprints:
-                self.show_fingerprint_window(fingerprints)
-
-    def show_fingerprint_window(self, fingerprints=None):
-        if 'dialog' not in self.windowinstances:
-            if self.groupchat:
-                self.windowinstances['dialog'] = \
-                    FingerprintWindow(self.plugin, self.contact,
-                                      self.chat_control.parent_win.window,
-                                      self.windowinstances, groupchat=True)
-            else:
-                self.windowinstances['dialog'] = \
-                    FingerprintWindow(self.plugin, self.contact,
-                                      self.chat_control.parent_win.window,
-                                      self.windowinstances)
-            self.windowinstances['dialog'].show_all()
-            if fingerprints:
-                log.debug(self.account +
-                          ' => Showing Fingerprint Prompt for ' +
-                          self.contact.jid)
-                self.state.store.setShownFingerprints(fingerprints)
-        else:
-            self.windowinstances['dialog'].update_context_list()
-            if fingerprints:
-                self.state.store.setShownFingerprints(fingerprints)
-
-    def plain_warning(self):
-        self.chat_control.print_conversation_line(
-            'Received plaintext message! ' +
-            'Your next message will still be encrypted!', 'status', '', None)
-
-    def display_omemo_state(self):
-        if self.encryption_active():
-            msg = u'OMEMO encryption enabled'
-        else:
-            msg = u'OMEMO encryption disabled'
-        self.chat_control.print_conversation_line(msg, 'status', '', None)
-
-    def no_trusted_fingerprints_warning(self):
-        msg = "To send an encrypted message, you have to " \
-              "first trust the fingerprint of your contact!"
-        self.chat_control.print_conversation_line(msg, 'status', '', None)
-
-    def refresh_auth_lock_icon(self):
-        if self.groupchat:
-            return
-        if self.encryption_active():
-            if self.state.getUndecidedFingerprints(self.contact.jid):
-                self.chat_control._show_lock_image(True, 'OMEMO', True, True,
-                                                   False)
-            else:
-                self.chat_control._show_lock_image(True, 'OMEMO', True, True,
-                                                   True)
-        else:
-            self.chat_control._show_lock_image(False, 'OMEMO', False, True,
-                                               False)
-
-    def removeUi(self):
-        self.actions_hbox.remove(self.omemobutton)
-        self.chat_control._show_lock_image(False, 'OMEMO', False, True,
-                                           False)
-        self.chat_control.prepare_context_menu = \
-            self.chat_control.omemo_orig_prepare_context_menu
-        self.chat_control.send_message = self.chat_control.orig_send_message
+@unique
+class State(IntEnum):
+    UNTRUSTED = 0
+    TRUSTED = 1
+    UNDECIDED = 2
 
 
 class OMEMOConfigDialog(GajimPluginConfigDialog):
@@ -480,7 +207,7 @@ class OMEMOConfigDialog(GajimPluginConfigDialog):
         mod, paths = self.fpr_view.get_selection().get_selected_rows()
 
         def on_yes(checked, identity_key):
-            state.store.setTrust(identity_key, TRUSTED)
+            state.store.setTrust(identity_key, State.TRUSTED)
             try:
                 if self.plugin.ui_list[account]:
                     self.plugin.ui_list[account][jid]. \
@@ -490,7 +217,7 @@ class OMEMOConfigDialog(GajimPluginConfigDialog):
             self.update_context_list()
 
         def on_no(identity_key):
-            state.store.setTrust(identity_key, UNTRUSTED)
+            state.store.setTrust(identity_key, State.UNTRUSTED)
             try:
                 if jid in self.plugin.ui_list[account]:
                     self.plugin.ui_list[account][jid]. \
@@ -700,17 +427,11 @@ class FingerprintWindow(Gtk.Dialog):
             mod, paths = self.fpr_view.get_selection().get_selected_rows()
 
         def on_yes(checked, identity_key):
-            state.store.setTrust(identity_key, TRUSTED)
-            if not self.groupchat:
-                self.plugin.ui_list[self.account][self.contact.jid]. \
-                    refresh_auth_lock_icon()
+            state.store.setTrust(identity_key, State.TRUSTED)
             self.update_context_list()
 
         def on_no(identity_key):
-            state.store.setTrust(identity_key, UNTRUSTED)
-            if not self.groupchat:
-                self.plugin.ui_list[self.account][self.contact.jid]. \
-                    refresh_auth_lock_icon()
+            state.store.setTrust(identity_key, State.UNTRUSTED)
             self.update_context_list()
 
         for path in paths:
