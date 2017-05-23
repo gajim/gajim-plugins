@@ -279,20 +279,18 @@ class OmemoPlugin(GajimPlugin):
         contact = chat_control.contact
         self.new_fingerprints_available(chat_control)
         if isinstance(chat_control, GroupchatControl):
+            room = chat_control.room_jid
             missing = True
             own_jid = gajim.get_jid_from_account(account)
-            for nick in self.plugin.groupchat[self.room]:
-                real_jid = self.plugin.groupchat[self.room][nick]
+            for nick in self.groupchat[room]:
+                real_jid = self.groupchat[room][nick]
                 if real_jid == own_jid:
                     continue
-                if not self.plugin.are_keys_missing(self.account,
-                                                    real_jid):
+                if not self.are_keys_missing(account, real_jid):
                     missing = False
             if missing:
-                log.debug(self.account +
-                          ' => No Trusted Fingerprints for ' +
-                          self.room)
-                self.no_trusted_fingerprints_warning()
+                log.debug(account + ' => No Trusted Fingerprints for ' + room)
+                self.no_trusted_fingerprints_warning(chat_control)
         else:
             if self.are_keys_missing(account, contact.jid):
                 log.debug(account + ' => No Trusted Fingerprints for ' +
