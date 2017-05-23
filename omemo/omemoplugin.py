@@ -24,7 +24,6 @@ import logging
 import os
 import sqlite3
 import shutil
-import message_control
 import nbxmpp
 
 from nbxmpp.simplexml import Node
@@ -52,8 +51,6 @@ CRYPTOGRAPHY_MISSING = 'You are missing Python-Cryptography'
 AXOLOTL_MISSING = 'You are missing Python-Axolotl or use an outdated version'
 PROTOBUF_MISSING = 'OMEMO cant import Google Protobuf, you can find help in ' \
                    'the GitHub Wiki'
-GAJIM_VERSION = 'OMEMO only works with the latest Gajim version, get the ' \
-                'latest version from gajim.org'
 ERROR_MSG = ''
 
 NS_HINTS = 'urn:xmpp:hints'
@@ -144,7 +141,6 @@ class OmemoPlugin(GajimPlugin):
                 self.encryption_state, None)}
 
         SUPPORTED_PERSONAL_USER_EVENTS.append(DevicelistPEP)
-        self.plugin = self
         self.announced = []
         self.query_for_bundles = []
         self.disabled_accounts = []
@@ -153,7 +149,7 @@ class OmemoPlugin(GajimPlugin):
 
         self.config_default_values = {'DISABLED_ACCOUNTS': ([], ''), }
 
-        for account in self.plugin.config['DISABLED_ACCOUNTS']:
+        for account in self.config['DISABLED_ACCOUNTS']:
             self.disabled_accounts.append(account)
 
         # add aesgcm:// uri scheme to config
@@ -198,7 +194,7 @@ class OmemoPlugin(GajimPlugin):
 
             conn = sqlite3.connect(db_path, check_same_thread=False)
             self.omemo_states[account] = OmemoState(my_jid, conn, account,
-                                                    self.plugin)
+                                                    self)
 
         return self.omemo_states[account]
 
@@ -784,7 +780,7 @@ class OmemoPlugin(GajimPlugin):
         devices_list = list(set(unpack_device_list_update(event.stanza,
                                                           event.conn.name)))
         contact_jid = gajim.get_jid_without_resource(event.fjid)
-        if len(devices_list) == 0:
+        if not devices_list:
             log.error(account +
                       ' => Received empty or invalid Devicelist from: ' +
                       contact_jid)
@@ -899,8 +895,7 @@ class OmemoPlugin(GajimPlugin):
 
         if state.getTrustedFingerprints(contact_jid):
             return False
-        else:
-            return True
+        return True
 
     @staticmethod
     def handle_iq_received(event):
@@ -1054,7 +1049,7 @@ class OmemoPlugin(GajimPlugin):
 
         if successful(stanza):
             devices_list = list(set(unpack_device_list_update(stanza, account)))
-            if len(devices_list) == 0:
+            if not devices_list:
                 log.error(account + ' => Devicelistquery was NOT successful')
                 self.publish_own_devices_list(account, new=True)
                 return False
