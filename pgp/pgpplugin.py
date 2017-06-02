@@ -145,7 +145,7 @@ class OldPGPPlugin(GajimPlugin):
             encmsg = enc_tag.getData()
             key_id = gajim.config.get_per('accounts', account, 'keyid')
             if key_id:
-                obj.encrypted = 'xep27'
+                obj.encrypted = self.encryption_name
                 self.decrypt_queue.put([encmsg, key_id, obj, conn, callback])
                 if not self.thread:
                     self.thread = threading.Thread(target=self.worker)
@@ -242,6 +242,7 @@ class OldPGPPlugin(GajimPlugin):
 
         # Set xhtml to None so it doesnt get logged
         obj.xhtml = None
+        obj.encrypted = self.encryption_name
         print_msg_to_log(obj.msg_iq)
         callback(obj)
 
