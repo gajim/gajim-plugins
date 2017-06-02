@@ -27,7 +27,7 @@ import shutil
 import nbxmpp
 
 from nbxmpp.simplexml import Node
-from nbxmpp import NS_CORRECT, NS_ADDRESS
+from nbxmpp import NS_ADDRESS
 
 import dialogs
 from common import caps_cache, gajim, ged, configpaths
@@ -624,19 +624,11 @@ class OmemoPlugin(GajimPlugin):
         if account in self.disabled_accounts:
             return
         try:
-            # If we send a correction msg, the stanza is saved
-            # in correction_msg
-            if event.correction_msg:
-                event.msg_iq = event.correction_msg
             if not event.msg_iq.getTag('body'):
                 return
             state = self.get_omemo_state(account)
             full_jid = str(event.msg_iq.getAttr('to'))
             to_jid = gajim.get_jid_without_resource(full_jid)
-
-            # Delete previous Message out of Correction Message Stanza
-            if event.msg_iq.getTag('replace', namespace=NS_CORRECT):
-                event.msg_iq.delChild('encrypted', attrs={'xmlns': NS_OMEMO})
 
             plaintext = event.msg_iq.getBody()
             msg_dict = state.create_gc_msg(
@@ -668,12 +660,8 @@ class OmemoPlugin(GajimPlugin):
             # Store Hint for MAM
             store = Node('store', attrs={'xmlns': NS_HINTS})
             event.msg_iq.addChild(node=store)
-            if event.correction_msg:
-                event.correction_msg = event.msg_iq
-                event.msg_iq = None
-                self.print_msg_to_log(event.correction_msg)
-            else:
-                self.print_msg_to_log(event.msg_iq)
+
+            self.print_msg_to_log(event.msg_iq)
 
             callback(event)
         except Exception as e:
@@ -704,10 +692,6 @@ class OmemoPlugin(GajimPlugin):
             state = self.get_omemo_state(account)
             full_jid = str(event.msg_iq.getAttr('to'))
             to_jid = gajim.get_jid_without_resource(full_jid)
-
-            # Delete previous Message out of Correction Message Stanza
-            if event.msg_iq.getTag('replace', namespace=NS_CORRECT):
-                event.msg_iq.delChild('encrypted', attrs={'xmlns': NS_OMEMO})
 
             plaintext = event.msg_iq.getBody().encode('utf8')
 
