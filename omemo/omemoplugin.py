@@ -405,7 +405,7 @@ class OmemoPlugin(GajimPlugin):
             self.print_msg_to_log(msg.msg_)
 
             msg.msgtxt = plaintext
-            msg.encrypted = 'OMEMO'
+            msg.encrypted = self.encryption_name
             return
 
         elif msg.msg_.getTag('body'):
@@ -498,7 +498,7 @@ class OmemoPlugin(GajimPlugin):
             # Gajim bug: there must be a body or the message
             # gets dropped from history
             msg.stanza.setBody(plaintext)
-            msg.encrypted = 'OMEMO'
+            msg.encrypted = self.encryption_name
 
         elif msg.stanza.getTag('body'):
             account = msg.conn.name
@@ -674,6 +674,7 @@ class OmemoPlugin(GajimPlugin):
                 self.print_msg_to_log(event.correction_msg)
             else:
                 self.print_msg_to_log(event.msg_iq)
+
             callback(event)
         except Exception as e:
             log.debug(e)
@@ -732,7 +733,7 @@ class OmemoPlugin(GajimPlugin):
             event.msg_iq.addChild(node=store)
             self.print_msg_to_log(event.msg_iq)
             event.xhtml = None
-
+            event.encrypted = self.encryption_name
             callback(event)
         except Exception as e:
             log.debug(e)
