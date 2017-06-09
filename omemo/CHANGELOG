@@ -1,3 +1,6 @@
+2.3.3 / 2017-06-09
+- Move encryption logic for files from the HTTPUploadPlugin to the OMEMOPlugin
+
 2.3.2 / 2017-06-02
 - Adapt to patches regarding LMC in Gajim
 
