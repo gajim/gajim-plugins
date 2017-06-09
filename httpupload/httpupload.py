@@ -18,10 +18,10 @@ import os
 import threading
 import ssl
 import urllib
+import io
 from urllib.request import Request, urlopen
 import mimetypes
 import logging
-from binascii import hexlify
 if os.name == 'nt':
     import certifi
 
@@ -35,28 +35,12 @@ from dialogs import FileChooserDialog, ErrorDialog
 
 log = logging.getLogger('gajim.plugin_system.httpupload')
 
-try:
-    from cryptography.hazmat.backends import default_backend
-    from cryptography.hazmat.primitives.ciphers import Cipher
-    from cryptography.hazmat.primitives.ciphers import algorithms
-    from cryptography.hazmat.primitives.ciphers.modes import GCM
-    ENCRYPTION_AVAILABLE = True
-except Exception as exc:
-    DEP_MSG = 'For encryption of files, ' \
-              'please install python-cryptography!'
-    log.error('Cryptography Import Error: %s', exc)
-    log.info('Decryption/Encryption disabled due to errors')
-    ENCRYPTION_AVAILABLE = False
-
 IQ_CALLBACK = {}
 NS_HTTPUPLOAD = 'urn:xmpp:http:upload'
-TAGSIZE = 16
 
 
 class HttpuploadPlugin(GajimPlugin):
     def init(self):
-        if not ENCRYPTION_AVAILABLE:
-            self.available_text = DEP_MSG
         self.config_dialog = None
         self.events_handlers = {
             'agent-info-received': (
@@ -174,10 +158,10 @@ class Base(object):
         for jid in self.controls:
             self.set_button_state(state, self.controls[jid])
 
-    def encryption_activated(self, chat_control):
-        encrypted = chat_control.encryption == 'OMEMO'
-        log.info('Encryption is: %s', encrypted)
-        return encrypted
+    @staticmethod
+    def encryption_activated(chat_control):
+        log.info('Encryption is: %s', chat_control.encryption or 'disabled')
+        return chat_control.encryption is not None
 
     def on_file_dialog_ok(self, widget, chat_control):
         path = widget.get_filename()
@@ -200,20 +184,6 @@ class Base(object):
                         transient_for=chat_control.parent_win.window)
             return
 
-        encrypted = self.encryption_activated(chat_control)
-        if encrypted and not ENCRYPTION_AVAILABLE:
-            ErrorDialog(
-                _('Error'),
-                'Please install python-cryptography for encrypted uploads',
-                transient_for=chat_control.parent_win.window)
-            return
-        size = os.path.getsize(path)
-        key, iv = None, None
-        if encrypted:
-            key = os.urandom(32)
-            iv = os.urandom(16)
-            size += TAGSIZE
-
         mime = mimetypes.MimeTypes().guess_type(path)[0]
         if not mime:
             mime = 'application/octet-stream'  # fallback mime type
@@ -223,10 +193,20 @@ class Base(object):
         progress = ProgressWindow(
             self.plugin, chat_control.parent_win.window, event)
 
-        file = File(path=path, size=size, mime=mime, encrypted=encrypted,
-                    key=key, iv=iv, control=chat_control,
-                    progress=progress, event=event)
-        self.request_slot(file)
+        try:
+            file = File(path, mime=mime, encrypted=False,
+                        control=chat_control, progress=progress, event=event)
+        except Exception as error:
+            log.exception('Error while loading file')
+            file.progress.close_dialog()
+            ErrorDialog(_('Error'), str(error),
+                        transient_for=file.control.parent_win.window)
+            return
+
+        if self.encryption_activated(chat_control):
+            self.encrypt_file(file)
+        else:
+            self.request_slot(file)
 
     def on_file_button_clicked(self, widget, chat_control):
         FileChooserDialog(
@@ -239,7 +219,22 @@ class Base(object):
             default_response=Gtk.ResponseType.OK,
             transient_for=chat_control.parent_win.window)
 
+    def encrypt_file(self, file):
+        GLib.idle_add(file.progress.label.set_text, _('Encrypting file...'))
+        encryption = file.control.encryption
+        plugin = gajim.plugin_manager.encryption_plugins[encryption]
+        if hasattr(plugin, 'encrypt_file'):
+            plugin.encrypt_file(file, self.account, self.request_slot)
+        else:
+            file.progress.close_dialog()
+            ErrorDialog(
+                _('Error'),
+                'For the choosen encryption is no encryption method available',
+                transient_for=file.control.parent_win.window)
+
     def request_slot(self, file):
+        GLib.idle_add(file.progress.label.set_text,
+                      _('Requesting HTTP Upload Slot...'))
         iq = nbxmpp.Iq(typ='get', to=self.component)
         id_ = gajim.get_an_id()
         iq.setID(id_)
@@ -275,7 +270,7 @@ class Base(object):
             return
 
         try:
-            file.stream = StreamFileWithProgress(file, "rb")
+            file.stream = StreamFileWithProgress(file)
         except Exception as exc:
             file.progress.close_dialog()
             log.exception("Could not open file")
@@ -331,8 +326,8 @@ class Base(object):
         if 200 <= response_code < 300:
             log.info("Upload completed successfully")
             message = file.get
-            if file.encrypted:
-                message += '#' + hexlify(file.iv + file.key).decode('utf-8')
+            if file.user_data:
+                message += '#' + file.user_data
             else:
                 self.plugin.messages.append(message)
             file.control.send_message(message=message)
@@ -353,28 +348,34 @@ class Base(object):
 
 
 class File:
-    def __init__(self, **kwargs):
+    def __init__(self, path, **kwargs):
         for k, v in kwargs.items():
             setattr(self, k, v)
         self.stream = None
+        self.path = path
         self.put = None
         self.get = None
+        self.data = None
+        self.user_data = None
+        self.size = None
+        self.load_data()
 
+    def load_data(self):
+        with open(self.path, 'rb') as content:
+            self.data = content.read()
+        self.size = len(self.data)
+
+    def get_data(self, full=False):
+        if full:
+            return io.BytesIO(self.data).getvalue()
+        return io.BytesIO(self.data)
 
 class StreamFileWithProgress:
-    def __init__(self, file, mode, *args):
+    def __init__(self, file, *args):
         self.event = file.event
-        self.backing = open(file.path, mode)
-        self.encrypted = file.encrypted
+        self.backing = file.get_data()
         self.backing.seek(0, os.SEEK_END)
-        if self.encrypted:
-            self.encryptor = Cipher(
-                algorithms.AES(file.key),
-                GCM(file.iv),
-                backend=default_backend()).encryptor()
-            self._total = self.backing.tell() + TAGSIZE
-        else:
-            self._total = self.backing.tell()
+        self._total = self.backing.tell()
         self.backing.seek(0)
         self._callback = file.progress.update_progress
         self._args = args
@@ -386,26 +387,13 @@ class StreamFileWithProgress:
     def read(self, size):
         if self.event.isSet():
             raise UploadAbortedException
-        if self.encrypted:
-            data = self.backing.read(size)
-            if len(data) > 0:
-                data = self.encryptor.update(data)
-                self._seen += len(data)
-                if (self._seen + TAGSIZE) == self._total:
-                    self.encryptor.finalize()
-                    data += self.encryptor.tag
-                    self._seen += TAGSIZE
-                if self._callback:
-                    GLib.idle_add(
-                        self._callback, self._seen, self._total, *self._args)
-            return data
-        else:
-            data = self.backing.read(size)
-            self._seen += len(data)
-            if self._callback:
-                GLib.idle_add(
-                    self._callback, self._seen, self._total, *self._args)
-            return data
+
+        data = self.backing.read(size)
+        self._seen += len(data)
+        if self._callback:
+            GLib.idle_add(
+                self._callback, self._seen, self._total, *self._args)
+        return data
 
     def close(self):
         return self.backing.close()
@@ -422,7 +410,6 @@ class ProgressWindow:
         self.dialog.set_transient_for(parent)
         self.dialog.set_title('HTTP Upload')
         self.label = self.xml.get_object('label')
-        self.label.set_text(_('Requesting HTTP Upload Slot...'))
         self.progressbar = self.xml.get_object('progressbar')
         self.dialog.show_all()
         self.xml.connect_signals(self)
