@@ -1,2 +1,2 @@
 # simple redirect
-from .httpupload import HttpuploadPlugin
+from .httpupload import HTTPUploadPlugin

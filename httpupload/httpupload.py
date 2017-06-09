@@ -18,8 +18,8 @@ import os
 import threading
 import ssl
 import urllib
-import io
 from urllib.request import Request, urlopen
+import io
 import mimetypes
 import logging
 if os.name == 'nt':
@@ -39,7 +39,7 @@ IQ_CALLBACK = {}
 NS_HTTPUPLOAD = 'urn:xmpp:http:upload'
 
 
-class HttpuploadPlugin(GajimPlugin):
+class HTTPUploadPlugin(GajimPlugin):
     def init(self):
         self.config_dialog = None
         self.events_handlers = {
