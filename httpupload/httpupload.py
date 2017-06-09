@@ -19,6 +19,7 @@ import threading
 import ssl
 import urllib
 from urllib.request import Request, urlopen
+from urllib.parse import urlparse
 import io
 import mimetypes
 import logging
@@ -270,6 +271,16 @@ class Base(object):
             return
 
         try:
+            if (urlparse(file.put).scheme != 'https' or
+                    urlparse(file.get).scheme != 'https'):
+                raise UnsecureTransportError
+        except UnsecureTransportError as error:
+            file.progress.close_dialog()
+            ErrorDialog(_('Error'), str(error),
+                        transient_for=file.control.parent_win.window)
+            return
+
+        try:
             file.stream = StreamFileWithProgress(file)
         except Exception as exc:
             file.progress.close_dialog()
@@ -444,3 +455,7 @@ class ProgressWindow:
 class UploadAbortedException(Exception):
     def __str__(self):
         return "Upload Aborted"
+
+class UnsecureTransportError(Exception):
+    def __str__(self):
+        return 'Server returned unsecure transport'
