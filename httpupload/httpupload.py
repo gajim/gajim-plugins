@@ -163,6 +163,17 @@ class Base(object):
         log.info('Encryption is: %s', chat_control.encryption or 'disabled')
         return chat_control.encryption is not None
 
+    def on_file_button_clicked(self, widget, chat_control):
+        FileChooserDialog(
+            on_response_ok=lambda widget: self.on_file_dialog_ok(widget,
+                                                                 chat_control),
+            title_text=_('Choose file to send'),
+            action=Gtk.FileChooserAction.OPEN,
+            buttons=(Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL,
+                     Gtk.STOCK_OPEN, Gtk.ResponseType.OK),
+            default_response=Gtk.ResponseType.OK,
+            transient_for=chat_control.parent_win.window)
+
     def on_file_dialog_ok(self, widget, chat_control):
         path = widget.get_filename()
         widget.destroy()
@@ -207,17 +218,6 @@ class Base(object):
             self.encrypt_file(file)
         else:
             self.request_slot(file)
-
-    def on_file_button_clicked(self, widget, chat_control):
-        FileChooserDialog(
-            on_response_ok=lambda widget: self.on_file_dialog_ok(widget,
-                                                                 chat_control),
-            title_text=_('Choose file to send'),
-            action=Gtk.FileChooserAction.OPEN,
-            buttons=(Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL,
-                     Gtk.STOCK_OPEN, Gtk.ResponseType.OK),
-            default_response=Gtk.ResponseType.OK,
-            transient_for=chat_control.parent_win.window)
 
     def encrypt_file(self, file):
         GLib.idle_add(file.progress.label.set_text, _('Encrypting file...'))
