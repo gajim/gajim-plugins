@@ -25,7 +25,10 @@ import os
 import sqlite3
 import shutil
 import nbxmpp
+import binascii
+import threading
 
+from gi.repository import GLib
 from nbxmpp.simplexml import Node
 from nbxmpp import NS_ADDRESS
 
@@ -200,6 +203,23 @@ class OmemoPlugin(GajimPlugin):
 
     def file_decryption(self, url, kind, instance, window):
         FileDecryption(self).hyperlink_handler(url, kind, instance, window)
+
+    def encrypt_file(self, file, account, callback):
+        thread = threading.Thread(target=self._encrypt_file_thread,
+                                  args=(file, account, callback))
+        thread.daemon = True
+        thread.start()
+
+    def _encrypt_file_thread(self, file, account, callback):
+        state = self.get_omemo_state(account)
+        encrypted_data, key, iv = state.encrypt_file(file.get_data(full=True))
+        file.encrypted = True
+        file.size = len(encrypted_data)
+        file.user_data = binascii.hexlify(iv + key).decode('utf-8')
+        file.data = encrypted_data
+        if file.event.isSet():
+            return
+        GLib.idle_add(callback, file)
 
     def signed_in(self, event):
         """ Method called on SignIn

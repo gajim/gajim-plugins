@@ -19,6 +19,7 @@
 
 import logging
 import time
+import os
 from base64 import b64encode
 
 from axolotl.ecc.djbec import DjbECPublicKey
@@ -215,6 +216,14 @@ class OmemoState:
 
         log.debug("Decrypted Message => " + result)
         return result
+
+    def encrypt_file(self, data):
+        key = os.urandom(32)
+        iv = os.urandom(16)
+
+        payload, tag = encrypt(key, iv, data)
+        encrypted_data = payload + tag
+        return (encrypted_data, key, iv)
 
     def create_msg(self, from_jid, jid, plaintext):
         key = get_random_bytes(16)
