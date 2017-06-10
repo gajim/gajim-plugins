@@ -246,6 +246,34 @@ class OldPGPPlugin(GajimPlugin):
         print_msg_to_log(obj.msg_iq)
         callback(obj)
 
+    def encrypt_file(self, file, account, callback):
+        thread = threading.Thread(target=self._encrypt_file_thread,
+                                  args=(file, account, callback))
+        thread.daemon = True
+        thread.start()
+
+    def _encrypt_file_thread(self, file, account, callback):
+        my_key_id = gajim.config.get_per('accounts', account, 'keyid')
+        key_list = [file.control.contact.keyID, my_key_id]
+
+        encrypted = self.get_gpg(account).encrypt_file(file.get_data(), key_list)
+        if not encrypted:
+            GLib.idle_add(self._on_file_encryption_error, file, encrypted.status)
+            return
+
+        file.encrypted = True
+        file.size = len(encrypted.data)
+        file.path += '.pgp'
+        file.data = encrypted.data
+        if file.event.isSet():
+            return
+        GLib.idle_add(callback, file)
+
+    @staticmethod    
+    def _on_file_encryption_error(file, error):
+        dialogs.ErrorDialog(
+            _('Error'), error, transient_for=file.control.parent_win.window)
+
     @staticmethod
     def cleanup_stanza(obj):
         ''' We make sure only allowed tags are in the stanza '''
