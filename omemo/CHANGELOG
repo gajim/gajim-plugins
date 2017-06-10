@@ -1,3 +1,7 @@
+2.3.4 / 2017-06-10
+- Bugfixes
+- Some Refactoring
+
 2.3.3 / 2017-06-09
 - Move encryption logic for files from the HTTPUploadPlugin to the OMEMOPlugin
 
