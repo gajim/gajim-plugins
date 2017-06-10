@@ -27,6 +27,7 @@ import shutil
 import nbxmpp
 import binascii
 import threading
+import time
 
 from gi.repository import GLib
 from nbxmpp.simplexml import Node
@@ -45,7 +46,7 @@ from .xmpp import (
     unpack_device_list_update, unpack_encrypted)
 
 from common.connection_handlers_events import (
-    MessageReceivedEvent, MamMessageReceivedEvent)
+    MessageReceivedEvent, MamMessageReceivedEvent, MessageNotSentEvent)
 
 
 IQ_CALLBACK = {}
@@ -614,52 +615,55 @@ class OmemoPlugin(GajimPlugin):
             exception or error occurs
         """
         account = event.conn.name
-        if account in self.disabled_accounts:
-            return
         try:
-            if not event.msg_iq.getTag('body'):
-                return
-            state = self.get_omemo_state(account)
-            full_jid = str(event.msg_iq.getAttr('to'))
-            to_jid = gajim.get_jid_without_resource(full_jid)
-
-            plaintext = event.msg_iq.getBody()
-            msg_dict = state.create_gc_msg(
-                gajim.get_jid_from_account(account),
-                to_jid,
-                plaintext.encode('utf8'))
-            if not msg_dict:
-                return True
-
+            if account in self.disabled_accounts:
+                raise OMEMOError('Account disabled in OMEMO config')
+        
             self.cleanup_stanza(event)
 
-            self.gc_message[msg_dict['payload']] = plaintext
-            encrypted_node = OmemoMessage(msg_dict)
+            if not event.message:
+                callback(event)
+                return
 
-            event.msg_iq.addChild(node=encrypted_node)
+            state = self.get_omemo_state(account)
+            to_jid = gajim.get_jid_without_resource(event.jid)
+            own_jid = gajim.get_jid_from_account(account)
 
-            # XEP-0380: Explicit Message Encryption
-            if not event.msg_iq.getTag('encryption', attrs={'xmlns': NS_EME}):
-                eme_node = Node('encryption', attrs={'xmlns': NS_EME,
-                                                     'name': 'OMEMO',
-                                                     'namespace': NS_OMEMO})
-                event.msg_iq.addChild(node=eme_node)
+            msg_dict = state.create_gc_msg(
+                own_jid, to_jid, event.message.encode('utf8'))
+            if not msg_dict:
+                raise OMEMOError('Error while encrypting')
 
-            # Add Message for devices that dont support OMEMO
-            support_msg = 'You received a message encrypted with ' \
-                          'OMEMO but your client doesnt support OMEMO.'
-            event.msg_iq.setBody(support_msg)
-
-            # Store Hint for MAM
-            store = Node('store', attrs={'xmlns': NS_HINTS})
-            event.msg_iq.addChild(node=store)
-
-            self.print_msg_to_log(event.msg_iq)
-
-            callback(event)
-        except Exception as e:
-            log.debug(e)
+        except OMEMOError as error:
+            log.error(error)
+            gajim.nec.push_incoming_event(
+                MessageNotSentEvent(
+                    None, conn=conn, jid=event.jid, message=event.message,
+                    error=error, time_=time.time(), session=None))
             return
+
+        self.gc_message[msg_dict['payload']] = event.message
+        encrypted_node = OmemoMessage(msg_dict)
+
+        event.msg_iq.addChild(node=encrypted_node)
+
+        # XEP-0380: Explicit Message Encryption
+        eme_node = Node('encryption', attrs={'xmlns': NS_EME,
+                                             'name': 'OMEMO',
+                                             'namespace': NS_OMEMO})
+        event.msg_iq.addChild(node=eme_node)
+
+        # Add Message for devices that dont support OMEMO
+        support_msg = 'You received a message encrypted with ' \
+                      'OMEMO but your client doesnt support OMEMO.'
+        event.msg_iq.setBody(support_msg)
+
+        # Store Hint for MAM
+        store = Node('store', attrs={'xmlns': NS_HINTS})
+        event.msg_iq.addChild(node=store)
+
+        self.print_msg_to_log(event.msg_iq)
+        callback(event)
 
     def _encrypt_message(self, conn, event, callback):
         """ Manipulates the outgoing stanza
@@ -676,44 +680,49 @@ class OmemoPlugin(GajimPlugin):
             exception or error occurs
         """
         account = event.conn.name
-        if account in self.disabled_accounts:
-            return
         try:
-            if not event.msg_iq.getTag('body'):
+            if account in self.disabled_accounts:
+                raise OMEMOError('Account disabled in OMEMO config')
+
+            self.cleanup_stanza(event)
+
+            if not event.message:
+                callback(event)
                 return
 
             state = self.get_omemo_state(account)
-            full_jid = str(event.msg_iq.getAttr('to'))
-            to_jid = gajim.get_jid_without_resource(full_jid)
+            to_jid = gajim.get_jid_without_resource(event.jid)
+            own_jid = gajim.get_jid_from_account(account)
 
-            plaintext = event.msg_iq.getBody().encode('utf8')
-
-            msg_dict = state.create_msg(
-                gajim.get_jid_from_account(account), to_jid, plaintext)
+            plaintext = event.message.encode('utf8')
+            msg_dict = state.create_msg(own_jid, to_jid, plaintext)
             if not msg_dict:
-                return True
+                raise OMEMOError('Error while encrypting')
 
-            encrypted_node = OmemoMessage(msg_dict)
-            self.cleanup_stanza(event)
+        except OMEMOError as error:
+            log.error(error)
+            gajim.nec.push_incoming_event(
+                MessageNotSentEvent(
+                    None, conn=conn, jid=event.jid, message=event.message,
+                    error=error, time_=time.time(), session=event.session))
+            return
 
-            event.msg_iq.addChild(node=encrypted_node)
+        encrypted_node = OmemoMessage(msg_dict)
+        event.msg_iq.addChild(node=encrypted_node)
 
-            # XEP-0380: Explicit Message Encryption
-            if not event.msg_iq.getTag('encryption', attrs={'xmlns': NS_EME}):
-                eme_node = Node('encryption', attrs={'xmlns': NS_EME,
-                                                     'name': 'OMEMO',
-                                                     'namespace': NS_OMEMO})
-                event.msg_iq.addChild(node=eme_node)
+        # XEP-0380: Explicit Message Encryption
+        eme_node = Node('encryption', attrs={'xmlns': NS_EME,
+                                             'name': 'OMEMO',
+                                             'namespace': NS_OMEMO})
+        event.msg_iq.addChild(node=eme_node)
 
-            # Store Hint for MAM
-            store = Node('store', attrs={'xmlns': NS_HINTS})
-            event.msg_iq.addChild(node=store)
-            self.print_msg_to_log(event.msg_iq)
-            event.xhtml = None
-            event.encrypted = self.encryption_name
-            callback(event)
-        except Exception as e:
-            log.debug(e)
+        # Store Hint for MAM
+        store = Node('store', attrs={'xmlns': NS_HINTS})
+        event.msg_iq.addChild(node=store)
+        self.print_msg_to_log(event.msg_iq)
+        event.xhtml = None
+        event.encrypted = self.encryption_name
+        callback(event)
 
     @staticmethod
     def cleanup_stanza(obj):
@@ -1118,3 +1127,7 @@ class OmemoPlugin(GajimPlugin):
         """
         state = self.get_omemo_state(account)
         state.encryption.deactivate(jid)
+
+
+class OMEMOError(Exception):
+    pass
