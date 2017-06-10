@@ -493,6 +493,7 @@ class OmemoPlugin(GajimPlugin):
                     log.error(account + ' => Cant decrypt own GroupChat '
                               'Message')
                     msg.encrypted = 'drop'
+                    return
             else:
                 msg_dict['sender_jid'] = gajim. \
                     get_jid_without_resource(from_jid)
