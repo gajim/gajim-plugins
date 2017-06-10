@@ -428,18 +428,6 @@ class OmemoPlugin(GajimPlugin):
             msg.encrypted = self.encryption_name
             return
 
-        elif msg.msg_.getTag('body'):
-            account = msg.conn.name
-
-            from_jid = str(msg.msg_.getAttr('from'))
-            from_jid = gajim.get_jid_without_resource(from_jid)
-
-            state = self.get_omemo_state(account)
-            encryption = gajim.config.get_per('contacts', from_jid, 'encryption')
-
-            if encryption == 'OMEMO':
-                msg.msgtxt = '**Unencrypted** ' + msg.msgtxt
-
     def _message_received(self, msg):
         """ Handles an incoming message
 
@@ -519,22 +507,6 @@ class OmemoPlugin(GajimPlugin):
             # gets dropped from history
             msg.stanza.setBody(plaintext)
             msg.encrypted = self.encryption_name
-
-        elif msg.stanza.getTag('body'):
-            account = msg.conn.name
-
-            from_jid = str(msg.stanza.getFrom())
-            jid = gajim.get_jid_without_resource(from_jid)
-            state = self.get_omemo_state(account)
-            encryption = gajim.config.get_per('contacts', jid, 'encryption')
-
-            if encryption == 'OMEMO':
-                msg.msgtxt = '**Unencrypted** ' + msg.msgtxt
-                msg.stanza.setBody(msg.msgtxt)
-
-                ctrl = gajim.interface.msg_win_mgr.get_control(jid, account)
-                if ctrl:
-                    self.plain_warning(ctrl)
 
     def room_memberlist_received(self, event):
         account = event.conn.name
@@ -1106,12 +1078,6 @@ class OmemoPlugin(GajimPlugin):
         stanzastr = stanzastr[0:-1]
         log.debug(stanzastr)
         log.debug('-'*15)
-
-    @staticmethod
-    def plain_warning(chat_control):
-        chat_control.print_conversation_line(
-            'Received plaintext message! ' +
-            'Your next message will still be encrypted!', 'status', '', None)
 
     @staticmethod
     def no_trusted_fingerprints_warning(chat_control):
