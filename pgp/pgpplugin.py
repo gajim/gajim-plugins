@@ -229,6 +229,7 @@ class OldPGPPlugin(GajimPlugin):
                     None, conn=conn, jid=obj.jid, message=obj.message,
                     error=error, time_=time.time(), session=obj.session))
             return
+
         self.cleanup_stanza(obj)
 
         if msgenc:
@@ -240,10 +241,11 @@ class OldPGPPlugin(GajimPlugin):
                                           'namespace': nbxmpp.NS_ENCRYPTED})
             obj.msg_iq.addChild(node=eme_node)
 
-        # Set xhtml to None so it doesnt get logged
-        obj.xhtml = None
-        obj.encrypted = self.encryption_name
-        print_msg_to_log(obj.msg_iq)
+            # Set xhtml to None so it doesnt get logged
+            obj.xhtml = None
+            obj.encrypted = self.encryption_name
+            print_msg_to_log(obj.msg_iq)
+
         callback(obj)
 
     def encrypt_file(self, file, account, callback):
