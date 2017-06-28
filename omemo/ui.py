@@ -43,9 +43,9 @@ try:
     else:
         import qrcodewin.main as qrcode
     PILLOW = True
-except Exception as e:
-    log.exception('Error:')
-    log.error('pyton-qrcode or dependencies of it, are not available')
+except ImportError as error:
+    log.debug(error)
+    log.warning('python-qrcode or dependencies of it are not available')
 
 # pylint: enable=import-error
 UNDECIDED = 2
