@@ -34,9 +34,9 @@ PILLOW = False
 try:
     import qrcode
     PILLOW = True
-except Exception as e:
-    log.exception('Error:')
-    log.error('python-qrcode or dependencies of it, are not available')
+except ImportError as error:
+    log.debug(error)
+    log.error('python-qrcode or dependencies of it are not available')
 
 from common import gajim
 from common import configpaths
