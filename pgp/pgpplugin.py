@@ -72,16 +72,14 @@ class OldPGPPlugin(GajimPlugin):
             'encryption_state' + self.encryption_name: (
                 self.encryption_state, None)}
 
-        self.gpg_instances = {}
         self.decrypt_queue = queue.Queue()
         self.thread = None
 
     def get_gpg(self, account):
-        return self.gpg_instances[account]
+        return gajim.connections[account].gpg
 
     def activate(self):
-        for account in gajim.connections:
-            self.gpg_instances[account] = gajim.connections[account].gpg
+        pass
 
     def deactivate(self):
         pass
