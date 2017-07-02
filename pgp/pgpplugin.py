@@ -61,7 +61,6 @@ class OldPGPPlugin(GajimPlugin):
             return
         self.config_dialog = None
         self.encryption_name = 'PGP'
-        self.config_dialog = None
         self.gui_extension_points = {
             'encrypt' + self.encryption_name: (self._encrypt_message, None),
             'decrypt': (self._message_received, None),
