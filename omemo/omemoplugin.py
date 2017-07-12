@@ -30,6 +30,7 @@ from plugins import GajimPlugin
 from plugins.helpers import log_calls
 from nbxmpp.simplexml import Node
 from nbxmpp import NS_CORRECT, NS_ADDRESS
+import nbxmpp
 
 from .xmpp import (
     NS_NOTIFY, NS_OMEMO, NS_EME, BundleInformationAnnouncement,
@@ -110,6 +111,18 @@ else:
 # pylint: disable=no-init
 # pylint: disable=attribute-defined-outside-init
 
+ALLOWED_TAGS = [('request', nbxmpp.NS_RECEIPTS),
+                ('active', nbxmpp.NS_CHATSTATES),
+                ('gone', nbxmpp.NS_CHATSTATES),
+                ('inactive', nbxmpp.NS_CHATSTATES),
+                ('paused', nbxmpp.NS_CHATSTATES),
+                ('composing', nbxmpp.NS_CHATSTATES),
+                ('no-store', nbxmpp.NS_MSG_HINTS),
+                ('store', nbxmpp.NS_MSG_HINTS),
+                ('no-copy', nbxmpp.NS_MSG_HINTS),
+                ('no-permanent-store', nbxmpp.NS_MSG_HINTS),
+                ('replace', nbxmpp.NS_CORRECT),
+                ('thread', None)]
 
 class OmemoPlugin(GajimPlugin):
 
@@ -573,11 +586,10 @@ class OmemoPlugin(GajimPlugin):
                 return
             if not state.encryption.is_active(to_jid):
                 return
-            # Delete previous Message out of Correction Message Stanza
-            if event.msg_iq.getTag('replace', namespace=NS_CORRECT):
-                event.msg_iq.delChild('encrypted', attrs={'xmlns': NS_OMEMO})
 
-            plaintext = event.msg_iq.getBody()
+            self.cleanup_stanza(event)
+
+            plaintext = event.message
             msg_dict = state.create_gc_msg(
                 gajim.get_jid_from_account(account),
                 to_jid,
@@ -587,15 +599,13 @@ class OmemoPlugin(GajimPlugin):
 
             self.gc_message[msg_dict['payload']] = plaintext
             encrypted_node = OmemoMessage(msg_dict)
-            event.msg_iq.delChild('body')
             event.msg_iq.addChild(node=encrypted_node)
 
             # XEP-0380: Explicit Message Encryption
-            if not event.msg_iq.getTag('encryption', attrs={'xmlns': NS_EME}):
-                eme_node = Node('encryption', attrs={'xmlns': NS_EME,
-                                                     'name': 'OMEMO',
-                                                     'namespace': NS_OMEMO})
-                event.msg_iq.addChild(node=eme_node)
+            eme_node = Node('encryption', attrs={'xmlns': NS_EME,
+                                                 'name': 'OMEMO',
+                                                 'namespace': NS_OMEMO})
+            event.msg_iq.addChild(node=eme_node)
 
             # Add Message for devices that dont support OMEMO
             support_msg = 'You received a message encrypted with ' \
@@ -614,6 +624,8 @@ class OmemoPlugin(GajimPlugin):
         except Exception as e:
             log.debug(e)
             return True
+
+        event.xhtml = None
 
     @log_calls('OmemoPlugin')
     def handle_outgoing_event(self, event):
@@ -671,11 +683,9 @@ class OmemoPlugin(GajimPlugin):
             if not state.encryption.is_active(to_jid):
                 return
 
-            # Delete previous Message out of Correction Message Stanza
-            if event.msg_iq.getTag('replace', namespace=NS_CORRECT):
-                event.msg_iq.delChild('encrypted', attrs={'xmlns': NS_OMEMO})
-
             plaintext = event.msg_iq.getBody().encode('utf8')
+
+            self.cleanup_stanza(event)
 
             msg_dict = state.create_msg(
                 gajim.get_jid_from_account(account), to_jid, plaintext)
@@ -686,7 +696,6 @@ class OmemoPlugin(GajimPlugin):
 
             # Check if non-OMEMO resource is online
             contacts = gajim.contacts.get_contacts(account, to_jid)
-            non_omemo_resource_online = False
             for contact in contacts:
                 if contact.show == 'offline':
                     continue
@@ -697,18 +706,15 @@ class OmemoPlugin(GajimPlugin):
                     support_msg = 'You received a message encrypted with ' \
                                   'OMEMO but your client doesnt support OMEMO.'
                     event.msg_iq.setBody(support_msg)
-                    non_omemo_resource_online = True
-            if not non_omemo_resource_online:
-                event.msg_iq.delChild('body')
 
             event.msg_iq.addChild(node=encrypted_node)
 
             # XEP-0380: Explicit Message Encryption
-            if not event.msg_iq.getTag('encryption', attrs={'xmlns': NS_EME}):
-                eme_node = Node('encryption', attrs={'xmlns': NS_EME,
-                                                     'name': 'OMEMO',
-                                                     'namespace': NS_OMEMO})
-                event.msg_iq.addChild(node=eme_node)
+
+            eme_node = Node('encryption', attrs={'xmlns': NS_EME,
+                                                 'name': 'OMEMO',
+                                                 'namespace': NS_OMEMO})
+            event.msg_iq.addChild(node=eme_node)
 
             # Store Hint for MAM
             store = Node('store', attrs={'xmlns': NS_HINTS})
@@ -717,6 +723,21 @@ class OmemoPlugin(GajimPlugin):
         except Exception as e:
             log.debug(e)
             return True
+
+        event.xhtml = None
+
+    @staticmethod
+    def cleanup_stanza(obj):
+        ''' We make sure only allowed tags are in the stanza '''
+        stanza = nbxmpp.Message(
+            to=obj.msg_iq.getTo(),
+            typ=obj.msg_iq.getType())
+        stanza.setThread(obj.msg_iq.getThread())
+        for tag, ns in ALLOWED_TAGS:
+            node = obj.msg_iq.getTag(tag, namespace=ns)
+            if node:
+                stanza.addChild(node=node)
+        obj.msg_iq = stanza
 
     @log_calls('OmemoPlugin')
     def handle_device_list_update(self, event):
