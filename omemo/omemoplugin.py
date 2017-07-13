@@ -686,6 +686,7 @@ class OmemoPlugin(GajimPlugin):
             plaintext = event.msg_iq.getBody().encode('utf8')
 
             self.cleanup_stanza(event)
+            event._cb_parameters['msg_iq'] = event.msg_iq
 
             msg_dict = state.create_msg(
                 gajim.get_jid_from_account(account), to_jid, plaintext)
