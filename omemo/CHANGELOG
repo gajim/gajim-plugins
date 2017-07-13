@@ -1,3 +1,6 @@
+1.2.3 / 2017-07-13
+- Bug fix
+
 1.2.2 / 2017-07-12
 - Add whitelist of xml tags to prevent any clear text leaking,
   even when new XEPs are added to Gajim that we dont know yet.
