@@ -31,9 +31,9 @@ from urllib.parse import urlparse, urldefrag
 from io import BufferedWriter, FileIO, BytesIO
 
 from gi.repository import GLib
-import gtkgui_helpers
-from common import configpaths
-from dialogs import ErrorDialog, YesNoDialog
+from gajim import gtkgui_helpers
+from gajim.common import configpaths
+from gajim.dialogs import ErrorDialog, YesNoDialog
 if os.name == 'nt':
     import certifi
 

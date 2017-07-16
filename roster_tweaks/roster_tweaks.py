@@ -5,12 +5,12 @@ from gi.repository import Gtk
 from gi.repository import Gdk
 from gi.repository import GObject
 
-from common import gajim, ged, helpers, pep
-from plugins import GajimPlugin
-from plugins.helpers import log_calls
-from plugins.gui import GajimPluginConfigDialog
-from dialogs import ChangeActivityDialog, ChangeMoodDialog
-import gtkgui_helpers
+from gajim.common import app, ged, helpers, pep
+from gajim.plugins import GajimPlugin
+from gajim.plugins.helpers import log_calls
+from gajim.plugins.gui import GajimPluginConfigDialog
+from gajim.dialogs import ChangeActivityDialog, ChangeMoodDialog
+from gajim import gtkgui_helpers
 
 
 class RosterTweaksPlugin(GajimPlugin):
@@ -34,7 +34,7 @@ class RosterTweaksPlugin(GajimPlugin):
         self.gui_extension_points = {
                 'roster_draw_contact': (self.roster_draw_contact,
                                        self.disconnect_roster_draw_contact),}
-        self.roster = gajim.interface.roster
+        self.roster = app.interface.roster
         self.config_dialog = RosterTweaksPluginConfigDialog(self)
 
     def roster_draw_contact(self, roster,jid, account, contact):
@@ -57,10 +57,10 @@ class RosterTweaksPlugin(GajimPlugin):
             self.connected = False
 
     def pep_received(self, obj):
-        if obj.jid != gajim.get_jid_from_account(obj.conn.name):
+        if obj.jid != app.get_jid_from_account(obj.conn.name):
             return
 
-        pep_dict = gajim.connections[obj.conn.name].pep
+        pep_dict = app.connections[obj.conn.name].pep
         if  obj.pep_type == 'mood':
             img = self.xml.get_object('mood_image')
             if 'mood' in pep_dict:
@@ -78,7 +78,7 @@ class RosterTweaksPlugin(GajimPlugin):
 
     def our_show(self, obj):
         if self.active:
-            if helpers.get_global_show() != gajim.SHOW_LIST[0]:
+            if helpers.get_global_show() != app.SHOW_LIST[0]:
                 self.status_widget.set_text(helpers.get_global_status())
             else:
                 self.status_widget.set_text('')
@@ -145,13 +145,13 @@ class RosterTweaksPlugin(GajimPlugin):
     def status_changed(self, widget, event):
         if event.keyval == gtk.keysyms.Return or \
             event.keyval == gtk.keysyms.KP_Enter:
-            accounts = gajim.connections.keys()
+            accounts = app.connections.keys()
             message = widget.get_text()
             for account in accounts:
-                if not gajim.account_is_connected(account):
+                if not app.account_is_connected(account):
                     continue
-                current_show = gajim.SHOW_LIST[
-                    gajim.connections[account].connected]
+                current_show = app.SHOW_LIST[
+                    app.connections[account].connected]
                 self.roster.send_status(account, current_show, message)
             self.font_desc.set_weight(pango.WEIGHT_BOLD)
             widget.modify_font(self.font_desc)
@@ -177,9 +177,9 @@ class RosterTweaksPlugin(GajimPlugin):
             self.pep_dict.get('mood_text', None))
 
     def send_pep(self):
-        accounts = gajim.connections.keys()
+        accounts = app.connections.keys()
         for account in accounts:
-            if gajim.account_is_connected(account):
+            if app.account_is_connected(account):
                 self.roster.send_pep(account, self.pep_dict)
 
 

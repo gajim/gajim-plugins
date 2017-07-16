@@ -7,10 +7,10 @@ import os
 import base64
 import urllib
 
-import chat_control
-from plugins import GajimPlugin
-from plugins.helpers import log_calls
-from dialogs import ImageChooserDialog, ErrorDialog
+from gajim import chat_control
+from gajim.plugins import GajimPlugin
+from gajim.plugins.helpers import log_calls
+from gajim.dialogs import ImageChooserDialog, ErrorDialog
 
 NS_XHTML_IM = 'http://jabber.org/protocol/xhtml-im'             # XEP-0071
 

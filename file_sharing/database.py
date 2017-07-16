@@ -1,5 +1,5 @@
 import sqlite3
-from common import gajim
+from common import app
 import sys
 import os
 
@@ -115,7 +115,7 @@ class FilesharingDatabase:
         >>> _delete_file(1)
         """
         self._check_duplicate(account, requester, file_)
-        requester = gajim.get_jid_without_resource(requester)
+        requester = app.get_jid_without_resource(requester)
         c = self.conn.cursor()
         c.execute("INSERT INTO files (file_path, " +
             "relative_path, hash_sha1, size, description, mod_date, " +

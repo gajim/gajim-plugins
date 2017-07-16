@@ -5,12 +5,12 @@ from gi.repository import Gtk
 from gi.repository import GdkPixbuf
 import os
 
-from plugins.gui import GajimPluginConfigDialog
-from plugins import GajimPlugin
-from plugins.helpers import log_calls
-from common import ged
-from common import gajim
-import cell_renderer_image
+from gajim.plugins.gui import GajimPluginConfigDialog
+from gajim.plugins import GajimPlugin
+from gajim.plugins.helpers import log_calls
+from gajim.common import ged
+from gajim.common import app
+import gajim.cell_renderer_image
 
 clients = {
     'http://gajim.org': ['gajim.png', 'Gajim'],
@@ -230,7 +230,7 @@ class ClientsIconsPlugin(GajimPlugin):
     vcard_table):
         if not self.config['show_in_tooltip']:
             return
-        if len(contacts) == 1 and contacts[0].jid in gajim.get_our_jids():
+        if len(contacts) == 1 and contacts[0].jid in app.get_our_jids():
             return
         if contacts[0].is_groupchat():
             return
@@ -386,9 +386,9 @@ class ClientsIconsPlugin(GajimPlugin):
         chat_control.model.set_sort_column_id(1, Gtk.SortType.ASCENDING)
         chat_control.list_treeview.set_model(chat_control.model)
         # draw roster
-        for nick in gajim.contacts.get_nick_list(chat_control.account,
+        for nick in app.contacts.get_nick_list(chat_control.account,
             chat_control.room_jid):
-            gc_contact = gajim.contacts.get_gc_contact(chat_control.account,
+            gc_contact = app.contacts.get_gc_contact(chat_control.account,
                 chat_control.room_jid, nick)
             iter_ = chat_control.add_contact_to_roster(nick, gc_contact.show,
                 gc_contact.role, gc_contact.affiliation, gc_contact.status,
@@ -430,7 +430,7 @@ class ClientsIconsPlugin(GajimPlugin):
     @log_calls('ClientsIconsPlugin')
     def activate(self):
         self.active = None
-        roster = gajim.interface.roster
+        roster = app.interface.roster
         col = Gtk.TreeViewColumn()
         roster.nb_ext_renderers += 1
         self.renderer_num = 10 + roster.nb_ext_renderers
@@ -459,7 +459,7 @@ class ClientsIconsPlugin(GajimPlugin):
     @log_calls('ClientsIconsPlugin')
     def deactivate(self):
         self.active = None
-        roster = gajim.interface.roster
+        roster = app.interface.roster
         roster.nb_ext_renderers -= 1
         col = roster.tree.get_column(0)
         roster.tree.remove_column(col)
@@ -477,8 +477,8 @@ class ClientsIconsPlugin(GajimPlugin):
     def presence_received(self, iq_obj):
         if not self.config['show_in_roster']:
             return
-        roster = gajim.interface.roster
-        contact = gajim.contacts.get_contact_with_highest_priority(
+        roster = app.interface.roster
+        contact = app.contacts.get_contact_with_highest_priority(
             iq_obj.conn.name, iq_obj.jid)
         if not contact:
             return
@@ -525,7 +525,7 @@ class ClientsIconsPlugin(GajimPlugin):
     def gc_presence_received(self, iq_obj):
         if not self.config['show_in_groupchats']:
             return
-        contact = gajim.contacts.get_gc_contact(iq_obj.conn.name,
+        contact = app.contacts.get_gc_contact(iq_obj.conn.name,
             iq_obj.presence_obj.jid, iq_obj.nick)
         if not contact:
             return
@@ -575,12 +575,12 @@ class ClientsIconsPlugin(GajimPlugin):
         elif model[iter_][self.muc_renderer_num]:
             renderer.set_property('visible', True)
 
-        contact = gajim.contacts.get_gc_contact(control.account,
+        contact = app.contacts.get_gc_contact(control.account,
             control.room_jid, model[iter_][1])
         if not contact:
             return
 
-        bgcolor = gajim.config.get_per('themes', gajim.config.get(
+        bgcolor = app.config.get_per('themes', app.config.get(
             'roster_theme'), 'contactbgcolor')
         if bgcolor:
             renderer.set_property('cell-background', bgcolor)
@@ -631,9 +631,9 @@ class ClientsIconsPluginConfigDialog(GajimPluginConfigDialog):
     def redraw_all(self):
         self.plugin.deactivate()
         self.plugin.activate()
-        for gc_control in gajim.interface.msg_win_mgr.get_controls('gc'):
+        for gc_control in app.interface.msg_win_mgr.get_controls('gc'):
             self.plugin.disconnect_from_groupchat_control(gc_control)
-        for gc_control in gajim.interface.msg_win_mgr.get_controls('gc'):
+        for gc_control in app.interface.msg_win_mgr.get_controls('gc'):
             self.plugin.connect_with_groupchat_control(gc_control)
 
     def on_show_in_roster_toggled(self, widget):
@@ -646,9 +646,9 @@ class ClientsIconsPluginConfigDialog(GajimPluginConfigDialog):
 
     def on_show_in_groupchats_toggled(self, widget):
         self.plugin.config['show_in_groupchats'] = widget.get_active()
-        for gc_control in gajim.interface.msg_win_mgr.get_controls('gc'):
+        for gc_control in app.interface.msg_win_mgr.get_controls('gc'):
             self.plugin.disconnect_from_groupchat_control(gc_control)
-        for gc_control in gajim.interface.msg_win_mgr.get_controls('gc'):
+        for gc_control in app.interface.msg_win_mgr.get_controls('gc'):
             self.plugin.connect_with_groupchat_control(gc_control)
 
     def on_show_unknown_icon_toggled(self, widget):

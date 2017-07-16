@@ -29,10 +29,10 @@ if os.name == 'nt':
 import nbxmpp
 from gi.repository import Gtk, GLib
 
-from common import gajim
-from common import ged
-from plugins import GajimPlugin
-from dialogs import FileChooserDialog, ErrorDialog
+from gajim.common import app
+from gajim.common import ged
+from gajim.plugins import GajimPlugin
+from gajim.dialogs import FileChooserDialog, ErrorDialog
 
 log = logging.getLogger('gajim.plugin_system.httpupload')
 
@@ -73,7 +73,7 @@ class HTTPUploadPlugin(GajimPlugin):
 
     def handle_agent_info_received(self, event):
         if (NS_HTTPUPLOAD in event.features and
-                gajim.jid_is_transport(event.jid)):
+                app.jid_is_transport(event.jid)):
             account = event.conn.name
             interface = self.get_interface(account)
             interface.enabled = True
@@ -102,7 +102,7 @@ class HTTPUploadPlugin(GajimPlugin):
 
     def update_chat_control(self, chat_control):
         account = chat_control.account
-        if gajim.connections[account].connection is None:
+        if app.connections[account].connection is None:
             self.get_interface(account).update_button_states(False)
 
     def get_interface(self, account):
@@ -223,7 +223,7 @@ class Base(object):
     def encrypt_file(self, file):
         GLib.idle_add(file.progress.label.set_text, _('Encrypting file...'))
         encryption = file.control.encryption
-        plugin = gajim.plugin_manager.encryption_plugins[encryption]
+        plugin = app.plugin_manager.encryption_plugins[encryption]
         if hasattr(plugin, 'encrypt_file'):
             plugin.encrypt_file(file, self.account, self.request_slot)
         else:
@@ -237,7 +237,7 @@ class Base(object):
         GLib.idle_add(file.progress.label.set_text,
                       _('Requesting HTTP Upload Slot...'))
         iq = nbxmpp.Iq(typ='get', to=self.component)
-        id_ = gajim.get_an_id()
+        id_ = app.get_an_id()
         iq.setID(id_)
         request = iq.setTag(name="request", namespace=NS_HTTPUPLOAD)
         request.addChild('filename', payload=os.path.basename(file.path))
@@ -246,7 +246,7 @@ class Base(object):
 
         log.info("Sending request for slot")
         IQ_CALLBACK[id_] = lambda stanza: self.received_slot(stanza, file)
-        gajim.connections[self.account].connection.send(iq)
+        app.connections[self.account].connection.send(iq)
 
     def received_slot(self, stanza, file):
         log.info("Received slot")
@@ -301,9 +301,10 @@ class Base(object):
         GLib.idle_add(file.progress.label.set_text,
                       _('Uploading file via HTTP...'))
         try:
-            headers = {'User-Agent': 'Gajim %s' % gajim.version,
+            headers = {'User-Agent': 'Gajim %s' % app.version,
                        'Content-Type': file.mime,
                        'Content-Length': file.size}
+
             request = Request(
                 file.put, data=file.stream, headers=headers, method='PUT')
             log.info("Opening Urllib upload request...")

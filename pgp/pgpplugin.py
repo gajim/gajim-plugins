@@ -27,16 +27,16 @@ import queue
 import nbxmpp
 from gi.repository import GLib
 
-import dialogs
-from common import gajim
-from common.connection_handlers_events import (
+from gajim import dialogs
+from gajim.common import app
+from gajim.common.connection_handlers_events import (
     MessageNotSentEvent, MessageReceivedEvent)
-from plugins import GajimPlugin
+from gajim.plugins import GajimPlugin
 
 log = logging.getLogger('gajim.plugin_system.oldpgp')
 
 ERROR_MSG = ''
-if not gajim.HAVE_GPG:
+if not app.HAVE_GPG:
     ERROR_MSG = 'Please install python-gnupg'
 
 ALLOWED_TAGS = [('request', nbxmpp.NS_RECEIPTS),
@@ -75,7 +75,7 @@ class OldPGPPlugin(GajimPlugin):
         self.thread = None
 
     def get_gpg(self, account):
-        return gajim.connections[account].gpg
+        return app.connections[account].gpg
 
     def activate(self):
         pass
@@ -112,7 +112,7 @@ class OldPGPPlugin(GajimPlugin):
                 _('No OpenPGP key is assigned to this contact. So you cannot '
                   'encrypt messages with OpenPGP.'))
             chat_control.sendmessage = False
-        elif not gajim.config.get_per('accounts', account, 'keyid'):
+        elif not app.config.get_per('accounts', account, 'keyid'):
             dialogs.ErrorDialog(
                 _('No OpenPGP key assigned'),
                 _('No OpenPGP key is assigned to your account. So you cannot '
@@ -140,7 +140,7 @@ class OldPGPPlugin(GajimPlugin):
             enc_tag = obj.msg_.getTag('x', namespace=nbxmpp.NS_ENCRYPTED)
         if enc_tag:
             encmsg = enc_tag.getData()
-            key_id = gajim.config.get_per('accounts', account, 'keyid')
+            key_id = app.config.get_per('accounts', account, 'keyid')
             if key_id:
                 obj.encrypted = self.encryption_name
                 self.decrypt_queue.put([encmsg, key_id, obj, conn, callback])
@@ -180,7 +180,7 @@ class OldPGPPlugin(GajimPlugin):
             error = _('The contact\'s key (%s) does not match the key assigned '
                       'in Gajim.' % obj.keyID[:8])
         else:
-            my_key_id = gajim.config.get_per('accounts', account, 'keyid')
+            my_key_id = app.config.get_per('accounts', account, 'keyid')
             key_list = [obj.keyID, my_key_id]
 
             def _on_encrypted(output):
@@ -189,7 +189,7 @@ class OldPGPPlugin(GajimPlugin):
                     def on_yes(checked):
                         if checked:
                             obj.conn.gpg.always_trust.append(obj.keyID)
-                        gajim.thread_interface(
+                        app.thread_interface(
                             self.get_gpg(account).encrypt,
                             [obj.message, key_list, True],
                             _on_encrypted, [])
@@ -210,7 +210,7 @@ class OldPGPPlugin(GajimPlugin):
                     self._finished_encrypt(
                         obj, msgenc=msgenc, error=error, conn=conn,
                         callback=callback)
-            gajim.thread_interface(
+            app.thread_interface(
                 self.get_gpg(account).encrypt,
                 [obj.message, key_list, False],
                 _on_encrypted, [])
@@ -221,7 +221,7 @@ class OldPGPPlugin(GajimPlugin):
                           conn=None, callback=None):
         if error:
             log.error('python-gnupg error: %s', error)
-            gajim.nec.push_incoming_event(
+            app.nec.push_incoming_event(
                 MessageNotSentEvent(
                     None, conn=conn, jid=obj.jid, message=obj.message,
                     error=error, time_=time.time(), session=obj.session))
@@ -252,7 +252,7 @@ class OldPGPPlugin(GajimPlugin):
         thread.start()
 
     def _encrypt_file_thread(self, file, account, callback):
-        my_key_id = gajim.config.get_per('accounts', account, 'keyid')
+        my_key_id = app.config.get_per('accounts', account, 'keyid')
         key_list = [file.control.contact.keyID, my_key_id]
 
         encrypted = self.get_gpg(account).encrypt_file(file.get_data(), key_list)
@@ -306,7 +306,7 @@ def check_state(key_id, account):
         info = _('No OpenPGP key is assigned to this contact. So you cannot'
                  ' encrypt messages.')
     else:
-        error = gajim.connections[account].gpg.encrypt('test', [key_id])[1]
+        error = app.connections[account].gpg.encrypt('test', [key_id])[1]
         if error:
             verification_status = _('''Contact's identity NOT verified''')
             info = _('OpenPGP key is assigned to this contact, but <b>you '

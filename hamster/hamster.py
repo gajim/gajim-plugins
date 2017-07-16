@@ -5,13 +5,13 @@ import datetime as dt
 from gi.repository import GObject
 import os
 
-from common import gajim
-from common import ged
-from common import dbus_support
+from gajim.common import app
+from gajim.common import ged
+from gajim.common import dbus_support
 
-from plugins import GajimPlugin
-from plugins.helpers import log_calls, log
-from common.pep import ACTIVITIES
+from gajim.plugins import GajimPlugin
+from gajim.plugins.helpers import log_calls, log
+from gajim.common.pep import ACTIVITIES
 
 HAMSTAER_INTERFACE = 'org.gnome.Hamster'
 SUBACTIVITIES = []
@@ -45,12 +45,12 @@ class HamsterIntegrationPlugin(GajimPlugin):
             self.session_presence = self.bus.get_object(HAMSTAER_INTERFACE,
                 '/org/gnome/Hamster')
         except:
-            gajim.log.debug('Hamster D-Bus service not found')
+            app.log.debug('Hamster D-Bus service not found')
             return
 
         self.bus.add_signal_receiver(self.hamster_facts_changed, 'FactsChanged',
             HAMSTAER_INTERFACE)
-        gajim.ged.register_event_handler('signed-in', ged.POSTGUI,
+        app.ged.register_event_handler('signed-in', ged.POSTGUI,
             self.on_signed_in)
 
     @log_calls('HamsterIntegrationPlugin')
@@ -60,7 +60,7 @@ class HamsterIntegrationPlugin(GajimPlugin):
 
         self.bus.remove_signal_receiver(self.hamster_facts_changed,
             "FactsChanged", dbus_interface=HAMSTAER_INTERFACE)
-        gajim.ged.remove_event_handler('signed-in', ged.POSTGUI,
+        app.ged.remove_event_handler('signed-in', ged.POSTGUI,
             self.on_signed_in)
 
     def hamster_facts_changed(self, *args, **kw):
@@ -70,10 +70,10 @@ class HamsterIntegrationPlugin(GajimPlugin):
         if not facts:
             return
         if self.from_dbus_fact(facts[-1])['end_time']:
-            accounts = list(gajim.connections.keys())
+            accounts = list(app.connections.keys())
             for account in accounts:
-                if gajim.account_is_connected(account):
-                    connection = gajim.connections[account]
+                if app.account_is_connected(account):
+                    connection = app.connections[account]
                     connection.retract_activity()
             return
 
@@ -90,9 +90,9 @@ class HamsterIntegrationPlugin(GajimPlugin):
             subactivity=list(subactivity_candidates)[0]
 
         # send activity
-        for account in gajim.connections:
-            if gajim.account_is_connected(account):
-                connection = gajim.connections[account]
+        for account in app.connections:
+            if app.account_is_connected(account):
+                connection = app.connections[account]
                 connection.send_activity(activity, subactivity,
                     last_fact['fact'])
 

@@ -28,9 +28,9 @@ from base64 import b64decode, b64encode
 from nbxmpp.protocol import NS_PUBSUB, Iq
 from nbxmpp.simplexml import Node
 
-from common import gajim  # pylint: disable=import-error
-from common.pep import AbstractPEP  # pylint: disable=import-error
-from plugins.helpers import log_calls  # pylint: disable=import-error
+from gajim.common import app  # pylint: disable=import-error
+from gajim.common.pep import AbstractPEP  # pylint: disable=import-error
+from gajim.plugins.helpers import log_calls  # pylint: disable=import-error
 
 NS_PUBSUB_EVENT = NS_PUBSUB + '#event'
 
@@ -60,7 +60,7 @@ class DeviceListAnnouncement(Iq):
     def __init__(self, device_list):
         assert isinstance(device_list, list)
         assert len(device_list) > 0
-        id_ = gajim.get_an_id()
+        id_ = app.get_an_id()
         attrs = {'id': id_}
         Iq.__init__(self, typ='set', attrs=attrs)
 
@@ -96,7 +96,7 @@ class OmemoMessage(Node):
 class BundleInformationQuery(Iq):
     def __init__(self, contact_jid, device_id):
         assert isinstance(device_id, int)
-        id_ = gajim.get_an_id()
+        id_ = app.get_an_id()
         attrs = {'id': id_}
         Iq.__init__(self, typ='get', attrs=attrs, to=contact_jid)
         items = Node('items', attrs={'node': NS_BUNDLES + str(device_id)})
@@ -106,7 +106,7 @@ class BundleInformationQuery(Iq):
 
 class BundleInformationAnnouncement(Iq):
     def __init__(self, state_bundle, device_id):
-        id_ = gajim.get_an_id()
+        id_ = app.get_an_id()
         attrs = {'id': id_}
         Iq.__init__(self, typ='set', attrs=attrs)
         bundle_node = self.make_bundle_node(state_bundle)
@@ -139,7 +139,7 @@ class BundleInformationAnnouncement(Iq):
 
 class DevicelistQuery(Iq):
     def __init__(self, contact_jid,):
-        id_ = gajim.get_an_id()
+        id_ = app.get_an_id()
         attrs = {'id': id_}
         Iq.__init__(self, typ='get', attrs=attrs, to=contact_jid)
         items = Node('items', attrs={'node': NS_DEVICE_LIST})

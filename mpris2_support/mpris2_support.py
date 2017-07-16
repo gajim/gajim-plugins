@@ -2,14 +2,14 @@
 
 import os
 
-from plugins import GajimPlugin
-from plugins.helpers import log_calls
-from common import dbus_support
+from gajim.plugins import GajimPlugin
+from gajim.plugins.helpers import log_calls
+from gajim.common import dbus_support
 
 ERR_MSG = ''
 
 if dbus_support.supported:
-    from music_track_listener import MusicTrackListener
+    from gajim.music_track_listener import MusicTrackListener
 else:
     ERR_MSG = 'D-Bus Python bindings are missing'
 

@@ -2,10 +2,10 @@
 
 from gi.repository import Gtk
 
-from common import gajim
-from plugins import GajimPlugin
-from plugins.helpers import log_calls
-from plugins.gui import GajimPluginConfigDialog
+from gajim.common import app
+from gajim.plugins import GajimPlugin
+from gajim.plugins.helpers import log_calls
+from gajim.plugins.gui import GajimPluginConfigDialog
 
 
 class MsgBoxSizePlugin(GajimPlugin):

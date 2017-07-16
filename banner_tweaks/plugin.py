@@ -33,13 +33,13 @@ import sys
 
 from gi.repository import Gtk
 from gi.repository import GObject
-import message_control
-from common import gajim
-from common import helpers
+from gajim import message_control
+from gajim.common import app
+from gajim.common import helpers
 
-from plugins import GajimPlugin
-from plugins.helpers import log, log_calls
-from plugins.gui import GajimPluginConfigDialog
+from gajim.plugins import GajimPlugin
+from gajim.plugins.helpers import log, log_calls
+from gajim.plugins.gui import GajimPluginConfigDialog
 
 class BannerTweaksPlugin(GajimPlugin):
 
@@ -67,13 +67,13 @@ class BannerTweaksPlugin(GajimPlugin):
 
     @log_calls('BannerTweaksPlugin')
     def activate(self):
-        self.config['old_chat_avatar_height'] = gajim.config.get(
+        self.config['old_chat_avatar_height'] = app.config.get(
             'chat_avatar_height')
         #gajim.config.set('chat_avatar_height', 28)
 
     @log_calls('BannerTweaksPlugin')
     def deactivate(self):
-        gajim.config.set('chat_avatar_height', self.config[
+        app.config.set('chat_avatar_height', self.config[
             'old_chat_avatar_height'])
 
     @log_calls('BannerTweaksPlugin')
@@ -122,14 +122,14 @@ class BannerTweaksPlugin(GajimPlugin):
             # except if we are talking to two different resources of the same
             # contact
             acct_info = ''
-            for account in gajim.contacts.get_accounts():
+            for account in app.contacts.get_accounts():
                 if account == chat_control.account:
                     continue
                 if acct_info: # We already found a contact with same nick
                     break
-                for jid in gajim.contacts.get_jid_list(account):
+                for jid in app.contacts.get_jid_list(account):
                     other_contact_ = \
-                        gajim.contacts.get_first_contact_from_jid(account, jid)
+                        app.contacts.get_first_contact_from_jid(account, jid)
                     if other_contact_.get_shown_name() == \
                     chat_control.contact.get_shown_name():
                         acct_info = ' (%s)' % \
@@ -140,7 +140,7 @@ class BannerTweaksPlugin(GajimPlugin):
             if self.config['banner_small_fonts']:
                 font_attrs = font_attrs_small
 
-            st = gajim.config.get('displayed_chat_state_notifications')
+            st = app.config.get('displayed_chat_state_notifications')
             cs = contact.chatstate
             if cs and st in ('composing_only', 'all'):
                 if contact.show == 'offline':

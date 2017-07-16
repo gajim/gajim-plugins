@@ -32,15 +32,12 @@ import urllib
 from gi.repository import Gtk
 from sys import getfilesystemencoding
 
-import chat_control
-import groupchat_control
+from gajim import chat_control
+from gajim import groupchat_control
 
-from common import helpers
-from common import gajim
-
-from plugins import GajimPlugin
-from plugins.helpers import log_calls
-from common import ged
+from gajim.plugins import GajimPlugin
+from gajim.plugins.helpers import log_calls
+from gajim.common import ged
 
 languages = {
     _('Afrikaans'): 'af',

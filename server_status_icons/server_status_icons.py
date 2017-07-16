@@ -2,13 +2,13 @@
 ##
 import os
 
-from plugins.gui import GajimPluginConfigDialog
-from plugins import GajimPlugin
-from plugins.helpers import log_calls
-import gtkgui_helpers
-from common import gajim
-from common import helpers
-from common import ged
+from gajim.plugins.gui import GajimPluginConfigDialog
+from gajim.plugins import GajimPlugin
+from gajim.plugins.helpers import log_calls
+from gajim import gtkgui_helpers
+from gajim.common import app
+from gajim.common import helpers
+from gajim.common import ged
 
 
 class ServerStatusIconsPlugin(GajimPlugin):
@@ -33,7 +33,7 @@ class ServerStatusIconsPlugin(GajimPlugin):
     def connect_with_roster_draw_contact(self, roster, jid, account, contact):
         if not self.active:
             return
-        if gajim.jid_is_transport(jid):
+        if app.jid_is_transport(jid):
             return
 
         child_iters = roster._get_contact_iter(jid, account, contact,
@@ -42,7 +42,7 @@ class ServerStatusIconsPlugin(GajimPlugin):
             return
 
         icon_name = helpers.get_icon_name_to_show(contact, account)
-        if gajim.events.get_events(account, jid) or icon_name == 'requested':
+        if app.events.get_events(account, jid) or icon_name == 'requested':
             return
 
         host = jid.split('@')[1]
@@ -79,22 +79,22 @@ class ServerStatusIconsPlugin(GajimPlugin):
 
     def _nec_our_show(self, obj):
         account = obj.conn.name
-        roster = gajim.interface.roster
-        status = gajim.connections[account].connected
+        roster = app.interface.roster
+        status = app.connections[account].connected
 
-        if account not in gajim.contacts.get_accounts():
+        if account not in app.contacts.get_accounts():
             return
         child_iterA = roster._get_account_iter(account, roster.model)
         if not child_iterA:
             return
 
-        hostname = gajim.config.get_per('accounts', account, 'hostname')
+        hostname = app.config.get_per('accounts', account, 'hostname')
         server = self.known_servers.get(hostname, False)
         if not server:
             return
 
         if not roster.regroup:
-            show = gajim.SHOW_LIST[status]
+            show = app.SHOW_LIST[status]
         else: # accounts merged
             show = helpers.get_global_show()
 
@@ -114,13 +114,13 @@ class ServerStatusIconsPlugin(GajimPlugin):
     @log_calls('ServerStatusIconsPlugin')
     def activate(self):
         self.active = True
-        gajim.interface.roster.setup_and_draw_roster()
-        gajim.ged.register_event_handler('our-show', ged.GUI2,
+        app.interface.roster.setup_and_draw_roster()
+        app.ged.register_event_handler('our-show', ged.GUI2,
             self._nec_our_show)
 
     @log_calls('ServerStatusIconsPlugin')
     def deactivate(self):
         self.active = None
-        gajim.ged.remove_event_handler('our-show', ged.GUI2,
+        app.ged.remove_event_handler('our-show', ged.GUI2,
             self._nec_our_show)
-        gajim.interface.roster.setup_and_draw_roster()
+        app.interface.roster.setup_and_draw_roster()

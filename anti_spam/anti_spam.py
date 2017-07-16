@@ -26,11 +26,11 @@ Block some incoming messages
 
 from gi.repository import Gtk
 import nbxmpp
-from common import gajim, ged
+from gajim.common import app, ged
 
-from plugins import GajimPlugin
-from plugins.helpers import log, log_calls
-from plugins.gui import GajimPluginConfigDialog
+from gajim.plugins import GajimPlugin
+from gajim.plugins.helpers import log, log_calls
+from gajim.plugins.gui import GajimPluginConfigDialog
 
 class AntiSpamPlugin(GajimPlugin):
 
@@ -101,7 +101,7 @@ class AntiSpamPlugin(GajimPlugin):
     @log_calls('AntiSpamPlugin')
     def _nec_subscribe_presence_received(self, obj):
         if self.config['block_subscription_requests'] and \
-        not gajim.contacts.get_contacts(obj.conn.name, obj.jid):
+        not app.contacts.get_contacts(obj.conn.name, obj.jid):
             log.info('discarding subscription request from %s' % obj.jid)
             return True
 
@@ -118,7 +118,7 @@ class AntiSpamPlugin(GajimPlugin):
         if len(answer) == 0:
             return False
         block_conference = self.config['antispam_for_conference']
-        is_conference = gajim.contacts.is_gc_contact(obj.conn.name, obj.fjid)
+        is_conference = app.contacts.is_gc_contact(obj.conn.name, obj.fjid)
         if not block_conference and is_conference:
             return False
         jid = obj.jid if not is_conference else obj.fjid
@@ -127,7 +127,7 @@ class AntiSpamPlugin(GajimPlugin):
         # There are two methods to see who wrote you and not passed filter:
         #     1. Using XML console
         #     2. Running Gajim with log info messages and see logs (probably gajim.log file)
-        if is_conference or not gajim.contacts.get_contacts(obj.conn.name, jid):
+        if is_conference or not app.contacts.get_contacts(obj.conn.name, jid):
             if not self.contain_answer(obj.msgtxt, answer):
                 if is_conference and jid in self.config['conference_white_list']:
                     return False
@@ -164,7 +164,7 @@ class AntiSpamPlugin(GajimPlugin):
             receipt.setTag('received', namespace='urn:xmpp:receipts', attrs={'id': obj.id_})
             if obj.thread_id:
                 receipt.setThread(obj.thread_id)
-            gajim.connections[obj.conn.name].connection.send(receipt, now=True)
+            app.connections[obj.conn.name].connection.send(receipt, now=True)
         question = self.config['msgtxt_question']
         log.info('Anti_spam enabled for %s, question: %s', jid, question)
         message = _('Antispam enabled. Please answer the question. The message must only ' + \
@@ -176,7 +176,7 @@ class AntiSpamPlugin(GajimPlugin):
         else: # for 'normal' type
             stanza = nbxmpp.Message(to=jid, body=message, subject='Antispam enabled', typ=obj.mtype)
 
-        gajim.connections[obj.conn.name].connection.send(stanza, now=True)
+        app.connections[obj.conn.name].connection.send(stanza, now=True)
 
     def contain_answer(self, msg, answer):
         return answer in msg.split('\n')

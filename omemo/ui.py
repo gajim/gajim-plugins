@@ -38,10 +38,10 @@ except ImportError as error:
     log.debug(error)
     log.error('python-qrcode or dependencies of it are not available')
 
-from common import gajim
-from common import configpaths
-from dialogs import YesNoDialog
-from plugins.gui import GajimPluginConfigDialog
+from gajim.common import app
+from gajim.common import configpaths
+from gajim.dialogs import YesNoDialog
+from gajim.plugins.gui import GajimPluginConfigDialog
 
 
 @unique
@@ -88,7 +88,7 @@ class OMEMOConfigDialog(GajimPluginConfigDialog):
         self.plugin_active = False
 
     def on_run(self):
-        for plugin in gajim.plugin_manager.active_plugins:
+        for plugin in app.plugin_manager.active_plugins:
             log.debug(type(plugin))
             if type(plugin).__name__ == 'OmemoPlugin':
                 self.plugin_active = True
@@ -104,7 +104,7 @@ class OMEMOConfigDialog(GajimPluginConfigDialog):
         return False
 
     def update_account_store(self):
-        for account in sorted(gajim.contacts.get_accounts()):
+        for account in sorted(app.contacts.get_accounts()):
             if account not in self.disabled_accounts and \
                     not self.is_in_accountstore(account):
                 self.account_store.append(row=(account,))
@@ -358,7 +358,7 @@ class OMEMOConfigDialog(GajimPluginConfigDialog):
         # Set QR Verification Code
         if PILLOW:
             path = self.get_qrcode(
-                gajim.get_jid_from_account(account), deviceid, ownfpr[2:])
+                app.get_jid_from_account(account), deviceid, ownfpr[2:])
             self.qrcode.set_from_pixbuf(GdkPixbuf.Pixbuf.new_from_file(path))
             self.qrinfo.hide()
         else:
@@ -374,7 +374,7 @@ class FingerprintWindow(Gtk.Dialog):
         self.account = self.contact.account.name
         self.plugin = plugin
         self.omemostate = self.plugin.get_omemo_state(self.account)
-        self.own_jid = gajim.get_jid_from_account(self.account)
+        self.own_jid = app.get_jid_from_account(self.account)
         Gtk.Dialog.__init__(self,
                             title=('Fingerprints for %s') % contact.jid,
                             parent=parent,

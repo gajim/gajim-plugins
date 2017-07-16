@@ -26,13 +26,13 @@ Regex Filter plugin.
 
 import re
 
-from plugins import GajimPlugin
-from plugins.helpers import log, log_calls
+from gajim.plugins import GajimPlugin
+from gajim.plugins.helpers import log, log_calls
 
-from common import gajim
-from common import ged
-from command_system.framework import CommandContainer, command, doc
-from command_system.implementation.hosts import *
+from gajim.common import app
+from gajim.common import ged
+from gajim.command_system.framework import CommandContainer, command, doc
+from gajim.command_system.implementation.hosts import *
 
 class RegexFilterPlugin(GajimPlugin):
 
@@ -109,7 +109,7 @@ class FilterCommands(CommandContainer):
     @doc(_("Add an incoming filter. First argument is the search regex, "
     "second argument is the replace regex."))
     def add_filter(self, search, replace):
-        plugin = gajim.plugin_manager.get_active_plugin('regex_filter')
+        plugin = app.plugin_manager.get_active_plugin('regex_filter')
         plugin.add_rule(search, replace)
         return _('Added rule to replace %s by %s' % (search, replace))
 
@@ -117,7 +117,7 @@ class FilterCommands(CommandContainer):
     @doc(_("Remove an incoming filter. Argument is the rule number. "
     "See /list_rules command."))
     def remove_filter(self, num):
-        plugin = gajim.plugin_manager.get_active_plugin('regex_filter')
+        plugin = app.plugin_manager.get_active_plugin('regex_filter')
         if plugin.remove_rule(num):
             return _('Rule number %s removed' % num)
         return _('Rule number %s does not exist' % num)
@@ -125,7 +125,7 @@ class FilterCommands(CommandContainer):
     @command("list_filters")
     @doc(_("List incoming filters."))
     def list_filters(self):
-        plugin = gajim.plugin_manager.get_active_plugin('regex_filter')
+        plugin = app.plugin_manager.get_active_plugin('regex_filter')
         rules = plugin.get_rules()
         st = ''
         for num, rule in rules.items():

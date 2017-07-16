@@ -33,11 +33,11 @@ from gi.repository import GLib
 from nbxmpp.simplexml import Node
 from nbxmpp import NS_ADDRESS
 
-import dialogs
-from common import caps_cache, gajim, ged, configpaths
-from common.pep import SUPPORTED_PERSONAL_USER_EVENTS
-from plugins import GajimPlugin
-from groupchat_control import GroupchatControl
+from gajim import dialogs
+from gajim.common import caps_cache, app, ged, configpaths
+from gajim.common.pep import SUPPORTED_PERSONAL_USER_EVENTS
+from gajim.plugins import GajimPlugin
+from gajim.groupchat_control import GroupchatControl
 
 from .xmpp import (
     NS_NOTIFY, NS_OMEMO, NS_EME, BundleInformationAnnouncement,
@@ -45,7 +45,7 @@ from .xmpp import (
     DevicelistPEP, OmemoMessage, successful, unpack_device_bundle,
     unpack_device_list_update, unpack_encrypted)
 
-from common.connection_handlers_events import (
+from gajim.common.connection_handlers_events import (
     MessageReceivedEvent, MamMessageReceivedEvent, MessageNotSentEvent)
 
 
@@ -58,7 +58,7 @@ PROTOBUF_MISSING = 'OMEMO cant import Google Protobuf, you can find help in ' \
 ERROR_MSG = ''
 
 NS_HINTS = 'urn:xmpp:hints'
-DB_DIR_OLD = gajim.gajimpaths.data_root
+DB_DIR_OLD = app.gajimpaths.data_root
 DB_DIR_NEW = configpaths.gajimpaths['MY_DATA']
 
 ALLOWED_TAGS = [('request', nbxmpp.NS_RECEIPTS),
@@ -157,10 +157,10 @@ class OmemoPlugin(GajimPlugin):
             self.disabled_accounts.append(account)
 
         # add aesgcm:// uri scheme to config
-        schemes = gajim.config.get('uri_schemes')
+        schemes = app.config.get('uri_schemes')
         if 'aesgcm://' not in schemes.split():
             schemes += ' aesgcm://'
-            gajim.config.set('uri_schemes', schemes)
+            app.config.set('uri_schemes', schemes)
 
     def migrate_dbpath(self, account, my_jid):
         old_dbpath = os.path.join(DB_DIR_OLD, 'omemo_' + account + '.db')
@@ -193,7 +193,7 @@ class OmemoPlugin(GajimPlugin):
         if account in self.disabled_accounts:
             return
         if account not in self.omemo_states:
-            my_jid = gajim.get_jid_from_account(account)
+            my_jid = app.get_jid_from_account(account)
             db_path = self.migrate_dbpath(account, my_jid)
 
             conn = sqlite3.connect(db_path, check_same_thread=False)
@@ -245,16 +245,16 @@ class OmemoPlugin(GajimPlugin):
         """
         self.query_for_bundles = []
         # Publish bundle information and Entity Caps
-        for account in gajim.connections:
+        for account in app.connections:
             if account in self.disabled_accounts:
                 log.debug(account +
                           ' => Account is disabled')
                 continue
-            if NS_NOTIFY not in gajim.gajim_optional_features[account]:
-                gajim.gajim_optional_features[account].append(NS_NOTIFY)
+            if NS_NOTIFY not in app.gajim_optional_features[account]:
+                app.gajim_optional_features[account].append(NS_NOTIFY)
             self._compute_caps_hash(account)
             if account not in self.announced:
-                if gajim.account_is_connected(account):
+                if app.account_is_connected(account):
                     log.debug(account +
                               ' => Announce Support after Plugin Activation')
                     self.announced.append(account)
@@ -266,11 +266,11 @@ class OmemoPlugin(GajimPlugin):
 
             Removes OMEMO from the Entity Capabilities list
         """
-        for account in gajim.connections:
+        for account in app.connections:
             if account in self.disabled_accounts:
                 continue
-            if NS_NOTIFY in gajim.gajim_optional_features[account]:
-                gajim.gajim_optional_features[account].remove(NS_NOTIFY)
+            if NS_NOTIFY in app.gajim_optional_features[account]:
+                app.gajim_optional_features[account].remove(NS_NOTIFY)
             self._compute_caps_hash(account)
 
     def activate_encryption(self, chat_control):
@@ -298,7 +298,7 @@ class OmemoPlugin(GajimPlugin):
         if isinstance(chat_control, GroupchatControl):
             room = chat_control.room_jid
             missing = True
-            own_jid = gajim.get_jid_from_account(account)
+            own_jid = app.get_jid_from_account(account)
             for nick in self.groupchat[room]:
                 real_jid = self.groupchat[room][nick]
                 if real_jid == own_jid:
@@ -366,15 +366,15 @@ class OmemoPlugin(GajimPlugin):
     @staticmethod
     def _compute_caps_hash(account):
         """ Computes the hash for Entity Capabilities and publishes it """
-        gajim.caps_hash[account] = caps_cache.compute_caps_hash(
-            [gajim.gajim_identity],
-            gajim.gajim_common_features +
-            gajim.gajim_optional_features[account])
+        app.caps_hash[account] = caps_cache.compute_caps_hash(
+            [app.gajim_identity],
+            app.gajim_common_features +
+            app.gajim_optional_features[account])
         # re-send presence with new hash
-        connected = gajim.connections[account].connected
-        if connected > 1 and gajim.SHOW_LIST[connected] != 'invisible':
-            gajim.connections[account].change_status(
-                gajim.SHOW_LIST[connected], gajim.connections[account].status)
+        connected = app.connections[account].connected
+        if connected > 1 and app.SHOW_LIST[connected] != 'invisible':
+            app.connections[account].change_status(
+                app.SHOW_LIST[connected], app.connections[account].status)
 
     def message_received(self, conn, obj, callback):
         if obj.encrypted:
@@ -411,7 +411,7 @@ class OmemoPlugin(GajimPlugin):
             state = self.get_omemo_state(account)
 
             from_jid = str(msg.msg_.getAttr('from'))
-            from_jid = gajim.get_jid_without_resource(from_jid)
+            from_jid = app.get_jid_without_resource(from_jid)
 
             msg_dict = unpack_encrypted(omemo_encrypted_tag)
 
@@ -496,7 +496,7 @@ class OmemoPlugin(GajimPlugin):
                     msg.encrypted = 'drop'
                     return
             else:
-                msg_dict['sender_jid'] = gajim. \
+                msg_dict['sender_jid'] = app. \
                     get_jid_without_resource(from_jid)
                 plaintext = state.decrypt_msg(msg_dict)
 
@@ -541,7 +541,7 @@ class OmemoPlugin(GajimPlugin):
             return
 
         room = event.room_jid
-        jid = gajim.get_jid_without_resource(event.real_jid)
+        jid = app.get_jid_without_resource(event.real_jid)
         nick = event.nick
 
         if '303' in event.status_code:  # Nick Changed
@@ -584,9 +584,9 @@ class OmemoPlugin(GajimPlugin):
 
             log.debug('OMEMO capable Room found: %s', room)
 
-            gajim.connections[account].get_affiliation_list(room, 'owner')
-            gajim.connections[account].get_affiliation_list(room, 'admin')
-            gajim.connections[account].get_affiliation_list(room, 'member')
+            app.connections[account].get_affiliation_list(room, 'owner')
+            app.connections[account].get_affiliation_list(room, 'admin')
+            app.connections[account].get_affiliation_list(room, 'member')
 
     def gc_config_changed_received(self, event):
         account = event.conn.name
@@ -626,8 +626,8 @@ class OmemoPlugin(GajimPlugin):
                 return
 
             state = self.get_omemo_state(account)
-            to_jid = gajim.get_jid_without_resource(event.jid)
-            own_jid = gajim.get_jid_from_account(account)
+            to_jid = app.get_jid_without_resource(event.jid)
+            own_jid = app.get_jid_from_account(account)
 
             msg_dict = state.create_gc_msg(
                 own_jid, to_jid, event.message.encode('utf8'))
@@ -636,7 +636,7 @@ class OmemoPlugin(GajimPlugin):
 
         except OMEMOError as error:
             log.error(error)
-            gajim.nec.push_incoming_event(
+            app.nec.push_incoming_event(
                 MessageNotSentEvent(
                     None, conn=conn, jid=event.jid, message=event.message,
                     error=error, time_=time.time(), session=None))
@@ -691,8 +691,8 @@ class OmemoPlugin(GajimPlugin):
                 return
 
             state = self.get_omemo_state(account)
-            to_jid = gajim.get_jid_without_resource(event.jid)
-            own_jid = gajim.get_jid_from_account(account)
+            to_jid = app.get_jid_without_resource(event.jid)
+            own_jid = app.get_jid_from_account(account)
 
             plaintext = event.message.encode('utf8')
             msg_dict = state.create_msg(own_jid, to_jid, plaintext)
@@ -701,7 +701,7 @@ class OmemoPlugin(GajimPlugin):
 
         except OMEMOError as error:
             log.error(error)
-            gajim.nec.push_incoming_event(
+            app.nec.push_incoming_event(
                 MessageNotSentEvent(
                     None, conn=conn, jid=event.jid, message=event.message,
                     error=error, time_=time.time(), session=event.session))
@@ -766,7 +766,7 @@ class OmemoPlugin(GajimPlugin):
 
         devices_list = list(set(unpack_device_list_update(event.stanza,
                                                           event.conn.name)))
-        contact_jid = gajim.get_jid_without_resource(event.fjid)
+        contact_jid = app.get_jid_without_resource(event.fjid)
         if not devices_list:
             log.error(account +
                       ' => Received empty or invalid Devicelist from: ' +
@@ -774,7 +774,7 @@ class OmemoPlugin(GajimPlugin):
             return False
 
         state = self.get_omemo_state(account)
-        my_jid = gajim.get_jid_from_account(account)
+        my_jid = app.get_jid_from_account(account)
 
         if contact_jid == my_jid:
             log.info(account + ' => Received own device list:' + str(
@@ -831,7 +831,7 @@ class OmemoPlugin(GajimPlugin):
         log.debug(account + ' => Publishing own Devices: ' + str(
             devices_list))
         iq = DeviceListAnnouncement(devices_list)
-        gajim.connections[account].connection.send(iq)
+        app.connections[account].connection.send(iq)
         id_ = str(iq.getAttr('id'))
         IQ_CALLBACK[id_] = lambda event: log.debug(event)
 
@@ -852,7 +852,7 @@ class OmemoPlugin(GajimPlugin):
                 Returns True if there are no trusted Fingerprints
         """
         state = self.get_omemo_state(account)
-        my_jid = gajim.get_jid_from_account(account)
+        my_jid = app.get_jid_from_account(account)
 
         # Fetch Bundles of own other Devices
         if my_jid not in self.query_for_bundles:
@@ -922,7 +922,7 @@ class OmemoPlugin(GajimPlugin):
             lambda stanza: self.session_from_prekey_bundle(account,
                                                            stanza, jid,
                                                            device_id)
-        gajim.connections[account].connection.send(iq)
+        app.connections[account].connection.send(iq)
 
     def session_from_prekey_bundle(self, account, stanza,
                                    recipient_id, device_id):
@@ -962,7 +962,7 @@ class OmemoPlugin(GajimPlugin):
             log.info(account + ' => session created for: ' + recipient_id)
             # Trigger dialog to trust new Fingerprints if
             # the Chat Window is Open
-            ctrl = gajim.interface.msg_win_mgr.get_control(
+            ctrl = app.interface.msg_win_mgr.get_control(
                 recipient_id, account)
             if ctrl:
                 self.new_fingerprints_available(ctrl)
@@ -975,9 +975,9 @@ class OmemoPlugin(GajimPlugin):
             account : str
                 the account name
         """
-        my_jid = gajim.get_jid_from_account(account)
+        my_jid = app.get_jid_from_account(account)
         iq = DevicelistQuery(my_jid)
-        gajim.connections[account].connection.send(iq)
+        app.connections[account].connection.send(iq)
         log.info(account + ' => Querry own devicelist ...')
         id_ = str(iq.getAttr("id"))
         IQ_CALLBACK[id_] = lambda stanza: \
@@ -998,7 +998,7 @@ class OmemoPlugin(GajimPlugin):
         """
         state = self.get_omemo_state(account)
         iq = BundleInformationAnnouncement(state.bundle, state.own_device_id)
-        gajim.connections[account].connection.send(iq)
+        app.connections[account].connection.send(iq)
         id_ = str(iq.getAttr("id"))
         log.info(account + " => Publishing bundle ...")
         IQ_CALLBACK[id_] = lambda stanza: \
@@ -1031,7 +1031,7 @@ class OmemoPlugin(GajimPlugin):
                 The stanza object received from callback
         """
 
-        my_jid = gajim.get_jid_from_account(account)
+        my_jid = app.get_jid_from_account(account)
         state = self.get_omemo_state(account)
 
         if successful(stanza):
@@ -1069,7 +1069,7 @@ class OmemoPlugin(GajimPlugin):
             account : str
                 the account name
         """
-        connection = gajim.connections[account].connection
+        connection = app.connections[account].connection
         if not connection:
             return
         state = self.get_omemo_state(account)

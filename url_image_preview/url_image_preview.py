@@ -5,12 +5,12 @@ from gi.repository import GdkPixbuf
 import re
 import os
 
-from common import gajim
-from common import helpers
-from plugins import GajimPlugin
-from plugins.helpers import log_calls
-from plugins.gui import GajimPluginConfigDialog
-from conversation_textview import TextViewImage
+from gajim.common import app
+from gajim.common import helpers
+from gajim.plugins import GajimPlugin
+from gajim.plugins.helpers import log_calls
+from gajim.plugins.gui import GajimPluginConfigDialog
+from gajim.conversation_textview import TextViewImage
 
 EXTENSIONS = ('.png','.jpg','.jpeg','.gif','.raw','.svg')
 
@@ -66,7 +66,7 @@ class Base(object):
         self.textview = self.chat_control.conv_textview
 
     def print_special_text(self, special_text, other_tags, graphics=True):
-        if not gajim.interface.basic_pattern_re.match(special_text):
+        if not app.interface.basic_pattern_re.match(special_text):
             return
         # remove qip bbcode
         special_text = special_text.rsplit('[/img]')[0]
@@ -86,7 +86,7 @@ class Base(object):
         iter_ = buffer_.get_end_iter()
         mark = buffer_.create_mark(None, iter_, True)
         # start downloading image
-        gajim.thread_interface(helpers.download_image, [
+        app.thread_interface(helpers.download_image, [
             self.textview.account, {'src': special_text}], self._update_img,
             [mark])
 

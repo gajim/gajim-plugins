@@ -2,11 +2,11 @@
 
 from gi.repository import Gtk
 from gi.repository import Gdk
-from common import helpers
-from common import gajim
+from gajim.common import helpers
+from gajim.common import app
 
-from plugins import GajimPlugin
-from plugins.helpers import log_calls
+from gajim.plugins import GajimPlugin
+from gajim.plugins.helpers import log_calls
 
 
 class WrongLayoutPlugin(GajimPlugin):
@@ -118,7 +118,7 @@ class Base(object):
         else:
             start = message_buffer.get_start_iter()
             end = message_buffer.get_end_iter()
-            stext = gajim.config.get('gc_refer_to_nick_char')
+            stext = app.config.get('gc_refer_to_nick_char')
             res = start.forward_search(stext, Gtk.TextSearchFlags.TEXT_ONLY, None)
             if res:
                 first, start = res
