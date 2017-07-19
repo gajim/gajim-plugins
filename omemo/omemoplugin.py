@@ -579,7 +579,19 @@ class OmemoPlugin(GajimPlugin):
             if not state.encryption.is_active(to_jid):
                 return
 
+            # Setting the ID here first for the old stanza object, which
+            # Gajim uses for message correction later.
+            # after cleanup_stanza() we have a new stanza object so we
+            # have to set the same ID so the ID we send matches with the
+            # ID from the correction stanza that Gajim hands us on a correction
+
+            # This is a nasty workaround, dont remove this or LMC in Groupchat
+            # will break for everything <= 0.16.8
+
+            new_id = gajim.connections[account].connection.getAnID()
+            event.msg_iq.setID(new_id)
             self.cleanup_stanza(event)
+            event.msg_iq.setID(new_id)
 
             plaintext = event.message
             msg_dict = state.create_gc_msg(
