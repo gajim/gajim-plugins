@@ -1126,7 +1126,8 @@ class OmemoPlugin(GajimPlugin):
                 log.error(account + ' => Devicelistquery was NOT successful')
                 self.publish_own_devices_list(account, new=True)
                 return False
-            contact_jid = stanza.getAttr('from')
+
+            contact_jid = str(stanza.getAttr('from'))
             if contact_jid == my_jid:
                 state.set_own_devices(devices_list)
                 state.store.sessionStore.setActiveState(devices_list, my_jid)
