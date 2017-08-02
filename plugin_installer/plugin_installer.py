@@ -395,8 +395,11 @@ class DownloadAsync(threading.Thread):
                 continue
             opts = config.options('info')
             if not set(MANDATORY_FIELDS).issubset(opts):
-                log.warning('Plugin is missing mandatory fields in manifest.ini. '
-                         'Plugin not loaded.')
+                log.warning(
+                        '%s is missing mandatory fields %s. '
+                        'Plugin not loaded.',
+                        filename,
+                        set(MANDATORY_FIELDS).difference(opts))
                 continue
             # Add icon and remote dir
             icon = None
