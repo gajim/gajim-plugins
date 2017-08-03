@@ -225,9 +225,15 @@ class PluginInstaller(GajimPlugin):
                                                                 'version'))
                     gajim_v = convert_version_to_list(gajim.config.get(
                         'version'))
-                    min_v = config.get('info', 'min_gajim_version')
+                    try:
+                        min_v = config.get('info', 'min_gajim_version')
+                    except:
+                        min_v = None
                     min_v = convert_version_to_list(min_v) if min_v else gajim_v
-                    max_v = config.get('info', 'max_gajim_version')
+                    try:
+                        max_v = config.get('info', 'max_gajim_version')
+                    except:
+                        max_v = None
                     max_v = convert_version_to_list(max_v) if max_v else gajim_v
                     if (remote > local) and (gajim_v >= min_v) and \
                     (gajim_v <= max_v):
