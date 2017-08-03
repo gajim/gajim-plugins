@@ -456,7 +456,7 @@ class DownloadAsync(threading.Thread):
                 max_v = plugin.get('max_gajim_version', None)
                 max_v = V(max_v) if max_v else gajim_v
                 if (V(plugin['version']) > V(local_version)) and \
-                gajim_v >= min_v and gajim_v <= max_v:
+                (gajim_v >= min_v) and (gajim_v <= max_v):
                     to_update.append(plugin['name'])
         GLib.idle_add(self.plugin.warn_update, to_update)
 
