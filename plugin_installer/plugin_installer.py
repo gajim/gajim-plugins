@@ -223,7 +223,14 @@ class PluginInstaller(GajimPlugin):
                     local = convert_version_to_list(local_version)
                     remote = convert_version_to_list(config.get('info',
                                                                 'version'))
-                    if remote > local:
+                    gajim_v = convert_version_to_list(gajim.config.get(
+                        'version'))
+                    min_v = config.get('info', 'min_gajim_version')
+                    min_v = convert_version_to_list(min_v) if min_v else gajim_v
+                    max_v = config.get('info', 'max_gajim_version')
+                    max_v = convert_version_to_list(max_v) if max_v else gajim_v
+                    if (remote > local) and (gajim_v >= min_v) and \
+                    (gajim_v <= max_v):
                         to_update.append(config.get('info', 'name'))
             gobject.idle_add(self.warn_update, to_update)
 
