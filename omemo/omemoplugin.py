@@ -1041,8 +1041,6 @@ class OmemoPlugin(GajimPlugin):
                 self.publish_own_devices_list(account, new=True)
                 return False
             contact_jid = stanza.getAttr('from')
-            if isinstance(nbxmpp.JID, contact_jid):
-                contact_jid = str(contact_jid)
             if contact_jid == my_jid:
                 state.set_own_devices(devices_list)
                 state.store.sessionStore.setActiveState(devices_list, my_jid)
