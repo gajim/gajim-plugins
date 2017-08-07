@@ -116,6 +116,11 @@ class FileDecryption:
                 file.iv = fragment[:16]
                 if len(file.key) == 32 and len(file.iv) == 16:
                     return True
+
+                file.key = fragment[12:]
+                file.iv = fragment[:12]
+                if len(file.key) == 32 and len(file.iv) == 12:
+                    return True
             except:
                 return False
         return False
