@@ -20,10 +20,6 @@
 ## You should have received a copy of the GNU General Public License
 ## along with Gajim. If not, see <http://www.gnu.org/licenses/>.
 ##
-from gi.repository import Gtk
-from gi.repository import GdkPixbuf
-from gi.repository import Pango
-from gi.repository import GLib
 
 import io
 import threading
@@ -32,18 +28,31 @@ import os
 import ssl
 import logging
 import posixpath
-import urllib.error
-
+from enum import IntEnum
 from zipfile import ZipFile
 from distutils.version import LooseVersion as V
+import urllib.error
 from urllib.request import urlopen
-from common import gajim
-from plugins import GajimPlugin
-from htmltextview import HtmlTextView
-from dialogs import WarningDialog, HigDialog, YesNoDialog
-from plugins.gui import GajimPluginConfigDialog
-from enum import IntEnum
-from gtkgui_helpers import get_action
+
+from gi.repository import Gtk
+from gi.repository import GdkPixbuf
+from gi.repository import Pango
+from gi.repository import GLib
+
+try:
+    from common import gajim as app
+    from plugins import GajimPlugin
+    from plugins.gui import GajimPluginConfigDialog
+    from htmltextview import HtmlTextView
+    from dialogs import WarningDialog, HigDialog, YesNoDialog
+    from gtkgui_helpers import get_action
+except ImportError:
+    from gajim.common import app
+    from gajim.plugins import GajimPlugin
+    from gajim.plugins.gui import GajimPluginConfigDialog
+    from gajim.htmltextview import HtmlTextView
+    from gajim.dialogs import WarningDialog, HigDialog, YesNoDialog
+    from gajim.gtkgui_helpers import get_action
 
 log = logging.getLogger('gajim.plugin_system.plugin_installer')
 
@@ -53,6 +62,7 @@ MANIFEST_IMAGE_URL = 'https://ftp.gajim.org/plugins_1/manifests_images.zip'
 MANDATORY_FIELDS = ['name', 'version', 'description', 'authors', 'homepage']
 FALLBACK_ICON = Gtk.IconTheme.get_default().load_icon(
     'preferences-system', Gtk.IconSize.MENU, 0)
+
 
 class Column(IntEnum):
     PIXBUF = 0
@@ -66,10 +76,37 @@ class Column(IntEnum):
     HOMEPAGE = 8
 
 
-def get_local_version(plugin_name):
-    for plugin in gajim.plugin_manager.plugins:
-        if plugin.name == plugin_name:
+def get_local_version(plugin_manifest):
+    name = plugin_manifest['name']
+    short_name = plugin_manifest['short_name']
+
+    for plugin in app.plugin_manager.plugins:
+        if plugin.name == name:
             return plugin.version
+
+    # Fallback:
+    # If the plugin has errors and is not loaded by the
+    # PluginManager. Look in the Gajim config if the plugin is
+    # known and active, if yes load the manifest from the Plugin
+    # dir and parse the version
+    active = app.config.get_per('plugins', short_name, 'active')
+    if not active:
+        return
+    manifest_path = os.path.join(
+        app.PLUGINS_DIRS[1], short_name, 'manifest.ini')
+    if not os.path.exists(manifest_path):
+        return
+    conf = configparser.ConfigParser()
+    with open(manifest_path, encoding='utf-8') as conf_file:
+        try:
+            conf.read_file(conf_file)
+        except configparser.Error:
+            log.warning('Cant parse version for %s from manifest',
+                        short_name)
+            return
+
+    version = conf.get('info', 'version', fallback=None)
+    return version
 
 
 class PluginInstaller(GajimPlugin):
@@ -87,8 +124,8 @@ class PluginInstaller(GajimPlugin):
     def activate(self):
         if self.config['check_update']:
             self.timeout_id = GLib.timeout_add_seconds(30, self.check_update)
-        if 'plugins' in gajim.interface.instances:
-            self.on_activate(gajim.interface.instances['plugins'])
+        if 'plugins' in app.interface.instances:
+            self.on_activate(app.interface.instances['plugins'])
 
     def warn_update(self, plugins):
         def open_update(dummy):
@@ -247,14 +284,14 @@ class PluginInstaller(GajimPlugin):
         for _dir in plugin_dirs:
             is_active = False
             plugins = None
-            plugin_dir = os.path.join(gajim.PLUGINS_DIRS[1], _dir)
-            plugin = gajim.plugin_manager.get_plugin_by_path(plugin_dir)
+            plugin_dir = os.path.join(app.PLUGINS_DIRS[1], _dir)
+            plugin = app.plugin_manager.get_plugin_by_path(plugin_dir)
             if plugin:
                 if plugin.active:
                     is_active = True
                     log.info('Deactivate Plugin: %s', plugin)
-                    gajim.plugin_manager.deactivate_plugin(plugin)
-                gajim.plugin_manager.plugins.remove(plugin)
+                    app.plugin_manager.deactivate_plugin(plugin)
+                app.plugin_manager.plugins.remove(plugin)
 
                 model = self.installed_plugins_model
                 for row in range(len(model)):
@@ -263,13 +300,13 @@ class PluginInstaller(GajimPlugin):
                         break
 
             log.info('Load Plugin from: %s', plugin_dir)
-            plugins = gajim.plugin_manager.scan_dir_for_plugins(
+            plugins = app.plugin_manager.scan_dir_for_plugins(
                 plugin_dir, package=True)
             if not plugins:
                 log.warning('Loading Plugin failed')
                 continue
-            gajim.plugin_manager.add_plugin(plugins[0])
-            plugin = gajim.plugin_manager.plugins[-1]
+            app.plugin_manager.add_plugin(plugins[0])
+            plugin = app.plugin_manager.plugins[-1]
             log.info('Loading successful')
             for row in range(len(self.available_plugins_model)):
                 model_row = self.available_plugins_model[row]
@@ -278,7 +315,7 @@ class PluginInstaller(GajimPlugin):
                     model_row[Column.UPGRADE] = False
             if is_active:
                 log.info('Activate Plugin: %s', plugin)
-                gajim.plugin_manager.activate_plugin(plugin)
+                app.plugin_manager.activate_plugin(plugin)
             # get plugin icon
             icon_file = os.path.join(plugin.__path__, os.path.split(
                 plugin.__path__)[1]) + '.png'
@@ -451,9 +488,9 @@ class DownloadAsync(threading.Thread):
         zipbuf = self.download_url(MANIFEST_URL)
         plugin_list = self.parse_manifest(zipbuf)
         for plugin in plugin_list:
-            local_version = get_local_version(plugin['name'])
+            local_version = get_local_version(plugin)
             if local_version:
-                gajim_v = V(gajim.config.get('version'))
+                gajim_v = V(app.config.get('version'))
                 min_v = plugin.get('min_gajim_version', None)
                 min_v = V(min_v) if min_v else gajim_v
                 max_v = plugin.get('max_gajim_version', None)
@@ -469,7 +506,7 @@ class DownloadAsync(threading.Thread):
             zipbuf = self.download_url(MANIFEST_IMAGE_URL)
             plugin_list = self.parse_manifest(zipbuf)
             for plugin in plugin_list:
-                plugin['local_version'] = get_local_version(plugin['name'])
+                plugin['local_version'] = get_local_version(plugin)
                 if self.upgrading and plugin['local_version']:
                     if V(plugin['version']) > V(plugin['local_version']):
                         plugin['upgrade'] = True
@@ -485,7 +522,7 @@ class DownloadAsync(threading.Thread):
         for remote_dir in self.remote_dirs:
             filename = remote_dir + '.zip'
             log.info('Download: %s', filename)
-            base_dir, user_dir = gajim.PLUGINS_DIRS
+            base_dir, user_dir = app.PLUGINS_DIRS
             if not os.path.isdir(user_dir):
                 os.mkdir(user_dir)
             local_dir = os.path.join(user_dir, remote_dir)
