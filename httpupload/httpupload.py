@@ -302,7 +302,8 @@ class Base(object):
                       _('Uploading file via HTTP...'))
         try:
             headers = {'User-Agent': 'Gajim %s' % gajim.version,
-                       'Content-Type': file.mime}
+                       'Content-Type': file.mime,
+                       'Content-Length': file.size}
             request = Request(
                 file.put, data=file.stream, headers=headers, method='PUT')
             log.info("Opening Urllib upload request...")
