@@ -10,13 +10,13 @@ import time
 import locale
 import sqlite3
 
-from common import helpers
-from common import gajim
-from plugins import GajimPlugin
-from plugins.helpers import log_calls, log
-from plugins.gui import GajimPluginConfigDialog
-from conversation_textview import TextViewImage
-import gtkgui_helpers
+from gajim.common import helpers
+from gajim.common import app
+from gajim.plugins import GajimPlugin
+from gajim.plugins.helpers import log_calls, log
+from gajim.plugins.gui import GajimPluginConfigDialog
+from gajim.conversation_textview import TextViewImage
+from gajim import gtkgui_helpers
 
 import nbxmpp
 
@@ -58,7 +58,7 @@ class JuickPlugin(GajimPlugin):
         self.chat_control = None
         self.controls = []
         self.conn = None
-        self.cache_path = os.path.join(gajim.AVATAR_PATH, 'juick')
+        self.cache_path = os.path.join(app.AVATAR_PATH, 'juick')
         if not os.path.isdir(self.cache_path):
             os.makedirs(self.cache_path)
 
@@ -149,7 +149,7 @@ class Base(object):
         sharp_slash = r'#\d+(\/\d+)?'
         juick_nick = r'@[a-zA-Z0-9_@:\.-]+'
         juick_pic = r'http://i\.juick\.com/.+/[0-9-]+\.[JPG|jpg]'
-        interface = gajim.interface
+        interface = app.interface
         interface.sharp_slash_re = re.compile(sharp_slash)
         self.juick_nick_re = interface.juick_nick_re = re.compile(juick_nick)
         self.juick_pic_re = interface.juick_pic_re = re.compile(juick_pic)
@@ -282,7 +282,7 @@ class Base(object):
                 return
             childs = self.juick_link_menu.get_children()
             if post:
-                self.juick_post_full = gajim.interface.sharp_slash_re\
+                self.juick_post_full = app.interface.sharp_slash_re\
                                                     .search(word).group(0)
                 self.juick_post_uid = post.group(1)
                 for menuitem in range(7):
@@ -315,14 +315,14 @@ class Base(object):
                 self.on_insert(widget, 'PM %s' % word.rstrip(':'))
 
     def print_special_text(self, special_text, other_tags, graphics=True):
-        if gajim.interface.sharp_slash_re.match(special_text):
+        if app.interface.sharp_slash_re.match(special_text):
             # insert post num #123456//
             buffer_, iter_, tag = self.get_iter_and_tag('sharp_slash')
             buffer_.insert_with_tags(iter_, special_text, tag)
             self.last_juick_num = special_text
             self.textview.plugin_modified = True
             return
-        if gajim.interface.juick_nick_re.match(special_text):
+        if app.interface.juick_nick_re.match(special_text):
             # insert juick nick @nickname////
             buffer_, iter_, tag = self.get_iter_and_tag('juick_nick')
             mark = buffer_.create_mark(None, iter_, True)
@@ -342,13 +342,13 @@ class Base(object):
             if self.plugin.config['ONLY_FIRST_AVATAR']:
                 if b_nick[-9:] not in ('Reply by ', 'message from ', 'ended by ',
                 'Subscribed to '):
-                    if b_nick[-2] != gajim.config.get('after_nickname'):
+                    if b_nick[-2] != app.config.get('after_nickname'):
                         self.textview.plugin_modified = True
                         return
                     elif b_nick[-1] == '\n':
                         self.textview.plugin_modified = True
                         return
-            conn = gajim.connections[self.chat_control.account]
+            conn = app.connections[self.chat_control.account]
             if not conn.connected:
                 self.textview.plugin_modified = True
                 return
@@ -384,7 +384,7 @@ class Base(object):
                     {'mark': mark, 'special_text': special_text})
                 self.textview.plugin_modified = True
                 return
-        if gajim.interface.juick_pic_re.match(special_text) and \
+        if app.interface.juick_pic_re.match(special_text) and \
             self.plugin.config['SHOW_PREVIEW']:
             # show pics preview
             buffer_, iter_, tag = self.get_iter_and_tag('url')
@@ -392,7 +392,7 @@ class Base(object):
             buffer_.insert_with_tags(iter_, special_text, tag)
             uid = special_text.split('/')[-1]
             url = "http://i.juick.com/photos-512/%s" % uid
-            gajim.thread_interface(self.insert_pic_preview, [mark, special_text,
+            app.thread_interface(self.insert_pic_preview, [mark, special_text,
                 url])
             self.textview.plugin_modified = True
             return

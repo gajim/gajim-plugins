@@ -2,10 +2,10 @@
 
 import os
 
-from common import gajim
-from plugins import GajimPlugin
-from plugins.helpers import log_calls
-from common import dbus_support
+from gajim.common import app
+from gajim.plugins import GajimPlugin
+from gajim.plugins.helpers import log_calls
+from gajim.common import dbus_support
 
 
 class WicdPlugin(GajimPlugin):
@@ -31,7 +31,7 @@ class WicdPlugin(GajimPlugin):
     def activate(self):
         try:
             import dbus
-            from common.dbus_support import system_bus
+            from app.common.dbus_support import system_bus
 
             self.bus = system_bus.bus()
 
@@ -59,12 +59,12 @@ class WicdPlugin(GajimPlugin):
         #WIRED = 3
         #SUSPENDED = 4
         if state == 2 or state == 3:
-            for connection in gajim.connections.values():
-                if gajim.config.get_per('accounts', connection.name,
+            for connection in app.connections.values():
+                if app.config.get_per('accounts', connection.name,
                 'listen_to_network_manager') and connection.time_to_reconnect:
                     connection._reconnect()
         else:
-            for connection in gajim.connections.values():
-                if gajim.config.get_per('accounts', connection.name,
+            for connection in app.connections.values():
+                if app.config.get_per('accounts', connection.name,
                 'listen_to_network_manager') and connection.connected > 1:
                     connection._disconnectedReconnCB()

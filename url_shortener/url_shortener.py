@@ -4,7 +4,7 @@ import gtk
 import json
 import urllib
 import urllib2
-from common import gajim
+from common import app
 from common import ged
 from plugins import GajimPlugin
 from plugins.helpers import log_calls
@@ -49,7 +49,7 @@ class UrlShortenerPlugin(GajimPlugin):
         if hasattr(event, 'shortened'):
             return
 
-        iterator = gajim.interface.basic_pattern_re.finditer(event.message)
+        iterator = app.interface.basic_pattern_re.finditer(event.message)
         for match in iterator:
             start, end = match.span()
             link = event.message[start:end]
@@ -125,7 +125,7 @@ class Base(object):
             if is_xhtml_link:
                 break
         # Check if we accept this as an uri
-        schemes = gajim.config.get('uri_schemes').split()
+        schemes = app.config.get('uri_schemes').split()
         for scheme in schemes:
             if special_text.startswith(scheme):
                 text_is_valid_uri = True
@@ -135,7 +135,7 @@ class Base(object):
                 return
             end_iter = buffer_.get_end_iter()
             mark = buffer_.create_mark(None, end_iter, True)
-            gajim.thread_interface(self.insert_hyperlink, [mark, special_text,
+            app.thread_interface(self.insert_hyperlink, [mark, special_text,
                 ttt])
             self.textview.plugin_modified = True
 

@@ -8,7 +8,7 @@ from plugins.gui import GajimPluginConfigDialog
 from plugins import GajimPlugin
 from plugins.helpers import log_calls
 from common import ged
-from common import gajim
+from common import app
 from common.i18n import Q_
 from config import ManageBookmarksWindow
 
@@ -41,7 +41,7 @@ class OfflineBookmarksPlugin(GajimPlugin):
         pass
 
     def save_bookmarks(self, account, bookmarks):
-        jid = gajim.get_jid_from_account(account)
+        jid = app.get_jid_from_account(account)
         if jid not in self.config:
             self.config[jid] = {}
         self.config[jid] = bookmarks
@@ -51,22 +51,22 @@ class OfflineBookmarksPlugin(GajimPlugin):
 
     def handle_event_signed_in(self, obj):
         account = obj.conn.name
-        connection = gajim.connections[account]
-        jid = gajim.get_jid_from_account(obj.conn.name)
+        connection = app.connections[account]
+        jid = app.get_jid_from_account(obj.conn.name)
         bm_jids = [b['jid'] for b in connection.bookmarks]
         if jid in self.config:
             for bm in self.config[jid]:
                 if bm['jid'] not in bm_jids:
                     connection.bookmarks.append(bm)
-        invisible_show = gajim.SHOW_LIST.index('invisible')
+        invisible_show = app.SHOW_LIST.index('invisible')
         # do not autojoin if we are invisible
         if connection.connected == invisible_show:
             return
         # do not autojoin if bookmarks supported
         bookmarks_supported = self.is_bookmark_supported(
-            gajim.connections[account])
+            app.connections[account])
         if not bookmarks_supported:
-            gajim.interface.auto_join_bookmarks(connection.name)
+            app.interface.auto_join_bookmarks(connection.name)
 
     def connect_with_gc_control(self, gc_control):
         control = Base(self, gc_control)
@@ -111,14 +111,14 @@ class Base(object):
         self.button.set_no_show_all(True)
         id_ = self.button.connect('clicked', self.add_bookmark_button_clicked)
         self.gc_control.handlers[id_] = self.button
-        for bm in gajim.connections[self.gc_control.account].bookmarks:
+        for bm in app.connections[self.gc_control.account].bookmarks:
             if bm['jid'] == self.gc_control.contact.jid:
                 self.button.hide()
                 break
         else:
             account = self.gc_control.account
             bookmarks_supported = self.plugin.is_bookmark_supported(
-                gajim.connections[account])
+                app.connections[account])
             self.button.set_sensitive(not bookmarks_supported)
             self.button.set_visible(not bookmarks_supported)
 
@@ -127,7 +127,7 @@ class Base(object):
         Bookmark the room, without autojoin and not minimized
         """
         from dialogs import ErrorDialog, InformationDialog
-        password = gajim.gc_passwords.get(self.gc_control.room_jid, '')
+        password = app.gc_passwords.get(self.gc_control.room_jid, '')
         account = self.gc_control.account
 
         bm = {'name': self.gc_control.name,
@@ -140,7 +140,7 @@ class Base(object):
         place_found = False
         index = 0
         # check for duplicate entry and respect alpha order
-        for bookmark in gajim.connections[account].bookmarks:
+        for bookmark in app.connections[account].bookmarks:
             if bookmark['jid'] == bm['jid']:
                 ErrorDialog(
                     _('Bookmark already set'),
@@ -152,11 +152,11 @@ class Base(object):
                 break
             index += 1
         if place_found:
-            gajim.connections[account].bookmarks.insert(index, bm)
+            app.connections[account].bookmarks.insert(index, bm)
         else:
-            gajim.connections[account].bookmarks.append(bm)
-        self.plugin.save_bookmarks(account, gajim.connections[account].bookmarks)
-        gajim.interface.roster.set_actions_menu_needs_rebuild()
+            app.connections[account].bookmarks.append(bm)
+        self.plugin.save_bookmarks(account, app.connections[account].bookmarks)
+        app.interface.roster.set_actions_menu_needs_rebuild()
         InformationDialog(
             _('Bookmark has been added successfully'),
             _('You can manage your bookmarks via Actions menu in your roster.'))
@@ -242,18 +242,18 @@ class OfflineBookmarksPluginConfigDialog(GajimPluginConfigDialog,
         self.jids = []
 
         # Store bookmarks in treeview.
-        for account in gajim.connections:
-            if gajim.connections[account].connected <= 1:
+        for account in app.connections:
+            if app.connections[account].connected <= 1:
                 continue
-            if gajim.connections[account].is_zeroconf:
+            if app.connections[account].is_zeroconf:
                 continue
 
             self.accounts.append(account)
-            self.jids.append(gajim.get_jid_from_account(account))
+            self.jids.append(app.get_jid_from_account(account))
             iter_ = self.treestore.append(None, [None, account, None, None,
                     None, None, None, None])
 
-            for bookmark in gajim.connections[account].bookmarks:
+            for bookmark in app.connections[account].bookmarks:
                 if bookmark['name'] == '':
                     # No name was given for this bookmark.
                     # Use the first part of JID instead...
@@ -303,7 +303,7 @@ class OfflineBookmarksPluginConfigDialog(GajimPluginConfigDialog,
 
         for account in self.treestore:
             account_unicode = account[1].decode('utf-8')
-            gajim.connections[account_unicode].bookmarks = []
+            app.connections[account_unicode].bookmarks = []
 
             for bm in account.iterchildren():
                 # Convert True/False/None to '1' or '0'
@@ -327,15 +327,15 @@ class OfflineBookmarksPluginConfigDialog(GajimPluginConfigDialog,
                     'minimize': minimize, 'password': pw, 'nick': nick,
                     'print_status': bm[7]}
 
-                gajim.connections[account_unicode].bookmarks.append(bmdict)
+                app.connections[account_unicode].bookmarks.append(bmdict)
 
             bookmarks_supported = self.plugin.is_bookmark_supported(
-                gajim.connections[account_unicode])
+                app.connections[account_unicode])
             if bookmarks_supported:
-                gajim.connections[account_unicode].store_bookmarks()
+                app.connections[account_unicode].store_bookmarks()
             self.plugin.save_bookmarks(account_unicode,
-                gajim.connections[account_unicode].bookmarks)
-        gajim.interface.roster.set_actions_menu_needs_rebuild()
+                app.connections[account_unicode].bookmarks)
+        app.interface.roster.set_actions_menu_needs_rebuild()
 
     def on_import_to_changed(self, treeview):
         self.on_import_from_changed(self.import_from_combo)
@@ -351,11 +351,11 @@ class OfflineBookmarksPluginConfigDialog(GajimPluginConfigDialog,
 
     def on_import_button_clicked(self, widget):
         from_ = self.import_from_combo.get_active_text()
-        to_connection = gajim.connections[self.import_to_combo.get_active_text()]
+        to_connection = app.connections[self.import_to_combo.get_active_text()]
         to_bookmarks = to_connection.bookmarks
 
         if from_ in self.accounts:
-            from_bookmarks = gajim.connections[from_].bookmarks
+            from_bookmarks = app.connections[from_].bookmarks
         else:
             from_bookmarks = self.plugin.config[from_]
         for bm in from_bookmarks:

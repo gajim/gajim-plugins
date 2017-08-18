@@ -3,12 +3,12 @@
 
 from gi.repository import GObject
 
-from plugins import GajimPlugin
-from plugins.helpers import log_calls
-from common import ged
-from common import gajim
-from common import helpers
-import gtkgui_helpers
+from gajim.plugins import GajimPlugin
+from gajim.plugins.helpers import log_calls
+from gajim.common import ged
+from gajim.common import app
+from gajim.common import helpers
+from gajim import gtkgui_helpers
 import unicodedata
 
 def paragraph_direction_mark(text):
@@ -44,7 +44,7 @@ class ChatstatePlugin(GajimPlugin):
         if not self.active:
             return
 
-        contact = gajim.contacts.get_contact_from_full_jid(obj.conn.name,
+        contact = app.contacts.get_contact_from_full_jid(obj.conn.name,
             obj.fjid)
         if not contact:
             return
@@ -53,12 +53,12 @@ class ChatstatePlugin(GajimPlugin):
         if chatstate not in self.chatstates.keys():
             return
 
-        self.model = gajim.interface.roster.model
-        child_iters = gajim.interface.roster._get_contact_iter(obj.jid,
+        self.model = app.interface.roster.model
+        child_iters = app.interface.roster._get_contact_iter(obj.jid,
             obj.conn.name, contact, self.model)
 
         name = GObject.markup_escape_text(contact.get_shown_name())
-        contact_instances = gajim.contacts.get_contacts(obj.conn.name,
+        contact_instances = app.contacts.get_contacts(obj.conn.name,
             contact.jid)
 
         # Show resource counter
@@ -74,7 +74,7 @@ class ChatstatePlugin(GajimPlugin):
             if chatstate != 'gone':
                 color = self.chatstates[chatstate]
                 name = '<span foreground="%s">%s</span>' % (color, name)
-            if contact.status and gajim.config.get(
+            if contact.status and app.config.get(
             'show_status_msgs_in_roster'):
                 status = contact.status.strip()
                 if status != '':
@@ -87,17 +87,17 @@ class ChatstatePlugin(GajimPlugin):
 
     @log_calls('ChatstatePlugin')
     def activate(self):
-        color = gtkgui_helpers.get_fade_color(gajim.interface.roster.tree,
+        color = gtkgui_helpers.get_fade_color(app.interface.roster.tree,
             False, False)
         self.status_color = '#%04x%04x%04x' % (color.red, color.green,
             color.blue)
-        theme = gajim.config.get('roster_theme')
-        self.chatstates = {'active': gajim.config.get('inmsgcolor'),
-                            'composing': gajim.config.get_per('themes', theme,
+        theme = app.config.get('roster_theme')
+        self.chatstates = {'active': app.config.get('inmsgcolor'),
+                            'composing': app.config.get_per('themes', theme,
                                          'state_composing_color'),
-                            'inactive': gajim.config.get_per('themes', theme,
+                            'inactive': app.config.get_per('themes', theme,
                                         'state_inactive_color'),
-                            'paused': gajim.config.get_per('themes', theme,
+                            'paused': app.config.get_per('themes', theme,
                                         'state_paused_color'),
                             'gone': None, }
         self.active = True

@@ -7,14 +7,14 @@ from gi.repository import GdkPixbuf
 import os
 import time
 
-from plugins.gui import GajimPluginConfigDialog
-from plugins import GajimPlugin
-from plugins.helpers import log_calls
-from common import gajim
-from common import ged
-from common import helpers
-import gtkgui_helpers
-from dialogs import InputDialog, WarningDialog
+from gajim.plugins.gui import GajimPluginConfigDialog
+from gajim.plugins import GajimPlugin
+from gajim.plugins.helpers import log_calls
+from gajim.common import app
+from gajim.common import ged
+from gajim.common import helpers
+from gajim import gtkgui_helpers
+from gajim.dialogs import InputDialog, WarningDialog
 
 
 class SetLocationPlugin(GajimPlugin):
@@ -46,16 +46,16 @@ class SetLocationPlugin(GajimPlugin):
 
     @log_calls('SetLocationPlugin')
     def activate(self):
-        gajim.ged.register_event_handler('signed-in', ged.POSTGUI,
+        app.ged.register_event_handler('signed-in', ged.POSTGUI,
             self.on_signed_in)
         self.send_locations()
 
     @log_calls('SetLocationPlugin')
     def deactivate(self):
         self._data = {}
-        for acct in gajim.connections:
-            gajim.connections[acct].send_location(self._data)
-        gajim.ged.remove_event_handler('signed-in', ged.POSTGUI,
+        for acct in app.connections:
+            app.connections[acct].send_location(self._data)
+        app.ged.remove_event_handler('signed-in', ged.POSTGUI,
             self.on_signed_in)
 
     def on_signed_in(self, network_event):
@@ -72,11 +72,11 @@ class SetLocationPlugin(GajimPlugin):
 
         if not acct:
             #set geo for all accounts
-            for acct in gajim.connections:
-                if gajim.config.get_per('accounts', acct, 'publish_location'):
-                    gajim.connections[acct].send_location(self._data)
-        elif gajim.config.get_per('accounts', acct, 'publish_location'):
-            gajim.connections[acct].send_location(self._data)
+            for acct in app.connections:
+                if app.config.get_per('accounts', acct, 'publish_location'):
+                    app.connections[acct].send_location(self._data)
+        elif app.config.get_per('accounts', acct, 'publish_location'):
+            app.connections[acct].send_location(self._data)
 
 
 class SetLocationPluginConfigDialog(GajimPluginConfigDialog):
@@ -234,9 +234,9 @@ class SetLocationPluginConfigDialog(GajimPluginConfigDialog):
     def show_contacts(self):
         from gi.repository import Champlain, Clutter
         data = {}
-        accounts = gajim.contacts._accounts
+        accounts = app.contacts._accounts
         for account in accounts:
-            if not gajim.account_is_connected(account):
+            if not app.account_is_connected(account):
                 continue
             for contact in accounts[account].contacts._contacts:
                 pep = accounts[account].contacts._contacts[contact][0].pep
@@ -276,7 +276,7 @@ class SetLocationPluginConfigDialog(GajimPluginConfigDialog):
         if jid:
             # we want an avatar
             puny_jid = helpers.sanitize_filename(jid)
-            path_to_file = os.path.join(gajim.AVATAR_PATH, puny_jid) + suffix
+            path_to_file = os.path.join(app.AVATAR_PATH, puny_jid) + suffix
             path_to_local_file = path_to_file + '_local'
             for extension in ('.png', '.jpeg'):
                 path_to_local_file_full = path_to_local_file + extension

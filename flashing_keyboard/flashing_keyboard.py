@@ -4,10 +4,10 @@ from gi.repository import Gtk
 from gi.repository import GObject
 import subprocess
 
-from common import gajim
-from plugins import GajimPlugin
-from plugins.helpers import log_calls, log
-from plugins.gui import GajimPluginConfigDialog
+from gajim.common import app
+from gajim.plugins import GajimPlugin
+from gajim.plugins.helpers import log_calls, log
+from gajim.plugins.gui import GajimPluginConfigDialog
 
 
 class FlashingKeyboard(GajimPlugin):
@@ -34,7 +34,7 @@ class FlashingKeyboard(GajimPlugin):
         self.flash_trigger()
 
     def flash_trigger(self):
-        if gajim.events.get_nb_systray_events():
+        if app.events.get_nb_systray_events():
             if self.id_0:
                 return
             if self.config['flash']:
@@ -60,9 +60,9 @@ class FlashingKeyboard(GajimPlugin):
 
     @log_calls('FlashingKeyboard')
     def activate(self):
-        gajim.events.event_added_subscribe(self.on_event_added)
-        gajim.events.event_removed_subscribe(self.on_event_removed)
-        if gajim.events.get_nb_systray_events():
+        app.events.event_added_subscribe(self.on_event_added)
+        app.events.event_removed_subscribe(self.on_event_removed)
+        if app.events.get_nb_systray_events():
             if self.config['flash']:
                 self.id_0 = GObject.timeout_add(self.timeout, self.led_on)
             else:
@@ -71,8 +71,8 @@ class FlashingKeyboard(GajimPlugin):
 
     @log_calls('FlashingKeyboard')
     def deactivate(self):
-        gajim.events.event_added_unsubscribe(self.on_event_added)
-        gajim.events.event_removed_unsubscribe(self.on_event_removed)
+        app.events.event_added_unsubscribe(self.on_event_added)
+        app.events.event_removed_unsubscribe(self.on_event_removed)
         if self.id_0:
             GObject.source_remove(self.id_0)
             self.led_off()
@@ -93,7 +93,7 @@ class FlashingKeyboardPluginConfigDialog(GajimPluginConfigDialog):
     def on_run(self):
         self.isactive = self.plugin.active
         if self.plugin.active:
-            gajim.plugin_manager.deactivate_plugin(self.plugin)
+            app.plugin_manager.deactivate_plugin(self.plugin)
         for name in ('command1', 'command2'):
             widget = self.xml.get_object(name)
             widget.set_text(self.plugin.config[name])
@@ -108,5 +108,5 @@ class FlashingKeyboardPluginConfigDialog(GajimPluginConfigDialog):
         widget = self.xml.get_object('flash_cb')
         self.plugin.config['flash'] = not widget.get_active()
         if self.isactive:
-            gajim.plugin_manager.activate_plugin(self.plugin)
+            app.plugin_manager.activate_plugin(self.plugin)
         GajimPluginConfigDialog.on_close_button_clicked(self, widget)

@@ -26,18 +26,18 @@ import queue
 
 import nbxmpp
 
-import dialogs
-import gtkgui_helpers
+from gajim import dialogs
+from gajim import gtkgui_helpers
 
-from common import gajim
-from common.connection_handlers_events import (
+from gajim.common import app
+from gajim.common.connection_handlers_events import (
     FailedDecryptEvent, MamMessageReceivedEvent)
-from plugins import GajimPlugin
+from gajim.plugins import GajimPlugin
 
 log = logging.getLogger('gajim.plugin_system.esessions')
 
 ERROR_MSG = ''
-if not gajim.HAVE_PYCRYPTO:
+if not app.HAVE_PYCRYPTO:
     ERROR_MSG = 'Please install pycrypto'
 
 
@@ -120,7 +120,7 @@ class ESessionsPlugin(GajimPlugin):
             # Esessions cant decrypt Carbon Copys
             return
         if obj.stanza.getTag('feature', namespace=nbxmpp.NS_FEATURE):
-            if gajim.HAVE_PYCRYPTO:
+            if app.HAVE_PYCRYPTO:
                 feature = obj.stanza.getTag(name='feature',
                                             namespace=nbxmpp.NS_FEATURE)
                 form = nbxmpp.DataForm(node=feature.getTag('x'))
@@ -158,7 +158,7 @@ class ESessionsPlugin(GajimPlugin):
                 obj.encrypted = 'ESessions'
                 callback(obj)
             except Exception:
-                gajim.nec.push_incoming_event(
+                app.nec.push_incoming_event(
                     FailedDecryptEvent(None, conn=conn, msg_obj=obj))
                 return
 

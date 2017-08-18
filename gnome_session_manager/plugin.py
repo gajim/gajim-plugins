@@ -18,7 +18,7 @@
 ##
 
 import dbus
-from common import gajim
+from common import app
 from common import ged
 from common import dbus_support
 import gui_interface
@@ -46,11 +46,11 @@ class GnomeSessionManagerPlugin(GajimPlugin):
             self.session_presence = self.bus.get_object("org.gnome.SessionManager",
                                                         "/org/gnome/SessionManager/Presence")
         except:
-            gajim.log.debug("GNOME SessionManager D-Bus service not found")
+            app.log.debug("GNOME SessionManager D-Bus service not found")
             return
 
         self.active = True
-        gajim.ged.register_event_handler('our-show', ged.POSTGUI,
+        app.ged.register_event_handler('our-show', ged.POSTGUI,
                                          self.on_our_status)
         self.bus.add_signal_receiver(self.gnome_presence_changed,
                                      "StatusChanged", PRESENCE_INTERFACE)
@@ -63,17 +63,17 @@ class GnomeSessionManagerPlugin(GajimPlugin):
         self.active = False
         self.bus.remove_signal_receiver(self.gnome_presence_changed, "StatusChanged",
                                         dbus_interface=PRESENCE_INTERFACE)
-        gajim.ged.remove_event_handler('our-show', ged.POSTGUI, self.on_our_status)
+        app.ged.remove_event_handler('our-show', ged.POSTGUI, self.on_our_status)
 
 
     def gnome_presence_changed(self, status, *args, **kw):
-        if not gajim.interface.remote_ctrl:
+        if not app.interface.remote_ctrl:
             try:
                 import remote_control
-                gajim.interface.remote_ctrl = remote_control.Remote()
+                app.interface.remote_ctrl = remote_control.Remote()
             except:
                 return
-        remote_gajim = gajim.interface.remote_ctrl.signal_object
+        remote_gajim = app.interface.remote_ctrl.signal_object
         gajim_status = GNOME_STATUS[status]
         accounts = remote_gajim.list_accounts()
         for account in accounts:

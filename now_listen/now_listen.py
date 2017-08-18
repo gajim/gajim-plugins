@@ -4,14 +4,14 @@ from gi.repository import Gtk
 from gi.repository import Gdk
 import os
 
-from plugins import GajimPlugin
-from plugins.helpers import log_calls
-from plugins.gui import GajimPluginConfigDialog
-from plugins.gajimplugin import GajimPluginException
-from common import dbus_support
+from gajim.plugins import GajimPlugin
+from gajim.plugins.helpers import log_calls
+from gajim.plugins.gui import GajimPluginConfigDialog
+from gajim.plugins.gajimplugin import GajimPluginException
+from gajim.common import dbus_support
 
 if dbus_support.supported:
-    from music_track_listener import MusicTrackListener
+    from gajim.music_track_listener import MusicTrackListener
 
 class NowListenPlugin(GajimPlugin):
 

@@ -3,10 +3,10 @@
 
 import os
 
-from common import gajim
-from plugins import GajimPlugin
-from plugins.helpers import log_calls
-from plugins.plugins_i18n import _
+from gajim.common import app
+from gajim.plugins import GajimPlugin
+from gajim.plugins.helpers import log_calls
+from gajim.plugins.plugins_i18n import _
 
 
 class PluginsTranslationsPlugin(GajimPlugin):
@@ -17,7 +17,7 @@ class PluginsTranslationsPlugin(GajimPlugin):
             'for Gajim plugins')
         self.config_dialog = None
         self.config_default_values = {'last_version': '0'}
-        self.locale_dir = os.path.join(gajim.PLUGINS_DIRS[1], 'locale')
+        self.locale_dir = os.path.join(app.PLUGINS_DIRS[1], 'locale')
 
     @log_calls('PluginsTranslationsPlugin')
     def activate(self):

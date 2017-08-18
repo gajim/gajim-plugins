@@ -1,12 +1,12 @@
 from gi.repository import Gtk
 from gi.repository import GdkPixbuf
 
-import gtkgui_helpers
-from common import gajim
+from gajim import gtkgui_helpers
+from gajim.common import app
 
-from plugins import GajimPlugin
-from plugins.gui import GajimPluginConfigDialog
-from plugins.helpers import log_calls
+from gajim.plugins import GajimPlugin
+from gajim.plugins.gui import GajimPluginConfigDialog
+from gajim.plugins.helpers import log_calls
 
 
 class QuickRepliesPlugin(GajimPlugin):
@@ -56,7 +56,7 @@ class QuickRepliesPlugin(GajimPlugin):
             if base.chat_control != chat_control:
                 continue
             base.button.set_sensitive(chat_control.contact.show != 'offline' \
-            and gajim.connections[chat_control.account].connected > 0)
+            and app.connections[chat_control.account].connected > 0)
 
 
 class Base(object):

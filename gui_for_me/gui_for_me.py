@@ -3,9 +3,9 @@
 from gi.repository import Gtk
 from gi.repository import GdkPixbuf
 
-from common import gajim
-from plugins import GajimPlugin
-from plugins.helpers import log_calls
+from gajim.common import app
+from gajim.plugins import GajimPlugin
+from gajim.plugins.helpers import log_calls
 
 
 class GuiForMe(GajimPlugin):
@@ -43,7 +43,7 @@ class GuiForMe(GajimPlugin):
             if base.chat_control != chat_control:
                 continue
             base.button.set_sensitive(chat_control.contact.show != 'offline' \
-            and gajim.connections[chat_control.account].connected > 0)
+            and app.connections[chat_control.account].connected > 0)
 
 
 class Base(object):

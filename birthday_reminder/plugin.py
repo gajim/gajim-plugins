@@ -4,13 +4,13 @@ import datetime
 from xml.dom.minidom import *
 from gi.repository import GObject
 
-from plugins import GajimPlugin
-from plugins.helpers import log_calls
-from notify import popup
+from gajim.plugins import GajimPlugin
+from gajim.plugins.helpers import log_calls
+from gajim.notify import popup
 
-from common import configpaths
-from common import gajim
-from common import ged
+from gajim.common import configpaths
+from gajim.common import app
+from gajim.common import ged
 
 
 class BirthDayPlugin(GajimPlugin):
@@ -30,8 +30,8 @@ class BirthDayPlugin(GajimPlugin):
 
     def check_birthdays(self, account=None):
         def show_popup(account, jid):
-            contact_instances = gajim.contacts.get_contacts(account, jid)
-            contact = gajim.contacts.get_highest_prio_contact_from_contacts(
+            contact_instances = app.contacts.get_contacts(account, jid)
+            contact = app.contacts.get_highest_prio_contact_from_contacts(
                 contact_instances)
             if contact:
                 nick = GObject.markup_escape_text(contact.get_shown_name())
@@ -44,7 +44,7 @@ class BirthDayPlugin(GajimPlugin):
                 popup('Send message', contact.jid, account, msg_type='', \
                       path_to_image=image, title=title, text=text + ' ' + nick)
 
-        accounts = gajim.contacts.get_accounts()
+        accounts = app.contacts.get_accounts()
         vcards = []
         date_dict = {}
         for jid in glob.glob(self.vcard_path + '*@*'):

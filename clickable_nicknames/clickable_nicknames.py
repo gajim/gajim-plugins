@@ -3,9 +3,9 @@
 from gi.repository import Gtk
 from gi.repository import Gdk
 
-from common import gajim
-from plugins import GajimPlugin
-from plugins.helpers import log_calls
+from gajim.common import app
+from gajim.plugins import GajimPlugin
+from gajim.plugins.helpers import log_calls
 
 
 class ClickableNicknames(GajimPlugin):
@@ -23,7 +23,7 @@ class ClickableNicknames(GajimPlugin):
         self.gc_controls = {}
 
         self.tag_names = []
-        colors = gajim.config.get('gc_nicknames_colors')
+        colors = app.config.get('gc_nicknames_colors')
         colors = colors.split(':')
         for i, color in enumerate(colors):
             tagname = 'gc_nickname_color_' + str(i)
@@ -31,7 +31,7 @@ class ClickableNicknames(GajimPlugin):
 
     @log_calls('ClickableNicknamesPlugin')
     def activate(self):
-        for gc_control in gajim.interface.msg_win_mgr.get_controls('gc'):
+        for gc_control in app.interface.msg_win_mgr.get_controls('gc'):
             # TODO support minimized groupchat
             if gc_control not in self.gc_controls.keys():
                 control = Base(self, gc_control)
@@ -118,18 +118,18 @@ class Base(object):
                 end_iter.forward_char()
             buffer_ = self.textview.tv.get_buffer()
             word = buffer_.get_text(begin_iter, end_iter, True)
-            nick = word.rstrip().rstrip(gajim.config.get('after_nickname'))
+            nick = word.rstrip().rstrip(app.config.get('after_nickname'))
             if nick.startswith('* '):
                 nick = nick.lstrip('* ').split(' ')[0]
-            nick = nick.lstrip(gajim.config.get('before_nickname'))
-            nicks = gajim.contacts.get_nick_list(self.chat_control.account,
+            nick = nick.lstrip(app.config.get('before_nickname'))
+            nicks = app.contacts.get_nick_list(self.chat_control.account,
                 self.chat_control.room_jid)
             if nick[1:] not in nicks:
                 return
 
             message_buffer = self.chat_control.msg_textview.get_buffer()
             if message_buffer.get_char_count() < 1:
-                nick = nick + gajim.config.get('gc_refer_to_nick_char')
+                nick = nick + app.config.get('gc_refer_to_nick_char')
             else:
                 start, end = message_buffer.get_bounds()
                 if message_buffer.get_text(start, end, True)[-1] != ' ':

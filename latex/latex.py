@@ -32,10 +32,10 @@ from tempfile import mkstemp, mkdtemp
 import random
 from subprocess import Popen, PIPE
 
-from common import gajim
-from plugins import GajimPlugin
-from plugins.helpers import log, log_calls
-from plugins.gui import GajimPluginConfigDialog
+from gajim.common import app
+from gajim.plugins import GajimPlugin
+from gajim.plugins.helpers import log, log_calls
+from gajim.plugins.gui import GajimPluginConfigDialog
 
 Gdk.threads_init()
 
@@ -145,7 +145,7 @@ class LatexRenderer(Thread):
         def fg_str(fmt):
             try:
                 return [{'hex' : '+level-colors', 'tex' : '-fg'}[fmt],
-                    gajim.interface.get_fg_color(fmt)]
+                    app.interface.get_fg_color(fmt)]
             except KeyError:
                 # interface may not be available when we test latex at startup
                 return []
