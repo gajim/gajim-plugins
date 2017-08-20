@@ -394,14 +394,14 @@ class LatexPlugin(GajimPlugin):
         if it.get_offset() == self.last_eol_offset:
             if self.timeout_id:
                 GObject.source_remove(self.timeout_id)
-            self.timeout_id = GObject.timeout_add(100, detect_tags, traceback, it, end_iter)
+            self.timeout_id = GObject.timeout_add(100, detect_tags, tb, it, end_iter)
         else:
             if self.timeout_id: 
                 GObject.source_remove(self.timeout_id) 
                 it1 = it.copy() 
                 it1.backward_char() 
                 it1.backward_to_tag_toggle(eol_tag) 
-                detect_tags(traceback, it1, it) 
+                detect_tags(tb, it1, it) 
             self.last_eol_offset = it.get_offset()
 
     def connect_with_chat_control_base(self, chat_control):
