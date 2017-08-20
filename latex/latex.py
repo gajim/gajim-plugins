@@ -394,7 +394,7 @@ class LatexPlugin(GajimPlugin):
         if it.get_offset() == self.last_eol_offset:
             if self.timeout_id:
                 GObject.source_remove(self.timeout_id)
-            self.timeout_id = Geobject.timeout_add(100, detect_tags, traceback, it, end_iter)
+            self.timeout_id = GObject.timeout_add(100, detect_tags, traceback, it, end_iter)
         else:
             if self.timeout_id: 
                 GObject.source_remove(self.timeout_id) 
