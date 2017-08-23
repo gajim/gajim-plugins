@@ -228,7 +228,7 @@ class Download:
         except Exception as error:
             log.exception('Error')
             errormsg = error
-        stream.close()
+
         return str(errormsg)
 
     def aes_decrypt(self, payload):
