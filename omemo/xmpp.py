@@ -99,7 +99,8 @@ class BundleInformationQuery(Iq):
         id_ = app.get_an_id()
         attrs = {'id': id_}
         Iq.__init__(self, typ='get', attrs=attrs, to=contact_jid)
-        items = Node('items', attrs={'node': NS_BUNDLES + str(device_id)})
+        items = Node('items', attrs={'node': NS_BUNDLES + str(device_id),
+                                     'max_items': 1})
         pubsub = PubsubNode(items)
         self.addChild(node=pubsub)
 
@@ -142,7 +143,7 @@ class DevicelistQuery(Iq):
         id_ = app.get_an_id()
         attrs = {'id': id_}
         Iq.__init__(self, typ='get', attrs=attrs, to=contact_jid)
-        items = Node('items', attrs={'node': NS_DEVICE_LIST})
+        items = Node('items', attrs={'node': NS_DEVICE_LIST, 'max_items': 1})
         pubsub = PubsubNode(items)
         self.addChild(node=pubsub)
 
