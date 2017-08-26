@@ -1,3 +1,9 @@
+2.3.7 / 2017-08-26
+- Query only the most recent PEP items
+
+2.3.6 / 2017-08-21
+- Adapt to Gaim beeing now a Package
+
 2.3.5 / 2017-08-07
 - Support 12bit IVs on httpupload files
 
