@@ -72,13 +72,23 @@ class HTTPUploadPlugin(GajimPlugin):
                 del IQ_CALLBACK[id_]
 
     def handle_agent_info_received(self, event):
-        if (NS_HTTPUPLOAD in event.features and
+        if (NS_HTTPUPLOAD not in event.features or not
                 app.jid_is_transport(event.jid)):
-            account = event.conn.name
-            interface = self.get_interface(account)
-            interface.enabled = True
-            interface.component = event.jid
-            interface.update_button_states(True)
+            return
+
+        account = event.conn.name
+        interface = self.get_interface(account)
+        interface.enabled = True
+        interface.component = event.jid
+        interface.update_button_states(True)
+
+        try:
+            for form in event.data:
+                tmp = form.getField("max-file-size").getValue()
+                interface.max_file_size = int(tmp)
+        except AttributeError:
+            interface.max_file_size = None
+            log.warning("%s does not provide maximum file size" % account)
 
     def handle_outgoing_stanza(self, event):
         message = event.msg_iq.getTagData('body')
@@ -183,14 +193,23 @@ class Base(object):
             return
 
         invalid_file = False
+        stat = os.stat(path)
+
         if os.path.isfile(path):
-            stat = os.stat(path)
             if stat[6] == 0:
                 invalid_file = True
                 msg = _('File is empty')
         else:
             invalid_file = True
             msg = _('File does not exist')
+
+        if self.max_file_size is not None and \
+                stat.st_size > self.max_file_size:
+            invalid_file = True
+            msg = _('File is too large, maximum allowed file size is: %s') % \
+                GLib.format_size_full(self.max_file_size,
+                GLib.FormatSizeFlags.IEC_UNITS)
+
         if invalid_file:
             ErrorDialog(_('Could not open file'), msg,
                         transient_for=chat_control.parent_win.window)
