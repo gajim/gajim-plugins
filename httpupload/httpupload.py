@@ -248,12 +248,24 @@ class Base(object):
         IQ_CALLBACK[id_] = lambda stanza: self.received_slot(stanza, file)
         app.connections[self.account].connection.send(iq)
 
+    @staticmethod
+    def get_slot_error_message(stanza):
+        tmp = stanza.getTag('error').getTag('file-too-large')
+
+        if tmp is not None:
+            max_file_size = int(tmp.getTag('max-file-size').getData())
+            return _('File is too large, maximum allowed file size is: %s') % \
+                GLib.format_size_full(max_file_size,
+                GLib.FormatSizeFlags.IEC_UNITS)
+
+        return stanza.getErrorMsg()
+
     def received_slot(self, stanza, file):
         log.info("Received slot")
         if stanza.getType() == 'error':
             file.progress.close_dialog()
             ErrorDialog(_('Could not request upload slot'),
-                        stanza.getErrorMsg(),
+                        self.get_slot_error_message(stanza),
                         transient_for=file.control.parent_win.window)
             log.error(stanza)
             return
