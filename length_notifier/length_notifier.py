@@ -72,6 +72,9 @@ class LengthNotifierPlugin(GajimPlugin):
                 tv.override_background_color(Gtk.StateFlags.NORMAL,
                     d['prev_color'])
                 d['prev_color'] = None
+        elif d['prev_color']:
+            tv.override_background_color(Gtk.StateFlags.NORMAL, d['prev_color'])
+            d['prev_color'] = None
 
     @log_calls('LengthNotifierPlugin')
     def connect_with_chat_control(self, chat_control):
