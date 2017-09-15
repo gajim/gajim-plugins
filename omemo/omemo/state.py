@@ -299,6 +299,8 @@ class OmemoState:
                 continue
             if jid_to in encrypted_jids:  # We already encrypted to this JID
                 continue
+            if jid_to not in self.session_ciphers:
+                continue
             for rid, cipher in self.session_ciphers[jid_to].items():
                 try:
                     if self.isTrusted(jid_to, rid) == TRUSTED:
@@ -359,8 +361,12 @@ class OmemoState:
                 jid_to = self.plugin.groupchat[room][nick]
                 if jid_to == self.own_jid:
                     continue
-                for device in self.device_ids[jid_to]:
-                    devicelist.append((jid_to, device))
+                try:
+                    for device in self.device_ids[jid_to]:
+                        devicelist.append((jid_to, device))
+                except KeyError:
+                    log.warning('no device ids found for %s', jid_to)
+                    continue
             return devicelist
 
         if jid == self.own_jid:
