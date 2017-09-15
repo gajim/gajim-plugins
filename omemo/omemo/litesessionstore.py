@@ -54,7 +54,7 @@ class LiteSessionStore(SessionStore):
         c.execute(q, (device_id, ))
         result = c.fetchone()
 
-        return result[0].decode('utf-8')
+        return result[0].decode('utf-8') if result else None
 
     def getActiveDeviceTuples(self):
         q = "SELECT recipient_id, device_id FROM sessions WHERE active = 1"
