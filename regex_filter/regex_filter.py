@@ -111,7 +111,8 @@ class FilterCommands(CommandContainer):
     def add_filter(self, search, replace):
         plugin = app.plugin_manager.get_active_plugin('regex_filter')
         plugin.add_rule(search, replace)
-        return _('Added rule to replace %s by %s' % (search, replace))
+        return _('Added rule to replace %(search)s by %(replace)s' % {
+            'search': search, 'replace': replace})
 
     @command("remove_filter", raw=True)
     @doc(_("Remove an incoming filter. Argument is the rule number. "

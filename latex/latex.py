@@ -161,8 +161,8 @@ class LatexRenderer(Thread):
         except Exception:
             msg = 'Could not create temporary files for Latex plugin'
             log.debug(msg)
-            self.show_error(_('latex error: %s\n===ORIGINAL CODE====\n%s') % (
-                msg, self.code[2:len(self.code)-2]))
+            self.show_error(_('latex error: %(error)s\n===ORIGINAL CODE====\n'
+            '%(code)s') % {'error': msg, 'code': self.code[2:len(self.code)-2]})
             return False
 
         tmpfile = os.path.join(tmpdir, 'gajim_tex')
