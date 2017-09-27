@@ -1,1 +1,0 @@
-from fshare import FileSharePlugin

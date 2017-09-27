@@ -1,2 +1,0 @@
-
-from offline_bookmarks import OfflineBookmarksPlugin
