@@ -1,1 +1,1 @@
-from plugin import TictactoePlugin
+from .plugin import TictactoePlugin

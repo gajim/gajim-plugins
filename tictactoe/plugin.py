@@ -27,23 +27,26 @@ Tictactoe plugin.
 '''
 
 
-from common import helpers
-from common import gajim
-from plugins import GajimPlugin
-from plugins.plugin import GajimPluginException
-from plugins.helpers import log_calls, log
-from plugins.gui import GajimPluginConfigDialog
-import common.xmpp
-import gtk
-from gtk import gdk
-import cairo
-import chat_control
-from common import ged
-import dialogs
-from common import xmpp
-from common import caps_cache
-from common import stanza_session
-from common.connection_handlers_events import InformationEvent
+from gajim.common import helpers
+from gajim.common import app
+from gajim.plugins import GajimPlugin
+from gajim.plugins.gajimplugin import GajimPluginException
+from gajim.plugins.helpers import log_calls, log
+from gajim.plugins.gui import GajimPluginConfigDialog
+import nbxmpp
+from gi.repository import Gtk
+from gi.repository import Gdk
+from gi.repository import GdkPixbuf
+from gi.repository import cairo
+import gi
+gi.require_version('PangoCairo', '1.0')
+from gi.repository import PangoCairo
+from gajim import chat_control
+from gajim.common import ged
+from gajim import dialogs
+from gajim.common import caps_cache
+from gajim.common import stanza_session
+from gajim.common.connection_handlers_events import InformationEvent
 
 NS_GAMES = 'http://jabber.org/protocol/games'
 NS_GAMES_TICTACTOE = NS_GAMES + '/tictactoe'
@@ -70,30 +73,30 @@ class TictactoePlugin(GajimPlugin):
 
     @log_calls('TictactoePlugin')
     def _compute_caps_hash(self):
-        for a in gajim.connections:
-            gajim.caps_hash[a] = caps_cache.compute_caps_hash([
-                gajim.gajim_identity], gajim.gajim_common_features + \
-                gajim.gajim_optional_features[a])
+        for a in app.connections:
+            app.caps_hash[a] = caps_cache.compute_caps_hash([
+                app.gajim_identity], app.gajim_common_features + \
+                app.gajim_optional_features[a])
             # re-send presence with new hash
-            connected = gajim.connections[a].connected
-            if connected > 1 and gajim.SHOW_LIST[connected] != 'invisible':
-                gajim.connections[a].change_status(gajim.SHOW_LIST[connected],
-                    gajim.connections[a].status)
+            connected = app.connections[a].connected
+            if connected > 1 and app.SHOW_LIST[connected] != 'invisible':
+                app.connections[a].change_status(app.SHOW_LIST[connected],
+                    app.connections[a].status)
 
     @log_calls('TictactoePlugin')
     def activate(self):
-        if NS_GAMES not in gajim.gajim_common_features:
-            gajim.gajim_common_features.append(NS_GAMES)
-        if NS_GAMES_TICTACTOE not in gajim.gajim_common_features:
-            gajim.gajim_common_features.append(NS_GAMES_TICTACTOE)
+        if NS_GAMES not in app.gajim_common_features:
+            app.gajim_common_features.append(NS_GAMES)
+        if NS_GAMES_TICTACTOE not in app.gajim_common_features:
+            app.gajim_common_features.append(NS_GAMES_TICTACTOE)
         self._compute_caps_hash()
 
     @log_calls('TictactoePlugin')
     def deactivate(self):
-        if NS_GAMES_TICTACTOE in gajim.gajim_common_features:
-            gajim.gajim_common_features.remove(NS_GAMES_TICTACTOE)
-        if NS_GAMES in gajim.gajim_common_features:
-            gajim.gajim_common_features.remove(NS_GAMES)
+        if NS_GAMES_TICTACTOE in app.gajim_common_features:
+            app.gajim_common_features.remove(NS_GAMES_TICTACTOE)
+        if NS_GAMES in app.gajim_common_features:
+            app.gajim_common_features.remove(NS_GAMES)
         self._compute_caps_hash()
 
     @log_calls('TictactoePlugin')
@@ -102,7 +105,7 @@ class TictactoePlugin(GajimPlugin):
             base = Base(self, control)
             self.controls.append(base)
             # Already existing session?
-            conn = gajim.connections[control.account]
+            conn = app.connections[control.account]
             sessions = conn.get_sessions(control.contact.jid)
             tictactoes = [s for s in sessions if isinstance(s,
                 TicTacToeSession)]
@@ -139,7 +142,7 @@ class TictactoePlugin(GajimPlugin):
             session.decline_invitation()
 
         account = obj.conn.name
-        contact = gajim.contacts.get_first_contact_from_jid(account, obj.jid)
+        contact = app.contacts.get_first_contact_from_jid(account, obj.jid)
         if contact:
             name = contact.get_shown_name()
         else:
@@ -177,23 +180,23 @@ class Base(object):
     def create_buttons(self):
         # create whiteboard button
         actions_hbox = self.chat_control.xml.get_object('actions_hbox')
-        self.button = gtk.ToggleButton(label=None, use_underline=True)
-        self.button.set_property('relief', gtk.RELIEF_NONE)
+        self.button = Gtk.ToggleButton()
+        self.button.set_property('relief', Gtk.ReliefStyle.NONE)
         self.button.set_property('can-focus', False)
-        img = gtk.Image()
+        img = Gtk.Image()
         img_path = self.plugin.local_file_path('tictactoe.png')
-        pixbuf = gtk.gdk.pixbuf_new_from_file(img_path)
-        iconset = gtk.IconSet(pixbuf=pixbuf)
-        factory = gtk.IconFactory()
+        pixbuf = GdkPixbuf.Pixbuf.new_from_file(img_path)
+        iconset = Gtk.IconSet(pixbuf=pixbuf)
+        factory = Gtk.IconFactory()
         factory.add('tictactoe', iconset)
         factory.add_default()
-        img.set_from_stock('tictactoe', gtk.ICON_SIZE_MENU)
+        img.set_from_stock('tictactoe', Gtk.IconSize.MENU)
         self.button.set_image(img)
         send_button = self.chat_control.xml.get_object('send_button')
         send_button_pos = actions_hbox.child_get_property(send_button,
             'position')
-        actions_hbox.add_with_properties(self.button, 'position',
-            send_button_pos - 1, 'expand', False)
+        actions_hbox.pack_start(self.button, False, False, 0)
+        actions_hbox.reorder_child(self.button, send_button_pos - 1)
         id_ = self.button.connect('toggled', self.on_tictactoe_button_toggled)
         self.chat_control.handlers[id_] = self.button
         self.button.show()
@@ -209,7 +212,7 @@ class Base(object):
             self.stop_tictactoe('resign')
 
     def start_tictactoe(self):
-        self.tictactoe = gajim.connections[self.account].make_new_session(
+        self.tictactoe = app.connections[self.account].make_new_session(
             self.fjid, cls=TicTacToeSession)
         self.tictactoe.base = self
         self.tictactoe.begin()
@@ -230,11 +233,12 @@ class InvalidMove(Exception):
 class TicTacToeSession(stanza_session.StanzaSession):
     def __init__(self, conn, jid, thread_id, type_):
         stanza_session.StanzaSession.__init__(self, conn, jid, thread_id, type_)
-        contact = gajim.contacts.get_contact(conn.name,
-            gajim.get_jid_without_resource(str(jid)))
+        contact = app.contacts.get_contact(conn.name,
+            app.get_jid_without_resource(str(jid)))
         self.name = contact.get_shown_name()
         self.base = None
         self.control = None
+        self.enable_encryption = False
 
     # initiate a session
     def begin(self, role_s='x'):
@@ -256,7 +260,7 @@ class TicTacToeSession(stanza_session.StanzaSession):
         self.received = self.wait_for_invite_response
 
     def send_invitation(self):
-        msg = xmpp.Message()
+        msg = nbxmpp.Message()
 
         invite = msg.NT.invite
         invite.setNamespace(NS_GAMES)
@@ -265,7 +269,7 @@ class TicTacToeSession(stanza_session.StanzaSession):
         game = invite.NT.game
         game.setAttr('var', NS_GAMES_TICTACTOE)
 
-        x = xmpp.DataForm(typ='submit')
+        x = nbxmpp.DataForm(typ='submit')
         f = x.setField('role')
         f.setType('list-single')
         f.setValue('x')
@@ -288,7 +292,7 @@ class TicTacToeSession(stanza_session.StanzaSession):
         game = invite.getTag('game')
         x = game.getTag('x', namespace='jabber:x:data')
 
-        form = xmpp.DataForm(node=x)
+        form = nbxmpp.DataForm(node=x)
 
         if form.getField('role'):
             self.role_o = form.getField('role').getValues()[0]
@@ -322,7 +326,7 @@ class TicTacToeSession(stanza_session.StanzaSession):
         self.board = TicTacToeBoard(self, self.rows, self.cols)
 
         # accept the invitation, join the game
-        response = xmpp.Message()
+        response = nbxmpp.Message()
 
         join = response.NT.join
         join.setNamespace(NS_GAMES)
@@ -350,7 +354,7 @@ class TicTacToeSession(stanza_session.StanzaSession):
                 self.their_turn()
 
         elif msg.getTag('decline', namespace=NS_GAMES):
-            gajim.nec.push_incoming_event(InformationEvent(None, conn=self.conn,
+            app.nec.push_incoming_event(InformationEvent(None, conn=self.conn,
                 level='info', pri_txt=_('Invitation refused'),
                 sec_txt=_('%(name)s refused your invitation to play tic tac '
                 'toe.') % {'name': self.name}))
@@ -359,7 +363,7 @@ class TicTacToeSession(stanza_session.StanzaSession):
                 self.base.button.set_active(False)
 
     def decline_invitation(self):
-        msg = xmpp.Message()
+        msg = nbxmpp.Message()
 
         terminate = msg.NT.decline
         terminate.setNamespace(NS_GAMES)
@@ -397,12 +401,12 @@ class TicTacToeSession(stanza_session.StanzaSession):
         id_ = int(move.getAttr('id'))
 
         if id_ != self.next_move_id:
-            print 'unexpected move id, lost a move somewhere?'
+            log.warn('unexpected move id, lost a move somewhere?')
             return
 
         try:
             self.board.mark(row, col, self.role_o)
-        except InvalidMove, e:
+        except InvalidMove as e:
             # received an invalid move, end the game.
             self.board.cheated()
             self.end_game('cheating')
@@ -435,8 +439,8 @@ class TicTacToeSession(stanza_session.StanzaSession):
     def move(self, row, col):
         try:
             self.board.mark(row, col, self.role_s)
-        except InvalidMove, e:
-            print 'you made an invalid move'
+        except InvalidMove as e:
+            log.warn('you made an invalid move')
             return
 
         self.send_move(row, col)
@@ -453,7 +457,7 @@ class TicTacToeSession(stanza_session.StanzaSession):
 
     # sends a move message
     def send_move(self, row, column):
-        msg = xmpp.Message()
+        msg = nbxmpp.Message()
         msg.setType('chat')
 
         turn = msg.NT.turn
@@ -470,7 +474,7 @@ class TicTacToeSession(stanza_session.StanzaSession):
 
     # sends a termination message and ends the game
     def end_game(self, reason):
-        msg = xmpp.Message()
+        msg = nbxmpp.Message()
 
         terminate = msg.NT.terminate
         terminate.setNamespace(NS_GAMES)
@@ -492,6 +496,14 @@ class TicTacToeSession(stanza_session.StanzaSession):
         self.end_game('draw')
         self.board.drawn()
 
+
+class DrawBoard(Gtk.DrawingArea):
+    def __init__(self):
+        Gtk.DrawingArea.__init__(self)
+        self.set_size_request(200, 200)
+        self.set_property('expand', True)
+
+
 class TicTacToeBoard:
     def __init__(self, session, rows, cols):
         self.session = session
@@ -501,7 +513,7 @@ class TicTacToeBoard:
         self.rows = rows
         self.cols = cols
 
-        self.board = [ [None] * self.cols for r in xrange(self.rows) ]
+        self.board = [ [None] * self.cols for r in range(self.rows) ]
 
         self.setup_window()
 
@@ -520,7 +532,7 @@ class TicTacToeBoard:
         r -= 1
         c -= 1
 
-        for d in xrange(-strike, strike):
+        for d in range(-strike, strike):
             r_in_range = 0 <= r+d < self.rows
             c_in_range = 0 <= c+d < self.cols
 
@@ -554,24 +566,25 @@ class TicTacToeBoard:
 
     # is the board full?
     def full(self):
-        for r in xrange(self.rows):
-            for c in xrange(self.cols):
+        for r in range(self.rows):
+            for c in range(self.cols):
                 if self.board[r][c] == None:
                     return False
 
         return True
 
     def setup_window(self):
-        self.win = gtk.Window()
+        self.win = Gtk.Window()
+        draw = DrawBoard()
+        self.win.add(draw)
 
         self.title_prefix = 'tic-tac-toe with %s' % self.session.name
         self.set_title()
 
-        self.win.set_app_paintable(True)
-
-        self.win.add_events(gdk.BUTTON_PRESS_MASK)
+        self.win.add_events(Gdk.EventMask.BUTTON_PRESS_MASK)
         self.win.connect('button-press-event', self.clicked)
-        self.win.connect('expose-event', self.expose)
+
+        draw.connect('draw', self.do_draw)
 
         self.win.show_all()
 
@@ -591,30 +604,23 @@ class TicTacToeBoard:
         self.session.move(row, column)
 
     # this actually draws the board
-    def expose(self, widget, event):
-        win = widget.window
-
-        cr = win.cairo_create()
-
+    def do_draw(self, widget, cr):
         cr.set_source_rgb(1.0, 1.0, 1.0)
 
-        cr.set_operator(cairo.OPERATOR_SOURCE)
-        cr.paint()
+        layout = PangoCairo.create_layout(cr)
+        text_height = layout.get_pixel_extents()[1].height
 
-        layout = cr.create_layout()
-        text_height = layout.get_pixel_extents()[1][3]
-
-        (width, height) = widget.get_size()
+        (width, height) = self.win.get_size()
 
         row_height = (height - text_height) // self.rows
-        col_width  = width    // self.cols
+        col_width  = width // self.cols
 
         cr.set_source_rgb(0, 0, 0)
         cr.set_line_width(2)
-        for x in xrange(1, self.cols):
+        for x in range(1, self.cols):
             cr.move_to(col_width * x, 0)
             cr.line_to(col_width * x, height - text_height)
-        for x in xrange(1, self.rows):
+        for x in range(1, self.rows):
             cr.move_to(0, row_height * x)
             cr.line_to(width, row_height * x)
         cr.stroke()
@@ -635,12 +641,13 @@ class TicTacToeBoard:
             txt = _('%(name)s cheated') % {'name': self.session.name}
         else: #draw
             txt = _('It\'s a draw')
-        layout.set_text(txt)
-        cr.update_layout(layout)
-        cr.show_layout(layout)
+        layout.set_text(txt, -1)
+        # Inform Pango to re-layout the text with the new transformation
+        PangoCairo.update_layout(cr, layout)
+        PangoCairo.show_layout(cr, layout)
 
-        for i in xrange(self.rows):
-            for j in xrange(self.cols):
+        for i in range(self.rows):
+            for j in range(self.cols):
                 if self.board[i][j] == 'x':
                     self.draw_x(cr, i, j, row_height, col_width)
                 elif self.board[i][j] == 'o':
@@ -648,11 +655,12 @@ class TicTacToeBoard:
 
     def draw_x(self, cr, row, col, row_height, col_width):
         if self.session.role_s == 'x':
-            color = gajim.config.get('outmsgcolor')
+            color = app.config.get('outmsgcolor')
         else:
-            color = gajim.config.get('inmsgcolor')
-        c = gtk.gdk.Color(color)
-        cr.set_source_color(c)
+            color = app.config.get('inmsgcolor')
+        rgba = Gdk.RGBA()
+        rgba.parse(color)
+        cr.set_source_rgba(rgba.red, rgba.green, rgba.blue, rgba.alpha)
 
         top = row_height * (row + 0.2)
         bottom = row_height * (row + 0.8)
@@ -672,11 +680,12 @@ class TicTacToeBoard:
 
     def draw_o(self, cr, row, col, row_height, col_width):
         if self.session.role_s == 'o':
-            color = gajim.config.get('outmsgcolor')
+            color = app.config.get('outmsgcolor')
         else:
-            color = gajim.config.get('inmsgcolor')
-        c = gtk.gdk.Color(color)
-        cr.set_source_color(c)
+            color = app.config.get('inmsgcolor')
+        rgba = Gdk.RGBA()
+        rgba.parse(color)
+        cr.set_source_rgba(rgba.red, rgba.green, rgba.blue, rgba.alpha)
 
         x = col_width * (col + 0.5)
         y = row_height * (row + 0.5)
@@ -727,13 +736,13 @@ class TictactoePluginConfigDialog(GajimPluginConfigDialog):
     def init(self):
         self.GTK_BUILDER_FILE_PATH = self.plugin.local_file_path(
             'config_dialog.ui')
-        self.xml = gtk.Builder()
+        self.xml = Gtk.Builder()
         self.xml.set_translation_domain('gajim_plugins')
         self.xml.add_objects_from_file(self.GTK_BUILDER_FILE_PATH, ['vbox1'])
         self.board_size_spinbutton = self.xml.get_object('board_size')
-        self.board_size_spinbutton.get_adjustment().set_all(3, 3, 10, 1, 1, 0)
+        self.board_size_spinbutton.get_adjustment().configure(3, 3, 10, 1, 1, 0)
         vbox = self.xml.get_object('vbox1')
-        self.child.pack_start(vbox)
+        self.get_child().pack_start(vbox, True, True, 0)
 
         self.xml.connect_signals(self)
 
