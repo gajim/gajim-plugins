@@ -2,7 +2,7 @@
 #
 ## plugins/triggers/triggers.py
 ##
-## Copyright (C) 2011 Yann Leboulanger <asterix AT lagaule.org>
+## Copyright (C) 2011-2017 Yann Leboulanger <asterix AT lagaule.org>
 ##
 ## This file is part of Gajim.
 ##
@@ -19,15 +19,17 @@
 ## along with Gajim. If not, see <http://www.gnu.org/licenses/>.
 ##
 
-import gtk
+from gi.repository import Gtk
 import sys
+import os
 
-from common import gajim
-from plugins import GajimPlugin
-from plugins.helpers import log_calls
-from plugins.gui import GajimPluginConfigDialog
-from common import ged
-from common import helpers
+from gajim.common import app
+from gajim.plugins import GajimPlugin
+from gajim.plugins.helpers import log_calls
+from gajim.plugins.gui import GajimPluginConfigDialog
+from gajim.common import ged
+from gajim.common import helpers
+from gajim.dialogs import SoundChooserDialog
 
 
 class Triggers(GajimPlugin):
@@ -41,14 +43,20 @@ class Triggers(GajimPlugin):
         self.events_handlers = {'notification': (ged.PREGUI, self._nec_notif),
             'decrypted-message-received': (ged.PREGUI2,
             self._nec_decrypted_message_received),
+            'gc-message-received': (ged.PREGUI2, self._nec_gc_message_received),
             'presence-received': (ged.PREGUI, self._nec_presence_received)}
 
     def _check_rule_recipients(self, obj, rule):
         rule_recipients = [t.strip() for t in rule['recipients'].split(',')]
+        if rule['recipient_type'] == 'groupchat':
+            if obj.jid in rule_recipients:
+                return True
+            return False
         if rule['recipient_type'] == 'contact' and obj.jid not in \
         rule_recipients:
             return False
-        contact = gajim.contacts.get_first_contact_from_jid(obj.conn.name, obj.jid)
+        contact = app.contacts.get_first_contact_from_jid(obj.conn.name,
+            obj.jid)
         if not contact:  # PM?
             return False
         contact_groups = contact.groups
@@ -64,7 +72,7 @@ class Triggers(GajimPlugin):
 
     def _check_rule_status(self, obj, rule):
         rule_statuses = rule['status'].split()
-        our_status = gajim.SHOW_LIST[obj.conn.connected]
+        our_status = app.SHOW_LIST[obj.conn.connected]
         if rule['status'] != 'all' and our_status not in rule_statuses:
             return False
 
@@ -74,11 +82,29 @@ class Triggers(GajimPlugin):
         if rule['tab_opened'] == 'both':
             return True
         tab_opened = False
-        if gajim.interface.msg_win_mgr.get_control(obj.jid, obj.conn.name):
+        if app.interface.msg_win_mgr.get_control(obj.jid, obj.conn.name):
             tab_opened = True
         if tab_opened and rule['tab_opened'] == 'no':
             return False
         elif not tab_opened and rule['tab_opened'] == 'yes':
+            return False
+
+        return True
+
+    def _check_rule_has_focus(self, obj, rule):
+        if rule['has_focus'] == 'both':
+            return True
+        if rule['tab_opened'] == 'no':
+            # Does not apply in this case
+            return True
+        ctrl = app.interface.msg_win_mgr.get_control(obj.jid, obj.conn.name)
+        if not ctrl:
+            # Does not apply in this case
+            return True
+        has_focus = ctrl.parent_win.window.has_focus
+        if has_focus and rule['has_focus'] == 'no':
+            return False
+        elif not has_focus and rule['has_focus'] == 'yes':
             return False
 
         return True
@@ -100,13 +126,17 @@ class Triggers(GajimPlugin):
         if not self._check_rule_tab_opened(obj, rule):
             return False
 
+        # tab_opened is ok. Now check opened chat window
+        if not self._check_rule_has_focus(obj, rule):
+            return False
+
         # All is ok
         return True
 
     def check_rule_apply_notif(self, obj, rule):
         # Check notification type
         notif_type = ''
-        if obj.notif_type == 'msg':
+        if obj.notif_type in ('msg', 'gc-msg'):
             notif_type = 'message_received'
         elif obj.notif_type == 'pres':
             if obj.base_event.old_show < 2 and obj.base_event.new_show > 1:
@@ -179,17 +209,37 @@ class Triggers(GajimPlugin):
         # check rules in order
         rules_num = [int(i) for i in self.config.keys()]
         rules_num.sort()
+        to_remove = []
         for num in rules_num:
             rule = self.config[str(num)]
             if check_func(obj, rule):
                 apply_func(obj, rule)
+                if 'one_shot' in rule and rule['one_shot']:
+                    to_remove.append(num)
                 # Should we stop after first valid rule ?
                 # break
+
+        decal = 0
+        num = 0
+        while str(num) in self.config:
+            if (num + decal) in to_remove:
+                num2 = num
+                while str(num2 + 1) in self.config:
+                    self.config[str(num2)] = self.config[str(num2 + 1)].copy()
+                    num2 += 1
+                del self.config[str(num2)]
+                decal += 1
+            else:
+                num += 1
 
     def _nec_notif(self, obj):
         self._nec_all(obj, self.check_rule_apply_notif, self.apply_rule_notif)
 
     def _nec_decrypted_message_received(self, obj):
+        self._nec_all(obj, self.check_rule_apply_decrypted_msg,
+            self.apply_rule_decrypted_message)
+
+    def _nec_gc_message_received(self, obj):
         self._nec_all(obj, self.check_rule_apply_decrypted_msg,
             self.apply_rule_decrypted_message)
 
@@ -215,20 +265,21 @@ class TriggersPluginConfigDialog(GajimPluginConfigDialog):
             'use_roster_cb', 'disable_roster_cb']
         #, 'gc_msg_highlight': [], 'gc_msg': []}
     }
-    recipient_types_list = ['contact', 'group', 'all']
+    recipient_types_list = ['contact', 'group', 'groupchat', 'all']
     config_options = ['event', 'recipient_type', 'recipients', 'status',
-        'tab_opened', 'sound', 'sound_file', 'popup', 'auto_open',
-        'run_command', 'command', 'systray', 'roster', 'urgency_hint']
+        'tab_opened', 'has_focus', 'sound', 'sound_file', 'popup', 'auto_open',
+        'run_command', 'command', 'systray', 'roster', 'urgency_hint',
+        'one_shot']
 
     def init(self):
         self.GTK_BUILDER_FILE_PATH = self.plugin.local_file_path(
             'config_dialog.ui')
-        self.xml = gtk.Builder()
+        self.xml = Gtk.Builder()
         self.xml.set_translation_domain('gajim_plugins')
         self.xml.add_objects_from_file(self.GTK_BUILDER_FILE_PATH,
             ['vbox', 'liststore1', 'liststore2'])
         vbox = self.xml.get_object('vbox')
-        self.child.pack_start(vbox)
+        self.get_child().pack_start(vbox, True, True, 0)
 
         self.xml.connect_signals(self)
         self.connect('hide', self.on_hide)
@@ -240,10 +291,10 @@ class TriggersPluginConfigDialog(GajimPluginConfigDialog):
         'status_hbox', 'use_sound_cb', 'disable_sound_cb', 'use_popup_cb',
         'disable_popup_cb', 'use_auto_open_cb', 'disable_auto_open_cb',
         'use_systray_cb', 'disable_systray_cb', 'use_roster_cb',
-        'disable_roster_cb', 'tab_opened_cb', 'not_tab_opened_cb',
-        'sound_entry', 'sound_file_hbox', 'up_button', 'down_button',
-        'run_command_cb', 'command_entry', 'use_urgency_hint_cb',
-        'disable_urgency_hint_cb'):
+        'disable_roster_cb', 'tab_opened_cb', 'not_tab_opened_cb', 'focus_hbox',
+        'has_focus_cb', 'not_has_focus_cb', 'sound_entry', 'sound_file_hbox',
+        'up_button', 'down_button', 'run_command_cb', 'command_entry',
+        'one_shot_cb', 'use_urgency_hint_cb', 'disable_urgency_hint_cb'):
             self.__dict__[w] = self.xml.get_object(w)
 
         self.config = {}
@@ -263,22 +314,22 @@ class TriggersPluginConfigDialog(GajimPluginConfigDialog):
 
         if not self.conditions_treeview.get_column(0):
             # window never opened
-            model = gtk.ListStore(int, str)
-            model.set_sort_column_id(0, gtk.SORT_ASCENDING)
+            model = Gtk.ListStore(int, str)
+            model.set_sort_column_id(0, Gtk.SortType.ASCENDING)
             self.conditions_treeview.set_model(model)
 
             # means number
-            col = gtk.TreeViewColumn(_('#'))
+            col = Gtk.TreeViewColumn(_('#'))
             self.conditions_treeview.append_column(col)
-            renderer = gtk.CellRendererText()
+            renderer = Gtk.CellRendererText()
             col.pack_start(renderer, expand=False)
-            col.set_attributes(renderer, text=0)
+            col.add_attribute(renderer, 'text', 0)
 
-            col = gtk.TreeViewColumn(_('Condition'))
+            col = Gtk.TreeViewColumn(_('Condition'))
             self.conditions_treeview.append_column(col)
-            renderer = gtk.CellRendererText()
+            renderer = Gtk.CellRendererText()
             col.pack_start(renderer, expand=True)
-            col.set_attributes(renderer, text=1)
+            col.add_attribute(renderer, 'text', 1)
         else:
             model = self.conditions_treeview.get_model()
 
@@ -312,7 +363,8 @@ class TriggersPluginConfigDialog(GajimPluginConfigDialog):
         # event
         value = self.config[self.active_num]['event']
         if value:
-            self.event_combobox.set_active(self.events_list.keys().index(value))
+            self.event_combobox.set_active(list(self.events_list.keys()).index(
+                value))
         else:
             self.event_combobox.set_active(-1)
         # recipient_type
@@ -350,6 +402,17 @@ class TriggersPluginConfigDialog(GajimPluginConfigDialog):
         elif value == 'yes':
             self.not_tab_opened_cb.set_active(False)
 
+        # has_focus
+        if 'has_focus' not in self.config[self.active_num]:
+            self.config[self.active_num]['has_focus'] = 'both'
+        value = self.config[self.active_num]['has_focus']
+        self.has_focus_cb.set_active(True)
+        self.not_has_focus_cb.set_active(True)
+        if value == 'no':
+            self.has_focus_cb.set_active(False)
+        elif value == 'yes':
+            self.not_has_focus_cb.set_active(False)
+
         # sound_file
         value = self.config[self.active_num]['sound_file']
         self.sound_entry.set_text(value)
@@ -375,12 +438,25 @@ class TriggersPluginConfigDialog(GajimPluginConfigDialog):
         value = self.config[self.active_num]['command']
         self.command_entry.set_text(value)
 
+        # one shot
+        if 'one_shot' in self.config[self.active_num]:
+            value = self.config[self.active_num]['one_shot']
+        else:
+            value = False
+        self.one_shot_cb.set_active(value)
+
     def set_treeview_string(self):
         (model, iter_) = self.conditions_treeview.get_selection().get_selected()
         if not iter_:
             return
-        event = self.event_combobox.get_active_text()
-        recipient_type = self.recipient_type_combobox.get_active_text()
+        ind = self.event_combobox.get_active()
+        event = ''
+        if ind > -1:
+            event = self.event_combobox.get_model()[ind][0]
+        ind = self.recipient_type_combobox.get_active()
+        recipient_type = ''
+        if ind > -1:
+            recipient_type = self.recipient_type_combobox.get_model()[ind][0]
         recipient = ''
         if recipient_type != 'everybody':
             recipient = self.recipient_list_entry.get_text()
@@ -418,9 +494,9 @@ class TriggersPluginConfigDialog(GajimPluginConfigDialog):
         num = self.conditions_treeview.get_model().iter_n_children(None)
         self.config[num] = {'event': '', 'recipient_type': 'all',
             'recipients': '', 'status': 'all', 'tab_opened': 'both',
-            'sound': '', 'sound_file': '', 'popup': '', 'auto_open': '',
-            'run_command': False, 'command': '', 'systray': '', 'roster': '',
-            'urgency_hint': False}
+            'has_focus': 'both', 'sound': '', 'sound_file': '', 'popup': '',
+            'auto_open': '', 'run_command': False, 'command': '', 'systray': '',
+            'roster': '', 'one_shot': False, 'urgency_hint': False}
         iter_ = model.append((num, ''))
         path = model.get_path(iter_)
         self.conditions_treeview.set_cursor(path)
@@ -481,9 +557,9 @@ class TriggersPluginConfigDialog(GajimPluginConfigDialog):
             return
         active = self.event_combobox.get_active()
         if active == -1:
-            event = ''
+            return
         else:
-            event = self.events_list.keys()[active]
+            event = list(self.events_list.keys())[active]
         self.config[self.active_num]['event'] = event
         for w in ('use_systray_cb', 'disable_systray_cb', 'use_roster_cb',
         'disable_roster_cb'):
@@ -554,11 +630,13 @@ class TriggersPluginConfigDialog(GajimPluginConfigDialog):
         if self.active_num < 0:
             return
         if self.tab_opened_cb.get_active():
+            self.focus_hbox.set_sensitive(True)
             if self.not_tab_opened_cb.get_active():
                 self.config[self.active_num]['tab_opened'] = 'both'
             else:
                 self.config[self.active_num]['tab_opened'] = 'yes'
         else:
+            self.focus_hbox.set_sensitive(False)
             self.not_tab_opened_cb.set_active(True)
             self.config[self.active_num]['tab_opened'] = 'no'
 
@@ -573,6 +651,31 @@ class TriggersPluginConfigDialog(GajimPluginConfigDialog):
         else:
             self.tab_opened_cb.set_active(True)
             self.config[self.active_num]['tab_opened'] = 'yes'
+
+    # has_focus OR (not xor) not_has_focus must be active
+    def on_has_focus_cb_toggled(self, widget):
+        if self.active_num < 0:
+            return
+        if self.has_focus_cb.get_active():
+            if self.not_has_focus_cb.get_active():
+                self.config[self.active_num]['has_focus'] = 'both'
+            else:
+                self.config[self.active_num]['has_focus'] = 'yes'
+        else:
+            self.not_has_focus_cb.set_active(True)
+            self.config[self.active_num]['has_focus'] = 'no'
+
+    def on_not_has_focus_cb_toggled(self, widget):
+        if self.active_num < 0:
+            return
+        if self.not_has_focus_cb.get_active():
+            if self.has_focus_cb.get_active():
+                self.config[self.active_num]['has_focus'] = 'both'
+            else:
+                self.config[self.active_num]['has_focus'] = 'no'
+        else:
+            self.has_focus_cb.set_active(True)
+            self.config[self.active_num]['has_focus'] = 'yes'
 
     def on_use_it_toggled(self, widget, oposite_widget, option):
         if widget.get_active():
@@ -661,6 +764,10 @@ class TriggersPluginConfigDialog(GajimPluginConfigDialog):
     def on_disable_roster_cb_toggled(self, widget):
         self.on_disable_it_toggled(widget, self.use_roster_cb, 'roster')
 
+    def on_one_shot_cb_toggled(self, widget):
+        self.config[self.active_num]['one_shot'] = widget.get_active()
+        self.command_entry.set_sensitive(widget.get_active())
+
     def on_use_urgency_hint_cb_toggled(self, widget):
         self.on_use_it_toggled(widget, self.disable_urgency_hint_cb,
             'uregency_hint')
@@ -671,7 +778,7 @@ class TriggersPluginConfigDialog(GajimPluginConfigDialog):
 
     def on_hide(self, widget):
         # save config
-        for n in self.plugin.config:
+        for n in list(self.plugin.config.keys()):
             del self.plugin.config[n]
         for n in self.config:
             self.plugin.config[str(n)] = self.config[n]

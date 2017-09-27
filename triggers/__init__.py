@@ -1,1 +1,1 @@
-from triggers import Triggers
+from .triggers import Triggers
