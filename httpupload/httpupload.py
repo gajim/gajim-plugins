@@ -76,6 +76,9 @@ class HTTPUploadPlugin(GajimPlugin):
                 app.jid_is_transport(event.jid)):
             return
 
+        if not event.id_.startswith('Gajim_'):
+            return
+
         account = event.conn.name
         interface = self.get_interface(account)
         interface.enabled = True
