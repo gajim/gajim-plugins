@@ -23,6 +23,7 @@ from urllib.parse import urlparse
 import io
 import mimetypes
 import logging
+from functools import partial
 if os.name == 'nt':
     import certifi
 
@@ -34,6 +35,8 @@ from gajim.common import ged
 from gajim.plugins import GajimPlugin
 from gajim.dialogs import FileChooserDialog, ErrorDialog
 
+from .config_dialog import HTTPUploadConfigDialog
+
 log = logging.getLogger('gajim.plugin_system.httpupload')
 
 IQ_CALLBACK = {}
@@ -42,7 +45,10 @@ NS_HTTPUPLOAD = 'urn:xmpp:http:upload'
 
 class HTTPUploadPlugin(GajimPlugin):
     def init(self):
-        self.config_dialog = None
+        self.config_default_values = {
+            'verify': (True, '')
+        }
+        self.config_dialog = partial(HTTPUploadConfigDialog, self)
         self.events_handlers = {
             'agent-info-received': (
                 ged.PRECORE, self.handle_agent_info_received),
@@ -342,10 +348,19 @@ class Base(object):
             request = Request(
                 file.put, data=file.stream, headers=headers, method='PUT')
             log.info("Opening Urllib upload request...")
-            if os.name == 'nt':
-                transfer = urlopen(request, cafile=certifi.where(), timeout=30)
+
+            if not self.plugin.config['verify']:
+                context = ssl.create_default_context()
+                context.check_hostname = False
+                context.verify_mode = ssl.CERT_NONE
+                log.warning('CERT Verification disabled')
+                transfer = urlopen(request, timeout=30, context=context)
             else:
-                transfer = urlopen(request, timeout=30)
+                if os.name == 'nt':
+                    transfer = urlopen(
+                        request, cafile=certifi.where(), timeout=30)
+                else:
+                    transfer = urlopen(request, timeout=30)
             file.stream.close()
             log.info('Urllib upload request done, response code: %s',
                      transfer.getcode())
@@ -491,6 +506,7 @@ class ProgressWindow:
 class UploadAbortedException(Exception):
     def __str__(self):
         return "Upload Aborted"
+
 
 class UnsecureTransportError(Exception):
     def __str__(self):
