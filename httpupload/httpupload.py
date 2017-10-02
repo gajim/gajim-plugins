@@ -153,9 +153,6 @@ class Base(object):
         button.set_relief(Gtk.ReliefStyle.NONE)
 
         actions_hbox.add(button)
-        send_button = chat_control.xml.get_object('send_button')
-        button_pos = actions_hbox.child_get_property(send_button, 'position')
-        actions_hbox.child_set_property(button, 'position', button_pos - 1)
 
         self.controls[jid] = button
         id_ = button.connect(
