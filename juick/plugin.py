@@ -177,7 +177,7 @@ class Base(object):
         img.set_from_stock('juick', Gtk.IconSize.MENU)
         self.button.set_image(img)
         self.button.set_tooltip_text(_('Juick commands'))
-        send_button = self.chat_control.xml.get_object('send_button')
+
         actions_hbox.pack_start(self.button, False, False , 0)
         actions_hbox.reorder_child(self.button,
             len(actions_hbox.get_children()) - 3)

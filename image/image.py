@@ -76,7 +76,6 @@ class Base(object):
         ag = Gtk.accel_groups_from_object(self.chat_control.parent_win.window)[0]
         self.button.add_accelerator('activate', ag, Gdk.KEY_L,
             Gdk.ModifierType.MOD1_MASK, Gtk.AccelFlags.VISIBLE)
-        send_button = chat_control.xml.get_object('send_button')
 
         actions_hbox.pack_start(self.button, False, False , 0)
         actions_hbox.reorder_child(self.button,
