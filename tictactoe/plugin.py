@@ -192,11 +192,7 @@ class Base(object):
         factory.add_default()
         img.set_from_stock('tictactoe', Gtk.IconSize.MENU)
         self.button.set_image(img)
-        send_button = self.chat_control.xml.get_object('send_button')
-        send_button_pos = actions_hbox.child_get_property(send_button,
-            'position')
         actions_hbox.pack_start(self.button, False, False, 0)
-        actions_hbox.reorder_child(self.button, send_button_pos - 1)
         id_ = self.button.connect('toggled', self.on_tictactoe_button_toggled)
         self.chat_control.handlers[id_] = self.button
         self.button.show()
