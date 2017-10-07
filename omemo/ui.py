@@ -449,7 +449,7 @@ class OMEMOConfigDialog(GajimPluginConfigDialog):
 
     def delfpr_button_clicked(self, button, *args):
         active = self.B.get_object('account_combobox').get_active()
-        account = self.account_store[active][0]
+        account = self.account_store[active][0].decode()
 
         state = self.plugin.get_omemo_state(account)
 
@@ -477,7 +477,7 @@ class OMEMOConfigDialog(GajimPluginConfigDialog):
 
     def trust_button_clicked_cb(self, button, *args):
         active = self.B.get_object('account_combobox').get_active()
-        account = self.account_store[active][0]
+        account = self.account_store[active][0].decode()
 
         state = self.plugin.get_omemo_state(account)
 
@@ -522,7 +522,7 @@ class OMEMOConfigDialog(GajimPluginConfigDialog):
 
     def cleardevice_button_clicked_cb(self, button, *args):
         active = self.B.get_object('account_combobox').get_active()
-        account = self.account_store[active][0]
+        account = self.account_store[active][0].decode()
         self.plugin.clear_device_list(account)
         self.update_context_list()
 
@@ -576,7 +576,7 @@ class OMEMOConfigDialog(GajimPluginConfigDialog):
             self.B.get_object('qrcode').clear()
             return
         active = self.B.get_object('account_combobox').get_active()
-        account = self.account_store[active][0]
+        account = self.account_store[active][0].decode()
 
         # Set buttons active
         self.B.get_object('trust_button').set_sensitive(True)
