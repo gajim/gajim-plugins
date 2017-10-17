@@ -3,55 +3,48 @@
 from gi.repository import Pango
 from gi.repository import Gtk
 from gi.repository import Gdk
-from gi.repository import GObject
+from gi.repository import GLib
 
-from gajim.common import app, ged, helpers, pep
+from gajim.common import app, ged, helpers
 from gajim.plugins import GajimPlugin
-from gajim.plugins.helpers import log_calls
 from gajim.plugins.gui import GajimPluginConfigDialog
 from gajim.dialogs import ChangeActivityDialog, ChangeMoodDialog
 from gajim import gtkgui_helpers
 
 
 class RosterTweaksPlugin(GajimPlugin):
-
-    @log_calls('RosterTweaksPlugin')
     def init(self):
-        self.description = _('Allows user to tweak roster window appearance '
-            '(eg. make it compact).\nBased on ticket #3340:\n'
-            'http://trac.gajim.org/ticket/3340.\n'
-            'Added ability to quickly change the status message '
-            'to all connected accounts.\n'
-            'Based on ticket #5085:\n'
-            'http://trac.gajim.org/ticket/5085.')
+        self.description = _(
+            'Allows user to tweak roster window appearance '
+            '(eg. make it compact).')
         self.config_default_values = {'hide_status_combo': (False, ''),
                                       'use_ctr_m': (False, ''),
                                       'menu_visible': (True, ''),
                                       'quick_status': (False, ''),
-                                      'contact_status_subs': (False, ''),}
+                                      'contact_status_subs': (False, ''), }
         self.events_handlers = {'our-show': (ged.GUI2, self.our_show),
                                 'pep-received': (ged.GUI2, self.pep_received)}
         self.gui_extension_points = {
-                'roster_draw_contact': (self.roster_draw_contact,
-                                       self.disconnect_roster_draw_contact),}
+            'roster_draw_contact': (self.roster_draw_contact,
+                                    self.disconnect_roster_draw_contact), }
         self.roster = app.interface.roster
         self.config_dialog = RosterTweaksPluginConfigDialog(self)
 
-    def roster_draw_contact(self, roster,jid, account, contact):
+    def roster_draw_contact(self, roster, jid, account, contact):
         self.connected = True
         if not self.active:
             return
         if not self.config['contact_status_subs']:
             return
-        child_iters = roster._get_contact_iter(jid, account, contact,
-            roster.model)
+        child_iters = roster._get_contact_iter(
+            jid, account, contact, roster.model)
         if not child_iters:
             return
         name = roster.model[child_iters[0]][1]
         if '\n<span ' not in name:
             roster.model[child_iters[0]][1] = name + '\n'
 
-    def disconnect_roster_draw_contact(self, roster,jid, account, contact):
+    def disconnect_roster_draw_contact(self, *args):
         if self.connected:
             self.roster.setup_and_draw_roster()
             self.connected = False
@@ -61,14 +54,14 @@ class RosterTweaksPlugin(GajimPlugin):
             return
 
         pep_dict = app.connections[obj.conn.name].pep
-        if  obj.pep_type == 'mood':
+        if obj.pep_type == 'mood':
             img = self.xml.get_object('mood_image')
             if 'mood' in pep_dict:
                 pixbuf = gtkgui_helpers.get_pep_as_pixbuf(pep_dict['mood'])
                 img.set_from_pixbuf(pixbuf)
             else:
                 img.set_from_stock('gtk-stop', Gtk.IconSize.MENU)
-        if  obj.pep_type == 'activity':
+        if obj.pep_type == 'activity':
             img = self.xml.get_object('activity_image')
             if 'activity' in pep_dict:
                 pb = gtkgui_helpers.get_pep_as_pixbuf(pep_dict['activity'])
@@ -76,14 +69,13 @@ class RosterTweaksPlugin(GajimPlugin):
             else:
                 img.set_from_stock('gtk-stop', Gtk.IconSize.MENU)
 
-    def our_show(self, obj):
+    def our_show(self, *args):
         if self.active:
             if helpers.get_global_show() != app.SHOW_LIST[0]:
                 self.status_widget.set_text(helpers.get_global_status())
             else:
                 self.status_widget.set_text('')
 
-    @log_calls('RosterTweaksPlugin')
     def activate(self):
         self.pep_dict = {}
         self.roster.status_combobox.set_property('visible', not self.config[
@@ -118,33 +110,26 @@ class RosterTweaksPlugin(GajimPlugin):
             window = self.roster.window
             self.accel_group = Gtk.accel_groups_from_object(window)[0]
             self.accel_group.connect(Gdk.KEY_m,
-                Gdk.ModifierType.CONTROL_MASK, Gtk.AccelFlags.MASK,
-                self.on_ctrl_m)
+                                     Gdk.ModifierType.CONTROL_MASK,
+                                     Gtk.AccelFlags.MASK,
+                                     self.on_ctrl_m)
             self.config['menu_visible'] = not self.config['menu_visible']
-            self.on_ctrl_m(None, None, None, None)
+            self.on_ctrl_m()
 
-    @log_calls('RosterTweaksPlugin')
     def deactivate(self):
         self.roster.status_combobox.show()
         self.status_widget.destroy()
         self.activity_button.destroy()
         self.mood_button.destroy()
-        self.roster.xml.get_object('menubar').set_size_request(-1, -1)
+        self.roster.window.set_show_menubar(True)
 
-    def on_ctrl_m(self, accel_group, acceleratable, keyval, modifier):
-        menubar = self.roster.xml.get_object('menubar')
-        if not self.config['menu_visible']:
-            #menubar.set_size_request(-1, -1)
-            menubar.hide()
-        else:
-            menubar.show()
-            #menubar.set_size_request(-1, -1)
+    def on_ctrl_m(self, *args):
+        self.roster.window.set_show_menubar(self.config['menu_visible'])
         self.config['menu_visible'] = not self.config['menu_visible']
         return True
 
     def status_changed(self, widget, event):
-        if event.keyval == gtk.keysyms.Return or \
-            event.keyval == gtk.keysyms.KP_Enter:
+        if event.keyval in (Gdk.KEY_Return, Gdk.KEY_KP_Enter):
             accounts = app.connections.keys()
             message = widget.get_text()
             for account in accounts:
@@ -153,10 +138,10 @@ class RosterTweaksPlugin(GajimPlugin):
                 current_show = app.SHOW_LIST[
                     app.connections[account].connected]
                 self.roster.send_status(account, current_show, message)
-            self.font_desc.set_weight(pango.WEIGHT_BOLD)
+            self.font_desc.set_weight(Pango.Weight.BOLD)
             widget.modify_font(self.font_desc)
-            self.font_desc.set_weight(pango.WEIGHT_NORMAL)
-            gobject.timeout_add(1000, widget.modify_font, self.font_desc)
+            self.font_desc.set_weight(Pango.Weight.NORMAL)
+            GLib.timeout_add(1000, widget.modify_font, self.font_desc)
 
     def on_activity_button_clicked(self, widget):
         def on_response(activity, subactivity, text):
@@ -164,17 +149,19 @@ class RosterTweaksPlugin(GajimPlugin):
             self.pep_dict['subactivity'] = subactivity or ''
             self.pep_dict['activity_text'] = text
             self.send_pep()
-        ChangeActivityDialog(on_response, self.pep_dict.get('activity', None),
-            self.pep_dict.get('subactivity', None),
-            self.pep_dict.get('activity_text', None))
+        ChangeActivityDialog(on_response, 
+                             self.pep_dict.get('activity', None),
+                             self.pep_dict.get('subactivity', None),
+                             self.pep_dict.get('activity_text', None))
 
     def on_mood_button_clicked(self, widget):
         def on_response(mood, text):
             self.pep_dict['mood'] = mood or ''
             self.pep_dict['mood_text'] = text
             self.send_pep()
-        ChangeMoodDialog(on_response, self.pep_dict.get('mood', None),
-            self.pep_dict.get('mood_text', None))
+        ChangeMoodDialog(on_response, 
+                         self.pep_dict.get('mood', None),
+                         self.pep_dict.get('mood_text', None))
 
     def send_pep(self):
         accounts = app.connections.keys()
@@ -189,8 +176,8 @@ class RosterTweaksPluginConfigDialog(GajimPluginConfigDialog):
                 'config_dialog.ui')
         self.xml = Gtk.Builder()
         self.xml.set_translation_domain('gajim_plugins')
-        self.xml.add_objects_from_file(self.GTK_BUILDER_FILE_PATH,
-                ['roster_tweaks_config_vbox'])
+        self.xml.add_objects_from_file(
+            self.GTK_BUILDER_FILE_PATH, ['roster_tweaks_config_vbox'])
 
         self.config_vbox = self.xml.get_object('roster_tweaks_config_vbox')
         self.get_child().pack_start(self.config_vbox, True, True, 0)
@@ -210,8 +197,8 @@ class RosterTweaksPluginConfigDialog(GajimPluginConfigDialog):
 
     def on_hide_combo_toggled(self, button):
         self.plugin.config['hide_status_combo'] = button.get_active()
-        self.plugin.roster.status_combobox.set_property('visible', not \
-            self.plugin.config['hide_status_combo'])
+        self.plugin.roster.status_combobox.set_property(
+            'visible', not self.plugin.config['hide_status_combo'])
 
     def on_quick_status_toggled(self, button):
         self.plugin.config['quick_status'] = button.get_active()
@@ -228,10 +215,10 @@ class RosterTweaksPluginConfigDialog(GajimPluginConfigDialog):
         if is_ctr_m_enabled:
             self.plugin.enable_ctrl_m()
         else:
-            self.plugin.accel_group.disconnect_key(Gdk.KEY_m,
-                Gdk.ModifierType.CONTROL_MASK)
+            self.plugin.accel_group.disconnect_key(
+                Gdk.KEY_m, Gdk.ModifierType.CONTROL_MASK)
             self.plugin.config['menu_visible'] = True
-            self.plugin.roster.xml.get_object('menubar').set_size_request(-1, -1)
+            self.plugin.roster.window.set_show_menubar(True)
 
     def on_contact_status_subs_toggled(self, button):
         self.plugin.config['contact_status_subs'] = button.get_active()
