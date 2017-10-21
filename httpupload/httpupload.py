@@ -117,6 +117,8 @@ class HTTPUploadPlugin(GajimPlugin):
         if jid not in interface.controls:
             return
         actions_hbox = chat_control.xml.get_object('actions_hbox')
+        if actions_hbox is None:
+            actions_hbox = chat_control.xml.get_object('hbox')
         actions_hbox.remove(interface.controls[jid])
 
     def update_chat_control(self, chat_control):
@@ -151,6 +153,11 @@ class Base(object):
         button.set_property('can-focus', False)
         button.set_image(img)
         button.set_relief(Gtk.ReliefStyle.NONE)
+
+        if actions_hbox is None:
+            actions_hbox = chat_control.xml.get_object('hbox')
+            style = button.get_style_context()
+            style.add_class('chatcontrol-actionbar-button')
 
         actions_hbox.add(button)
 
