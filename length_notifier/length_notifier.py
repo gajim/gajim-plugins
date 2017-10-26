@@ -56,8 +56,8 @@ class LengthNotifierPlugin(GajimPlugin):
     def textview_length_warning(self, tb, chat_control):
         tv = chat_control.msg_textview
         d = chat_control.length_notifier_plugin_data
-        t = tb.get_text(tb.get_start_iter(), tb.get_end_iter(), True)
-        if t:
+        if tv.has_text():
+            t = tb.get_text(tb.get_start_iter(), tb.get_end_iter(), True)
             len_t = len(t)
             if len_t > self.config['MESSAGE_WARNING_LENGTH']:
                 if not d['prev_color']:
@@ -87,8 +87,8 @@ class LengthNotifierPlugin(GajimPlugin):
                 chat_control)
             d['h_id'] = h_id
 
-            t = tb.get_text(tb.get_start_iter(), tb.get_end_iter(), True)
-            if t:
+            if tv.has_text():
+                t = tb.get_text(tb.get_start_iter(), tb.get_end_iter(), True)
                 len_t = len(t)
                 if len_t > self.config['MESSAGE_WARNING_LENGTH']:
                     context = tv.get_style_context()
