@@ -36,8 +36,8 @@ from gajim.plugins.gui import GajimPluginConfigDialog
 import nbxmpp
 from gi.repository import Gtk
 from gi.repository import Gdk
-from gi.repository import GdkPixbuf
-from gi.repository import cairo
+from gi.repository import Gio
+from gi.repository import GLib
 import gi
 gi.require_version('PangoCairo', '1.0')
 from gi.repository import PangoCairo
@@ -61,7 +61,7 @@ class TictactoePlugin(GajimPlugin):
                 self._nec_decrypted_message_received),
         }
         self.gui_extension_points = {
-            'chat_control_base' : (self.connect_with_chat_control,
+            'chat_control' : (self.connect_with_chat_control,
                 self.disconnect_from_chat_control),
             'chat_control_base_update_toolbar': (self.update_button_state,
                 None),
@@ -111,7 +111,7 @@ class TictactoePlugin(GajimPlugin):
                 TicTacToeSession)]
             if tictactoes:
                 base.tictactoe = tictactoes[0]
-                base.button.set_active(True)
+                base.enable_action(True)
 
     @log_calls('TictactoePlugin')
     def disconnect_from_chat_control(self, chat_control):
@@ -125,13 +125,9 @@ class TictactoePlugin(GajimPlugin):
             if base.chat_control == control:
                 if control.contact.supports(NS_GAMES) and \
                 control.contact.supports(NS_GAMES_TICTACTOE):
-                    base.button.set_sensitive(True)
-                    tooltip_text = _('Play tictactoe')
+                    base.enable_action(True)
                 else:
-                    base.button.set_sensitive(False)
-                    tooltip_text = _('Client on the other side '
-                        'does not support playing tictactoe')
-                base.button.set_tooltip_text(tooltip_text)
+                    base.enable_action(False)
 
     @log_calls('TictactoePlugin')
     def show_request_dialog(self, obj, session):
@@ -174,34 +170,31 @@ class Base(object):
         self.contact = self.chat_control.contact
         self.account = self.chat_control.account
         self.fjid = self.contact.get_full_jid()
-        self.create_buttons()
+        self.add_action()
         self.tictactoe = None
 
-    def create_buttons(self):
-        # create whiteboard button
-        actions_hbox = self.chat_control.xml.get_object('actions_hbox')
-        self.button = Gtk.ToggleButton()
-        self.button.set_property('relief', Gtk.ReliefStyle.NONE)
-        self.button.set_property('can-focus', False)
-        img = Gtk.Image()
-        img_path = self.plugin.local_file_path('tictactoe.png')
-        pixbuf = GdkPixbuf.Pixbuf.new_from_file(img_path)
-        iconset = Gtk.IconSet(pixbuf=pixbuf)
-        factory = Gtk.IconFactory()
-        factory.add('tictactoe', iconset)
-        factory.add_default()
-        img.set_from_stock('tictactoe', Gtk.IconSize.MENU)
-        self.button.set_image(img)
-        actions_hbox.pack_start(self.button, False, False, 0)
-        id_ = self.button.connect('toggled', self.on_tictactoe_button_toggled)
-        self.chat_control.handlers[id_] = self.button
-        self.button.show()
+    def add_action(self):
+        action_name = 'toggle-tictactoe-' + self.chat_control.control_id
+        act = Gio.SimpleAction.new_stateful(
+            action_name, None, GLib.Variant.new_boolean(False))
+        act.connect('change-state', self.on_tictactoe_button_toggled)
+        self.chat_control.parent_win.window.add_action(act)
 
-    def on_tictactoe_button_toggled(self, widget):
+        self.chat_control.control_menu.append(
+            'TicTacToe', 'win.' + action_name)
+
+    def enable_action(self, state):
+        win = self.chat_control.parent_win.window
+        action_name = 'toggle-tictactoe-' + self.chat_control.control_id
+        win.lookup_action(action_name).set_enabled(state)
+
+    def on_tictactoe_button_toggled(self, action, param):
         """
         Popup whiteboard
         """
-        if widget.get_active():
+        action.set_state(param)
+        state = param.get_boolean()
+        if state:
             if not self.tictactoe:
                 self.start_tictactoe()
         else:
@@ -220,8 +213,12 @@ class Base(object):
         self.tictactoe = None
 
     def disconnect_from_chat_control(self):
-        actions_hbox = self.chat_control.xml.get_object('actions_hbox')
-        actions_hbox.remove(self.button)
+        menu = self.chat_control.control_menu
+        for i in range(menu.get_n_items()):
+            label = menu.get_item_attribute_value(i, 'label')
+            if label.get_string() == 'TicTacToe':
+                menu.remove(i)
+                break
 
 class InvalidMove(Exception):
     pass
