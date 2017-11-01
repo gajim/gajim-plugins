@@ -22,6 +22,7 @@ import binascii
 from urllib.parse import urlparse
 from io import BytesIO
 import shutil
+from functools import partial
 
 import logging
 import nbxmpp
@@ -35,6 +36,7 @@ from gajim.plugins.helpers import log_calls
 from gajim.plugins.gui import GajimPluginConfigDialog
 from gajim.conversation_textview import TextViewImage
 from .http_functions import get_http_head, get_http_file
+from .config_dialog import UrlImagePreviewConfigDialog
 
 log = logging.getLogger('gajim.plugin_system.url_image_preview')
 
@@ -68,7 +70,7 @@ class UrlImagePreviewPlugin(GajimPlugin):
     def init(self):
         if not decryption_available:
             self.available_text = DEP_MSG
-        self.config_dialog = UrlImagePreviewPluginConfigDialog(self)
+        self.config_dialog = partial(UrlImagePreviewConfigDialog, self)
         self.events_handlers = {}
         self.events_handlers['message-received'] = (
             ged.PRECORE, self.handle_message_received)
@@ -626,64 +628,3 @@ class Base(object):
 
     def disconnect_from_chat_control(self):
         pass
-
-
-class UrlImagePreviewPluginConfigDialog(GajimPluginConfigDialog):
-    max_file_size = [262144, 524288, 1048576, 5242880, 10485760]
-    leftclick_action = ['open_menuitem', 'save_as_menuitem', 'copy_link_location_menuitem',
-                        'open_link_in_browser_menuitem', 'open_file_in_browser_menuitem']
-
-    def init(self):
-        self.GTK_BUILDER_FILE_PATH = self.plugin.local_file_path(
-            'config_dialog.ui')
-        self.xml = Gtk.Builder()
-        self.xml.set_translation_domain('gajim_plugins')
-        self.xml.add_objects_from_file(self.GTK_BUILDER_FILE_PATH, [
-            'vbox1', 'liststore1', 'liststore2'])
-        self.preview_size_spinbutton = self.xml.get_object('preview_size')
-        self.preview_size_spinbutton.get_adjustment().configure(20, 10, 512, 1,
-                                                              10, 0)
-        self.max_size_combobox = self.xml.get_object('max_size_combobox')
-        self.leftclick_action_combobox = self.xml.get_object('leftclick_action_combobox')
-        vbox = self.xml.get_object('vbox1')
-        self.get_child().pack_start(vbox, True, True, 0)
-
-        self.xml.connect_signals(self)
-
-    def on_run(self):
-        self.preview_size_spinbutton.set_value(self.plugin.config[
-            'PREVIEW_SIZE'])
-        value = self.plugin.config['MAX_FILE_SIZE']
-        if value:
-            # this fails if we upgrade from an old version
-            # which has other file size values than we have now
-            try:
-                self.max_size_combobox.set_active(
-                    self.max_file_size.index(value))
-            except:
-                pass
-        else:
-            self.max_size_combobox.set_active(-1)
-        
-        value = self.plugin.config['LEFTCLICK_ACTION']
-        if value:
-            # this fails if we upgrade from an old version
-            # which has other file size values than we have now
-            try:
-                self.leftclick_action_combobox.set_active(
-                    self.leftclick_action.index(value))
-            except:
-                pass
-        else:
-            self.leftclick_action_combobox.set_active(0)
-
-    def preview_size_value_changed(self, spinbutton):
-        self.plugin.config['PREVIEW_SIZE'] = spinbutton.get_value()
-
-    def max_size_value_changed(self, widget):
-        self.plugin.config['MAX_FILE_SIZE'] = self.max_file_size[
-            self.max_size_combobox.get_active()]
-    
-    def leftclick_action_changed(self, widget):
-        self.plugin.config['LEFTCLICK_ACTION'] = self.leftclick_action[
-            self.leftclick_action_combobox.get_active()]
