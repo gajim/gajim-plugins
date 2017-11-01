@@ -92,11 +92,12 @@ class UrlImagePreviewPlugin(GajimPlugin):
         if oob_node:
             oob_url = oob_node.getTagData('url')
             oob_desc = oob_node.getTagData('desc')
-            if oob_url and oob_url == event.msgtxt and \
-                    (not oob_desc or oob_desc == ""):
+            if (oob_url and oob_url == event.msgtxt and
+                    (not oob_desc or oob_desc == "")):
                 log.debug("Detected oob tag containing same"
                           "url as the message text, deleting oob tag...")
                 event.stanza.delChild(oob_node)
+                event.additional_data["url_image_preview"] = {"oob": True}
 
     @log_calls('UrlImagePreviewPlugin')
     def connect_with_chat_control(self, chat_control):
@@ -113,8 +114,8 @@ class UrlImagePreviewPlugin(GajimPlugin):
         self.controls[account][jid].deinit()
         del self.controls[account][jid]
 
-    def print_special_text(self, tv, special_text, other_tags, graphics=True,
-                           additional_data=None, iter_=None):
+    def print_special_text(self, tv, special_text, other_tags, graphics,
+                           additional_data, iter_):
         account = tv.account
         for jid in self.controls[account]:
             if self.controls[account][jid].chat_control.conv_textview != tv:
@@ -152,20 +153,25 @@ class Base(object):
                 self.handlers[i].disconnect(i)
             del self.handlers[i]
 
-    def print_special_text(self, special_text, other_tags, graphics=True,
-                           additional_data=None, iter_=None):
-        # remove qip bbcode
-        special_text = special_text.rsplit('[/img]')[0]
-
-        if special_text.startswith('www.'):
-            special_text = 'http://' + special_text
-        if special_text.startswith('ftp.'):
-            special_text = 'ftp://' + special_text
-
+    def print_special_text(self, special_text, other_tags, graphics,
+                           additional_data, iter_):
+        
         urlparts = urlparse(special_text)
-        if urlparts.scheme not in ["https", "http", "ftp", "ftps", 'aesgcm'] or \
-                not urlparts.netloc:
-            log.info("Not accepting URL for image preview: %s" % special_text)
+        if (urlparts.scheme not in ["https", "aesgcm"] or
+                not urlparts.netloc):
+            log.info("Not accepting URL scheme '%s' for image preview: %s" %
+                     (str(urlparts.scheme), special_text))
+            return
+
+        # allow aesgcm uris without oob marker (aesgcm uris are always
+        # httpupload filetransfers)
+        if (urlparts.scheme != "aesgcm" and (
+                not "url_image_preview" in additional_data or
+                not "oob" in additional_data["url_image_preview"] or
+                not additional_data["url_image_preview"]["oob"])):
+            log.info("Not accepting URL for image preview"
+                " (no oob marker given in additional_data): %s" % special_text)
+            log.debug("additional_data: %s" % str(additional_data))
             return
 
         # Don't print the URL in the message window (in the calling function)
