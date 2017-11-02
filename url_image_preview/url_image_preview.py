@@ -356,6 +356,8 @@ class Base(object):
                 # (Gtk textview is NOT threadsafe by itself!!)
                 def add_to_textview():
                     try:        # textview closed in the meantime etc.
+                        at_end = self.textview.at_the_end()
+                        
                         buffer_ = repl_start.get_buffer()
                         iter_ = buffer_.get_iter_at_mark(repl_start)
                         buffer_.insert(iter_, "\n")
@@ -374,6 +376,9 @@ class Base(object):
                         self.textview.tv.add_child_at_anchor(eb, anchor)
                         buffer_.delete(iter_,
                                     buffer_.get_iter_at_mark(repl_end))
+                        
+                        if at_end:
+                            GObject.idle_add(self.textview.scroll_to_end_iter)
                     except Exception as ex:
                         log.warn("Exception while loading %s: %s" % (str(url), str(ex)))
                     return False
