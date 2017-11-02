@@ -77,12 +77,15 @@ class UrlImagePreviewPlugin(GajimPlugin):
         self.gui_extension_points = {
             'chat_control_base': (self.connect_with_chat_control,
                                   self.disconnect_from_chat_control),
+            'history_window': 
+                (self.connect_with_history, self.disconnect_from_history),
             'print_special_text': (self.print_special_text, None), }
         self.config_default_values = {
             'PREVIEW_SIZE': (150, 'Preview size(10-512)'),
             'MAX_FILE_SIZE': (524288, 'Max file size for image preview'),
             'LEFTCLICK_ACTION': ('open_menuitem', 'Open')}
         self.controls = {}
+        self.history_window_control = None
 
     # remove oob tag if oob url == message text
     def handle_message_received(self, event):
@@ -105,20 +108,41 @@ class UrlImagePreviewPlugin(GajimPlugin):
         jid = chat_control.contact.jid
         if account not in self.controls:
             self.controls[account] = {}
-        self.controls[account][jid] = Base(self, chat_control)
+        self.controls[account][jid] = Base(self, chat_control.conv_textview,
+                                           chat_control.parent_win.window)
 
     @log_calls('UrlImagePreviewPlugin')
     def disconnect_from_chat_control(self, chat_control):
         account = chat_control.contact.account.name
         jid = chat_control.contact.jid
-        self.controls[account][jid].deinit()
+        self.controls[account][jid].deinit_handlers()
         del self.controls[account][jid]
+    
+    @log_calls('UrlImagePreviewPlugin')
+    def connect_with_history(self, history_window):
+        if self.history_window_control:
+            log.error("connect_with_history: deinit handlers")
+            self.history_window_control.deinit_handlers()
+        log.error("connect_with_history: create base")
+        self.history_window_control = Base(
+            self, history_window.history_textview, history_window)
+
+    @log_calls('UrlImagePreviewPlugin')
+    def disconnect_from_history(self, history_window):
+        if self.history_window_control:
+            self.history_window_control.deinit_handlers()
+        self.history_window_control = None
 
     def print_special_text(self, tv, special_text, other_tags, graphics,
                            additional_data, iter_):
+        if tv.used_in_history_window and self.history_window_control:
+            self.history_window_control.print_special_text(
+                special_text, other_tags, graphics=graphics,
+                additional_data=additional_data, iter_=iter_)
+            
         account = tv.account
         for jid in self.controls[account]:
-            if self.controls[account][jid].chat_control.conv_textview != tv:
+            if self.controls[account][jid].textview != tv:
                 continue
             self.controls[account][jid].print_special_text(
                 special_text, other_tags, graphics=graphics,
@@ -127,10 +151,10 @@ class UrlImagePreviewPlugin(GajimPlugin):
 
 
 class Base(object):
-    def __init__(self, plugin, chat_control):
+    def __init__(self, plugin, textview, parent_win=None):
         self.plugin = plugin
-        self.chat_control = chat_control
-        self.textview = self.chat_control.conv_textview
+        self.parent_win = parent_win
+        self.textview = textview
         self.handlers = {}
 
         self.directory = os.path.join(configpaths.gajimpaths['MY_DATA'],
@@ -145,7 +169,7 @@ class Base(object):
             log.error("Error creating download and/or thumbnail folder!")
             raise
 
-    def deinit(self):
+    def deinit_handlers(self):
         # remove all register handlers on wigets, created by self.xml
         # to prevent circular references among objects
         for i in list(self.handlers.keys()):
@@ -295,7 +319,7 @@ class Base(object):
                 _('Exception raised while saving thumbnail '
                   'for image file (see error log for more '
                   'information)'),
-                transient_for=self.chat_control.parent_win.window)
+                transient_for=self.parent_win)
             log.error(str(e))
         return (mem, alt)
 
@@ -418,7 +442,7 @@ class Base(object):
                 _('Could not save file'),
                 _('Exception raised while saving image file'
                   ' (see error log for more information)'),
-                transient_for=self.chat_control.parent_win.window)
+                transient_for=self.parent_win)
             log.error(str(e))
 
         # Create thumbnail, write it to harddisk and return it
@@ -578,7 +602,7 @@ class Base(object):
                 _('You cannot open encrypted files in your '
                   'browser directly. Try "Open Downloaded File '
                   'in Browser" instead.'),
-                transient_for=self.chat_control.parent_win.window)
+                transient_for=self.parent_win)
         else:
             helpers.launch_browser_mailer('url', url)
         
@@ -593,7 +617,7 @@ class Base(object):
                 _('Cannot open downloaded file in browser'),
                 _('You have to set a custom browser executable '
                   'in your gajim settings for this to work.'),
-                transient_for=self.chat_control.parent_win.window)
+                transient_for=self.parent_win)
             return
         command = app.config.get('custombrowser')
         command = helpers.build_command(command, filepath)
