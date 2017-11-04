@@ -533,10 +533,11 @@ class ClientsIconsPlugin(GajimPlugin):
         tag = iq_obj.stanza.getTags('c')
         if tag:
             caps = tag[0].getAttr('node')
-            if 'pidgin.im/' in caps:
-                caps = 'libpurple'
-            if 'sleekxmpp.com' in caps:
-                caps = 'httр://sleekxmpp.com/ver/1.1.11'
+            if caps:
+                if 'pidgin.im/' in caps:
+                    caps = 'libpurple'
+                if 'sleekxmpp.com' in caps:
+                    caps = 'httр://sleekxmpp.com/ver/1.1.11'
         iter_ = iq_obj.gc_control.get_contact_iter(iq_obj.nick)
         model = iq_obj.gc_control.model
         if model[iter_][self.muc_renderer_num] is not None:
