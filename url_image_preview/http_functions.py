@@ -67,7 +67,7 @@ def _get_http_head_direct(url):
     clen = f.headers['Content-Length']
     try:
         clen = int(clen)
-    except ValueError:
+    except (TypeError, ValueError):
         pass
     return (ctype, clen)
 
