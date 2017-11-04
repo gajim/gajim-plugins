@@ -71,36 +71,19 @@ class UrlImagePreviewPlugin(GajimPlugin):
         if not decryption_available:
             self.available_text = DEP_MSG
         self.config_dialog = partial(UrlImagePreviewConfigDialog, self)
-        self.events_handlers = {}
-        self.events_handlers['message-received'] = (
-            ged.PRECORE, self.handle_message_received)
         self.gui_extension_points = {
             'chat_control_base': (self.connect_with_chat_control,
                                   self.disconnect_from_chat_control),
             'history_window': 
                 (self.connect_with_history, self.disconnect_from_history),
-            'print_special_text': (self.print_special_text, None), }
+            'print_real_text': (self.print_real_text, None), }
         self.config_default_values = {
             'PREVIEW_SIZE': (150, 'Preview size(10-512)'),
             'MAX_FILE_SIZE': (524288, 'Max file size for image preview'),
-            'LEFTCLICK_ACTION': ('open_menuitem', 'Open')}
+            'LEFTCLICK_ACTION': ('open_menuitem', 'Open'),
+            'ANONYMOUS_MUC': False,}
         self.controls = {}
         self.history_window_control = None
-
-    # remove oob tag if oob url == message text
-    def handle_message_received(self, event):
-        oob_node = event.stanza.getTag('x', namespace=nbxmpp.NS_X_OOB)
-        oob_url = None
-        oob_desc = None
-        if oob_node:
-            oob_url = oob_node.getTagData('url')
-            oob_desc = oob_node.getTagData('desc')
-            if (oob_url and oob_url == event.msgtxt and
-                    (not oob_desc or oob_desc == "")):
-                log.debug("Detected oob tag containing same"
-                          "url as the message text, deleting oob tag...")
-                event.stanza.delChild(oob_node)
-                event.additional_data["url_image_preview"] = {"oob": True}
 
     @log_calls('UrlImagePreviewPlugin')
     def connect_with_chat_control(self, chat_control):
@@ -133,20 +116,18 @@ class UrlImagePreviewPlugin(GajimPlugin):
             self.history_window_control.deinit_handlers()
         self.history_window_control = None
 
-    def print_special_text(self, tv, special_text, other_tags, graphics,
-                           additional_data, iter_):
+    def print_real_text(self, tv, real_text, text_tags, graphics,
+                        iter_, additional_data):
         if tv.used_in_history_window and self.history_window_control:
-            self.history_window_control.print_special_text(
-                special_text, other_tags, graphics=graphics,
-                additional_data=additional_data, iter_=iter_)
-            
+            self.history_window_control.print_real_text(
+                real_text, text_tags, graphics, iter_, additional_data)
+
         account = tv.account
         for jid in self.controls[account]:
             if self.controls[account][jid].textview != tv:
                 continue
-            self.controls[account][jid].print_special_text(
-                special_text, other_tags, graphics=graphics,
-                additional_data=additional_data, iter_=iter_)
+            self.controls[account][jid].print_real_text(
+                real_text, text_tags, graphics, iter_, additional_data)
             return
 
 
@@ -177,25 +158,26 @@ class Base(object):
                 self.handlers[i].disconnect(i)
             del self.handlers[i]
 
-    def print_special_text(self, special_text, other_tags, graphics,
-                           additional_data, iter_):
-        
-        urlparts = urlparse(special_text)
+    def print_real_text(self, real_text, text_tags, graphics, iter_,
+                        additional_data):
+        urlparts = urlparse(real_text)
         if (urlparts.scheme not in ["https", "aesgcm"] or
                 not urlparts.netloc):
             log.info("Not accepting URL scheme '%s' for image preview: %s" %
-                     (str(urlparts.scheme), special_text))
+                     (str(urlparts.scheme), real_text))
             return
+
+        try:
+            oob_url = additional_data["gajim"]["oob_url"]
+        except (KeyError, AttributeError):
+            oob_url = None
 
         # allow aesgcm uris without oob marker (aesgcm uris are always
         # httpupload filetransfers)
-        if (urlparts.scheme != "aesgcm" and (
-                not "url_image_preview" in additional_data or
-                not "oob" in additional_data["url_image_preview"] or
-                not additional_data["url_image_preview"]["oob"])):
-            log.info("Not accepting URL for image preview"
-                " (no oob marker given in additional_data): %s" % special_text)
-            log.debug("additional_data: %s" % str(additional_data))
+        if (urlparts.scheme != "aesgcm" and real_text != oob_url):
+            log.info("Not accepting URL for image preview "
+                     "(wrong or no oob data): %s", real_text)
+            log.debug("additional_data: %s", additional_data)
             return
 
         # Don't print the URL in the message window (in the calling function)
@@ -208,14 +190,14 @@ class Base(object):
         # Show URL, until image is loaded (if ever)
         ttt = buffer_.get_tag_table()
         repl_start = buffer_.create_mark(None, iter_, True)
-        buffer_.insert_with_tags(iter_, special_text,
+        buffer_.insert_with_tags(iter_, real_text,
             *[(ttt.lookup(t) if isinstance(t, str) else t) for t in ["url"]])
         repl_end = buffer_.create_mark(None, iter_, True)
 
         filename = os.path.basename(urlparts.path)
         ext = os.path.splitext(filename)[1]
         name = os.path.splitext(filename)[0]
-        namehash = hashlib.sha1(special_text.encode('utf-8')).hexdigest()
+        namehash = hashlib.sha1(real_text.encode('utf-8')).hexdigest()
         newfilename = name + '_' + namehash + ext
         thumbfilename = name + '_' + namehash + '_thumb_' \
             + str(self.plugin.config['PREVIEW_SIZE']) + ext
@@ -246,7 +228,7 @@ class Base(object):
                 f.closed
             app.thread_interface(
                 self._save_thumbnail, [thumbpath, (mem, '')],
-                self._update_img, [special_text, repl_start,
+                self._update_img, [real_text, repl_start,
                                    repl_end, filepath, encrypted])
 
         # display thumbnail if already downloadeded
@@ -254,7 +236,7 @@ class Base(object):
         elif os.path.exists(filepath) and os.path.exists(thumbpath):
             app.thread_interface(
                 self._load_thumbnail, [thumbpath],
-                self._update_img, [special_text, repl_start,
+                self._update_img, [real_text, repl_start,
                                    repl_end, filepath, encrypted])
 
         # or download file, calculate thumbnail and finally display it
@@ -266,10 +248,10 @@ class Base(object):
                 # which does not fetch data, just headers
                 # then check the mime type and filesize
                 if urlparts.scheme == 'aesgcm':
-                    special_text = 'https://' + special_text[9:]
+                    real_text = 'https://' + real_text[9:]
                 app.thread_interface(
-                    get_http_head, [self.textview.account, special_text],
-                    self._check_mime_size, [special_text, repl_start, repl_end,
+                    get_http_head, [self.textview.account, real_text],
+                    self._check_mime_size, [real_text, repl_start, repl_end,
                                             filepaths, key, iv, encrypted])
 
     def _save_thumbnail(self, thumbpath, tuple_arg):
@@ -360,7 +342,7 @@ class Base(object):
                         
                         buffer_ = repl_start.get_buffer()
                         iter_ = buffer_.get_iter_at_mark(repl_start)
-                        buffer_.insert(iter_, "\n")
+                        #buffer_.insert(iter_, "\n")
                         anchor = buffer_.create_child_anchor(iter_)
                         
                         # Use url as tooltip for image
