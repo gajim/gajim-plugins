@@ -38,7 +38,7 @@ from gajim.conversation_textview import TextViewImage
 from .http_functions import get_http_head, get_http_file
 from .config_dialog import UrlImagePreviewConfigDialog
 
-log = logging.getLogger('gajim.plugin_system.url_image_preview')
+log = logging.getLogger('gajim.plugin_system.preview')
 
 try:
     from PIL import Image
