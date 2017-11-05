@@ -392,14 +392,15 @@ class Base(object):
             # URL is already displayed
             return
         # Check if file size is acceptable
-        if file_size > self.plugin.config['MAX_FILE_SIZE'] or file_size == 0:
+        max_size = int(self.plugin.config['MAX_FILE_SIZE'])
+        if file_size > max_size or file_size == 0:
             log.info("File size (%s) too big or unknown (zero) for URL: '%s'"
                      % (str(file_size), url))
             # URL is already displayed
             return
 
         attributes = {'src': url,
-                      'max_size': self.plugin.config['MAX_FILE_SIZE'],
+                      'max_size': max_size,
                       'filepaths': filepaths,
                       'key': key,
                       'iv': iv}
