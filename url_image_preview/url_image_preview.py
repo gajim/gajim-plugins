@@ -15,30 +15,28 @@
 ## along with Gajim.  If not, see <http://www.gnu.org/licenses/>.
 ##
 
-from gi.repository import Gtk, Gdk, GLib, GObject, GdkPixbuf, Gio
 import os
 import hashlib
 import binascii
+import logging
 from urllib.parse import urlparse
 from io import BytesIO
 import shutil
 from functools import partial
 
-import logging
-import nbxmpp
+from gi.repository import Gtk, Gdk, GLib, GdkPixbuf
+
 from gajim.common import app
-from gajim.common import ged
 from gajim.common import helpers
 from gajim.common import configpaths
 from gajim import dialogs
 from gajim.plugins import GajimPlugin
 from gajim.plugins.helpers import log_calls
-from gajim.plugins.gui import GajimPluginConfigDialog
 from gajim.conversation_textview import TextViewImage
-from .http_functions import get_http_head, get_http_file
-from .config_dialog import UrlImagePreviewConfigDialog
+from url_image_preview.http_functions import get_http_head, get_http_file
+from url_image_preview.config_dialog import UrlImagePreviewConfigDialog
 
-log = logging.getLogger('gajim.plugin_system.url_image_preview')
+log = logging.getLogger('gajim.plugin_system.preview')
 
 try:
     from PIL import Image
@@ -54,10 +52,10 @@ try:
     from cryptography.hazmat.primitives.ciphers import algorithms
     from cryptography.hazmat.primitives.ciphers.modes import GCM
     decryption_available = True
-except Exception as e:
+except Exception:
     DEP_MSG = 'For preview of encrypted images, ' \
               'please install python-cryptography!'
-    log.debug('Cryptography Import Error: ' + str(e))
+    log.exception('Error')
     log.info('Decryption/Encryption disabled due to errors')
     decryption_available = False
 
@@ -71,32 +69,19 @@ class UrlImagePreviewPlugin(GajimPlugin):
         if not decryption_available:
             self.available_text = DEP_MSG
         self.config_dialog = partial(UrlImagePreviewConfigDialog, self)
-        self.events_handlers = {}
-        self.events_handlers['message-received'] = (
-            ged.PRECORE, self.handle_message_received)
         self.gui_extension_points = {
             'chat_control_base': (self.connect_with_chat_control,
                                   self.disconnect_from_chat_control),
-            'print_special_text': (self.print_special_text, None), }
+            'history_window':
+                (self.connect_with_history, self.disconnect_from_history),
+            'print_real_text': (self.print_real_text, None), }
         self.config_default_values = {
             'PREVIEW_SIZE': (150, 'Preview size(10-512)'),
             'MAX_FILE_SIZE': (524288, 'Max file size for image preview'),
-            'LEFTCLICK_ACTION': ('open_menuitem', 'Open')}
+            'LEFTCLICK_ACTION': ('open_menuitem', 'Open'),
+            'ANONYMOUS_MUC': False,}
         self.controls = {}
-
-    # remove oob tag if oob url == message text
-    def handle_message_received(self, event):
-        oob_node = event.stanza.getTag('x', namespace=nbxmpp.NS_X_OOB)
-        oob_url = None
-        oob_desc = None
-        if oob_node:
-            oob_url = oob_node.getTagData('url')
-            oob_desc = oob_node.getTagData('desc')
-            if oob_url and oob_url == event.msgtxt and \
-                    (not oob_desc or oob_desc == ""):
-                log.debug("Detected oob tag containing same"
-                          "url as the message text, deleting oob tag...")
-                event.stanza.delChild(oob_node)
+        self.history_window_control = None
 
     @log_calls('UrlImagePreviewPlugin')
     def connect_with_chat_control(self, chat_control):
@@ -104,32 +89,51 @@ class UrlImagePreviewPlugin(GajimPlugin):
         jid = chat_control.contact.jid
         if account not in self.controls:
             self.controls[account] = {}
-        self.controls[account][jid] = Base(self, chat_control)
+        self.controls[account][jid] = Base(self, chat_control.conv_textview,
+                                           chat_control.parent_win.window)
 
     @log_calls('UrlImagePreviewPlugin')
     def disconnect_from_chat_control(self, chat_control):
         account = chat_control.contact.account.name
         jid = chat_control.contact.jid
-        self.controls[account][jid].deinit()
+        self.controls[account][jid].deinit_handlers()
         del self.controls[account][jid]
 
-    def print_special_text(self, tv, special_text, other_tags, graphics=True,
-                           additional_data=None, iter_=None):
+    @log_calls('UrlImagePreviewPlugin')
+    def connect_with_history(self, history_window):
+        if self.history_window_control:
+            log.error("connect_with_history: deinit handlers")
+            self.history_window_control.deinit_handlers()
+        log.error("connect_with_history: create base")
+        self.history_window_control = Base(
+            self, history_window.history_textview, history_window)
+
+    @log_calls('UrlImagePreviewPlugin')
+    def disconnect_from_history(self, history_window):
+        if self.history_window_control:
+            self.history_window_control.deinit_handlers()
+        self.history_window_control = None
+
+    def print_real_text(self, tv, real_text, text_tags, graphics,
+                        iter_, additional_data):
+        if tv.used_in_history_window and self.history_window_control:
+            self.history_window_control.print_real_text(
+                real_text, text_tags, graphics, iter_, additional_data)
+
         account = tv.account
         for jid in self.controls[account]:
-            if self.controls[account][jid].chat_control.conv_textview != tv:
+            if self.controls[account][jid].textview != tv:
                 continue
-            self.controls[account][jid].print_special_text(
-                special_text, other_tags, graphics=graphics,
-                additional_data=additional_data, iter_=iter_)
+            self.controls[account][jid].print_real_text(
+                real_text, text_tags, graphics, iter_, additional_data)
             return
 
 
 class Base(object):
-    def __init__(self, plugin, chat_control):
+    def __init__(self, plugin, textview, parent_win=None):
         self.plugin = plugin
-        self.chat_control = chat_control
-        self.textview = self.chat_control.conv_textview
+        self.parent_win = parent_win
+        self.textview = textview
         self.handlers = {}
 
         self.directory = os.path.join(configpaths.gajimpaths['MY_DATA'],
@@ -140,11 +144,11 @@ class Base(object):
         try:
             self._create_path(self.directory)
             self._create_path(self.thumbpath)
-        except Exception as e:
+        except Exception:
             log.error("Error creating download and/or thumbnail folder!")
             raise
 
-    def deinit(self):
+    def deinit_handlers(self):
         # remove all register handlers on wigets, created by self.xml
         # to prevent circular references among objects
         for i in list(self.handlers.keys()):
@@ -152,20 +156,26 @@ class Base(object):
                 self.handlers[i].disconnect(i)
             del self.handlers[i]
 
-    def print_special_text(self, special_text, other_tags, graphics=True,
-                           additional_data=None, iter_=None):
-        # remove qip bbcode
-        special_text = special_text.rsplit('[/img]')[0]
+    def print_real_text(self, real_text, text_tags, graphics, iter_,
+                        additional_data):
+        urlparts = urlparse(real_text)
+        if (urlparts.scheme not in ["https", "aesgcm"] or
+                not urlparts.netloc):
+            log.info("Not accepting URL scheme '%s' for image preview: %s",
+                     urlparts.scheme, real_text)
+            return
 
-        if special_text.startswith('www.'):
-            special_text = 'http://' + special_text
-        if special_text.startswith('ftp.'):
-            special_text = 'ftp://' + special_text
+        try:
+            oob_url = additional_data["gajim"]["oob_url"]
+        except (KeyError, AttributeError):
+            oob_url = None
 
-        urlparts = urlparse(special_text)
-        if urlparts.scheme not in ["https", "http", "ftp", "ftps", 'aesgcm'] or \
-                not urlparts.netloc:
-            log.info("Not accepting URL for image preview: %s" % special_text)
+        # allow aesgcm uris without oob marker (aesgcm uris are always
+        # httpupload filetransfers)
+        if urlparts.scheme != "aesgcm" and real_text != oob_url:
+            log.info("Not accepting URL for image preview "
+                     "(wrong or no oob data): %s", real_text)
+            log.debug("additional_data: %s", additional_data)
             return
 
         # Don't print the URL in the message window (in the calling function)
@@ -178,14 +188,14 @@ class Base(object):
         # Show URL, until image is loaded (if ever)
         ttt = buffer_.get_tag_table()
         repl_start = buffer_.create_mark(None, iter_, True)
-        buffer_.insert_with_tags(iter_, special_text,
+        buffer_.insert_with_tags(iter_, real_text,
             *[(ttt.lookup(t) if isinstance(t, str) else t) for t in ["url"]])
         repl_end = buffer_.create_mark(None, iter_, True)
 
         filename = os.path.basename(urlparts.path)
         ext = os.path.splitext(filename)[1]
         name = os.path.splitext(filename)[0]
-        namehash = hashlib.sha1(special_text.encode('utf-8')).hexdigest()
+        namehash = hashlib.sha1(real_text.encode('utf-8')).hexdigest()
         newfilename = name + '_' + namehash + ext
         thumbfilename = name + '_' + namehash + '_thumb_' \
             + str(self.plugin.config['PREVIEW_SIZE']) + ext
@@ -208,15 +218,14 @@ class Base(object):
                 iv = fragment[:12]
                 if len(key) == 32 and len(iv) == 12:
                     encrypted = True
-        
+
         # file exists but thumbnail got deleted
         if os.path.exists(filepath) and not os.path.exists(thumbpath):
             with open(filepath, 'rb') as f:
                 mem = f.read()
-                f.closed
             app.thread_interface(
                 self._save_thumbnail, [thumbpath, (mem, '')],
-                self._update_img, [special_text, repl_start,
+                self._update_img, [real_text, repl_start,
                                    repl_end, filepath, encrypted])
 
         # display thumbnail if already downloadeded
@@ -224,7 +233,7 @@ class Base(object):
         elif os.path.exists(filepath) and os.path.exists(thumbpath):
             app.thread_interface(
                 self._load_thumbnail, [thumbpath],
-                self._update_img, [special_text, repl_start,
+                self._update_img, [real_text, repl_start,
                                    repl_end, filepath, encrypted])
 
         # or download file, calculate thumbnail and finally display it
@@ -236,10 +245,10 @@ class Base(object):
                 # which does not fetch data, just headers
                 # then check the mime type and filesize
                 if urlparts.scheme == 'aesgcm':
-                    special_text = 'https://' + special_text[9:]
+                    real_text = 'https://' + real_text[9:]
                 app.thread_interface(
-                    get_http_head, [self.textview.account, special_text],
-                    self._check_mime_size, [special_text, repl_start, repl_end,
+                    get_http_head, [self.textview.account, real_text],
+                    self._check_mime_size, [real_text, repl_start, repl_end,
                                             filepaths, key, iv, encrypted])
 
     def _save_thumbnail(self, thumbpath, tuple_arg):
@@ -272,7 +281,7 @@ class Base(object):
                 loader.close()
                 pixbuf = loader.get_pixbuf()
                 pixbuf, w, h = self._get_pixbuf_of_size(pixbuf, size)
-            
+
                 ok, mem = pixbuf.save_to_bufferv("jpeg", ["quality"], ["100"])
             except Exception as e:
                 log.info("Failed to load image using gdk pixbuf, "
@@ -289,7 +298,7 @@ class Base(object):
                 _('Exception raised while saving thumbnail '
                   'for image file (see error log for more '
                   'information)'),
-                transient_for=self.chat_control.parent_win.window)
+                transient_for=self.parent_win)
             log.error(str(e))
         return (mem, alt)
 
@@ -300,13 +309,13 @@ class Base(object):
         return (mem, '')
 
     def _write_file(self, path, data):
-        log.info("Writing '%s' of size %d..." % (path, len(data)))
+        log.info("Writing '%s' of size %d...", path, len(data))
         try:
             with open(path, "wb") as output_file:
                 output_file.write(data)
                 output_file.closed
         except Exception as e:
-            log.error("Failed to write file '%s'!" % path)
+            log.error("Failed to write file '%s'!", path)
             raise
 
     def _update_img(self, tuple_arg, url, repl_start, repl_end,
@@ -326,11 +335,13 @@ class Base(object):
                 # (Gtk textview is NOT threadsafe by itself!!)
                 def add_to_textview():
                     try:        # textview closed in the meantime etc.
+                        at_end = self.textview.at_the_end()
+
                         buffer_ = repl_start.get_buffer()
                         iter_ = buffer_.get_iter_at_mark(repl_start)
-                        buffer_.insert(iter_, "\n")
+                        # buffer_.insert(iter_, "\n")
                         anchor = buffer_.create_child_anchor(iter_)
-                        
+
                         # Use url as tooltip for image
                         img = TextViewImage(anchor, url)
                         loader = GdkPixbuf.PixbufLoader()
@@ -343,21 +354,23 @@ class Base(object):
                         eb.show_all()
                         self.textview.tv.add_child_at_anchor(eb, anchor)
                         buffer_.delete(iter_,
-                                    buffer_.get_iter_at_mark(repl_end))
+                                       buffer_.get_iter_at_mark(repl_end))
+
+                        if at_end:
+                            GLib.idle_add(self.textview.scroll_to_end_iter)
                     except Exception as ex:
-                        log.warn("Exception while loading %s: %s" % (str(url), str(ex)))
+                        log.warn("Exception while loading %s: %s", url, ex)
                     return False
                 # add to mainloop --> make call threadsafe
-                GObject.idle_add(add_to_textview)
+                GLib.idle_add(add_to_textview)
             except Exception:
                 # URL is already displayed
-                log.error('Could not display image for URL: %s'
-                          % url)
+                log.error('Could not display image for URL: %s', url)
                 raise
         else:
             # If image could not be downloaded, URL is already displayed
-            log.error('Could not download image for URL: %s -- %s'
-                      % (url, alt))
+            log.error('Could not download image for URL: %s -- %s',
+                      url, alt)
 
     def _check_mime_size(self, tuple_arg,
                          url, repl_start, repl_end, filepaths,
@@ -366,23 +379,24 @@ class Base(object):
         # Check if mime type is acceptable
         if file_mime == '' and file_size == 0:
             log.info("Failed to load HEAD Request for URL: '%s'"
-                     "(see debug log for more info)" % url)
+                     "(see debug log for more info)", url)
             # URL is already displayed
             return
         if file_mime.lower() not in ACCEPTED_MIME_TYPES:
-            log.info("Not accepted mime type '%s' for URL: '%s'"
-                     % (file_mime.lower(), url))
+            log.info("Not accepted mime type '%s' for URL: '%s'",
+                     file_mime.lower(), url)
             # URL is already displayed
             return
         # Check if file size is acceptable
-        if file_size > self.plugin.config['MAX_FILE_SIZE'] or file_size == 0:
-            log.info("File size (%s) too big or unknown (zero) for URL: '%s'"
-                     % (str(file_size), url))
+        max_size = int(self.plugin.config['MAX_FILE_SIZE'])
+        if file_size > max_size or file_size == 0:
+            log.info("File size (%s) too big or unknown (zero) for URL: '%s'",
+                     file_size, url)
             # URL is already displayed
             return
 
         attributes = {'src': url,
-                      'max_size': self.plugin.config['MAX_FILE_SIZE'],
+                      'max_size': max_size,
                       'filepaths': filepaths,
                       'key': key,
                       'iv': iv}
@@ -412,7 +426,7 @@ class Base(object):
                 _('Could not save file'),
                 _('Exception raised while saving image file'
                   ' (see error log for more information)'),
-                transient_for=self.chat_control.parent_win.window)
+                transient_for=self.parent_win)
             log.error(str(e))
 
         # Create thumbnail, write it to harddisk and return it
@@ -474,7 +488,7 @@ class Base(object):
             xml.get_object('open_file_in_browser_menuitem')
         extras_separator = \
             xml.get_object('extras_separator')
-        
+
         if data["encrypted"]:
             open_link_in_browser_menuitem.hide()
         if app.config.get('autodetect_browser_mailer') \
@@ -507,6 +521,7 @@ class Base(object):
     def on_save_as_menuitem_activate(self, menu, data):
         filepath = data["filepath"]
         original_filename = data["original_filename"]
+
         def on_continue(response, target_path):
             if response < 0:
                 return
@@ -572,10 +587,10 @@ class Base(object):
                 _('You cannot open encrypted files in your '
                   'browser directly. Try "Open Downloaded File '
                   'in Browser" instead.'),
-                transient_for=self.chat_control.parent_win.window)
+                transient_for=self.parent_win)
         else:
             helpers.launch_browser_mailer('url', url)
-        
+
     def on_open_file_in_browser_menuitem_activate(self, menu, data):
         if os.name == "nt":
             filepath = "file://" + os.path.abspath(data["filepath"])
@@ -587,7 +602,7 @@ class Base(object):
                 _('Cannot open downloaded file in browser'),
                 _('You have to set a custom browser executable '
                   'in your gajim settings for this to work.'),
-                transient_for=self.chat_control.parent_win.window)
+                transient_for=self.parent_win)
             return
         command = app.config.get('custombrowser')
         command = helpers.build_command(command, filepath)
@@ -622,8 +637,8 @@ class Base(object):
         # right klick
         elif event.type == Gdk.EventType.BUTTON_PRESS and event.button == 3:
             menu = self.make_rightclick_menu(event, data)
-            #menu.attach_to_widget(self.tv, None)
-            #menu.popup(None, None, None, event.button, event.time)
+            # menu.attach_to_widget(self.tv, None)
+            # menu.popup(None, None, None, event.button, event.time)
             menu.popup_at_pointer(event)
 
     def disconnect_from_chat_control(self):
