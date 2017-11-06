@@ -53,9 +53,9 @@ class HTTPUploadPlugin(GajimPlugin):
             'agent-info-received': (
                 ged.PRECORE, self.handle_agent_info_received),
             'stanza-message-outgoing': (
-                99, self.handle_outgoing_stanza),
+                ged.OUT_PREGUI, self.handle_outgoing_stanza),
             'gc-stanza-message-outgoing': (
-                99, self.handle_outgoing_stanza),
+                ged.OUT_PREGUI, self.handle_outgoing_stanza),
             'raw-iq-received': (
                 ged.PRECORE, self.handle_iq_received)}
         self.gui_extension_points = {
@@ -105,6 +105,10 @@ class HTTPUploadPlugin(GajimPlugin):
             self.messages.remove(message)
             oob = event.msg_iq.addChild('x', namespace=nbxmpp.NS_X_OOB)
             oob.addChild('url').setData(message)
+            if 'gajim' in event.additional_data:
+                event.additional_data['gajim']['oob_url'] = message
+            else:
+                event.additional_data['gajim'] = {'oob_url': message}
 
     def connect_with_chat_control(self, chat_control):
         account = chat_control.contact.account.name
