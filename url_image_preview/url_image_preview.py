@@ -89,8 +89,7 @@ class UrlImagePreviewPlugin(GajimPlugin):
         jid = chat_control.contact.jid
         if account not in self.controls:
             self.controls[account] = {}
-        self.controls[account][jid] = Base(self, chat_control.conv_textview,
-                                           chat_control.parent_win.window)
+        self.controls[account][jid] = Base(self, chat_control)
 
     @log_calls('UrlImagePreviewPlugin')
     def disconnect_from_chat_control(self, chat_control):
@@ -130,11 +129,11 @@ class UrlImagePreviewPlugin(GajimPlugin):
 
 
 class Base(object):
-    def __init__(self, plugin, textview, parent_win=None):
+    def __init__(self, plugin, chatcontrol):
         self.plugin = plugin
-        self.parent_win = parent_win
-        self.textview = textview
+        self.textview = chatcontrol.conv_textview
         self.handlers = {}
+        self.chatcontrol = chatcontrol
 
         self.directory = os.path.join(configpaths.gajimpaths['MY_DATA'],
                                       'downloads')
@@ -298,7 +297,7 @@ class Base(object):
                 _('Exception raised while saving thumbnail '
                   'for image file (see error log for more '
                   'information)'),
-                transient_for=self.parent_win)
+                transient_for=app.app.get_active_window())
             log.error(str(e))
         return (mem, alt)
 
@@ -426,7 +425,7 @@ class Base(object):
                 _('Could not save file'),
                 _('Exception raised while saving image file'
                   ' (see error log for more information)'),
-                transient_for=self.parent_win)
+                transient_for=app.app.get_active_window())
             log.error(str(e))
 
         # Create thumbnail, write it to harddisk and return it
@@ -587,7 +586,7 @@ class Base(object):
                 _('You cannot open encrypted files in your '
                   'browser directly. Try "Open Downloaded File '
                   'in Browser" instead.'),
-                transient_for=self.parent_win)
+                transient_for=app.app.get_active_window())
         else:
             helpers.launch_browser_mailer('url', url)
 
@@ -602,7 +601,7 @@ class Base(object):
                 _('Cannot open downloaded file in browser'),
                 _('You have to set a custom browser executable '
                   'in your gajim settings for this to work.'),
-                transient_for=self.parent_win)
+                transient_for=app.app.get_active_window())
             return
         command = app.config.get('custombrowser')
         command = helpers.build_command(command, filepath)
