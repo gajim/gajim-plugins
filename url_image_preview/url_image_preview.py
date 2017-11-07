@@ -89,7 +89,7 @@ class UrlImagePreviewPlugin(GajimPlugin):
         jid = chat_control.contact.jid
         if account not in self.controls:
             self.controls[account] = {}
-        self.controls[account][jid] = Base(self, chat_control)
+        self.controls[account][jid] = Base(self, chat_control.conv_textview)
 
     @log_calls('UrlImagePreviewPlugin')
     def disconnect_from_chat_control(self, chat_control):
@@ -105,7 +105,7 @@ class UrlImagePreviewPlugin(GajimPlugin):
             self.history_window_control.deinit_handlers()
         log.error("connect_with_history: create base")
         self.history_window_control = Base(
-            self, history_window.history_textview, history_window)
+            self, history_window.history_textview)
 
     @log_calls('UrlImagePreviewPlugin')
     def disconnect_from_history(self, history_window):
@@ -129,11 +129,10 @@ class UrlImagePreviewPlugin(GajimPlugin):
 
 
 class Base(object):
-    def __init__(self, plugin, chatcontrol):
+    def __init__(self, plugin, textview):
         self.plugin = plugin
-        self.textview = chatcontrol.conv_textview
+        self.textview = textview
         self.handlers = {}
-        self.chatcontrol = chatcontrol
 
         self.directory = os.path.join(configpaths.gajimpaths['MY_DATA'],
                                       'downloads')
