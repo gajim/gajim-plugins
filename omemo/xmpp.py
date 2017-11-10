@@ -39,6 +39,7 @@ NS_OMEMO = 'eu.siacs.conversations.axolotl'
 NS_DEVICE_LIST = NS_OMEMO + '.devicelist'
 NS_NOTIFY = NS_DEVICE_LIST + '+notify'
 NS_BUNDLES = NS_OMEMO + '.bundles:'
+NS_HINTS = 'urn:xmpp:hints'
 log = logging.getLogger('gajim.plugin_system.omemo')
 
 
@@ -149,7 +150,7 @@ class DevicelistQuery(Iq):
 
 
 class DevicelistPEP(AbstractPEP):
-    type_ = 'headline'
+    type_ = 'omemo-devicelist'
     namespace = NS_DEVICE_LIST
 
     def _extract_info(self, items):

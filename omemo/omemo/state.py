@@ -52,18 +52,18 @@ UNDECIDED = 2
 
 
 class OmemoState:
-    def __init__(self, own_jid, connection, account, plugin):
+    def __init__(self, own_jid, db_con, account, xmpp_con):
         """ Instantiates an OmemoState object.
 
             :param connection: an :py:class:`sqlite3.Connection`
         """
         self.account = account
-        self.plugin = plugin
+        self.xmpp_con = xmpp_con
         self.session_ciphers = {}
         self.own_jid = own_jid
         self.device_ids = {}
         self.own_devices = []
-        self.store = LiteAxolotlStore(connection)
+        self.store = LiteAxolotlStore(db_con)
         self.encryption = self.store.encryptionStore
         for jid, device_id in self.store.getActiveDeviceTuples():
             if jid != own_jid:
@@ -302,8 +302,8 @@ class OmemoState:
             self.get_session_cipher(tup[0], tup[1])
 
         # Encrypt the message key with for each of receivers devices
-        for nick in self.plugin.groupchat[room]:
-            jid_to = self.plugin.groupchat[room][nick]
+        for nick in self.xmpp_con.groupchat[room]:
+            jid_to = self.xmpp_con.groupchat[room][nick]
             if jid_to == self.own_jid:
                 continue
             if jid_to in encrypted_jids:  # We already encrypted to this JID
@@ -366,8 +366,8 @@ class OmemoState:
         if gc:
             room = jid
             devicelist = []
-            for nick in self.plugin.groupchat[room]:
-                jid_to = self.plugin.groupchat[room][nick]
+            for nick in self.xmpp_con.groupchat[room]:
+                jid_to = self.xmpp_con.groupchat[room][nick]
                 if jid_to == self.own_jid:
                     continue
                 try:
@@ -449,7 +449,7 @@ class OmemoState:
             key = sessionCipher.decryptPkmsg(preKeyWhisperMessage)
             # Publish new bundle after PreKey has been used
             # for building a new Session
-            self.plugin.publish_bundle(self.account)
+            self.xmpp_con.publish_bundle()
             self.add_device(recipient_id, device_id)
             return key
         except UntrustedIdentityException as e:

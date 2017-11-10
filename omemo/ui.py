@@ -174,7 +174,7 @@ class OMEMOConfigDialog(GajimPluginConfigDialog):
         active = self.B.get_object('account_combobox').get_active()
         account = self.account_store[active][0]
 
-        state = self.plugin.get_omemo_state(account)
+        state = self.plugin.get_omemo(account)
 
         mod, paths = self.fpr_view.get_selection().get_selected_rows()
 
@@ -202,7 +202,7 @@ class OMEMOConfigDialog(GajimPluginConfigDialog):
         active = self.B.get_object('account_combobox').get_active()
         account = self.account_store[active][0]
 
-        state = self.plugin.get_omemo_state(account)
+        state = self.plugin.get_omemo(account)
 
         mod, paths = self.fpr_view.get_selection().get_selected_rows()
 
@@ -311,7 +311,7 @@ class OMEMOConfigDialog(GajimPluginConfigDialog):
             self.B.get_object('cleardevice_button').set_sensitive(True)
 
         # Set FPR Label and DeviceID
-        state = self.plugin.get_omemo_state(account)
+        state = self.plugin.get_omemo(account)
         deviceid = state.own_device_id
         self.B.get_object('ID').set_markup('<tt>%s</tt>' % deviceid)
 
@@ -373,7 +373,7 @@ class FingerprintWindow(Gtk.Dialog):
         self.windowinstances = windowinstances
         self.account = self.contact.account.name
         self.plugin = plugin
-        self.omemostate = self.plugin.get_omemo_state(self.account)
+        self.omemostate = self.plugin.get_omemo(self.account)
         self.own_jid = app.get_jid_from_account(self.account)
         Gtk.Dialog.__init__(self,
                             title=('Fingerprints for %s') % contact.jid,
