@@ -398,6 +398,7 @@ class Base(object):
             message = file.get
             if file.user_data:
                 message += '#' + file.user_data
+                message = self.convert_to_aegscm(message)
             else:
                 self.plugin.messages.append(message)
             file.control.send_message(message=message)
@@ -415,6 +416,10 @@ class Base(object):
         file.progress.close_dialog()
         ErrorDialog(_('Error'), str(reason),
                     transient_for=file.control.parent_win.window)
+
+    @staticmethod
+    def convert_to_aegscm(url):
+        return 'aesgcm' + url[5:]
 
 
 class File:
