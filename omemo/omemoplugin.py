@@ -125,6 +125,8 @@ class OmemoPlugin(GajimPlugin):
             event : SignedInEvent
         """
         account = event.conn.name
+        if account == 'Local':
+            return
         if account in self.disabled_accounts:
             return
         if account not in self.connections:
@@ -135,6 +137,8 @@ class OmemoPlugin(GajimPlugin):
         """ Method called when the Plugin is activated in the PluginManager
         """
         for account in app.connections:
+            if account == 'Local':
+                continue
             if account in self.disabled_accounts:
                 continue
             self.connections[account] = OMEMOConnection(account, self)
@@ -144,6 +148,8 @@ class OmemoPlugin(GajimPlugin):
         """ Method called when the Plugin is deactivated in the PluginManager
         """
         for account in self.connections:
+            if account == 'Local':
+                continue
             self.connections[account].deactivate()
 
     def activate_encryption(self, chat_control):
