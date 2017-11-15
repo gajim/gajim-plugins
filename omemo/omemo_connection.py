@@ -9,7 +9,7 @@ from nbxmpp.simplexml import Node
 
 from gajim.common import app
 from gajim.common import ged
-from gajim.common import caps_cache
+from gajim.common import helpers
 from gajim.common.connection_handlers_events import (
     MessageReceivedEvent, MamMessageReceivedEvent, MessageNotSentEvent)
 
@@ -126,11 +126,10 @@ class OMEMOConnection:
     def activate(self):
         """ Method called when the Plugin is activated in the PluginManager
         """
-        # self.query_for_bundles = []
+        if app.caps_hash[self.account] != '':
+            # Gajim has already a caps hash calculated, update it
+            helpers.update_optional_features(self.account)
 
-        if NS_NOTIFY not in app.gajim_optional_features[self.account]:
-            app.gajim_optional_features[self.account].append(NS_NOTIFY)
-        self._compute_caps_hash()
         if app.account_is_connected(self.account):
             log.info('%s => Announce Support after Plugin Activation',
                      self.account)
@@ -140,24 +139,13 @@ class OMEMOConnection:
 
     def deactivate(self):
         """ Method called when the Plugin is deactivated in the PluginManager
-
-            Removes OMEMO from the Entity Capabilities list
         """
-        if NS_NOTIFY in app.gajim_optional_features[self.account]:
-            app.gajim_optional_features[self.account].remove(NS_NOTIFY)
-        self._compute_caps_hash()
+        self.query_for_bundles = []
 
-    def _compute_caps_hash(self):
-        """ Computes the hash for Entity Capabilities and publishes it """
-        app.caps_hash[self.account] = caps_cache.compute_caps_hash(
-            [app.gajim_identity],
-            app.gajim_common_features +
-            app.gajim_optional_features[self.account])
-        # re-send presence with new hash
-        connected = app.connections[self.account].connected
-        if connected > 1 and app.SHOW_LIST[connected] != 'invisible':
-            app.connections[self.account].change_status(
-                app.SHOW_LIST[connected], app.connections[self.account].status)
+    @staticmethod
+    def update_caps(account):
+        if NS_NOTIFY not in app.gajim_optional_features[account]:
+            app.gajim_optional_features[account].append(NS_NOTIFY)
 
     def message_received(self, conn, obj, callback):
         if obj.encrypted:

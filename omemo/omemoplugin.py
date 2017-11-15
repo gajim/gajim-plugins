@@ -106,7 +106,8 @@ class OmemoPlugin(GajimPlugin):
             'encryption_dialog' + self.encryption_name: (
                 self.on_encryption_button_clicked, None),
             'encryption_state' + self.encryption_name: (
-                self.encryption_state, None)}
+                self.encryption_state, None),
+            'update_caps': (self._update_caps, None)}
 
         SUPPORTED_PERSONAL_USER_EVENTS.append(DevicelistPEP)
         self.disabled_accounts = []
@@ -158,6 +159,11 @@ class OmemoPlugin(GajimPlugin):
             if account == 'Local':
                 continue
             self.connections[account].deactivate()
+
+    def _update_caps(self, account):
+        if account == 'Local':
+            return
+        self.connections[account].update_caps(account)
 
     def activate_encryption(self, chat_control):
         if isinstance(chat_control, GroupchatControl):
