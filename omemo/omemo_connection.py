@@ -118,7 +118,7 @@ class OMEMOConnection:
         """
         if event.conn.name != self.account:
             return
-        log.debug('%s => Announce Support after Sign In', self.account)
+        log.info('%s => Announce Support after Sign In', self.account)
         self.query_for_bundles = []
         self.publish_bundle()
         self.query_devicelist()
@@ -132,8 +132,8 @@ class OMEMOConnection:
             app.gajim_optional_features[self.account].append(NS_NOTIFY)
         self._compute_caps_hash()
         if app.account_is_connected(self.account):
-            log.debug('%s => Announce Support after Plugin Activation',
-                      self.account)
+            log.info('%s => Announce Support after Plugin Activation',
+                     self.account)
             self.query_for_bundles = []
             self.publish_bundle()
             self.query_devicelist()
@@ -355,7 +355,7 @@ class OMEMOConnection:
             if room not in self.groupchat:
                 self.groupchat[room] = self.temp_groupchat[room]
 
-            log.debug('OMEMO capable Room found: %s', room)
+            log.info('OMEMO capable Room found: %s', room)
 
             self.get_con().get_affiliation_list(room, 'owner')
             self.get_con().get_affiliation_list(room, 'admin')
@@ -601,8 +601,8 @@ class OMEMOConnection:
             devices_list = list(set(devices_list))
         self.omemo.set_own_devices(devices_list)
 
-        log.debug('%s => Publishing own Devices: %s',
-                  self.account, devices_list)
+        log.info('%s => Publishing own Devices: %s',
+                 self.account, devices_list)
         device_announce = DeviceListAnnouncement(devices_list)
         self.send_with_callback(device_announce,
                                 self.device_list_publish_result)
