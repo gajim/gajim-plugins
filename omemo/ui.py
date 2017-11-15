@@ -208,22 +208,10 @@ class OMEMOConfigDialog(GajimPluginConfigDialog):
 
         def on_yes(checked, identity_key):
             state.store.setTrust(identity_key, State.TRUSTED)
-            try:
-                if self.plugin.ui_list[account]:
-                    self.plugin.ui_list[account][jid]. \
-                        refresh_auth_lock_icon()
-            except:
-                log.debug('UI not available')
             self.update_context_list()
 
         def on_no(identity_key):
             state.store.setTrust(identity_key, State.UNTRUSTED)
-            try:
-                if jid in self.plugin.ui_list[account]:
-                    self.plugin.ui_list[account][jid]. \
-                        refresh_auth_lock_icon()
-            except:
-                log.debug('UI not available')
             self.update_context_list()
 
         for path in paths:
@@ -373,6 +361,7 @@ class FingerprintWindow(Gtk.Dialog):
         self.windowinstances = windowinstances
         self.account = self.contact.account.name
         self.plugin = plugin
+        self.con = plugin.connections[self.account]
         self.omemostate = self.plugin.get_omemo(self.account)
         self.own_jid = app.get_jid_from_account(self.account)
         Gtk.Dialog.__init__(self,
@@ -498,8 +487,8 @@ class FingerprintWindow(Gtk.Dialog):
         trust_str = {0: 'False', 1: 'True', 2: 'Undecided'}
         if self.groupchat and self.notebook.get_current_page() == 0:
             contact_jids = []
-            for nick in self.plugin.groupchat[contact_jid]:
-                real_jid = self.plugin.groupchat[contact_jid][nick]
+            for nick in self.con.groupchat[contact_jid]:
+                real_jid = self.con.groupchat[contact_jid][nick]
                 if real_jid == self.own_jid:
                     continue
                 contact_jids.append(real_jid)

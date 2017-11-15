@@ -154,7 +154,8 @@ class OmemoPlugin(GajimPlugin):
 
     def activate_encryption(self, chat_control):
         if isinstance(chat_control, GroupchatControl):
-            if chat_control.room_jid not in self.groupchat:
+            omemo_con = self.connections[chat_control.account]
+            if chat_control.room_jid not in omemo_con.groupchat:
                 dialogs.ErrorDialog(
                     _('Bad Configuration'),
                     _('To use OMEMO in a Groupchat, the Groupchat should be'
@@ -210,8 +211,8 @@ class OmemoPlugin(GajimPlugin):
             room = chat_control.room_jid
             missing = True
             own_jid = app.get_jid_from_account(account)
-            for nick in self.groupchat[room]:
-                real_jid = self.groupchat[room][nick]
+            for nick in con.groupchat[room]:
+                real_jid = con.groupchat[room][nick]
                 if real_jid == own_jid:
                     continue
                 if not self.connections[account].are_keys_missing(real_jid):
@@ -233,12 +234,13 @@ class OmemoPlugin(GajimPlugin):
     def new_fingerprints_available(self, chat_control):
         jid = chat_control.contact.jid
         account = chat_control.account
+        con = self.connections[account]
         omemo = self.get_omemo(account)
         if isinstance(chat_control, GroupchatControl):
             room_jid = chat_control.room_jid
-            if room_jid in self.groupchat:
-                for nick in self.groupchat[room_jid]:
-                    real_jid = self.groupchat[room_jid][nick]
+            if room_jid in con.groupchat:
+                for nick in con.groupchat[room_jid]:
+                    real_jid = con.groupchat[room_jid][nick]
                     fingerprints = omemo.store. \
                         getNewFingerprints(real_jid)
                     if fingerprints:
