@@ -607,9 +607,10 @@ class OMEMOConnection:
         self.send_with_callback(device_announce,
                                 self.device_list_publish_result)
 
-    @staticmethod
-    def device_list_publish_result(stanza):
-        log.debug(stanza)
+    def device_list_publish_result(self, stanza):
+        if not nbxmpp.isResultNode(stanza):
+            log.error('%s => Publishing devicelist failed: %s',
+                      self.account, stanza.getError())
 
     def are_keys_missing(self, contact_jid):
         """ Checks if devicekeys are missing and querys the
@@ -756,10 +757,8 @@ class OMEMOConnection:
         if successful(stanza):
             devices_list = list(set(unpack_device_list_update(stanza, self.account)))
             if not devices_list:
-                log.error('%s => Devicelistquery was NOT successful',
-                          self.account)
                 self.publish_own_devices_list(new=True)
-                return False
+                return
 
             self.omemo.set_own_devices(devices_list)
             self.omemo.store.sessionStore.setActiveState(
@@ -770,7 +769,8 @@ class OMEMOConnection:
                 # overwritten by some other client
                 self.publish_own_devices_list()
         else:
-            log.error('%s => Devicelistquery was NOT successful', self.account)
+            log.error('%s => Devicelistquery was NOT successful: %s',
+                      self.account, stanza.getError())
             self.publish_own_devices_list(new=True)
 
     def clear_device_list(self):
