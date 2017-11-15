@@ -65,39 +65,34 @@ class TictactoePlugin(GajimPlugin):
                 self.disconnect_from_chat_control),
             'chat_control_base_update_toolbar': (self.update_button_state,
                 None),
+            'update_caps': (self._update_caps, None),
         }
         self.config_default_values = {
             'board_size': (5, ''),
         }
         self.controls = []
+        self.announce_caps = True
 
     @log_calls('TictactoePlugin')
-    def _compute_caps_hash(self):
-        for a in app.connections:
-            app.caps_hash[a] = caps_cache.compute_caps_hash([
-                app.gajim_identity], app.gajim_common_features + \
-                app.gajim_optional_features[a])
-            # re-send presence with new hash
-            connected = app.connections[a].connected
-            if connected > 1 and app.SHOW_LIST[connected] != 'invisible':
-                app.connections[a].change_status(app.SHOW_LIST[connected],
-                    app.connections[a].status)
+    def _update_caps(self, account):
+        if not self.announce_caps:
+            return
+        if NS_GAMES not in app.gajim_optional_features[account]:
+            app.gajim_optional_features[account].append(NS_GAMES)
+        if NS_GAMES_TICTACTOE not in app.gajim_optional_features[account]:
+            app.gajim_optional_features[account].append(NS_GAMES_TICTACTOE)
 
     @log_calls('TictactoePlugin')
     def activate(self):
-        if NS_GAMES not in app.gajim_common_features:
-            app.gajim_common_features.append(NS_GAMES)
-        if NS_GAMES_TICTACTOE not in app.gajim_common_features:
-            app.gajim_common_features.append(NS_GAMES_TICTACTOE)
-        self._compute_caps_hash()
+        for account in app.caps_hash:
+            if app.caps_hash[account] != '':
+                self.announce_caps = True
+                helpers.update_optional_features(account)
 
     @log_calls('TictactoePlugin')
     def deactivate(self):
-        if NS_GAMES_TICTACTOE in app.gajim_common_features:
-            app.gajim_common_features.remove(NS_GAMES_TICTACTOE)
-        if NS_GAMES in app.gajim_common_features:
-            app.gajim_common_features.remove(NS_GAMES)
-        self._compute_caps_hash()
+        self.announce_caps = False
+        helpers.update_optional_features()
 
     @log_calls('TictactoePlugin')
     def connect_with_chat_control(self, control):
