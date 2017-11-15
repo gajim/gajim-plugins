@@ -121,7 +121,7 @@ class OMEMOConnection:
         log.debug('%s => Announce Support after Sign In', self.account)
         self.query_for_bundles = []
         self.publish_bundle()
-        self.query_own_devicelist()
+        self.query_devicelist()
 
     def activate(self):
         """ Method called when the Plugin is activated in the PluginManager
@@ -136,7 +136,7 @@ class OMEMOConnection:
                       self.account)
             self.query_for_bundles = []
             self.publish_bundle()
-            self.query_own_devicelist()
+            self.query_devicelist()
 
     def deactivate(self):
         """ Method called when the Plugin is deactivated in the PluginManager
@@ -518,16 +518,34 @@ class OMEMOConnection:
             bool
                 True if the given event was a valid device list update event
         """
-
         if event.conn.name != self.account:
             return
 
         if event.pep_type != 'omemo-devicelist':
-            return False
+            return
 
-        devices_list = list(set(unpack_device_list_update(event.stanza,
-                                                          event.conn.name)))
-        contact_jid = app.get_jid_without_resource(event.fjid)
+        self._handle_device_list_update(None, event.stanza)
+
+        # Dont propagate event further
+        return True
+
+    def _handle_device_list_update(self, conn, stanza, fetch_bundle=False):
+        """ Check if the passed event is a device list update and store the new
+            device ids.
+
+            Parameters
+            ----------
+            conn :          nbxmpp.NonBlockingClient
+
+            stanza:         nbxmpp.Iq
+
+            fetch_bundle:   If True, bundles are fetched for the device ids
+
+        """
+
+        devices_list = list(set(unpack_device_list_update(stanza,
+                                                          self.account)))
+        contact_jid = stanza.getFrom().getStripped()
         if not devices_list:
             log.error('%s => Received empty or invalid Devicelist from: %s',
                       self.account, contact_jid)
@@ -561,10 +579,10 @@ class OMEMOConnection:
             if contact_jid in self.query_for_bundles:
                 self.query_for_bundles.remove(contact_jid)
 
+            if fetch_bundle:
+                self.are_keys_missing(contact_jid)
             # Enable Encryption on receiving first Device List
             # TODO
-
-        return True
 
     def publish_own_devices_list(self, new=False):
         """ Get all currently known own active device ids and publish them
@@ -690,12 +708,19 @@ class OMEMOConnection:
             if ctrl:
                 self.plugin.new_fingerprints_available(ctrl)
 
-    def query_own_devicelist(self):
+    def query_devicelist(self, jid=None, fetch_bundle=False):
         """ Query own devicelist from the server """
-
-        device_query = DevicelistQuery(self.own_jid)
-        log.info('%s => Querry own devicelist ...', self.account)
-        self.send_with_callback(device_query, self.handle_devicelist_result)
+        if jid is None:
+            device_query = DevicelistQuery(self.own_jid)
+            log.info('%s => Querry own devicelist ...', self.account)
+            self.send_with_callback(device_query,
+                                    self.handle_devicelist_result)
+        else:
+            device_query = DevicelistQuery(jid)
+            log.info('%s => Querry devicelist from %s', self.account, jid)
+            self.send_with_callback(device_query,
+                                    self._handle_device_list_update,
+                                    data={'fetch_bundle': fetch_bundle})
 
     def publish_bundle(self):
         """ Publish our bundle information to the PEP node """

@@ -140,7 +140,7 @@ class BundleInformationAnnouncement(Iq):
 
 
 class DevicelistQuery(Iq):
-    def __init__(self, contact_jid,):
+    def __init__(self, contact_jid):
         id_ = app.get_an_id()
         attrs = {'id': id_}
         Iq.__init__(self, typ='get', attrs=attrs, to=contact_jid)

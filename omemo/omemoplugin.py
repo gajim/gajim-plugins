@@ -23,6 +23,7 @@ the Gajim-OMEMO plugin.  If not, see <http://www.gnu.org/licenses/>.
 import logging
 import binascii
 import threading
+from enum import IntEnum, unique
 
 from gi.repository import GLib
 
@@ -71,6 +72,12 @@ if not ERROR_MSG:
 
 # pylint: disable=no-init
 # pylint: disable=attribute-defined-outside-init
+
+
+@unique
+class UserMessages(IntEnum):
+    QUERY_DEVICES = 0
+    NO_FINGERPRINTS = 1
 
 
 class OmemoPlugin(GajimPlugin):
@@ -206,6 +213,7 @@ class OmemoPlugin(GajimPlugin):
     def before_sendmessage(self, chat_control):
         account = chat_control.account
         contact = chat_control.contact
+        con = self.connections[account]
         self.new_fingerprints_available(chat_control)
         if isinstance(chat_control, GroupchatControl):
             room = chat_control.room_jid
@@ -215,17 +223,24 @@ class OmemoPlugin(GajimPlugin):
                 real_jid = con.groupchat[room][nick]
                 if real_jid == own_jid:
                     continue
-                if not self.connections[account].are_keys_missing(real_jid):
+                if not con.are_keys_missing(real_jid):
                     missing = False
             if missing:
-                log.debug('%s => No Trusted Fingerprints for %s',
-                          account, room)
-                self.no_trusted_fingerprints_warning(chat_control)
+                log.info('%s => No Trusted Fingerprints for %s',
+                         account, room)
+                self.print_message(chat_control, UserMessages.NO_FINGERPRINTS)
         else:
-            if self.connections[account].are_keys_missing(contact.jid):
-                log.debug('%s => No Trusted Fingerprints for %s',
-                          account, contact.jid)
-                self.no_trusted_fingerprints_warning(chat_control)
+            # check if we have devices for the contact
+            if not self.get_omemo(account).device_list_for(contact.jid):
+                con.query_devicelist(contact.jid, True)
+                self.print_message(chat_control, UserMessages.QUERY_DEVICES)
+                chat_control.sendmessage = False
+                return
+            # check if bundles are missing for some devices
+            if con.are_keys_missing(contact.jid):
+                log.info('%s => No Trusted Fingerprints for %s',
+                         account, contact.jid)
+                self.print_message(chat_control, UserMessages.NO_FINGERPRINTS)
                 chat_control.sendmessage = False
             else:
                 log.debug('%s => Sending Message to %s',
@@ -277,7 +292,13 @@ class OmemoPlugin(GajimPlugin):
                 omemo.store.setShownFingerprints(fingerprints)
 
     @staticmethod
-    def no_trusted_fingerprints_warning(chat_control):
-        msg = "To send an encrypted message, you have to " \
-              "first trust the fingerprint of your contact!"
+    def print_message(chat_control, kind):
+        msg = None
+        if kind == UserMessages.QUERY_DEVICES:
+            msg = _('No devices found. Query in progress...')
+        elif kind == UserMessages.NO_FINGERPRINTS:
+            msg = _('To send an encrypted message, you have to '
+                    'first trust the fingerprint of your contact!')
+        if msg is None:
+            return
         chat_control.print_conversation_line(msg, 'status', '', None)
