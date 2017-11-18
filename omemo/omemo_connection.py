@@ -11,7 +11,8 @@ from gajim.common import app
 from gajim.common import ged
 from gajim.common import helpers
 from gajim.common.connection_handlers_events import (
-    MessageReceivedEvent, MamMessageReceivedEvent, MessageNotSentEvent)
+    MessageReceivedEvent, MamMessageReceivedEvent, MessageNotSentEvent,
+    MamGcMessageReceivedEvent)
 
 from omemo.xmpp import (
     NS_NOTIFY, NS_OMEMO, NS_EME, NS_HINTS, BundleInformationAnnouncement,
@@ -152,8 +153,51 @@ class OMEMOConnection:
             self._message_received(obj)
         elif isinstance(obj, MamMessageReceivedEvent):
             self._mam_message_received(obj)
+        elif isinstance(obj, MamGcMessageReceivedEvent):
+            self._mam_gc_message_received(obj)
         if obj.encrypted == 'OMEMO':
             callback(obj)
+
+    def _mam_gc_message_received(self, msg):
+        """ Handles an incoming GC MAM message
+
+            Payload is decrypted and the plaintext is written into the
+            event object. Afterwards the event is passed on further to Gajim.
+
+            Parameters
+            ----------
+            msg : MamGcMessageReceivedEvent
+
+            Returns
+            -------
+            Return means that the Event is passed on to Gajim
+        """
+        if msg.conn.name != self.account:
+            return
+        omemo = msg.msg_.getTag('encrypted', namespace=NS_OMEMO)
+        if omemo is None:
+            return
+
+        if msg.real_jid is None:
+            log.error('%s => Received Groupchat Message without real jid',
+                      self.account)
+            return
+
+        log.info('%s => Groupchat Message received', self.account)
+
+        msg_dict = unpack_encrypted(omemo)
+        msg_dict['sender_jid'] = msg.real_jid
+
+        plaintext = self.omemo.decrypt_msg(msg_dict)
+
+        if not plaintext:
+            msg.encrypted = 'drop'
+            return
+
+        self.print_msg_to_log(msg.msg_)
+
+        msg.msgtxt = plaintext
+        msg.encrypted = self.plugin.encryption_name
 
     def _mam_message_received(self, msg):
         """ Handles an incoming MAM message
