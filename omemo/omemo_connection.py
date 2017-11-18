@@ -59,8 +59,6 @@ class OMEMOConnection:
                                        self.gc_presence_received)
         app.ged.register_event_handler('gc-config-changed-received', ged.PRECORE,
                                        self.gc_config_changed_received)
-        app.ged.register_event_handler('muc-admin-received', ged.PRECORE,
-                                       self.room_memberlist_received)
 
     def get_con(self):
         return app.connections[self.account]
@@ -273,27 +271,40 @@ class OMEMOConnection:
             msg.stanza.setBody(plaintext)
             msg.encrypted = self.plugin.encryption_name
 
-    def room_memberlist_received(self, event):
-        if event.conn.name != self.account:
+    def room_memberlist_received(self, stanza):
+        if not nbxmpp.isResultNode(stanza):
+            log.error('Room %s Memberlist received: %s',
+                      stanza.getFrom(), stanza.getError())
             return
-        log.debug('Room %s Memberlist received: %s',
-                  event.fjid, event.users_dict)
-        room = event.fjid
 
-        if room not in self.groupchat:
-            self.groupchat[room] = {}
+        room_jid = stanza.getFrom().getStripped()
+        log.info('Room %s Memberlist received', room_jid)
+        if room_jid not in self.groupchat:
+            self.groupchat[room_jid] = {}
 
         def jid_known(jid):
-            for nick in self.groupchat[room]:
-                if self.groupchat[room][nick] == jid:
+            for nick in self.groupchat[room_jid]:
+                if self.groupchat[room_jid][nick] == jid:
                     return True
             return False
 
-        for jid in event.users_dict:
+        items = stanza.getTag(
+            'query', namespace=nbxmpp.NS_MUC_ADMIN).getTags('item')
+
+        for item in items:
+            if not item.has_attr('jid'):
+                continue
+            try:
+                jid = helpers.parse_jid(item.getAttr('jid'))
+            except helpers.InvalidFormat:
+                log.warning(
+                    'Invalid JID: %s, ignoring it', item.getAttr('jid'))
+                continue
+
             if not jid_known(jid):
                 # Add JID with JID because we have no Nick yet
-                self.groupchat[room][jid] = jid
-                log.debug('JID Added: %s', jid)
+                self.groupchat[room_jid][jid] = jid
+                log.info('JID Added: %s', jid)
 
     def gc_presence_received(self, event):
         if event.conn.name != self.account:
@@ -345,9 +356,16 @@ class OMEMOConnection:
 
             log.info('OMEMO capable Room found: %s', room)
 
-            self.get_con().get_affiliation_list(room, 'owner')
-            self.get_con().get_affiliation_list(room, 'admin')
-            self.get_con().get_affiliation_list(room, 'member')
+            self.get_affiliation_list(room, 'owner')
+            self.get_affiliation_list(room, 'admin')
+            self.get_affiliation_list(room, 'member')
+
+    def get_affiliation_list(self, room_jid, affiliation):
+        iq = nbxmpp.Iq(typ='get', to=room_jid, queryNS=nbxmpp.NS_MUC_ADMIN)
+        item = iq.setQuery().setTag('item')
+        item.setAttr('affiliation', affiliation)
+        self.get_con().connection.SendAndCallForResponse(
+            iq, self.room_memberlist_received)
 
     def gc_config_changed_received(self, event):
         if event.conn.name != self.account:
