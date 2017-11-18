@@ -17,8 +17,6 @@
 # You should have received a copy of the GNU General Public License
 # along with Gajim. If not, see <http://www.gnu.org/licenses/>.
 
-from enum import IntEnum, unique
-
 from gi.repository import Gtk
 
 from gajim.options_dialog import OptionsDialog
@@ -30,7 +28,7 @@ class HTTPUploadConfigDialog(OptionsDialog):
         self.plugin = plugin
         options = [
             Option(OptionKind.SWITCH, _('Enable HTTPS Verification'),
-                   OptionType.BOOL, self.plugin.config['verify'],
+                   OptionType.VALUE, self.plugin.config['verify'],
                    callback=self.on_option, data='verify'),
             ]
 
