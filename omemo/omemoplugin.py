@@ -159,6 +159,7 @@ class OmemoPlugin(GajimPlugin):
             if account == 'Local':
                 continue
             self.connections[account].deactivate()
+            del self.connections[account]
 
     def _update_caps(self, account):
         if account == 'Local':
