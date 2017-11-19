@@ -51,6 +51,7 @@ class OMEMOConnection:
         self.temp_groupchat = {}
         self.gc_message = {}
         self.query_for_bundles = []
+        self.query_for_devicelists = []
 
         app.ged.register_event_handler('pep-received', ged.PRECORE,
                                        self.handle_device_list_update)
@@ -350,6 +351,19 @@ class OMEMOConnection:
                 self.groupchat[room_jid][jid] = jid
                 log.info('JID Added: %s', jid)
 
+            if not self.is_contact_in_roster(jid):
+                # Query Devicelists from JIDs not in our Roster
+                log.info('%s not in Roster, query devicelist...', jid)
+                self.query_devicelist(jid)
+
+    def is_contact_in_roster(self, jid):
+        if jid == self.own_jid:
+            return True
+        contact = app.contacts.get_first_contact_from_jid(self.account, jid)
+        if contact is None:
+            return False
+        return contact.sub == 'both'
+
     def gc_presence_received(self, event):
         if event.conn.name != self.account:
             return
@@ -392,6 +406,11 @@ class OMEMOConnection:
             if nick not in self.groupchat[room]:
                 self.groupchat[room][nick] = jid
                 log.debug('JID Added: %s', jid)
+
+            if not self.is_contact_in_roster(jid):
+                # Query Devicelists from JIDs not in our Roster
+                log.info('%s not in Roster, query devicelist...', jid)
+                self.query_devicelist(jid)
 
         if '100' in event.status_code:  # non-anonymous Room (Full JID)
 
@@ -761,6 +780,8 @@ class OMEMOConnection:
 
     def query_devicelist(self, jid=None, fetch_bundle=False):
         """ Query own devicelist from the server """
+        if jid in self.query_for_devicelists:
+            return
         if jid is None:
             device_query = DevicelistQuery(self.own_jid)
             log.info('%s => Querry own devicelist ...', self.account)
@@ -772,6 +793,7 @@ class OMEMOConnection:
             self.send_with_callback(device_query,
                                     self._handle_device_list_update,
                                     data={'fetch_bundle': fetch_bundle})
+        self.query_for_devicelists.append(jid)
 
     def publish_bundle(self):
         """ Publish our bundle information to the PEP node """
