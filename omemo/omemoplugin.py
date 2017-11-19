@@ -163,6 +163,8 @@ class OmemoPlugin(GajimPlugin):
     def _update_caps(self, account):
         if account == 'Local':
             return
+        if account not in self.connections:
+            self.connections[account] = OMEMOConnection(account, self)
         self.connections[account].update_caps(account)
 
     def activate_encryption(self, chat_control):
