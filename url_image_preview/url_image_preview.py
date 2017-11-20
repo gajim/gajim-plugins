@@ -34,6 +34,7 @@ from gajim.plugins import GajimPlugin
 from gajim.plugins.helpers import log_calls
 from url_image_preview.http_functions import get_http_head, get_http_file
 from url_image_preview.config_dialog import UrlImagePreviewConfigDialog
+from url_image_preview.resize_gif import resize_gif
 
 log = logging.getLogger('gajim.plugin_system.preview')
 
@@ -257,7 +258,10 @@ class Base(object):
             loader = GdkPixbuf.PixbufLoader()
             loader.write(mem)
             loader.close()
-            pixbuf = loader.get_pixbuf()
+            if loader.get_format().get_name() == 'gif':
+                pixbuf = loader.get_animation()
+            else:
+                pixbuf = loader.get_pixbuf()
         except GLib.GError as error:
             log.info('Failed to load image using Gdk.Pixbuf')
             log.debug(error)
@@ -273,12 +277,21 @@ class Base(object):
                 array, GdkPixbuf.Colorspace.RGB, True,
                 8, width, height, width * 4)
 
-        thumbnail = pixbuf.scale_simple(
-            size, size, GdkPixbuf.InterpType.BILINEAR)
-
         try:
             self._create_path(os.path.dirname(thumbpath))
-            thumbnail.savev(thumbpath, 'png', [], [])
+            height, width = pixbuf.get_height(), pixbuf.get_width()
+            thumbnail = pixbuf
+            if isinstance(pixbuf, GdkPixbuf.PixbufAnimation):
+                if size <= height and size <= width:
+                    resize_gif(mem, thumbpath, (size, size))
+                    thumbnail = self._load_thumbnail(thumbpath)
+                else:
+                    self._write_file(thumbpath, mem)
+            else:
+                if size <= height and size <= width:
+                    thumbnail = pixbuf.scale_simple(
+                        size, size, GdkPixbuf.InterpType.BILINEAR)
+                thumbnail.savev(thumbpath, 'png', [], [])
         except Exception as error:
             dialogs.ErrorDialog(
                 _('Could not save file'),
@@ -286,14 +299,19 @@ class Base(object):
                   'for image file (see error log for more '
                   'information)'),
                 transient_for=app.app.get_active_window())
-            log.error(error)
+            log.exception(error)
             return
         return thumbnail
 
-    def _load_thumbnail(self, thumbpath):
+    @staticmethod
+    def _load_thumbnail(thumbpath):
+        ext = os.path.splitext(thumbpath)[1]
+        if ext == '.gif':
+            return GdkPixbuf.PixbufAnimation.new_from_file(thumbpath)
         return GdkPixbuf.Pixbuf.new_from_file(thumbpath)
 
-    def _write_file(self, path, data):
+    @staticmethod
+    def _write_file(path, data):
         log.info("Writing '%s' of size %d...", path, len(data))
         try:
             with open(path, "wb") as output_file:
@@ -327,7 +345,10 @@ class Base(object):
 
                 anchor = buffer_.create_child_anchor(iter_)
 
-                image = Gtk.Image.new_from_pixbuf(pixbuf)
+                if isinstance(pixbuf, GdkPixbuf.PixbufAnimation):
+                    image = Gtk.Image.new_from_animation(pixbuf)
+                else:
+                    image = Gtk.Image.new_from_pixbuf(pixbuf)
                 event_box.add(image)
                 event_box.show_all()
                 self.textview.tv.add_child_at_anchor(event_box, anchor)
