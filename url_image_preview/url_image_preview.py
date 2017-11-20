@@ -32,16 +32,17 @@ from gajim.common import configpaths
 from gajim import dialogs
 from gajim.plugins import GajimPlugin
 from gajim.plugins.helpers import log_calls
-from gajim.conversation_textview import TextViewImage
 from url_image_preview.http_functions import get_http_head, get_http_file
 from url_image_preview.config_dialog import UrlImagePreviewConfigDialog
 
 log = logging.getLogger('gajim.plugin_system.preview')
 
+PILLOW_AVAILABLE = True
 try:
     from PIL import Image
 except:
     log.debug('Pillow not available')
+    PILLOW_AVAILABLE = False
 
 try:
     if os.name == 'nt':
@@ -222,7 +223,7 @@ class Base(object):
             with open(filepath, 'rb') as f:
                 mem = f.read()
             app.thread_interface(
-                self._save_thumbnail, [thumbpath, (mem, '')],
+                self._save_thumbnail, [thumbpath, mem],
                 self._update_img, [real_text, repl_start,
                                    repl_end, filepath, encrypted])
 
@@ -249,62 +250,48 @@ class Base(object):
                     self._check_mime_size, [real_text, repl_start, repl_end,
                                             filepaths, key, iv, encrypted])
 
-    def _save_thumbnail(self, thumbpath, tuple_arg):
-        mem, alt = tuple_arg
+    def _save_thumbnail(self, thumbpath, mem):
         size = self.plugin.config['PREVIEW_SIZE']
-        use_Gtk = False
-        output = None
 
         try:
-            output = BytesIO()
-            im = Image.open(BytesIO(mem))
-            im.thumbnail((size, size), Image.ANTIALIAS)
-            im.save(output, "jpeg", quality=100, optimize=True)
-            mem = output.getvalue()
-            output.close()
-        except Exception as e:
-            if output:
-                output.close()
-            log.info("Failed to load image using pillow, "
-                     "falling back to gdk pixbuf.")
-            log.debug(e)
-            use_Gtk = True
+            loader = GdkPixbuf.PixbufLoader()
+            loader.write(mem)
+            loader.close()
+            pixbuf = loader.get_pixbuf()
+        except GLib.GError as error:
+            log.info('Failed to load image using Gdk.Pixbuf')
+            log.debug(error)
 
-        if use_Gtk:
-            log.info("Pillow not available or file corrupt, "
-                     "trying to load using gdk pixbuf.")
-            try:
-                loader = GdkPixbuf.PixbufLoader()
-                loader.write(mem)
-                loader.close()
-                pixbuf = loader.get_pixbuf()
-                pixbuf, w, h = self._get_pixbuf_of_size(pixbuf, size)
+            if not PILLOW_AVAILABLE:
+                log.info('Pillow not available')
+                return
+            # Try Pillow
+            image = Image.open(BytesIO(mem)).convert("RGBA")
+            array = GLib.Bytes.new(image.tobytes())
+            width, height = image.size
+            pixbuf = GdkPixbuf.Pixbuf.new_from_bytes(
+                array, GdkPixbuf.Colorspace.RGB, True,
+                8, width, height, width * 4)
 
-                ok, mem = pixbuf.save_to_bufferv("jpeg", ["quality"], ["100"])
-            except Exception as e:
-                log.info("Failed to load image using gdk pixbuf, "
-                         "ignoring image.")
-                log.debug(e)
-                return ('', '')
+        thumbnail = pixbuf.scale_simple(
+            size, size, GdkPixbuf.InterpType.BILINEAR)
 
         try:
             self._create_path(os.path.dirname(thumbpath))
-            self._write_file(thumbpath, mem)
-        except Exception as e:
+            thumbnail.savev(thumbpath, 'png', [], [])
+        except Exception as error:
             dialogs.ErrorDialog(
                 _('Could not save file'),
                 _('Exception raised while saving thumbnail '
                   'for image file (see error log for more '
                   'information)'),
                 transient_for=app.app.get_active_window())
-            log.error(str(e))
-        return (mem, alt)
+            log.error(error)
+            return
+        return thumbnail
 
     def _load_thumbnail(self, thumbpath):
-        with open(thumbpath, 'rb') as f:
-            mem = f.read()
-            f.closed
-        return (mem, '')
+        return GdkPixbuf.Pixbuf.new_from_file(thumbpath)
 
     def _write_file(self, path, data):
         log.info("Writing '%s' of size %d...", path, len(data))
@@ -316,59 +303,44 @@ class Base(object):
             log.error("Failed to write file '%s'!", path)
             raise
 
-    def _update_img(self, tuple_arg, url, repl_start, repl_end,
+    def _update_img(self, pixbuf, url, repl_start, repl_end,
                     filepath, encrypted):
-        mem, alt = tuple_arg
-        if mem:
-            try:
-                urlparts = urlparse(url)
-                filename = os.path.basename(urlparts.path)
-                eb = Gtk.EventBox()
-                eb.connect('button-press-event', self.on_button_press_event,
-                           filepath, filename, url, encrypted)
-                eb.connect('enter-notify-event', self.on_enter_event)
-                eb.connect('leave-notify-event', self.on_leave_event)
-
-                # this is threadsafe
-                # (Gtk textview is NOT threadsafe by itself!!)
-                def add_to_textview():
-                    try:        # textview closed in the meantime etc.
-                        at_end = self.textview.at_the_end()
-
-                        buffer_ = repl_start.get_buffer()
-                        iter_ = buffer_.get_iter_at_mark(repl_start)
-                        # buffer_.insert(iter_, "\n")
-                        anchor = buffer_.create_child_anchor(iter_)
-
-                        # Use url as tooltip for image
-                        img = TextViewImage(anchor, url)
-                        loader = GdkPixbuf.PixbufLoader()
-                        loader.write(mem)
-                        loader.close()
-                        pixbuf = loader.get_pixbuf()
-                        img.set_from_pixbuf(pixbuf)
-
-                        eb.add(img)
-                        eb.show_all()
-                        self.textview.tv.add_child_at_anchor(eb, anchor)
-                        buffer_.delete(iter_,
-                                       buffer_.get_iter_at_mark(repl_end))
-
-                        if at_end:
-                            GLib.idle_add(self.textview.scroll_to_end_iter)
-                    except Exception as ex:
-                        log.warn("Exception while loading %s: %s", url, ex)
-                    return False
-                # add to mainloop --> make call threadsafe
-                GLib.idle_add(add_to_textview)
-            except Exception:
-                # URL is already displayed
-                log.error('Could not display image for URL: %s', url)
-                raise
-        else:
+        if pixbuf is None:
             # If image could not be downloaded, URL is already displayed
-            log.error('Could not download image for URL: %s -- %s',
-                      url, alt)
+            log.error('Could not download image for URL: %s', url)
+            return
+
+        urlparts = urlparse(url)
+        filename = os.path.basename(urlparts.path)
+        event_box = Gtk.EventBox()
+        event_box.connect('button-press-event', self.on_button_press_event,
+                          filepath, filename, url, encrypted)
+        event_box.connect('enter-notify-event', self.on_enter_event)
+        event_box.connect('leave-notify-event', self.on_leave_event)
+
+        def add_to_textview():
+            try:
+                at_end = self.textview.at_the_end()
+
+                buffer_ = repl_start.get_buffer()
+                iter_ = buffer_.get_iter_at_mark(repl_start)
+
+                anchor = buffer_.create_child_anchor(iter_)
+
+                image = Gtk.Image.new_from_pixbuf(pixbuf)
+                event_box.add(image)
+                event_box.show_all()
+                self.textview.tv.add_child_at_anchor(event_box, anchor)
+                buffer_.delete(iter_,
+                               buffer_.get_iter_at_mark(repl_end))
+
+                if at_end:
+                    GLib.idle_add(self.textview.scroll_to_end_iter)
+            except Exception as ex:
+                log.exception("Exception while loading %s: %s", url, ex)
+            return False
+        # add to mainloop --> make call threadsafe
+        GLib.idle_add(add_to_textview)
 
     def _check_mime_size(self, tuple_arg,
                          url, repl_start, repl_end, filepaths,
@@ -428,7 +400,7 @@ class Base(object):
             log.error(str(e))
 
         # Create thumbnail, write it to harddisk and return it
-        return self._save_thumbnail(thumbpath, (mem, alt))
+        return self._save_thumbnail(thumbpath, mem)
 
     def _create_path(self, folder):
         if os.path.exists(folder):
@@ -449,26 +421,6 @@ class Base(object):
             GCM(iv, tag=tag),
             backend=be).decryptor()
         return decryptor.update(data) + decryptor.finalize()
-
-    def _get_pixbuf_of_size(self, pixbuf, size):
-        # Creates a pixbuf that fits in the specified square of sizexsize
-        # while preserving the aspect ratio
-        # Returns tuple: (scaled_pixbuf, actual_width, actual_height)
-        image_width = pixbuf.get_width()
-        image_height = pixbuf.get_height()
-
-        if image_width > image_height:
-            if image_width > size:
-                image_height = int(size / float(image_width) * image_height)
-                image_width = int(size)
-        else:
-            if image_height > size:
-                image_width = int(size / float(image_height) * image_width)
-                image_height = int(size)
-
-        crop_pixbuf = pixbuf.scale_simple(image_width, image_height,
-                                          GdkPixbuf.InterpType.BILINEAR)
-        return (crop_pixbuf, image_width, image_height)
 
     def make_rightclick_menu(self, event, data):
         xml = Gtk.Builder()
