@@ -35,7 +35,8 @@ from gajim.plugins.gajimplugin import GajimPluginException
 from gajim.plugins.helpers import log_calls, log
 from nbxmpp import Message
 from gi.repository import Gtk
-from gi.repository import GdkPixbuf
+from gi.repository import Gio
+from gi.repository import GLib
 from gajim import chat_control
 from gajim.common import ged
 from gajim.common.jingle_session import JingleSession
@@ -61,7 +62,7 @@ class WhiteboardPlugin(GajimPlugin):
             'raw-message-received': (ged.GUI1, self._nec_raw_message),
         }
         self.gui_extension_points = {
-            'chat_control_base' : (self.connect_with_chat_control,
+            'chat_control' : (self.connect_with_chat_control,
                 self.disconnect_from_chat_control),
             'chat_control_base_update_toolbar': (self.update_button_state,
                 None),
@@ -111,20 +112,15 @@ class WhiteboardPlugin(GajimPlugin):
             if base.chat_control == control:
                 if control.contact.supports(NS_JINGLE_SXE) and \
                 control.contact.supports(NS_SXE):
-                    base.button.set_sensitive(True)
-                    tooltip_text = _('Show whiteboard')
+                    base.enable_action(True)
                 else:
-                    base.button.set_sensitive(False)
-                    tooltip_text = _('Client on the other side '
-                        'does not support the whiteboard')
-                base.button.set_tooltip_text(tooltip_text)
+                    base.enable_action(False)
 
     @log_calls('WhiteboardPlugin')
     def show_request_dialog(self, account, fjid, jid, sid, content_types):
         def on_ok():
             session = app.connections[account].get_jingle_session(fjid, sid)
             self.sid = session.sid
-            print(session.accepted)
             if not session.accepted:
                 session.approve_session()
             for content in content_types:
@@ -259,41 +255,24 @@ class Base(object):
         self.contact = self.chat_control.contact
         self.account = self.chat_control.account
         self.jid = self.contact.get_full_jid()
-        self.create_buttons()
+        self.add_action()
         self.whiteboard = None
         self.sid = None
 
-    def create_buttons(self):
-        # create whiteboard button
-        actions_hbox = self.chat_control.xml.get_object('actions_hbox')
-        self.button = Gtk.ToggleButton()
-        self.button.set_property('relief', Gtk.ReliefStyle.NONE)
-        self.button.set_property('can-focus', False)
-        img = Gtk.Image()
-        img_path = self.plugin.local_file_path('whiteboard.png')
-        pixbuf = GdkPixbuf.Pixbuf.new_from_file(img_path)
-        iconset = Gtk.IconSet(pixbuf=pixbuf)
-        factory = Gtk.IconFactory()
-        factory.add('whiteboard', iconset)
-        img_path = self.plugin.local_file_path('brush_tool.png')
-        pixbuf = GdkPixbuf.Pixbuf.new_from_file(img_path)
-        iconset = Gtk.IconSet(pixbuf=pixbuf)
-        factory.add('brush_tool', iconset)
-        img_path = self.plugin.local_file_path('line_tool.png')
-        pixbuf = GdkPixbuf.Pixbuf.new_from_file(img_path)
-        iconset = Gtk.IconSet(pixbuf=pixbuf)
-        factory.add('line_tool', iconset)
-        img_path = self.plugin.local_file_path('oval_tool.png')
-        pixbuf = GdkPixbuf.Pixbuf.new_from_file(img_path)
-        iconset = Gtk.IconSet(pixbuf=pixbuf)
-        factory.add('oval_tool', iconset)
-        factory.add_default()
-        img.set_from_stock('whiteboard', Gtk.IconSize.MENU)
-        self.button.set_image(img)
-        actions_hbox.pack_start(self.button, False, False, 0)
-        id_ = self.button.connect('toggled', self.on_whiteboard_button_toggled)
-        self.chat_control.handlers[id_] = self.button
-        self.button.show()
+    def add_action(self):
+        action_name = 'toggle-whiteboard-' + self.chat_control.control_id
+        act = Gio.SimpleAction.new_stateful(
+            action_name, None, GLib.Variant.new_boolean(False))
+        act.connect('change-state', self.on_whiteboard_button_toggled)
+        self.chat_control.parent_win.window.add_action(act)
+
+        self.chat_control.control_menu.append(
+            'WhiteBoard', 'win.' + action_name)
+
+    def enable_action(self, state):
+        win = self.chat_control.parent_win.window
+        action_name = 'toggle-whiteboard-' + self.chat_control.control_id
+        win.lookup_action(action_name).set_enabled(state)
 
     def draw_whiteboard(self, content):
         hbox = self.chat_control.xml.get_object('chat_control_hbox')
@@ -304,15 +283,17 @@ class Base(object):
             self.whiteboard.hbox.set_size_request(300, 0)
             hbox.pack_start(self.whiteboard.hbox, False, False, 0)
             self.whiteboard.hbox.show_all()
-            self.button.set_active(True)
+            self.enable_action(True)
             content.control = self
             self.sid = content.session.sid
 
-    def on_whiteboard_button_toggled(self, widget):
+    def on_whiteboard_button_toggled(self, action, param):
         """
         Popup whiteboard
         """
-        if widget.get_active():
+        action.set_state(param)
+        state = param.get_boolean()
+        if state:
             if not self.whiteboard:
                 self.start_whiteboard()
         else:
@@ -334,7 +315,7 @@ class Base(object):
         session = conn.get_jingle_session(self.jid, media='xhtml')
         if session:
             session.end_session()
-        self.button.set_active(False)
+        self.enable_action(False)
         if reason:
             txt = _('Whiteboard stopped: %(reason)s') % {'reason': reason}
             self.chat_control.print_conversation(txt, 'info')
@@ -347,8 +328,12 @@ class Base(object):
                 self.whiteboard = None
 
     def disconnect_from_chat_control(self):
-        actions_hbox = self.chat_control.xml.get_object('actions_hbox')
-        actions_hbox.remove(self.button)
+        menu = self.chat_control.control_menu
+        for i in range(menu.get_n_items()):
+            label = menu.get_item_attribute_value(i, 'label')
+            if label.get_string() == 'WhiteBoard':
+                menu.remove(i)
+                break
 
 class JingleWhiteboard(JingleContent):
     ''' Jingle Whiteboard sessions consist of xhtml content'''

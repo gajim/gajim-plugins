@@ -36,7 +36,7 @@
               <object class="GtkImage" id="image5">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="stock">brush_tool</property>
+                <property name="pixbuf">brush_tool.png</property>
               </object>
             </child>
           </object>
@@ -57,7 +57,7 @@
               <object class="GtkImage" id="image6">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="stock">oval_tool</property>
+                <property name="pixbuf">oval_tool.png</property>
               </object>
             </child>
           </object>
@@ -78,7 +78,7 @@
               <object class="GtkImage" id="image7">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="stock">line_tool</property>
+                <property name="pixbuf">line_tool.png</property>
               </object>
             </child>
           </object>
@@ -192,10 +192,5 @@
         <property name="position">1</property>
       </packing>
     </child>
-  </object>
-  <object class="GtkImage" id="image1">
-    <property name="visible">True</property>
-    <property name="can_focus">False</property>
-    <property name="stock">gtk-delete</property>
   </object>
 </interface>
