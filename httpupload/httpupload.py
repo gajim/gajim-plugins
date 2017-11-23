@@ -91,13 +91,20 @@ class HTTPUploadPlugin(GajimPlugin):
         interface.component = event.jid
         interface.update_button_states(True)
 
-        try:
-            for form in event.data:
-                tmp = form.getField("max-file-size").getValue()
-                interface.max_file_size = int(tmp)
-        except AttributeError:
-            interface.max_file_size = None
-            log.warning("%s does not provide maximum file size" % account)
+        for form in event.data:
+            form_dict = form.asDict()
+            if form_dict.get('FORM_TYPE', None) != NS_HTTPUPLOAD:
+                continue
+            size = form_dict.get('max-file-size', None)
+            if size is not None:
+                interface.max_file_size = int(size)
+                break
+
+        if interface.max_file_size is None:
+            log.warning('%s does not provide maximum file size', account)
+        else:
+            log.info('%s has a maximum file size of: %s',
+                     account, interface.max_file_size)
 
     def handle_outgoing_stanza(self, event):
         message = event.msg_iq.getTagData('body')
@@ -145,6 +152,7 @@ class Base(object):
         self.encrypted_upload = False
         self.enabled = False
         self.component = None
+        self.max_file_size = None
         self.controls = {}
 
     def add_button(self, chat_control):
