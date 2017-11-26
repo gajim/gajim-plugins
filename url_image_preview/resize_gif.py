@@ -74,6 +74,7 @@ def extract_and_resize_frames(mem, resize_to):
 
             new_frame.paste(image, (0, 0), image.convert('RGBA'))
 
+            # This method preservs aspect ratio
             new_frame.thumbnail(resize_to, Image.ANTIALIAS)
             frames.append(new_frame)
 

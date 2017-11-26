@@ -279,18 +279,17 @@ class Base(object):
 
         try:
             self._create_path(os.path.dirname(thumbpath))
-            height, width = pixbuf.get_height(), pixbuf.get_width()
             thumbnail = pixbuf
             if isinstance(pixbuf, GdkPixbuf.PixbufAnimation):
-                if size <= height and size <= width:
+                if size < pixbuf.get_width() or size < pixbuf.get_height():
                     resize_gif(mem, thumbpath, (size, size))
                     thumbnail = self._load_thumbnail(thumbpath)
                 else:
                     self._write_file(thumbpath, mem)
             else:
-                if size <= height and size <= width:
-                    thumbnail = pixbuf.scale_simple(
-                        size, size, GdkPixbuf.InterpType.BILINEAR)
+                width, height = self._get_thumbnail_size(pixbuf, size)
+                thumbnail = pixbuf.scale_simple(
+                    width, height, GdkPixbuf.InterpType.BILINEAR)
                 thumbnail.savev(thumbpath, 'png', [], [])
         except Exception as error:
             dialogs.ErrorDialog(
@@ -302,6 +301,23 @@ class Base(object):
             log.exception(error)
             return
         return thumbnail
+
+    @staticmethod
+    def _get_thumbnail_size(pixbuf, size):
+        # Calculates the new thumbnail size while preserving the aspect ratio
+        image_width = pixbuf.get_width()
+        image_height = pixbuf.get_height()
+
+        if image_width > image_height:
+            if image_width > size:
+                image_height = int(size / float(image_width) * image_height)
+                image_width = int(size)
+        else:
+            if image_height > size:
+                image_width = int(size / float(image_height) * image_width)
+                image_height = int(size)
+
+        return image_width, image_height
 
     @staticmethod
     def _load_thumbnail(thumbpath):
