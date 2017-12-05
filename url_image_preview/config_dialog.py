@@ -21,7 +21,7 @@ from gi.repository import GObject
 from gi.repository import Gtk
 
 from gajim.options_dialog import OptionsDialog, GenericOption, SpinOption
-from gajim.common.const import Option, OptionType
+from gajim.common.const import Option, OptionType, OptionKind
 
 
 class UrlImagePreviewConfigDialog(OptionsDialog):
@@ -57,6 +57,10 @@ class UrlImagePreviewConfigDialog(OptionsDialog):
                    callback=self.on_option, data='LEFTCLICK_ACTION',
                    props={'items': actions,
                           'plugin': self.plugin}),
+
+            Option(OptionKind.SWITCH, _('Enable HTTPS Verification'),
+                   OptionType.VALUE, self.plugin.config['VERIFY'],
+                   callback=self.on_option, data='VERIFY'),
             ]
 
         OptionsDialog.__init__(self, parent, _('UrlImagePreview Options'),

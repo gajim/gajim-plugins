@@ -18,6 +18,7 @@
 import urllib.request as urllib2
 import socket
 import re
+import ssl
 
 from gajim.common import app
 from gajim.common import helpers
@@ -34,12 +35,12 @@ if app.HAVE_PYCURL:
 
 log = logging.getLogger('gajim.plugin_system.url_image_preview.http_functions')
 
-def get_http_head(account, url):
+def get_http_head(account, url, verify):
     # Check if proxy is used
     proxy = helpers.get_proxy_info(account)
     if proxy and proxy['type'] in ('http', 'socks5'):
         return _get_http_head_proxy(url, proxy)
-    return _get_http_head_direct(url)
+    return _get_http_head_direct(url, verify)
 
 def get_http_file(account, attrs):
     # Check if proxy is used
@@ -49,16 +50,23 @@ def get_http_file(account, attrs):
     else:
         return _get_http_direct(attrs)
 
-def _get_http_head_direct(url):
+def _get_http_head_direct(url, verify):
     log.debug('Head request direct for URL: %s' % url)
     try:
         req = urllib2.Request(url)
         req.get_method = lambda: 'HEAD'
         req.add_header('User-Agent', 'Gajim %s' % app.version)
-        if os.name == 'nt':
-            f = urllib2.urlopen(req, cafile=certifi.where())
+        if not verify:
+            context = ssl.create_default_context()
+            context.check_hostname = False
+            context.verify_mode = ssl.CERT_NONE
+            log.warning('CERT Verification disabled')
+            f = urllib2.urlopen(req, timeout=30, context=context)
         else:
-            f = urllib2.urlopen(req)
+            if os.name == 'nt':
+                f = urllib2.urlopen(req, cafile=certifi.where())
+            else:
+                f = urllib2.urlopen(req)
     except Exception as ex:
         log.debug('Could not get head response for URL: %s' % url)
         log.debug("%s" % str(ex))
@@ -136,10 +144,17 @@ def _get_http_direct(attrs):
     try:
         req = urllib2.Request(attrs['src'])
         req.add_header('User-Agent', 'Gajim ' + app.version)
-        if os.name == 'nt':
-            f = urllib2.urlopen(req, cafile=certifi.where())
+        if not attrs['verify']:
+            context = ssl.create_default_context()
+            context.check_hostname = False
+            context.verify_mode = ssl.CERT_NONE
+            log.warning('CERT Verification disabled')
+            f = urllib2.urlopen(req, timeout=30, context=context)
         else:
-            f = urllib2.urlopen(req)
+            if os.name == 'nt':
+                f = urllib2.urlopen(req, cafile=certifi.where())
+            else:
+                f = urllib2.urlopen(req)
     except Exception as ex:
         log.debug('Error loading file %s '
                     % attrs['src'] + str(ex))

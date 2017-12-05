@@ -81,7 +81,8 @@ class UrlImagePreviewPlugin(GajimPlugin):
             'PREVIEW_SIZE': (150, 'Preview size(10-512)'),
             'MAX_FILE_SIZE': (524288, 'Max file size for image preview'),
             'LEFTCLICK_ACTION': ('open_menuitem', 'Open'),
-            'ANONYMOUS_MUC': False,}
+            'ANONYMOUS_MUC': (False, ''),
+            'VERIFY': (True, ''),}
         self.controls = {}
         self.history_window_control = None
 
@@ -246,8 +247,9 @@ class Base(object):
                 # then check the mime type and filesize
                 if urlparts.scheme == 'aesgcm':
                     real_text = 'https://' + real_text[9:]
+                verify = self.plugin.config['VERIFY']
                 app.thread_interface(
-                    get_http_head, [self.textview.account, real_text],
+                    get_http_head, [self.textview.account, real_text, verify],
                     self._check_mime_size, [real_text, repl_start, repl_end,
                                             filepaths, key, iv, encrypted])
 
@@ -403,6 +405,7 @@ class Base(object):
             return
 
         attributes = {'src': url,
+                      'verify': self.plugin.config['VERIFY'],
                       'max_size': max_size,
                       'filepaths': filepaths,
                       'key': key,
