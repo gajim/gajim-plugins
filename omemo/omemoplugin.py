@@ -188,7 +188,7 @@ class OmemoPlugin(GajimPlugin):
         self.connections[conn.name].encrypt_message(conn, obj, callback)
 
     def _file_decryption(self, url, kind, instance, window):
-        file_decryption.FileDecryption(self).hyperlink_handler(
+        file_crypto.FileDecryption(self).hyperlink_handler(
             url, kind, instance, window)
 
     def encrypt_file(self, file, callback):
@@ -198,8 +198,8 @@ class OmemoPlugin(GajimPlugin):
         thread.start()
 
     @staticmethod
-    def _encrypt_file_thread(file, callback):
-        encrypted_data, key, iv = file_decryption.encrypt_file(
+    def _encrypt_file_thread(file, callback, *args, **kwargs):
+        encrypted_data, key, iv = file_crypto.encrypt_file(
             file.get_data(full=True))
         file.encrypted = True
         file.size = len(encrypted_data)
