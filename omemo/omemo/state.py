@@ -217,14 +217,6 @@ class OmemoState:
         log.debug("Decrypted Message => " + result)
         return result
 
-    def encrypt_file(self, data):
-        key = os.urandom(32)
-        iv = os.urandom(16)
-
-        payload, tag = encrypt(key, iv, data)
-        encrypted_data = payload + tag
-        return (encrypted_data, key, iv)
-
     def create_msg(self, from_jid, jid, plaintext):
         key = get_random_bytes(16)
         iv = get_random_bytes(16)

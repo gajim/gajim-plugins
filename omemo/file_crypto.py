@@ -45,6 +45,7 @@ try:
     from cryptography.hazmat.primitives.ciphers import algorithms
     from cryptography.hazmat.primitives.ciphers.modes import GCM
     from cryptography.hazmat.backends import default_backend
+    from omemo.omemo.aes_gcm_native import aes_encrypt
 except ImportError:
     log.exception('ImportError')
     ERROR = True
@@ -57,6 +58,15 @@ try:
 except Exception:
     ERROR = True
     log.exception('Error')
+
+
+def encrypt_file(data):
+    key = os.urandom(32)
+    iv = os.urandom(16)
+
+    payload, tag = aes_encrypt(key, iv, data)
+    encrypted_data = payload + tag
+    return (encrypted_data, key, iv)
 
 
 class File:

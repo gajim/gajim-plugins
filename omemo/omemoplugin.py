@@ -45,7 +45,7 @@ ERROR_MSG = ''
 log = logging.getLogger('gajim.plugin_system.omemo')
 
 try:
-    from omemo.file_decryption import FileDecryption
+    from omemo import file_crypto
 except Exception as error:
     log.exception(error)
     ERROR_MSG = CRYPTOGRAPHY_MISSING
@@ -188,17 +188,19 @@ class OmemoPlugin(GajimPlugin):
         self.connections[conn.name].encrypt_message(conn, obj, callback)
 
     def _file_decryption(self, url, kind, instance, window):
-        FileDecryption(self).hyperlink_handler(url, kind, instance, window)
+        file_decryption.FileDecryption(self).hyperlink_handler(
+            url, kind, instance, window)
 
-    def encrypt_file(self, file, account, callback):
+    def encrypt_file(self, file, callback):
         thread = threading.Thread(target=self._encrypt_file_thread,
-                                  args=(file, account, callback))
+                                  args=(file, callback))
         thread.daemon = True
         thread.start()
 
-    def _encrypt_file_thread(self, file, account, callback):
-        omemo = self.get_omemo(account)
-        encrypted_data, key, iv = omemo.encrypt_file(file.get_data(full=True))
+    @staticmethod
+    def _encrypt_file_thread(file, callback):
+        encrypted_data, key, iv = file_decryption.encrypt_file(
+            file.get_data(full=True))
         file.encrypted = True
         file.size = len(encrypted_data)
         file.user_data = binascii.hexlify(iv + key).decode('utf-8')
