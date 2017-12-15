@@ -157,6 +157,7 @@ clients = {
     'SecuGab': ['secugab.png', 'Secugab'],
     'Jappix': ['jappix.png', 'Jappix'],
     'Movim': ['movim.png', 'Movim'],
+    'Dino': ['dino.png', 'Dino'],
 }
 
 
