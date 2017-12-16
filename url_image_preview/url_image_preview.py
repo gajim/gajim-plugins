@@ -248,12 +248,19 @@ class Base(object):
         size = self.plugin.config['PREVIEW_SIZE']
         use_gtk = False
         output = None
+        thumbext = os.path.splitext(thumbpath)[1]
 
         try:
             output = BytesIO()
             im = Image.open(BytesIO(mem))
-            im.thumbnail((size, size), Image.ANTIALIAS)
-            im.save(output, "jpeg", quality=100, optimize=True)
+            if thumbext == '.gif':
+                im.save(output, "gif", save_all=True)                
+            elif thumbext == '.png':
+                im.thumbnail((size, size), Image.ANTIALIAS)
+                im.save(output, "png", optimize=True)
+            else:
+                im.thumbnail((size, size), Image.ANTIALIAS)
+                im.save(output, "jpeg", quality=95, optimize=True)
         except Exception as e:
             if output:
                 output.close()
@@ -277,7 +284,10 @@ class Base(object):
                     output.write(buf)
                     return True
 
-                pixbuf.save_to_callback(cb, "jpeg", {"quality": "100"})
+                if thumbext == '.png':
+                    pixbuf.save_to_callback(cb, "png")
+                else:
+                    pixbuf.save_to_callback(cb, "jpeg", {"quality": "95"})
             except Exception as e:
                 if output:
                     output.close()
@@ -343,8 +353,8 @@ class Base(object):
                         loader = gtk.gdk.PixbufLoader()
                         loader.write(mem)
                         loader.close()
-                        pixbuf = loader.get_pixbuf()
-                        img.set_from_pixbuf(pixbuf)
+                        animation = loader.get_animation()
+                        img.set_from_animation(animation)
 
                         eb.add(img)
                         eb.show_all()
