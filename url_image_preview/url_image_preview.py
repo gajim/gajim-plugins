@@ -360,13 +360,14 @@ class Base(object):
 
                 buffer_ = repl_start.get_buffer()
                 iter_ = buffer_.get_iter_at_mark(repl_start)
-
+                buffer_.insert(iter_, "\n")
                 anchor = buffer_.create_child_anchor(iter_)
 
                 if isinstance(pixbuf, GdkPixbuf.PixbufAnimation):
                     image = Gtk.Image.new_from_animation(pixbuf)
                 else:
                     image = Gtk.Image.new_from_pixbuf(pixbuf)
+                event_box.set_tooltip_text(url)
                 event_box.add(image)
                 event_box.show_all()
                 self.textview.tv.add_child_at_anchor(event_box, anchor)
