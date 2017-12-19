@@ -362,6 +362,7 @@ class Base(object):
                 iter_ = buffer_.get_iter_at_mark(repl_start)
                 buffer_.insert(iter_, "\n")
                 anchor = buffer_.create_child_anchor(iter_)
+                anchor.plaintext = url
 
                 if isinstance(pixbuf, GdkPixbuf.PixbufAnimation):
                     image = Gtk.Image.new_from_animation(pixbuf)
