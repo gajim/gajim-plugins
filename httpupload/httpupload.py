@@ -274,7 +274,7 @@ class Base(object):
             file.progress.close_dialog()
             ErrorDialog(
                 _('Error'),
-                'For the choosen encryption is no encryption method available',
+                _('For the chosen encryption no encryption method is available'),
                 transient_for=file.control.parent_win.window)
 
     def request_slot(self, file):
