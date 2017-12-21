@@ -46,9 +46,9 @@ class AppindicatorIntegrationPlugin(GajimPlugin):
 
         self.events = {}
 
-        self.attention_icon  = "tray-message"
-        self.online_icon     = "tray-online"
-        self.offline_icon    = "tray-offline"
+        self.attention_icon  = "mail-unread"
+        self.online_icon     = "user-available"
+        self.offline_icon    = "user-offline"
         self.connected       = 0
 
         self.connect_menu_item = gtk.MenuItem('Connect')
