@@ -12,9 +12,15 @@ import os
 import time
 
 import gi
-gi.require_version('AppIndicator3', '0.1')
-from gi.repository import AppIndicator3 as appindicator
 from gi.repository import Gtk, GLib, Gdk
+
+try:
+    gi.require_version('AppIndicator3', '0.1')
+    from gi.repository import AppIndicator3 as appindicator
+    ERRORMSG = None
+except (ValueError, ImportError):
+    ERRORMSG = _('Please install libappindicator3')
+
 
 # Gajim
 from gajim.common import app, ged
@@ -28,11 +34,10 @@ class AppindicatorIntegrationPlugin(GajimPlugin):
 
     @log_calls("AppindicatorIntegrationPlugin")
     def init(self):
-        #if ERRORMSG:
-        #    self.activatable = False
-        #    self.available_text += _(ERRORMSG)
-        #    return
-        #else:
+        if ERRORMSG:
+            self.activatable = False
+            self.available_text += ERRORMSG
+            return
         self.config_dialog = None
         self.events_handlers = {'our-show': (ged.GUI2,
                                              self.set_indicator_icon)}
@@ -43,9 +48,8 @@ class AppindicatorIntegrationPlugin(GajimPlugin):
 
         self.events = {}
 
-        self.attention_icon = "tray-message"
-        self.online_icon = "tray-online"
-        self.offline_icon = "tray-offline"
+        self.online_icon = 'org.gajim.Gajim'
+        self.offline_icon = 'org.gajim.Gajim-symbolic'
         self.connected = 0
 
         self.connect_menu_item = Gtk.MenuItem('Connect')
@@ -75,8 +79,9 @@ class AppindicatorIntegrationPlugin(GajimPlugin):
 
         self.indicator = appindicator.Indicator.new(
             'Gajim', self.offline_icon,
-            appindicator.IndicatorCategory.APPLICATION_STATUS)
-        self.indicator.set_attention_icon(self.attention_icon)
+            appindicator.IndicatorCategory.COMMUNICATIONS)
+        self.indicator.set_icon_theme_path(app.ICONS_DIR)
+        self.indicator.set_attention_icon('mail-unread')
         self.indicator.set_status(appindicator.IndicatorStatus.ACTIVE)
         self.indicator.set_menu(self.menu)
 
@@ -102,7 +107,7 @@ class AppindicatorIntegrationPlugin(GajimPlugin):
         elif event.new_window_state & Gdk.WindowState.WITHDRAWN:
             self.windowstate = 'hidden'
 
-    def set_indicator_icon(self, obj=''):
+    def set_indicator_icon(self, *args):
         is_connected = 0
         for account in app.connections:
             if not app.config.get_per('accounts', account,
@@ -114,10 +119,10 @@ class AppindicatorIntegrationPlugin(GajimPlugin):
         if self.connected != is_connected:
             self.connected = is_connected
             if self.connected == 1:
-                self.indicator.set_icon(self.online_icon)
+                self.indicator.set_icon_full(self.online_icon, _('Online'))
                 self.connect_menu_item.hide()
             else:
-                self.indicator.set_icon(self.offline_icon)
+                self.indicator.set_icon_full(self.offline_icon, _('Offline'))
                 self.connect_menu_item.show()
 
     @log_calls("AppindicatorPlugin")
