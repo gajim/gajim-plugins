@@ -192,10 +192,10 @@ class OMEMOConfigDialog(GajimPluginConfigDialog):
             fpr = fpr[31:-12]
 
             YesNoDialog(
-                'Delete Fingerprint?',
-                'Do you want to delete the '
-                'fingerprint of <b>{}</b> on your account <b>{}</b>?'
-                '\n\n<tt>{}</tt>'.format(jid, account, fpr),
+                _('Delete Fingerprint?'),
+                _('Do you want to delete the '
+                'fingerprint of <b>{jid}</b> on your account <b>{account}</b>?'
+                '\n\n<tt>{fingerprint}</tt>').format(jid=jid, account=account, fingerprint=fpr),
                 on_response_yes=on_yes, transient_for=self)
 
     def trust_button_clicked_cb(self, button, *args):
@@ -223,10 +223,10 @@ class OMEMOConfigDialog(GajimPluginConfigDialog):
             identity_key = record.getSessionState().getRemoteIdentityKey()
 
             YesNoDialog(
-                'Trust / Revoke Fingerprint?',
-                'Do you want to trust the fingerprint of <b>{}</b> '
-                'on your account <b>{}</b>?\n\n'
-                '<tt>{}</tt>'.format(jid, account, fpr),
+                _('Trust / Revoke Fingerprint?'),
+                _('Do you want to trust the fingerprint of <b>{jid}</b> '
+                'on your account <b>{account}</b>?\n\n'
+                '<tt>{fingerprint}</tt>').format(jid=jid, account=account, fingerprint=fpr),
                 on_response_yes=(on_yes, identity_key),
                 on_response_no=(on_no, identity_key),
                 transient_for=self)
@@ -365,7 +365,7 @@ class FingerprintWindow(Gtk.Dialog):
         self.omemostate = self.plugin.get_omemo(self.account)
         self.own_jid = app.get_jid_from_account(self.account)
         Gtk.Dialog.__init__(self,
-                            title=('Fingerprints for %s') % contact.jid,
+                            title=(_('Fingerprints for %s')) % contact.jid,
                             parent=parent,
                             flags=Gtk.DialogFlags.DESTROY_WITH_PARENT)
         close_button = self.add_button(Gtk.STOCK_CLOSE, Gtk.ResponseType.CLOSE)
@@ -432,10 +432,10 @@ class FingerprintWindow(Gtk.Dialog):
             identity_key = record.getSessionState().getRemoteIdentityKey()
 
             YesNoDialog(
-                'Trust / Revoke Fingerprint?',
-                'Do you want to trust the fingerprint of <b>{}</b> '
-                'on your account <b>{}</b>?\n\n'
-                '<tt>{}</tt>'.format(jid, self.account, fpr),
+                _('Trust / Revoke Fingerprint?'),
+                _('Do you want to trust the fingerprint of <b>{jid}</b> '
+                'on your account <b>{account}</b>?\n\n'
+                '<tt>{fingerprint}</tt>').format(jid=jid, account=self.account, fingerprint=fpr),
                 on_response_yes=(on_yes, identity_key),
                 on_response_no=(on_no, identity_key),
                 transient_for=self)

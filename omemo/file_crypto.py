@@ -144,8 +144,8 @@ class FileDecryption:
         file.filepath = os.path.join(DIRECTORY, newfilename)
 
     def finished(self, file):
-        question = 'Do you want to open %s' % file.filename
-        YesNoDialog('Open File', question,
+        question = _('Do you want to open %s') % file.filename
+        YesNoDialog(_('Open File'), question,
                     transient_for=self.window,
                     on_response_yes=(self.open_file, file.filepath))
         return False
@@ -169,18 +169,18 @@ class Download:
         self.download()
 
     def download(self):
-        GLib.idle_add(self.progressbar.set_text, 'Downloading...')
+        GLib.idle_add(self.progressbar.set_text, _('Downloading...'))
         data = self.load_url()
         if isinstance(data, str):
             GLib.idle_add(self.progressbar.close_dialog)
             GLib.idle_add(self.error, data)
             return
 
-        GLib.idle_add(self.progressbar.set_text, 'Decrypting...')
+        GLib.idle_add(self.progressbar.set_text, _('Decrypting...'))
         decrypted_data = self.aes_decrypt(data)
 
         GLib.idle_add(
-            self.progressbar.set_text, 'Writing file to harddisk...')
+            self.progressbar.set_text, _('Writing file to harddisk...'))
         self.write_file(decrypted_data)
 
         GLib.idle_add(self.progressbar.close_dialog)
