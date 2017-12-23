@@ -143,6 +143,7 @@ clients = {
     'http://monal.im/caps': ['monal.png', 'Monal'],
     'http://leechcraft.org/': ['leechcraft.png', 'Leechcraft'],
     'http://sawim.ru/caps': ['sawim.png', 'Sawim'],
+    'https://dino.im': ['dino.png', 'Dino'],
     #
     'Poezio' :['poezio.png', 'Poezio'],
     'Emacs' :['emacs.png', ''],
@@ -153,11 +154,11 @@ clients = {
     'Pidgin': ['pidgin.png', ''],
     'Leechcraft': ['leechcraft.png', ''],
     'Conversations': ['conversations.png', 'Conversations'],
+    'Pix-Art Messenger': ['pixart.png', 'Pix-Art Messenger'],
     'ChatSecure': ['chatsecure.png', 'ChatSecure'],
     'SecuGab': ['secugab.png', 'Secugab'],
     'Jappix': ['jappix.png', 'Jappix'],
     'Movim': ['movim.png', 'Movim'],
-    'Dino': ['dino.png', 'Dino'],
 }
 
 
