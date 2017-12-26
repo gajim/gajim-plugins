@@ -186,13 +186,6 @@ class AppindicatorIntegrationPlugin(GajimPlugin):
                 if pixbuf not in (None, "ask"):
                     icon = gtk.Image()
                     icon.set_from_pixbuf(pixbuf)
-                else:
-                    file_path = gtkgui_helpers.get_path_to_generic_or_avatar(jid)
-                    if os.path.isfile(file_path):
-                        fd = fopen(file_path, 'rb')
-                        data = fd.read()
-                        icon = gtk.Image()
-                        icon.set_from_pixbuf(gtkgui_helpers.get_pixbuf_from_data(data))
             item = gtk.ImageMenuItem(contact + " (1)")
             if icon:
                 item.set_image(icon)
