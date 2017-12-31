@@ -34,7 +34,7 @@ class ChatstatePlugin(GajimPlugin):
         self.description = _('Chat State Notifications in roster.'
 'Font color of the contact varies depending on the chat state.\n'
 'The plugin does not work if you use custom font color for contacts in roster.\n'
-'http://trac.gajim.org/ticket/3628.\nhttp://xmpp.org/extensions/xep-0085.html')
+'https://dev.gajim.org/gajim/gajim/issues/3628\nhttp://xmpp.org/extensions/xep-0085.html')
         self.config_dialog = None  # ChatstatePluginConfigDialog(self)
         self.events_handlers = {'chatstate-received':
                                     (ged.GUI2, self.chatstate_received), }
@@ -89,8 +89,9 @@ class ChatstatePlugin(GajimPlugin):
     def activate(self):
         color = gtkgui_helpers.get_fade_color(app.interface.roster.tree,
             False, False)
-        self.status_color = '#%04x%04x%04x' % (color.red, color.green,
-            color.blue)
+        self.status_color = '#%02x%02x%02x' % (int(color.red * 255),
+                                               int(color.green * 255),
+                                               int(color.blue * 255))
         theme = app.config.get('roster_theme')
         self.chatstates = {'active': app.config.get('inmsgcolor'),
                             'composing': app.config.get_per('themes', theme,
