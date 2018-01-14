@@ -24,7 +24,7 @@ You have written a new plugin or want to improve an already existing one?
 First, Thanks for that! Here is how to do that:
 
 - Register an account [here](https://dev.gajim.org/users/sign_in)
-- Tell us about your plans at gajim@gajim.conference.org (we need to set your permission on Gitlab)
+- Tell us about your plans at gajim@conference.gajim.org (we need to set your permission on Gitlab)
 - Fork the Gajim-Plugins [repository](https://dev.gajim.org/gajim/gajim-plugins)
 - When you are finished make a pull request against the main repository
 
