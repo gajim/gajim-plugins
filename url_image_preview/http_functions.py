@@ -33,7 +33,7 @@ if app.HAVE_PYCURL:
     from io import StringIO
 
 
-log = logging.getLogger('gajim.plugin_system.url_image_preview.http_functions')
+log = logging.getLogger('gajim.plugin_system.preview.http_functions')
 
 def get_http_head(account, url, verify):
     # Check if proxy is used
@@ -51,7 +51,7 @@ def get_http_file(account, attrs):
         return _get_http_direct(attrs)
 
 def _get_http_head_direct(url, verify):
-    log.debug('Head request direct for URL: %s' % url)
+    log.info('Head request direct for URL: %s', url)
     try:
         req = urllib2.Request(url)
         req.get_method = lambda: 'HEAD'
@@ -68,8 +68,7 @@ def _get_http_head_direct(url, verify):
             else:
                 f = urllib2.urlopen(req)
     except Exception as ex:
-        log.debug('Could not get head response for URL: %s' % url)
-        log.debug("%s" % str(ex))
+        log.debug('Error', exc_info=True)
         return ('', 0)
     ctype = f.headers['Content-Type']
     clen = f.headers['Content-Length']
@@ -80,7 +79,7 @@ def _get_http_head_direct(url, verify):
     return (ctype, clen)
 
 def _get_http_head_proxy(url, proxy):
-    log.debug('Head request with proxy for URL: %s' % url)
+    log.info('Head request with proxy for URL: %s', url)
     if not app.HAVE_PYCURL:
         log.error('PYCURL not installed')
         return ('', 0)
@@ -115,8 +114,7 @@ def _get_http_head_proxy(url, proxy):
         c.close()
         headers = b.getvalue()
     except pycurl.error as ex:
-        log.debug('Could not get head response for URL: %s' % url)
-        log.debug("%s" % str(ex))
+        log.debug('Error', exc_info=True)
         return ('', 0)
 
     ctype = ''
@@ -137,7 +135,7 @@ def _get_http_direct(attrs):
     Download a file. This function should
     be launched in a separated thread.
     """
-    log.debug('Get request direct for URL: %s' % attrs['src'])
+    log.info('Get request direct for URL: %s', attrs['src'])
     mem, alt, max_size = b'', '', 2 * 1024 * 1024
     if 'max_size' in attrs:
         max_size = attrs['max_size']
@@ -156,8 +154,7 @@ def _get_http_direct(attrs):
             else:
                 f = urllib2.urlopen(req)
     except Exception as ex:
-        log.debug('Error loading file %s '
-                    % attrs['src'] + str(ex))
+        log.debug('Error', exc_info=True)
         pixbuf = None
         alt = attrs.get('alt', 'Broken image')
     else:
@@ -165,8 +162,7 @@ def _get_http_direct(attrs):
             try:
                 temp = f.read(100)
             except socket.timeout as ex:
-                log.debug('Timeout loading image %s '
-                            % attrs['src'] + str(ex))
+                log.debug('Timeout loading image %s', attrs['src'] + str(ex))
                 alt = attrs.get('alt', '')
                 if alt:
                     alt += '\n'
@@ -190,7 +186,7 @@ def _get_http_proxy(attrs, proxy):
     This function should be launched in a
     separated thread.
     """
-    log.debug('Get request with proxy for URL: %s' % attrs['src'])
+    log.info('Get request with proxy for URL: %s', attrs['src'])
     if not app.HAVE_PYCURL:
         log.error('PYCURL not installed')
         return '', _('PyCURL is not installed')
@@ -231,7 +227,7 @@ def _get_http_proxy(attrs, proxy):
         else:
             alt += _('Error loading image')
     except Exception as ex:
-        log.debug('Error loading file %s ' % attrs['src'] + str(ex))
+        log.debug('Error', exc_info=True)
         pixbuf = None
         alt = attrs.get('alt', 'Broken image')
     return ('', alt)
