@@ -21,34 +21,19 @@ import re
 import ssl
 
 from gajim.common import app
-from gajim.common import helpers
 import logging
 
 import os
 if os.name == 'nt':
     import certifi
 
-if app.HAVE_PYCURL:
-    import pycurl
-    from io import StringIO
-
-
 log = logging.getLogger('gajim.plugin_system.preview.http_functions')
 
 def get_http_head(account, url, verify):
-    # Check if proxy is used
-    proxy = helpers.get_proxy_info(account)
-    if proxy and proxy['type'] in ('http', 'socks5'):
-        return _get_http_head_proxy(url, proxy)
     return _get_http_head_direct(url, verify)
 
 def get_http_file(account, attrs):
-    # Check if proxy is used
-    proxy = helpers.get_proxy_info(account)
-    if proxy and proxy['type'] in ('http', 'socks5'):
-        return _get_http_proxy(attrs, proxy)
-    else:
-        return _get_http_direct(attrs)
+    return _get_http_direct(attrs)
 
 def _get_http_head_direct(url, verify):
     log.info('Head request direct for URL: %s', url)
@@ -76,58 +61,6 @@ def _get_http_head_direct(url, verify):
         clen = int(clen)
     except (TypeError, ValueError):
         pass
-    return (ctype, clen)
-
-def _get_http_head_proxy(url, proxy):
-    log.info('Head request with proxy for URL: %s', url)
-    if not app.HAVE_PYCURL:
-        log.error('PYCURL not installed')
-        return ('', 0)
-
-    headers = ''
-    try:
-        b = StringIO()
-        c = pycurl.Curl()
-        c.setopt(pycurl.URL, url.encode('utf-8'))
-        c.setopt(pycurl.FOLLOWLOCATION, 1)
-        # Make a HEAD request:
-        c.setopt(pycurl.CUSTOMREQUEST, 'HEAD')
-        c.setopt(pycurl.NOBODY, 1)
-        c.setopt(pycurl.HEADER, 1)
-
-        c.setopt(pycurl.MAXFILESIZE, 2000000)
-        c.setopt(pycurl.WRITEFUNCTION, b.write)
-        c.setopt(pycurl.USERAGENT, 'Gajim ' + app.version)
-
-        # set proxy
-        c.setopt(pycurl.PROXY, proxy['host'].encode('utf-8'))
-        c.setopt(pycurl.PROXYPORT, proxy['port'])
-        if proxy['useauth']:
-            c.setopt(pycurl.PROXYUSERPWD, proxy['user'].encode('utf-8') +
-                        ':' + proxy['pass'].encode('utf-8'))
-            c.setopt(pycurl.PROXYAUTH, pycurl.HTTPAUTH_ANY)
-        if proxy['type'] == 'http':
-            c.setopt(pycurl.PROXYTYPE, pycurl.PROXYTYPE_HTTP)
-        elif proxy['type'] == 'socks5':
-            c.setopt(pycurl.PROXYTYPE, pycurl.PROXYTYPE_SOCKS5)
-        x = c.perform()
-        c.close()
-        headers = b.getvalue()
-    except pycurl.error as ex:
-        log.debug('Error', exc_info=True)
-        return ('', 0)
-
-    ctype = ''
-    searchObj = re.search(r'^Content-Type: (.*)$', headers, re.M | re.I)
-    if searchObj:
-        ctype = searchObj.group(1).strip()
-    clen = 0
-    searchObj = re.search(r'^Content-Length: (.*)$', headers, re.M | re.I)
-    if searchObj:
-        try:
-            clen = int(searchObj.group(1).strip())
-        except ValueError:
-            pass
     return (ctype, clen)
 
 def _get_http_direct(attrs):
@@ -179,55 +112,3 @@ def _get_http_direct(attrs):
                 alt += _('Image is too big')
                 break
     return (mem, alt)
-
-def _get_http_proxy(attrs, proxy):
-    """
-    Download an image through a proxy.
-    This function should be launched in a
-    separated thread.
-    """
-    log.info('Get request with proxy for URL: %s', attrs['src'])
-    if not app.HAVE_PYCURL:
-        log.error('PYCURL not installed')
-        return '', _('PyCURL is not installed')
-    mem, alt, max_size = '', '', 2 * 1024 * 1024
-    if 'max_size' in attrs:
-        max_size = attrs['max_size']
-    try:
-        b = StringIO()
-        c = pycurl.Curl()
-        c.setopt(pycurl.URL, attrs['src'].encode('utf-8'))
-        c.setopt(pycurl.FOLLOWLOCATION, 1)
-        c.setopt(pycurl.MAXFILESIZE, max_size)
-        c.setopt(pycurl.WRITEFUNCTION, b.write)
-        c.setopt(pycurl.USERAGENT, 'Gajim ' + app.version)
-        # set proxy
-        c.setopt(pycurl.PROXY, proxy['host'].encode('utf-8'))
-        c.setopt(pycurl.PROXYPORT, proxy['port'])
-        if proxy['useauth']:
-            c.setopt(pycurl.PROXYUSERPWD, proxy['user'].encode('utf-8') +
-                        ':' + proxy['pass'].encode('utf-8'))
-            c.setopt(pycurl.PROXYAUTH, pycurl.HTTPAUTH_ANY)
-        if proxy['type'] == 'http':
-            c.setopt(pycurl.PROXYTYPE, pycurl.PROXYTYPE_HTTP)
-        elif proxy['type'] == 'socks5':
-            c.setopt(pycurl.PROXYTYPE, pycurl.PROXYTYPE_SOCKS5)
-        x = c.perform()
-        c.close()
-        t = b.getvalue()
-        return (t, attrs.get('alt', ''))
-    except pycurl.error as ex:
-        alt = attrs.get('alt', '')
-        if alt:
-            alt += '\n'
-        if ex[0] == pycurl.E_FILESIZE_EXCEEDED:
-            alt += _('Image is too big')
-        elif ex[0] == pycurl.E_OPERATION_TIMEOUTED:
-            alt += _('Timeout loading image')
-        else:
-            alt += _('Error loading image')
-    except Exception as ex:
-        log.debug('Error', exc_info=True)
-        pixbuf = None
-        alt = attrs.get('alt', 'Broken image')
-    return ('', alt)
