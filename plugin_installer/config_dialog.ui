@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Generated with glade 3.20.0 -->
+<!-- Generated with glade 3.20.2 -->
 <interface>
   <requires lib="gtk+" version="3.14"/>
   <object class="GtkWindow" id="ConfigWindow">
@@ -14,7 +14,7 @@
         <property name="margin_bottom">12</property>
         <child>
           <object class="GtkCheckButton" id="check_update">
-            <property name="label" translatable="yes">Check update after start</property>
+            <property name="label" translatable="yes">Check for updates after start</property>
             <property name="visible">True</property>
             <property name="can_focus">False</property>
             <property name="focus_on_click">False</property>
@@ -25,6 +25,22 @@
           <packing>
             <property name="left_attach">0</property>
             <property name="top_attach">0</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkCheckButton" id="auto_update">
+            <property name="label" translatable="yes">Update plugins automatically</property>
+            <property name="visible">True</property>
+            <property name="sensitive">False</property>
+            <property name="can_focus">False</property>
+            <property name="focus_on_click">False</property>
+            <property name="receives_default">False</property>
+            <property name="draw_indicator">True</property>
+            <signal name="toggled" handler="on_auto_update_toggled" swapped="no"/>
+          </object>
+          <packing>
+            <property name="left_attach">0</property>
+            <property name="top_attach">1</property>
           </packing>
         </child>
       </object>
@@ -297,6 +313,7 @@ Upgrade</property>
                   <object class="GtkButton" id="install_button">
                     <property name="label" translatable="yes">Install/Upgrade</property>
                     <property name="visible">True</property>
+                    <property name="sensitive">False</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">True</property>
                     <property name="valign">start</property>
