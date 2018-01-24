@@ -6,6 +6,7 @@ import sqlite3
 
 import nbxmpp
 from nbxmpp.simplexml import Node
+from nbxmpp import JID
 
 from gajim.common import app
 from gajim.common import ged
@@ -187,7 +188,7 @@ class OMEMOConnection:
         log.info('%s => Groupchat Message received', self.account)
 
         msg_dict = unpack_encrypted(omemo)
-        msg_dict['sender_jid'] = msg.real_jid
+        msg_dict['sender_jid'] = JID(msg.real_jid).getStripped()
 
         plaintext = self.omemo.decrypt_msg(msg_dict)
 
