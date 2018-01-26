@@ -4,8 +4,10 @@
 from datetime import datetime
 from gi.repository import Gtk
 from gi.repository import GdkPixbuf
+import gi
 import os
 import time
+import logging
 
 from gajim.plugins.gui import GajimPluginConfigDialog
 from gajim.plugins import GajimPlugin
@@ -16,13 +18,29 @@ from gajim.common import helpers
 from gajim import gtkgui_helpers
 from gajim.dialogs import InputDialog, WarningDialog
 
+log = logging.getLogger('gajim.plugin_system.set_location')
+
+CHAMPLAIN_AVAILABLE = True
+
+try:
+    gi.require_version('Clutter', '1.0')
+    gi.require_version('GtkClutter', '1.0')
+    gi.require_version('Champlain', '0.12')
+    gi.require_version('GtkChamplain', '0.12')
+    from gi.repository import Clutter, GtkClutter
+    GtkClutter.init([]) # Must be initialized before importing those:
+    from gi.repository import Champlain, GtkChamplain
+except:
+    log.debug('Champlain library not available')
+    CHAMPLAIN_AVAILABLE = False
+
 
 class SetLocationPlugin(GajimPlugin):
     @log_calls('SetLocationPlugin')
     def init(self):
-        self.description = _('Set information about the current geographical '
-            'or physical location.\n'
-            'To be able to specify a location on the built-in card, '
+        self.description = _('Set information about your current geographical '
+            'or physical location. \n'
+            'To be able to set your location on the built-in map, '
             'you must install gir1.2-gtkchamplain')
         self.config_dialog = SetLocationPluginConfigDialog(self)
         self.config_default_values = {
@@ -104,7 +122,6 @@ class SetLocationPluginConfigDialog(GajimPluginConfigDialog):
 
     @log_calls('SetLocationPlugin.SetLocationPluginConfigDialog')
     def on_run(self):
-        no_map = None
         if not self.is_active:
             pres_keys = sorted(self.plugin.config['presets'].keys())
             for key in pres_keys:
@@ -116,16 +133,7 @@ class SetLocationPluginConfigDialog(GajimPluginConfigDialog):
             widget = self.xml.get_object(name)
             widget.set_text(str(self.plugin.config[name]))
 
-        try:
-            from gi.repository import GtkClutter, Clutter
-            GtkClutter.init([]) # Must be initialized before importing those:
-            from gi.repository import Champlain, GtkChamplain
-        except:
-            no_map = True
-
-        if not no_map and not self.is_active:
-            #from layers import DummyLayer
-
+        if CHAMPLAIN_AVAILABLE and not self.is_active:
             vbox = self.xml.get_object('vbox1')
             vbox.set_size_request(400, -1)
 
@@ -136,15 +144,11 @@ class SetLocationPluginConfigDialog(GajimPluginConfigDialog):
             self.view.set_property('kinetic-mode', True)
             self.view.set_property('zoom-level', 12)
             self.view.connect('button-release-event', self.map_clicked,
-            self.view)
+                              self.view)
 
             scale = Champlain.Scale()
             scale.connect_view(self.view)
-            self.view.bin_layout_add(scale, Clutter.BinAlignment.START,
-                Clutter.BinAlignment.END)
-
-            #license = self.view.get_license_actor()
-            #license.set_extra_text("Don't eat cereals with orange juice\nIt tastes bad")
+            self.view.add_child(scale)
 
             lat = self.plugin.config['lat']
             lon = self.plugin.config['lon']
@@ -155,11 +159,11 @@ class SetLocationPluginConfigDialog(GajimPluginConfigDialog):
             self.view.center_on(self.lat, self.lon)
 
             self.path_to_image = os.path.abspath(gtkgui_helpers.get_icon_path(
-                'gajim', 16))
+                'org.gajim.Gajim', 16))
             vbox.pack_start(embed, expand=True, fill=True, padding=6)
             label = Gtk.Label(_(
-                'Click the right mouse button to specify the location, \n'\
-                'middle mouse button to show / hide the contacts on the map'))
+                'Click right mouse button to set your location, \n'\
+                'middle mouse button to show / hide your contacts on the map'))
             vbox.pack_start(label, expand=False, fill=False, padding=6)
             self.is_active = True
             self.layer = Champlain.MarkerLayer()
@@ -168,18 +172,20 @@ class SetLocationPluginConfigDialog(GajimPluginConfigDialog):
             texture.set_size(32,32)
             self.marker = Champlain.Label.new_with_image(texture)
             self.marker.set_location(self.lat, self.lon)
-            self.marker.set_text("I am")
+            self.marker.set_text(_('Your location'))
             self.view.add_layer(self.layer)
             self.layer.add_marker(self.marker)
             self.markers_is_visible = False
-            self.xml.get_object('lat').connect('changed', self.on_lon_changed)
-            self.xml.get_object('lon').connect('changed', self.on_lon_changed)
+            self.xml.get_object('lat').connect('changed', self.on_latlon_changed)
+            self.xml.get_object('lon').connect('changed', self.on_latlon_changed)
             self.layer.animate_in_all_markers()
             self.contacts_layer = Champlain.MarkerLayer()
 
     def on_show(self, widget):
-        self.contacts_layer.destroy()
-        self.show_contacts()
+        if CHAMPLAIN_AVAILABLE:
+            self.contacts_layer.remove_all()
+            self.view.center_on(self.lat, self.lon)
+            self.show_contacts()
 
     def on_hide(self, widget):
         for name in self.plugin.config_default_values:
@@ -224,15 +230,14 @@ class SetLocationPluginConfigDialog(GajimPluginConfigDialog):
             return
         return True
 
-    def on_lon_changed(self, widget):
+    def on_latlon_changed(self, widget):
         lat = self.xml.get_object('lat').get_text()
         lon = self.xml.get_object('lon').get_text()
         if self.is_valid_coord(lat, lon):
-            #self.view.center_on(self.lat, self.lon)
             self.marker.set_location(self.lat, self.lon)
+            self.view.go_to(self.lat, self.lon)
 
     def show_contacts(self):
-        from gi.repository import Champlain, Clutter
         data = {}
         accounts = app.contacts._accounts
         for account in accounts:
@@ -305,8 +310,9 @@ class SetLocationPluginConfigDialog(GajimPluginConfigDialog):
                 iter_ = self.preset_liststore.append((preset_name,))
             self.plugin.config['presets'] = presets
         self.set_modal(False)
-        InputDialog(_('Save as Preset'), _('Please type a name for this preset'),
-            is_modal=True, ok_handler=on_ok)
+        InputDialog(_('Save as Preset'),
+                    _('Please type a name for this preset'),
+                    'default', is_modal=True, ok_handler=on_ok)
 
     def on_preset_combobox_changed(self, widget):
         model = widget.get_model()
