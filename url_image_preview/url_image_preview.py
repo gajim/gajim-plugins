@@ -30,6 +30,7 @@ from gajim.common import app
 from gajim.common import helpers
 from gajim.common import configpaths
 from gajim import dialogs
+from gajim import gtkgui_helpers
 from gajim.plugins import GajimPlugin
 from gajim.plugins.helpers import log_calls
 from url_image_preview.http_functions import get_http_head, get_http_file
@@ -368,6 +369,13 @@ class Base(object):
                     image = Gtk.Image.new_from_animation(pixbuf)
                 else:
                     image = Gtk.Image.new_from_pixbuf(pixbuf)
+
+                css = '''#Preview {
+                box-shadow: 0px 0px 3px 0px alpha(@theme_text_color, 0.2);
+                margin: 5px 10px 5px 10px; }'''
+                gtkgui_helpers.add_css_to_widget(image, css)
+                image.set_name('Preview')
+
                 event_box.set_tooltip_text(url)
                 event_box.add(image)
                 event_box.show_all()
