@@ -29,7 +29,7 @@ if os.name == 'nt':
 
 import nbxmpp
 from gi.repository import Gtk, GLib
-
+from gajim import __version__
 from gajim.common import app
 from gajim.common import ged
 from gajim.plugins import GajimPlugin
@@ -42,9 +42,19 @@ log = logging.getLogger('gajim.plugin_system.httpupload')
 IQ_CALLBACK = {}
 NS_HTTPUPLOAD = 'urn:xmpp:http:upload'
 
+MAX_GAJIM_VER = "0.98.3"
 
 class HTTPUploadPlugin(GajimPlugin):
     def init(self):
+        from distutils.version import LooseVersion as V
+        if V(__version__) > V(MAX_GAJIM_VER):
+            self.activatable = False
+            self.available_text = 'Gajim 0.99.1 and later versions come with '\
+                'HTTP Upload integrated as core functionality. '\
+                'This plugin is not needed any longer.'
+            self.config_dialog = None
+            return
+
         self.config_default_values = {
             'verify': (True, '')
         }
