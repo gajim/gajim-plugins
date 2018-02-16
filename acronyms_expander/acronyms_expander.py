@@ -65,7 +65,7 @@ class AcronymsExpanderPlugin(GajimPlugin):
         data_file = self.local_file_path('acronyms')
         if not os.path.isfile(data_file):
             return {}
-        data = open(data_file, 'r')
+        data = open(data_file, 'r', encoding='utf-8')
         acronyms = eval(data.read())
         data.close()
         return acronyms
