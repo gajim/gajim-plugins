@@ -127,19 +127,16 @@ class Base(object):
                 return
 
             message_buffer = self.chat_control.msg_textview.get_buffer()
-            if message_buffer.get_char_count() < 1:
-                nick = nick + app.config.get('gc_refer_to_nick_char')
-            else:
-                start, end = message_buffer.get_bounds()
-                if message_buffer.get_text(start, end, True)[-1] != ' ':
-                    nick = ' ' + nick
-            nick += ' '
             # delete PLACEHOLDER
-            start_iter = message_buffer.get_start_iter()
-            end_iter = message_buffer.get_end_iter()
+            start, end = message_buffer.get_bounds()
             placeholder = self.chat_control.msg_textview.PLACEHOLDER
-            if message_buffer.get_text(start_iter, end_iter, False) == placeholder:
+            text = message_buffer.get_text(start, end, False)
+            if text == placeholder or len(text) == 0:
                 message_buffer.set_text('', -1)
+                nick = nick + app.config.get('gc_refer_to_nick_char')
+            elif len(text) > 0 and text[-1] != ' ':
+                nick = ' ' + nick
+            nick += ' '
             message_buffer.insert_at_cursor(nick)
             self.chat_control.msg_textview.grab_focus()
 
