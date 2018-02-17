@@ -91,7 +91,7 @@ class Base(object):
             Gtk.TextWindowType.TEXT).get_pointer()[1:3]
         x, y = self.textview.tv.window_to_buffer_coords(Gtk.TextWindowType.TEXT,
             pointer_x, pointer_y)
-        tags = self.textview.tv.get_iter_at_location(x, y).get_tags()
+        tags = self.textview.tv.get_iter_at_location(x, y)[1].get_tags()
         tag_table = self.textview.tv.get_buffer().get_tag_table()
         if self.change_cursor:
             self.textview.tv.get_window(Gtk.TextWindowType.TEXT).set_cursor(
@@ -102,7 +102,6 @@ class Base(object):
                 self.textview.tv.get_window(Gtk.TextWindowType.TEXT).set_cursor(
                     Gdk.Cursor.new(Gdk.CursorType.HAND2))
             self.change_cursor = True
-        self.textview.on_textview_motion_notify_event(widget, event)
 
     def insert_nick(self, texttag, widget, event, iter_, kind):
         # insert nickname to message buffer
@@ -120,11 +119,11 @@ class Base(object):
             word = buffer_.get_text(begin_iter, end_iter, True)
             nick = word.rstrip().rstrip(app.config.get('after_nickname'))
             if nick.startswith('* '):
-                nick = nick.lstrip('* ').split(' ')[0]
+                nick = nick.lstrip('* ').split(' ')[0] + ' '
             nick = nick.lstrip(app.config.get('before_nickname'))
             nicks = app.contacts.get_nick_list(self.chat_control.account,
                 self.chat_control.room_jid)
-            if nick[1:] not in nicks:
+            if nick[:-1] not in nicks:
                 return
 
             message_buffer = self.chat_control.msg_textview.get_buffer()
@@ -135,7 +134,12 @@ class Base(object):
                 if message_buffer.get_text(start, end, True)[-1] != ' ':
                     nick = ' ' + nick
             nick += ' '
-
+            # delete PLACEHOLDER
+            start_iter = message_buffer.get_start_iter()
+            end_iter = message_buffer.get_end_iter()
+            placeholder = self.chat_control.msg_textview.PLACEHOLDER
+            if message_buffer.get_text(start_iter, end_iter, False) == placeholder:
+                message_buffer.set_text('', -1)
             message_buffer.insert_at_cursor(nick)
             self.chat_control.msg_textview.grab_focus()
 
