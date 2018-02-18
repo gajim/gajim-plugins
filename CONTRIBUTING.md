@@ -3,6 +3,10 @@
 - master   		(Python3/Gtk3 for Gajim master branch
 - gajim_0.16 	(Python2/Gtk2 for Gajim 0.16.x)
 
+### Git
+
+If you are not familiar with Git please read the [HowTo](https://dev.gajim.org/gajim/gajim/wikis/howtogit)
+
 ### Git Commit Messages
 
 * Start your commit message with the Plugin name, example: [omemo] Added ..
