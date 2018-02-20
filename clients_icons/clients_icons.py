@@ -13,11 +13,20 @@ from gajim.common import app
 import gajim.cell_renderer_image
 
 clients = {
-    'http://gajim.org': ['gajim.png', 'Gajim'],
-    'http://gajim.org/caps': ['gajim.png', 'Gajim'],
+    'http://www.adium.im/': ['adium.png', 'Adium'],
+    'http://www.adiumx.com/caps': ['adium.png', 'Adium'],
+    'http://www.adiumx.com': ['adium.png', 'Adium'],
+    'http://aqq.eu/': ['aqq.png', 'Aqq'],
+    'http://www.asterisk.org/xmpp/client/caps': ['asterisk.png', 'Asterisk'],
+    'http://ayttm.souceforge.net/caps': ['ayttm.png', 'Ayttm'],
+    'http://www.barobin.com/caps': ['bayanicq.png', 'Bayanicq'],
+    'http://bitlbee.org/xmpp/caps': ['bitlbee.png', 'Bitlbee'],
+    'http://simpleapps.ru/caps#blacksmith': ['bot.png', 'Blacksmith'],
+    'http://blacksmith-2.googlecode.com/svn/': ['bot.png', 'Blacksmith-2'],
+    'http://jabber.pdg.pl/caps': ['bombus-klub.png', 'Bombus-klub'],
+    'http://klub54.wen.ru': ['bombus-klub.png', 'Bombus-klub'],
     'http://bombus-im.org/java': ['bombus.png', 'Bombus'],
     'http://bombusmod.net.ru/caps': ['bombusmod.png', 'Bombusmod'],
-    'http://psi-dev.googlecode.com/caps': ['psiplus.png', 'Psi+'],
     'http://bombusng-md.googlecode.com': ['bombusng.png', 'Bombus-NG'],
     'http://bombus-im.org/ng': ['bombusng.png', 'Bombus-NG'],
     'http://voffk.org.ru/bombus': ['bombusplus.png', 'Bombus+'],
@@ -26,130 +35,129 @@ clients = {
     'http://bombusmod.net.ru': ['bombusmod.png', 'Bombusmod'],
     'http://ex-im.name/caps': ['bombusmod.png', 'Bombusmod'],
     'http://bombusmod.eu,http://bombus.pl': ['bombuspl.png', 'Bombusmod'],
-    'http://mcabber.com/caps': ['mcabber.png', 'MCabber'],
-    'http://miranda-im.org/caps': ['miranda.png', 'Miranda'],
-    'http://www.asterisk.org/xmpp/client/caps': ['asterisk.png', 'Asterisk'],
-    'http://www.google.com/xmpp/client/caps': ['talkonaut.png', 'Talkonaut'],
-    'http://talkgadget.google.com/client/caps': ['google.png', 'GTalk'],
-    'http://oneteam.im/caps': ['oneteamiphone.png', 'OneTeam'],
-    'http://tkabber.jabber.ru/': ['tkabber.png', 'Tkabber'],
-    'http://pidgin.im/': ['pidgin.png', 'Pidgin'],
-    'http://pidgin.im/caps': ['pidgin.png', 'Pidgin'],
-    'http://qutim.org': ['qutim.png', 'QutIM'],
-    'http://qutim.org/': ['qutim.png', 'QutIM'],
+    'ChatSecure': ['chatsecure.png', 'ChatSecure'],
+    'http://coccinella.sourceforge.net/protocol/caps': \
+        ['coccinella.png', 'Coccinella'],
+    'http://conversations.im': ['conversations.png', 'Conversations'],
+    'http://digsby.com/caps': ['digsby.png', 'Digsby'],
+    'https://dino.im': ['dino.png', 'Dino'],
+    'http://emess.eqx.su/caps': ['emess.png', 'Emess'],
+    'http://live.gnome.org/empathy/caps': \
+        ['telepathy.freedesktop.org.png', 'Empathy'],
+    'http://eqo.com/': ['libpurple.png', 'Eqo'],
     'http://exodus.jabberstudio.org/caps': ['exodus.png', 'Exodus'],
-    'http://bitlbee.org/xmpp/caps': ['bitlbee.png', 'Bitlbee'],
-    'http://coccinella.sourceforge.net/protocol/caps': ['coccinella.png', 'Coccinella'],
-    'http://mcabber.lilotux.net/caps': ['mcabber.png', 'MCabber'],
-    'http://dev.jabbim.cz/jabbim/caps': ['jabbim.png', 'Jabbim'],
-    'http://palringo.com/caps': ['palringo.png', 'Palringo'],
-    'http://vacuum-im.googlecode.com': ['vacuum.png', 'Vacuum'],
-    'http://code.google.com/p/vacuum-im/': ['vacuum.png', 'Vacuum'],
-    'http://jajc.jrudevels.org/caps': ['jajc.png', 'JAJC'],
-    'http://gaim.sf.net/caps': ['gaim.png', 'Gaim'],
-    'http://mchat.mgslab.com/': ['mchat.png', 'Mchat'],
-    'http://online.yandex.ru/caps': ['yaonline.png', 'Yaonline'],
-    'http://psi-im.org/caps': ['psi.png', 'Psi'],
-    'http://jimm.net.ru/caps': ['jimm-aspro.png', 'Jimm'],
-    'http://jabga.ru': ['fin.png', 'Fin jabber'],
-    'http://bluendo.com/protocol/caps': ['lampiro.png', 'Lampiro'],
-    'nimbuzz:caps': ['nimbuzz.png', 'Nimbuzz'],
-    'http://nimbuzz.com/caps': ['nimbuzz.png', 'Nimbuzz'],
-    'http://isida.googlecode.com': ['isida-bot.png', 'Isida'],
-    'http://isida-bot.com': ['isida-bot.png', 'Isida'],
-    'http://apps.radio-t.com/caps': ['radio-t.png', 'Radio-t'],
-    'http://pda.qip.ru/caps': ['qippda.png', 'Qip-PDA'],
-    'http://kopete.kde.org/jabber/caps': ['kopete.png', 'Kopete'],
-    'http://www.apple.com/ichat/caps': ['ichat.png', 'IChat'],
-    'http://pjc.googlecode.com/caps': ['jubo.png', 'Jubo'],
-    'talk.google.com': ['talk.google.com.png', 'GTalk'],
-    'http://www.android.com/gtalk/client/caps': ['talk.google.com.png', 'GTalk'],
-    'http://swift.im': ['swift.png', 'Swift'],
     'http://fatal-bot.spb.ru/caps': ['bot.png', 'Fatal-bot'],
     'http://svn.posix.ru/fatal-bot/trunk': ['bot.png', 'Fatal-bot'],
-    'http://storm-bot.googlecode.com/svn/trunk': ['bot.png', 'Storm-bot'],
+    'http://isida.googlecode.com': ['isida-bot.png', 'Isida'],
+    'http://isida-bot.com': ['isida-bot.png', 'Isida'],
+    'facebook.com': ['facebook.png', 'Facebook'],
+    'http://jabga.ru': ['fin.png', 'Fin jabber'],
+    'http://chat.freize.org/caps': ['freize.png', 'Freize'],
+    'http://gabber.sourceforge.net': ['gabber.png', 'Gabber'],
+    'http://gaim.sf.net/caps': ['gaim.png', 'Gaim'],
+    'http://gajim.org': ['gajim.png', 'Gajim'],
+    'http://gajim.org/caps': ['gajim.png', 'Gajim'],
+    'http://glu.net/': ['glu.png', 'Glu'],
+    'http://mail.google.com/xmpp/client/caps': ['google.com.png', 'GMail'],
+    'http://www.android.com/gtalk/client/caps': \
+        ['talk.google.com.png', 'GTalk'],
+    'talk.google.com': ['talk.google.com.png', 'GTalk'],
+    'http://talkgadget.google.com/client/caps': ['google.png', 'GTalk'],
     'http://talk.google.com/xmpp/bot/caps': ['google.png', 'GTalk'],
+    'http://aspro.users.ru/historian-bot/': ['bot.png', 'Historian-bot'],
+    'http://www.apple.com/ichat/caps': ['ichat.png', 'IChat'],
+    'http://instantbird.com/': ['instantbird.png', 'Instantbird'],
+    'http://j-tmb.ru/caps': ['bot.png', 'J-tmb'],
+    'http://jabbroid.akuz.de': ['android.png', 'Jabbroid'],
+    'http://jabbroid.akuz.de/caps': ['android.png', 'Jabbroid'],
+    'http://dev.jabbim.cz/jabbim/caps': ['jabbim.png', 'Jabbim'],
     'http://jabbrik.ru/caps': ['bot.png', 'Jabbrik'],
     'http://jabrvista.net.ru': ['bot.png', 'Jabvista'],
-    'http://xu-6.jabbrik.ru/caps': ['bot.png', 'XU-6'],
-    'http://jabber.pdg.pl/caps': ['bombus-klub.png', 'Bombus-klub'],
-    'http://klub54.wen.ru': ['bombus-klub.png', 'Bombus-klub'],
-    'http://aqq.eu/': ['aqq.png', 'Aqq'],
+    'http://jajc.jrudevels.org/caps': ['jajc.png', 'JAJC'],
+    'http://qabber.ru/jame-bot': ['bot.png', 'Jame-bot'],
+    'https://www.jappix.com/': ['jappix.png', 'Jappix'],
+    'http://japyt.googlecode.com': ['japyt.png', 'Japyt'],
+    'http://jasmineicq.ru/caps': ['jasmine.png', 'Jasmine'],
+    'http://jimm.net.ru/caps': ['jimm-aspro.png', 'Jimm'],
+    'http://jitsi.org' :['jitsi.png', 'Jitsi'],
+    'http://jtalk.ustyugov.net/caps': ['jtalk.png', 'Jtalk'],
+    'http://pjc.googlecode.com/caps': ['jubo.png', 'Jubo'],
+    'http://juick.com/caps': ['juick.png', 'Juick'],
+    'http://kopete.kde.org/jabber/caps': ['kopete.png', 'Kopete'],
+    'http://bluendo.com/protocol/caps': ['lampiro.png', 'Lampiro'],
+    'libpurple': ['libpurple.png', 'Libpurple'],
+    'http://lytgeygen.ru/caps': ['bot.png', 'Lytgeygen'],
+    'http://agent.mail.ru/caps': ['mailruagent.png', 'Mailruagent'],
+    'http://agent.mail.ru/': ['mailruagent.png', 'Mailruagent'],
+    'http://tomclaw.com/mandarin_im/caps': ['mandarin.png', 'Mandarin'],
+    'http://mcabber.lilotux.net/caps': ['mcabber.png', 'MCabber'],
+    'http://mcabber.com/caps': ['mcabber.png', 'MCabber'],
+    'http://mchat.mgslab.com/': ['mchat.png', 'Mchat'],
+    'https://www.meebo.com/': ['meebo.png', 'Meebo'],
+    'http://megafonvolga.ru/': ['megafon.png', 'Megafon'],
+    'http://miranda-im.org/caps': ['miranda.png', 'Miranda'],
+    'http://miranda-ng.org/caps' :['miranda_ng.png', 'Miranda NG'],
+    'nimbuzz:caps': ['nimbuzz.png', 'Nimbuzz'],
+    'http://nimbuzz.com/caps': ['nimbuzz.png', 'Nimbuzz'],
+    'http://home.gna.org/': ['omnipresence.png', 'Omnipresence'],
+    'http://oneteam.im/caps': ['oneteamiphone.png', 'OneTeam'],
+    'http://www.process-one.net/en/solutions/oneteam_iphone/': \
+        ['oneteamiphone.png', 'OneTeam-iphone'],
+    'rss@isida-bot.com': ['osiris.png', 'Osiris'],
+    'http://chat.ovi.com/caps': ['ovi-chat.png', 'Ovi-chat'],
+    'http://opensource.palm.com/packages.html': ['palm.png', 'Palm'],
+    'http://palringo.com/caps': ['palringo.png', 'Palringo'],
+    'http://pandion.im/': ['pandion.png', 'Pandion'],
+    'http://pidgin.im/': ['pidgin.png', 'Pidgin'],
+    'http://pidgin.im/caps': ['pidgin.png', 'Pidgin'],
+    'http://pigeon.vpro.ru/caps': ['pigeon.png', 'Pigeon'],
+    'Pix-Art Messenger': ['pixart.png', 'Pix-Art Messenger'],
+    'httр://sleekxmpp.com/ver/1.1.11': ['poezio.png', 'Poezio'],
+    'http://psi-im.org/caps': ['psi.png', 'Psi'],
+    'http://psi-dev.googlecode.com/caps': ['psiplus.png', 'Psi+'],
+    'psto@psto.net': ['psto.png', 'Psto'],
+    'http://pyaim': ['pyaim-t.png', 'PyAIM-t'],
+    'http://pyicq': ['pyicq-t.png', 'PyICQ-t'],
+    'http://spectrum.im/transport': ['pyicq-t.png', 'PyICQ-t'],
+    'http://qq-im.com/caps': ['qq.png', 'QQ'],
+    'http://qq.com/caps': ['qq.png', 'QQ'],
     'http://2010.qip.ru/caps': ['qip.png', 'Qip'],
     'http://qip.ru/caps': ['qip.png', 'Qip'],
     'http://qip.ru/caps?QIP': ['qip.png', 'Qip'],
-    'http://glu.net/': ['glu.png', 'Glu'],
+    'http://pda.qip.ru/caps': ['qippda.png', 'Qip-PDA'],
+    'http://qutim.org': ['qutim.png', 'QutIM'],
+    'http://qutim.org/': ['qutim.png', 'QutIM'],
+    'http://apps.radio-t.com/caps': ['radio-t.png', 'Radio-t'],
     'Siemens': ['siejc.png', 'Siemens'],  # Siemens Native Jabber Client
-    'telepathy.': ['telepathy.freedesktop.org.png', 'Telepathy'],
-    'http://live.gnome.org/empathy/caps': ['telepathy.freedesktop.org.png', 'Empathy'],
-    'http://telepathy.freedesktop.org/caps': ['telepathy.freedesktop.org.png', 'Telepathy'],
-    'http://www.adiumx.com/caps': ['adium.png', 'Adium'],
-    'http://www.adiumx.com': ['adium.png', 'Adium'],
-    'http://juick.com/caps': ['juick.png', 'Juick'],
-    'vk.com': ['vkontakte.png', 'Vkontakte'],
-    'facebook.com': ['facebook.png', 'Facebook'],
-    'http://mail.google.com/xmpp/client/caps': ['google.com.png', 'GMail'],
+    'http://sim-im.org/caps': ['sim.png', 'Sim'],
+    'http://www.lonelycatgames.com/slick/caps': ['slick.png', 'Slick'],
     'http://snapi-bot.googlecode.com/caps': ['bot.png', 'Snapi-bot'],
-    'http://www.barobin.com/caps': ['bayanicq.png', 'Bayanicq'],
-    'http://chat.ovi.com/caps': ['ovi-chat.png', 'Ovi-chat'],
-    'http://trillian.im/caps': ['trillian.png', 'Trillian'],
-    'http://pandion.im/': ['pandion.png', 'Pandion'],
-    'http://agent.mail.ru/caps': ['mailruagent.png', 'Mailruagent'],
-    'http://agent.mail.ru/': ['mailruagent.png', 'Mailruagent'],
-    'http://digsby.com/caps': ['digsby.png', 'Digsby'],
+    'http://www.igniterealtime.org/project/spark/caps': ['spark.png', 'Spark'],
+    'http://spectrum.im/': ['spectrum.png', 'Spectrum'],
+    'http://storm-bot.googlecode.com/svn/trunk': ['bot.png', 'Storm-bot'],
+    'http://swift.im': ['swift.png', 'Swift'],
     'http://jabber-net.ru/caps/talisman-bot': ['bot.png', 'Talisman-bot'],
     'http://jabber-net.ru/talisman-bot/caps': ['bot.png', 'Talisman-bot'],
-    'http://j-tmb.ru/caps': ['bot.png', 'J-tmb'],
-    'http://simpleapps.ru/caps#blacksmith': ['bot.png', 'Blacksmith'],
-    'http://blacksmith-2.googlecode.com/svn/': ['bot.png', 'Blacksmith-2'],
-    'http://qabber.ru/jame-bot': ['bot.png', 'Jame-bot'],
-    'http://chat.freize.org/caps': ['freize.png', 'Freize'],
+    'http://www.google.com/xmpp/client/caps': ['talkonaut.png', 'Talkonaut'],
+    'telepathy.': ['telepathy.freedesktop.org.png', 'Telepathy'],
+    'http://telepathy.freedesktop.org/caps': \
+        ['telepathy.freedesktop.org.png', 'Telepathy'],
+    'http://tigase.org/messenger': ['tigase.png', 'Tigase'],
+    'http://tkabber.jabber.ru/': ['tkabber.png', 'Tkabber'],
+    'http://trillian.im/caps': ['trillian.png', 'Trillian'],
+    'http://vacuum-im.googlecode.com': ['vacuum.png', 'Vacuum'],
+    'http://code.google.com/p/vacuum-im/': ['vacuum.png', 'Vacuum'],
+    'vk.com': ['vkontakte.png', 'Vkontakte'],
     'http://pyvk-t.googlecode.com/caps': ['vkontakte.png', 'Vkontakte'],
     'http://pyvk': ['vkontakte.png', 'Vkontakte'],
-    'http://pyicq': ['pyicq-t.png', 'PyICQ-t'],
-    'http://spectrum.im/transport': ['pyicq-t.png', 'PyICQ-t'],
-    'http://pyaim': ['pyaim-t.png', 'PyAIM-t'],
-    'http://jabbroid.akuz.de': ['android.png', 'Jabbroid'],
-    'http://jabbroid.akuz.de/caps': ['android.png', 'Jabbroid'],
     'http://witcher-team.ucoz.ru/': ['bot.png', 'Witcher'],
-    'http://home.gna.org/': ['omnipresence.png', 'Omnipresence'],
-    'http://ayttm.souceforge.net/caps': ['ayttm.png', 'Ayttm'],
-    'http://www.process-one.net/en/solutions/oneteam_iphone/': \
-        ['oneteamiphone.png', 'OneTeam-iphone'],
-    'http://qq-im.com/caps': ['qq.png', 'QQ'],
-    'http://qq.com/caps': ['qq.png', 'QQ'],
-    'http://www.lonelycatgames.com/slick/caps': ['slick.png', 'Slick'],
-    'http://sim-im.org/caps': ['sim.png', 'Sim'],
-    'http://www.igniterealtime.org/project/spark/caps': ['spark.png', 'Spark'],
-    'http://emess.eqx.su/caps': ['emess.png', 'Emess'],
-    'https://www.jappix.com/': ['jappix.png', 'Jappix'],
-    'http://japyt.googlecode.com': ['japyt.png', 'Japyt'],
+    'http://online.yandex.ru/caps': ['yaonline.png', 'Yaonline'],
+    'http://www.igniterealtime.org/projects/smack/': ['xabber.png', 'Xabber'],
     'http://www.xfire.com/': ['xfire.png', 'Xfire'],
     'http://www.xfire.com/caps': ['xfire.png', 'Xfire'],
-    'http://lytgeygen.ru/caps': ['bot.png', 'Lytgeygen'],
-    'http://aspro.users.ru/historian-bot/': ['bot.png', 'Historian-bot'],
-    'http://pigeon.vpro.ru/caps': ['pigeon.png', 'Pigeon'],
-    'http://jtalk.ustyugov.net/caps': ['jtalk.png', 'Jtalk'],
-    'psto@psto.net': ['psto.png', 'Psto'],
-    'http://jasmineicq.ru/caps': ['jasmine.png', 'Jasmine'],
-    'http://tomclaw.com/mandarin_im/caps': ['mandarin.png', 'Mandarin'],
-    'http://gabber.sourceforge.net': ['gabber.png', 'Gabber'],
-    'http://www.igniterealtime.org/projects/smack/': ['xabber.png', 'Xabber'],
-    'http://megafonvolga.ru/': ['megafon.png', 'Megafon'],
-    'rss@isida-bot.com': ['osiris.png', 'Osiris'],
-    'libpurple': ['libpurple.png', 'Libpurple'],
-    'http://www.adium.im/': ['adium.png', 'Adium'],
-    'http://eqo.com/': ['libpurple.png', 'Eqo'],
-    'http://instantbird.com/': ['instantbird.png', 'Instantbird'],
-    'https://www.meebo.com/': ['meebo.png', 'Meebo'],
-    'http://opensource.palm.com/packages.html': ['palm.png', 'Palm'],
-    'http://spectrum.im/': ['spectrum.png', 'Spectrum'],
-    'http://tigase.org/messenger': ['tigase.png', 'Tigase'],
-    'httр://sleekxmpp.com/ver/1.1.11': ['poezio.png', 'Poezio'],
-    'http://jitsi.org' :['jitsi.png', 'Jitsi'],
-    'http://miranda-ng.org/caps' :['miranda_ng.png', 'Miranda NG'],
+    'http://xu-6.jabbrik.ru/caps': ['bot.png', 'XU-6'],
 }
-libpurple_clients ={
+libpurple_clients = {
     'adium': 'http://www.adium.im/',
     'eqo': 'http://eqo.com/',
     'finch': 'http://pidgin.im/',
@@ -165,23 +173,24 @@ class ClientsIconsPlugin(GajimPlugin):
 
     @log_calls('ClientsIconsPlugin')
     def init(self):
-        self.description = _('Shows the client icons in the roster'
-            ' and in groupchats.\nFor icons in tooltip support, '
-            'you need to install Gajim r14117 or above.')
+        self.description = _('Shows client icons in roster'
+            ' and in groupchats.')
         self.pos_list = [_('after statusicon'), _('before avatar')]
         self.events_handlers = {'presence-received':
                                     (ged.POSTGUI, self.presence_received),
                                 'gc-presence-received':
-                                    (ged.POSTGUI, self.gc_presence_received), }
+                                    (ged.POSTGUI, self.gc_presence_received),
+                                }
         self.gui_extension_points = {
             'groupchat_control': (self.connect_with_groupchat_control,
                                     self.disconnect_from_groupchat_control),
             'roster_draw_contact': (self.connect_with_roster_draw_contact,
                                     self.disconnect_from_roster_draw_contact),
-            'roster_tooltip_populate': (self.connect_with_roster_tooltip_populate,
-                                    self.disconnect_from_roster_tooltip_populate),
-            'gc_tooltip_populate': (self.connect_with_gc_tooltip_populate,
-                                    self.disconnect_from_gc_tooltip_populate),}
+            #'roster_tooltip_populate': (self.connect_with_roster_tooltip_populate,
+            #                        self.disconnect_from_roster_tooltip_populate),
+            #'gc_tooltip_populate': (self.connect_with_gc_tooltip_populate,
+            #                        self.disconnect_from_gc_tooltip_populate),
+            }
         self.config_default_values = {
                 'show_in_roster': (True, ''),
                 'show_in_groupchats': (True, ''),
@@ -202,7 +211,7 @@ class ClientsIconsPlugin(GajimPlugin):
         if not self.config['show_in_tooltip']:
             return
 
-        #fill clients table
+        # fill clients table
         self.table = Gtk.Grid()
         self.table.insert_row(0)
         self.table.insert_row(0)
@@ -248,7 +257,7 @@ class ClientsIconsPlugin(GajimPlugin):
         contact_keys = sorted(contacts_dict.keys())
         contact_keys.reverse()
 
-        #fill clients table
+        # fill clients table
         self.table = Gtk.Grid()
         self.table.insert_row(0)
         self.table.insert_row(0)
@@ -433,7 +442,7 @@ class ClientsIconsPlugin(GajimPlugin):
         roster = app.interface.roster
         col = Gtk.TreeViewColumn()
         roster.nb_ext_renderers += 1
-        self.renderer_num = 10 + roster.nb_ext_renderers
+        self.renderer_num = 11 + roster.nb_ext_renderers
         self.renderer = Gtk.CellRendererPixbuf()
         client_icon_rend = ('client_icon', self.renderer, False,
                 'pixbuf', self.renderer_num,
@@ -549,7 +558,6 @@ class ClientsIconsPlugin(GajimPlugin):
             if self.config['show_unknown_icon']:
                 model[iter_][pos] = self.default_pixbuf
             return
-
         caps_ = caps.split('#')[0].split()
         if caps_:
             client_icon = clients.get(caps_[0].split()[0], (None,))[0]
