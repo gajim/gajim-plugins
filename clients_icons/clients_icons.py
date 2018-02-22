@@ -4,6 +4,7 @@
 from gi.repository import Gtk
 from gi.repository import GdkPixbuf
 import os
+import logging
 
 from gajim.plugins.gui import GajimPluginConfigDialog
 from gajim.plugins import GajimPlugin
@@ -11,6 +12,8 @@ from gajim.plugins.helpers import log_calls
 from gajim.common import ged
 from gajim.common import app
 import gajim.cell_renderer_image
+
+log = logging.getLogger('gajim.plugin_system.clients_icons')
 
 clients = {
     'http://www.adium.im/': ['adium.png', 'Adium'],
@@ -114,6 +117,7 @@ clients = {
     'Pix-Art Messenger': ['pixart.png', 'Pix-Art Messenger'],
     'httр://sleekxmpp.com/ver/1.1.11': ['poezio.png', 'Poezio'],
     'http://psi-im.org/caps': ['psi.png', 'Psi'],
+    'http://psi-plus.com': ['psiplus.png', 'Psi+'],
     'http://psi-dev.googlecode.com/caps': ['psiplus.png', 'Psi+'],
     'psto@psto.net': ['psto.png', 'Psto'],
     'http://pyaim': ['pyaim-t.png', 'PyAIM-t'],
@@ -131,6 +135,8 @@ clients = {
     'Siemens': ['siejc.png', 'Siemens'],  # Siemens Native Jabber Client
     'http://sim-im.org/caps': ['sim.png', 'Sim'],
     'http://www.lonelycatgames.com/slick/caps': ['slick.png', 'Slick'],
+    'http://slixmpp.com/ver/1.2.4': ['bot.png', 'Slixmpp'],
+    'http://slixmpp.com/ver/1.3.0': ['bot.png', 'Slixmpp'],
     'http://snapi-bot.googlecode.com/caps': ['bot.png', 'Snapi-bot'],
     'http://www.igniterealtime.org/project/spark/caps': ['spark.png', 'Spark'],
     'http://spectrum.im/': ['spectrum.png', 'Spectrum'],
@@ -183,13 +189,13 @@ class ClientsIconsPlugin(GajimPlugin):
                                 }
         self.gui_extension_points = {
             'groupchat_control': (self.connect_with_groupchat_control,
-                                    self.disconnect_from_groupchat_control),
+                                  self.disconnect_from_groupchat_control),
             'roster_draw_contact': (self.connect_with_roster_draw_contact,
                                     self.disconnect_from_roster_draw_contact),
             #'roster_tooltip_populate': (self.connect_with_roster_tooltip_populate,
-            #                        self.disconnect_from_roster_tooltip_populate),
-            #'gc_tooltip_populate': (self.connect_with_gc_tooltip_populate,
-            #                        self.disconnect_from_gc_tooltip_populate),
+            #                            self.disconnect_from_roster_tooltip_populate),
+            'gc_tooltip_populate': (self.connect_with_gc_tooltip_populate,
+                                    self.disconnect_from_gc_tooltip_populate),
             }
         self.config_default_values = {
                 'show_in_roster': (True, ''),
@@ -206,37 +212,63 @@ class ClientsIconsPlugin(GajimPlugin):
         self.icon_cache = {}
 
     @log_calls('ClientsIconsPlugin')
-    def connect_with_gc_tooltip_populate(self, tooltip, contact,
-    vcard_table):
-        if not self.config['show_in_tooltip']:
-            return
+    def add_tooltip_row(self, tooltip, contact, tooltip_grid):
+        caps = contact.client_caps._node
+        log.debug('connect_with_gc_tooltip_populate, caps: %s', caps)
+        caps_image , client_name = self.get_icon(caps, contact)
+        caps_image.set_halign(Gtk.PositionType.RIGHT)
+        log.debug('connect_with_gc_tooltip_populate, client_name: %s', \
+            client_name)
 
         # fill clients table
         self.table = Gtk.Grid()
-        self.table.insert_row(0)
-        self.table.insert_row(0)
-        self.table.insert_column(0)
-        self.table.set_property('column-spacing', 2)
-
-        caps = contact.client_caps._node
-        caps_image , client_name = self.get_icon(caps, contact)
-        caps_image.set_alignment(0, 0)
+        self.table.set_name('client_icons_grid')
+        self.table.set_property('column-spacing', 5)
         self.table.attach(caps_image, 1, 1, 1, 1)
-        label = Gtk.Label()
-        label.set_alignment(0, 0)
-        label.set_markup(client_name)
-        self.table.attach(label, 2, 1, 1, 1)
+        label_name = Gtk.Label()
+        label_name.set_halign(Gtk.PositionType.RIGHT)
+        label_name.set_markup(client_name)
+        self.table.attach(label_name, 2, 1, 1, 1)
+        self.table.show_all()
+
         # set label
         label = Gtk.Label()
-        label.set_alignment(0, 0)
+        label.set_name('client_icons_label')
+        label.set_halign(Gtk.PositionType.RIGHT)
         label.set_markup(_('Client:'))
-        vcard_table.attach(label, 1, 100, 1,1)
+        label.show()
+
         # set client table to tooltip
-        vcard_table.attach(self.table, 2, 100, 1,1)
+        tooltip_grid.insert_next_to(tooltip.resource_label,
+                                    Gtk.PositionType.BOTTOM)
+        tooltip_grid.attach_next_to(label, tooltip.resource_label,
+                                    Gtk.PositionType.BOTTOM, 1, 1)
+        tooltip_grid.attach_next_to(self.table, label,
+                                    Gtk.PositionType.RIGHT, 1, 1)
+
+    @log_calls('ClientsIconsPlugin')
+    def connect_with_gc_tooltip_populate(self, tooltip, contact, tooltip_grid):
+        if not self.config['show_in_tooltip']:
+            return
+        # Check if clients info already attached to tooltip
+        has_attached = False
+        for child in tooltip_grid.get_children():
+            if child.get_name() == 'client_icons_grid':
+                caps = contact.client_caps._node
+                caps_image , client_name = self.get_icon(caps, contact)
+                child.remove(child.get_child_at(1, 1))
+                child.attach(caps_image, 1, 1, 1, 1)
+                child.get_child_at(2, 1).set_markup(client_name)
+                child.show_all()
+            if child.get_name() == 'client_icons_label':
+                child.show()
+                has_attached = True
+        if not has_attached:
+            self.add_tooltip_row(tooltip, contact, tooltip_grid)
 
     @log_calls('ClientsIconsPlugin')
     def connect_with_roster_tooltip_populate(self, tooltip, contacts,
-    vcard_table):
+    tooltip_grid):
         if not self.config['show_in_tooltip']:
             return
         if len(contacts) == 1 and contacts[0].jid in app.get_our_jids():
@@ -286,14 +318,15 @@ class ClientsIconsPlugin(GajimPlugin):
             if contact.show == 'offline':
                 return
             label.set_markup(_('Client:'))
-        vcard_table.attach(label, 1, first_place,  1, 1)
+        tooltip_grid.attach(label, 1, first_place,  1, 1)
         # set clients table to tooltip
-        vcard_table.attach(self.table, 2, first_place, 1, 1)
+        tooltip_grid.attach(self.table, 2, first_place, 1, 1)
 
     def get_icon(self, caps, contact=None):
         if not caps:
             return Gtk.Image.new_from_pixbuf(self.default_pixbuf), _('Unknown')
-
+        log.debug('get_icon, caps: %s', caps)
+        # libpurple returns pidgin.im/ only, we have to look for ressource name
         if 'pidgin.im/' in caps:
             caps = 'libpurple'
             for client in libpurple_clients:
@@ -302,11 +335,10 @@ class ClientsIconsPlugin(GajimPlugin):
 
         if 'sleekxmpp.com'in caps:
             caps = 'httр://sleekxmpp.com/ver/1.1.11'
-
+        client_name = _('Unknown')
         caps_from_jid = self.check_jid(contact.jid)
         if caps_from_jid:
             caps = caps_from_jid
-
         caps_ = caps.split('#')[0].split()
         if caps_:
             client_icon = clients.get(caps_[0].split()[0], (None,))[0]
@@ -329,7 +361,7 @@ class ClientsIconsPlugin(GajimPlugin):
 
     @log_calls('ClientsIconsPlugin')
     def disconnect_from_roster_tooltip_populate(self, tooltip, contacts,
-    vcard_table):
+    tooltip_grid):
         pass
 
     def check_jid(self, jid):
@@ -509,6 +541,7 @@ class ClientsIconsPlugin(GajimPlugin):
             if roster.model[iter_][self.renderer_num] is not None:
                 caps = contact.client_caps._node
                 if caps:
+                    log.debug('presence_received, caps: %s', caps)
                     self.set_icon(roster.model, iter_, self.renderer_num, caps)
                     return
         caps = None
@@ -543,6 +576,7 @@ class ClientsIconsPlugin(GajimPlugin):
         if tag:
             caps = tag[0].getAttr('node')
             if caps:
+                log.debug('gc_presence_received, caps: %s', caps)
                 if 'pidgin.im/' in caps:
                     caps = 'libpurple'
                 if 'sleekxmpp.com' in caps:
@@ -560,6 +594,7 @@ class ClientsIconsPlugin(GajimPlugin):
             return
         caps_ = caps.split('#')[0].split()
         if caps_:
+            log.debug('set_icon, caps_: %s', caps_)
             client_icon = clients.get(caps_[0].split()[0], (None,))[0]
         else:
             client_icon = None
@@ -599,7 +634,7 @@ class ClientsIconsPlugin(GajimPlugin):
 
     @log_calls('ClientsIconsPlugin')
     def disconnect_from_gc_tooltip_populate(self, tooltip, contact,
-    vcard_table):
+    tooltip_grid):
         pass
 
 
