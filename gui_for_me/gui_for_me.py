@@ -6,13 +6,14 @@ from gi.repository import GdkPixbuf
 from gajim.common import app
 from gajim.plugins import GajimPlugin
 from gajim.plugins.helpers import log_calls
+from gajim import gtkgui_helpers
 
 
 class GuiForMe(GajimPlugin):
 
     @log_calls('GuiForMePlugin')
     def init(self):
-        self.description = _('Gui for the \'/me\' command.')
+        self.description = _('Adds a button for the \'/me\' command.')
         self.config_dialog = None  # GuiForMePluginConfigDialog(self)
         self.gui_extension_points = {
             'chat_control_base': (self.connect_with_chat_control,
@@ -57,18 +58,16 @@ class Base(object):
 
     def create_buttons(self):
         # create /me button
-        actions_hbox = self.chat_control.xml.get_object('actions_hbox')
-        self.button = Gtk.Button(label=None, stock=None, use_underline=True)
-        self.button.set_property('relief', Gtk.ReliefStyle.NONE)
+        actions_hbox = self.chat_control.xml.get_object('hbox')
+        self.button = Gtk.Button(label=None, stock=None, use_underline=False)
+        self.button.get_style_context().add_class(
+            'chatcontrol-actionbar-button')
+        self.button.set_relief(Gtk.ReliefStyle.NONE)
         self.button.set_property('can-focus', False)
         img = Gtk.Image()
         img_path = self.plugin.local_file_path('gui_for_me.png')
         pixbuf = GdkPixbuf.Pixbuf.new_from_file(img_path)
-        iconset = Gtk.IconSet(pixbuf=pixbuf)
-        factory = Gtk.IconFactory()
-        factory.add('gui_for_me', iconset)
-        factory.add_default()
-        img.set_from_stock('gui_for_me', Gtk.IconSize.MENU)
+        img.set_from_pixbuf(pixbuf)
         self.button.set_image(img)
         self.button.set_tooltip_text(_('Insert /me to conversation input box,'
             ' at cursor position'))
@@ -84,9 +83,10 @@ class Base(object):
         Insert /me to conversation input box, at cursor position
         """
         message_buffer = self.chat_control.msg_textview.get_buffer()
+        self.chat_control.msg_textview.remove_placeholder()
         message_buffer.insert_at_cursor('/me ')
         self.chat_control.msg_textview.grab_focus()
 
     def disconnect_from_chat_control(self):
-        actions_hbox = self.chat_control.xml.get_object('actions_hbox')
+        actions_hbox = self.chat_control.xml.get_object('hbox')
         actions_hbox.remove(self.button)
