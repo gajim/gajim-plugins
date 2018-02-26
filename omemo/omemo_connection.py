@@ -36,7 +36,9 @@ ALLOWED_TAGS = [('request', nbxmpp.NS_RECEIPTS),
                 ('no-copy', nbxmpp.NS_MSG_HINTS),
                 ('no-permanent-store', nbxmpp.NS_MSG_HINTS),
                 ('replace', nbxmpp.NS_CORRECT),
-                ('thread', None)]
+                ('thread', None),
+                ('origin-id', nbxmpp.NS_SID),
+                ]
 
 log = logging.getLogger('gajim.plugin_system.omemo')
 
@@ -568,6 +570,7 @@ class OMEMOConnection:
         stanza = nbxmpp.Message(
             to=obj.msg_iq.getTo(),
             typ=obj.msg_iq.getType())
+        stanza.setID(obj.stanza_id)
         stanza.setThread(obj.msg_iq.getThread())
         for tag, ns in ALLOWED_TAGS:
             node = obj.msg_iq.getTag(tag, namespace=ns)
