@@ -49,7 +49,9 @@ ALLOWED_TAGS = [('request', nbxmpp.NS_RECEIPTS),
                 ('store', nbxmpp.NS_MSG_HINTS),
                 ('no-copy', nbxmpp.NS_MSG_HINTS),
                 ('no-permanent-store', nbxmpp.NS_MSG_HINTS),
-                ('replace', nbxmpp.NS_CORRECT)]
+                ('replace', nbxmpp.NS_CORRECT),
+                ('origin-id', nbxmpp.NS_SID),
+                ]
 
 
 class OldPGPPlugin(GajimPlugin):
@@ -281,6 +283,7 @@ class OldPGPPlugin(GajimPlugin):
         stanza = nbxmpp.Message(
             to=obj.msg_iq.getTo(),
             typ=obj.msg_iq.getType())
+        stanza.setID(obj.stanza_id)
         stanza.setThread(obj.msg_iq.getThread())
         for tag, ns in ALLOWED_TAGS:
             node = obj.msg_iq.getTag(tag, namespace=ns)
