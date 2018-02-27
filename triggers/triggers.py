@@ -24,16 +24,16 @@ import sys
 import os
 
 from gajim.common import app
+from gajim.common import ged
+from gajim.common import helpers
 from gajim.plugins import GajimPlugin
 from gajim.plugins.helpers import log_calls
 from gajim.plugins.gui import GajimPluginConfigDialog
-from gajim.common import ged
-from gajim.common import helpers
+
 from gajim.dialogs import SoundChooserDialog
 
 
 class Triggers(GajimPlugin):
-
     @log_calls('TriggersPlugin')
     def init(self):
         self.description = _('Configure Gajim\'s behaviour for each contact')
@@ -584,7 +584,7 @@ class TriggersPluginConfigDialog(GajimPluginConfigDialog):
     def on_recipient_list_entry_changed(self, widget):
         if self.active_num < 0:
             return
-        recipients = widget.get_text().decode('utf-8')
+        recipients = widget.get_text()
         #TODO: do some check
         self.config[self.active_num]['recipients'] = recipients
         self.set_treeview_string()
@@ -715,19 +715,18 @@ class TriggersPluginConfigDialog(GajimPluginConfigDialog):
             self.config[self.active_num]['sound_file'] = path_to_snd_file
             self.sound_entry.set_text(path_to_snd_file)
 
-        path_to_snd_file = self.sound_entry.get_text().decode('utf-8')
+        path_to_snd_file = self.sound_entry.get_text()
         path_to_snd_file = os.path.join(os.getcwd(), path_to_snd_file)
         dialog = SoundChooserDialog(path_to_snd_file, on_ok)
 
     def on_play_button_clicked(self, widget):
-        helpers.play_sound_file(self.sound_entry.get_text().decode('utf-8'))
+        helpers.play_sound_file(self.sound_entry.get_text())
 
     def on_disable_sound_cb_toggled(self, widget):
         self.on_disable_it_toggled(widget, self.use_sound_cb, 'sound')
 
     def on_sound_entry_changed(self, widget):
-        self.config[self.active_num]['sound_file'] = widget.get_text().\
-            decode('utf-8')
+        self.config[self.active_num]['sound_file'] = widget.get_text()
 
     def on_use_popup_cb_toggled(self, widget):
         self.on_use_it_toggled(widget, self.disable_popup_cb, 'popup')
@@ -749,8 +748,7 @@ class TriggersPluginConfigDialog(GajimPluginConfigDialog):
             self.command_entry.set_sensitive(False)
 
     def on_command_entry_changed(self, widget):
-        self.config[self.active_num]['command'] = widget.get_text().\
-            decode('utf-8')
+        self.config[self.active_num]['command'] = widget.get_text()
 
     def on_use_systray_cb_toggled(self, widget):
         self.on_use_it_toggled(widget, self.disable_systray_cb, 'systray')
