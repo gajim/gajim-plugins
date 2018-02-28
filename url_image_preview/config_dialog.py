@@ -39,6 +39,11 @@ class UrlImagePreviewConfigDialog(OptionsDialog):
             (_('Open Link in Browser'), 'open_link_in_browser_menuitem'),
             (_('Open File in Browser'), 'open_file_in_browser_menuitem')]
 
+        geo_providers = [
+            (_('No map preview'), 'no_preview'),
+            ('Google Maps', 'Google'),
+            ('OpenStreetMap', 'OSM')]
+
         self.plugin = plugin
         options = [
             Option('PreviewSizeSpinOption', _('Preview size'),
@@ -56,6 +61,12 @@ class UrlImagePreviewConfigDialog(OptionsDialog):
                    OptionType.VALUE, self.plugin.config['LEFTCLICK_ACTION'],
                    callback=self.on_option, data='LEFTCLICK_ACTION',
                    props={'items': actions,
+                          'plugin': self.plugin}),
+
+            Option('PreviewComboOption', _('Map service for preview'),
+                   OptionType.VALUE, self.plugin.config['GEO_PREVIEW_PROVIDER'],
+                   callback=self.on_option, data='GEO_PREVIEW_PROVIDER',
+                   props={'items': geo_providers,
                           'plugin': self.plugin}),
 
             Option(OptionKind.SWITCH, _('Enable HTTPS Verification'),

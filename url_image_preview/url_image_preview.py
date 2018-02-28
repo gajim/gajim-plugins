@@ -83,6 +83,7 @@ class UrlImagePreviewPlugin(GajimPlugin):
             'MAX_FILE_SIZE': (524288, 'Max file size for image preview'),
             'LEFTCLICK_ACTION': ('open_menuitem', 'Open'),
             'ANONYMOUS_MUC': (False, ''),
+            'GEO_PREVIEW_PROVIDER': ('Google', 'Google Maps'),
             'VERIFY': (True, ''),}
         self.controls = {}
         self.history_window_control = None
@@ -161,11 +162,14 @@ class Base(object):
     def print_real_text(self, real_text, text_tags, graphics, iter_,
                         additional_data):
         urlparts = urlparse(real_text)
-        if (urlparts.scheme not in ["https", "aesgcm"] or
-                not urlparts.netloc):
-            log.info("Not accepting URL scheme '%s' for image preview: %s",
-                     urlparts.scheme, real_text)
-            return
+        if urlparts.scheme == "geo":
+            if self.plugin.config['GEO_PREVIEW_PROVIDER'] == 'no_preview':
+                return
+        elif (urlparts.scheme not in ["https", "aesgcm"] or not urlparts.netloc):
+            if urlparts.scheme != "geo":
+                log.info("Not accepting URL scheme '%s' for image preview: %s",
+                         urlparts.scheme, real_text)
+                return
 
         try:
             oob_url = additional_data["gajim"]["oob_url"]
@@ -175,10 +179,11 @@ class Base(object):
         # allow aesgcm uris without oob marker (aesgcm uris are always
         # httpupload filetransfers)
         if urlparts.scheme != "aesgcm" and real_text != oob_url:
-            log.info("Not accepting URL for image preview "
-                     "(wrong or no oob data): %s", real_text)
-            log.debug("additional_data: %s", additional_data)
-            return
+            if urlparts.scheme != "geo":
+                log.info("Not accepting URL for image preview "
+                         "(wrong or no oob data): %s", real_text)
+                log.debug("additional_data: %s", additional_data)
+                return
 
         # Don't print the URL in the message window (in the calling function)
         self.textview.plugin_modified = True
@@ -194,35 +199,88 @@ class Base(object):
             *[(ttt.lookup(t) if isinstance(t, str) else t) for t in ["url"]])
         repl_end = buffer_.create_mark(None, iter_, True)
 
-        filename = os.path.basename(urlparts.path)
-        ext = os.path.splitext(filename)[1]
-        name = os.path.splitext(filename)[0]
-        namehash = hashlib.sha1(real_text.encode('utf-8')).hexdigest()
-        newfilename = name + '_' + namehash + ext
-        thumbfilename = name + '_' + namehash + '_thumb_' \
-            + str(self.plugin.config['PREVIEW_SIZE']) + ext
+        if not real_text.startswith('geo:'):
+            weburl = real_text
+            filename = os.path.basename(urlparts.path)
+            ext = os.path.splitext(filename)[1]
+            name = os.path.splitext(filename)[0]
+            namehash = hashlib.sha1(real_text.encode('utf-8')).hexdigest()
+            newfilename = name + '_' + namehash + ext
+            thumbfilename = name + '_' + namehash + '_thumb_' \
+                + str(self.plugin.config['PREVIEW_SIZE']) + ext
 
-        filepath = os.path.join(self.directory, newfilename)
-        thumbpath = os.path.join(self.thumbpath, thumbfilename)
-        filepaths = [filepath, thumbpath]
+            filepath = os.path.join(self.directory, newfilename)
+            thumbpath = os.path.join(self.thumbpath, thumbfilename)
+            filepaths = [filepath, thumbpath]
 
-        key = ''
-        iv = ''
-        encrypted = False
-        if urlparts.fragment:
-            fragment = binascii.unhexlify(urlparts.fragment)
-            key = fragment[16:]
-            iv = fragment[:16]
-            if len(key) == 32 and len(iv) == 16:
-                encrypted = True
-            if not encrypted:
-                key = fragment[12:]
-                iv = fragment[:12]
-                if len(key) == 32 and len(iv) == 12:
+            key = ''
+            iv = ''
+            encrypted = False
+            if urlparts.fragment:
+                fragment = binascii.unhexlify(urlparts.fragment)
+                key = fragment[16:]
+                iv = fragment[:16]
+                if len(key) == 32 and len(iv) == 16:
                     encrypted = True
+                if not encrypted:
+                    key = fragment[12:]
+                    iv = fragment[:12]
+                    if len(key) == 32 and len(iv) == 12:
+                        encrypted = True
+
+        # Handle geo:-URIs
+        if real_text.startswith('geo:'):
+            if self.plugin.config['GEO_PREVIEW_PROVIDER'] == 'no_preview':
+                return
+            size = self.plugin.config['PREVIEW_SIZE']
+            geo_provider = self.plugin.config['GEO_PREVIEW_PROVIDER']
+            key = ''
+            iv = ''
+            encrypted = False
+            ext = '.png'
+            color = 'blue'
+            zoom = 16
+            location = real_text[4:]
+            lat, _, lon = location.partition(',')
+            if lon == '':
+                return
+
+            filename = 'location_' + geo_provider + '_' \
+                + location.replace(',', '_').replace('.', '-')
+            newfilename = filename + ext
+            thumbfilename = filename + '_thumb_' \
+                + str(self.plugin.config['PREVIEW_SIZE']) + ext
+            filepath = os.path.join(self.directory, newfilename)
+            thumbpath = os.path.join(self.thumbpath, thumbfilename)
+            filepaths = [filepath, thumbpath]
+
+            # Google
+            if geo_provider == 'Google':
+                url = 'https://maps.googleapis.com/maps/api/staticmap?' \
+                      'center={}&zoom={}&size={}x{}&markers=color:{}' \
+                      '|label:.|{}'.format(location, zoom, size, size,
+                                           color, location)
+                weburl = 'https://www.google.com/maps/place/{}' \
+                         .format(location)
+                real_text = url
+            else:
+                # OpenStreetMap / MapQuest
+                apikey = 'F7x36jLVv2hiANVAXmhwvUB044XvGASh'
+
+                url = 'https://open.mapquestapi.com/staticmap/v4/' \
+                      'getmap?key={}&center={}&zoom={}&size={},{}&type=map' \
+                      '&imagetype=png&pois={},{}&scalebar=false' \
+                      .format(apikey, location, zoom, size, size, color,
+                          location)
+                weburl = 'http://www.openstreetmap.org/' \
+                         '?mlat={}&mlon={}#map={}/{}/{}&layers=N' \
+                         .format(lat, lon, zoom, lat, lon)
+                real_text = url
 
         # file exists but thumbnail got deleted
         if os.path.exists(filepath) and not os.path.exists(thumbpath):
+            if urlparts.scheme == 'geo':
+                    real_text = weburl
             with open(filepath, 'rb') as f:
                 mem = f.read()
             app.thread_interface(
@@ -233,6 +291,8 @@ class Base(object):
         # display thumbnail if already downloadeded
         # (but only if file also exists)
         elif os.path.exists(filepath) and os.path.exists(thumbpath):
+            if urlparts.scheme == 'geo':
+                    real_text = weburl
             app.thread_interface(
                 self._load_thumbnail, [thumbpath],
                 self._update_img, [real_text, repl_start,
@@ -251,8 +311,9 @@ class Base(object):
                 verify = self.plugin.config['VERIFY']
                 app.thread_interface(
                     get_http_head, [self.textview.account, real_text, verify],
-                    self._check_mime_size, [real_text, repl_start, repl_end,
-                                            filepaths, key, iv, encrypted])
+                    self._check_mime_size, [real_text, weburl, repl_start,
+                                            repl_end, filepaths, key, iv,
+                                            encrypted])
 
     def _save_thumbnail(self, thumbpath, mem):
         size = self.plugin.config['PREVIEW_SIZE']
@@ -349,6 +410,9 @@ class Base(object):
 
         urlparts = urlparse(url)
         filename = os.path.basename(urlparts.path)
+        if os.path.basename(filepath).startswith('location_'):
+            filename = os.path.basename(filepath)
+
         event_box = Gtk.EventBox()
         event_box.connect('button-press-event', self.on_button_press_event,
                           filepath, filename, url, encrypted)
@@ -392,7 +456,7 @@ class Base(object):
         GLib.idle_add(add_to_textview)
 
     def _check_mime_size(self, tuple_arg,
-                         url, repl_start, repl_end, filepaths,
+                         url, weburl, repl_start, repl_end, filepaths,
                          key, iv, encrypted):
         file_mime, file_size = tuple_arg
         # Check if mime type is acceptable
@@ -424,7 +488,7 @@ class Base(object):
         app.thread_interface(
             self._download_image, [self.textview.account,
                                    attributes, encrypted],
-            self._update_img, [url, repl_start, repl_end,
+            self._update_img, [weburl, repl_start, repl_end,
                                filepaths[0], encrypted])
 
     def _download_image(self, account, attributes, encrypted):
@@ -516,6 +580,11 @@ class Base(object):
 
     def on_open_menuitem_activate(self, menu, data):
         filepath = data["filepath"]
+        original_filename = data["original_filename"]
+        url = data["url"]
+        if original_filename.startswith('location_'):
+            helpers.launch_browser_mailer('url', url)
+            return
         helpers.launch_file_manager(filepath)
 
     def on_save_as_menuitem_activate(self, menu, data):
