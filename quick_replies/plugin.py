@@ -70,36 +70,28 @@ class Base(object):
 
     def create_button(self):
 
-        actions_hbox = self.chat_control.xml.get_object('actions_hbox')
-        self.button = Gtk.Button(label=None, stock=None, use_underline=True)
+        actions_hbox = self.chat_control.xml.get_object('hbox')
+        self.button = Gtk.MenuButton(label=None, stock=None, use_underline=True)
+        self.button.get_style_context().add_class(
+            'chatcontrol-actionbar-button')
         self.button.set_property('relief', Gtk.ReliefStyle.NONE)
         self.button.set_property('can-focus', False)
         img = Gtk.Image()
         img_path = self.plugin.local_file_path('quick_replies.png')
         pixbuf = GdkPixbuf.Pixbuf.new_from_file(img_path)
-        iconset = Gtk.IconSet(pixbuf=pixbuf)
-        factory = Gtk.IconFactory()
-        factory.add('quickreplies', iconset)
-        factory.add_default()
-        img.set_from_stock('quickreplies', Gtk.IconSize.MENU)
+        img.set_from_pixbuf(pixbuf)
         self.button.set_image(img)
         self.button.set_tooltip_text(_('Quick replies'))
         actions_hbox.pack_start(self.button, False, False , 0)
         actions_hbox.reorder_child(self.button,
-            len(actions_hbox.get_children()) - 3)
-        id_ = self.button.connect('clicked', self.on_button_cliecked)
-        self.chat_control.handlers[id_] = self.button
+            len(actions_hbox.get_children()) - 2)
         self.button.show()
-
-    def on_button_cliecked(self, widget):
-
-        gtkgui_helpers.popup_emoticons_under_button(self.menu, widget,
-                                                self.chat_control.parent_win)
 
     def on_insert(self, widget, text):
 
         text = text.rstrip() + ' '
         message_buffer = self.chat_control.msg_textview.get_buffer()
+        self.chat_control.msg_textview.remove_placeholder()
         message_buffer.insert_at_cursor(text)
         self.chat_control.msg_textview.grab_focus()
 
@@ -115,10 +107,10 @@ class Base(object):
             item.connect('activate', self.on_insert, text)
             self.menu.append(item)
         self.menu.show_all()
-        self.menu.attach_to_widget(self.button, None)
+        self.button.set_popup(self.menu)
 
     def disconnect_from_chat_control(self):
-        actions_hbox = self.chat_control.xml.get_object('actions_hbox')
+        actions_hbox = self.chat_control.xml.get_object('hbox')
         actions_hbox.remove(self.button)
 
 
