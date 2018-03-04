@@ -11,6 +11,7 @@ from gajim.plugins import GajimPlugin
 from gajim.plugins.helpers import log_calls
 from gajim.common import ged
 from gajim.common import app
+from gajim.common import caps_cache
 import gajim.cell_renderer_image
 
 log = logging.getLogger('gajim.plugin_system.clients_icons')
@@ -182,18 +183,18 @@ class ClientsIconsPlugin(GajimPlugin):
         self.description = _('Shows client icons in roster'
             ' and in groupchats.')
         self.pos_list = [_('after statusicon'), _('before avatar')]
-        self.events_handlers = {'presence-received':
-                                    (ged.POSTGUI, self.presence_received),
-                                'gc-presence-received':
-                                    (ged.POSTGUI, self.gc_presence_received),
+        self.events_handlers = {'caps-presence-received':
+                                    (ged.POSTGUI, self.caps_presence_received),
+                                'caps-disco-received':
+                                    (ged.POSTGUI, self.caps_disco_received),
                                 }
         self.gui_extension_points = {
             'groupchat_control': (self.connect_with_groupchat_control,
                                   self.disconnect_from_groupchat_control),
             'roster_draw_contact': (self.connect_with_roster_draw_contact,
                                     self.disconnect_from_roster_draw_contact),
-            #'roster_tooltip_populate': (self.connect_with_roster_tooltip_populate,
-            #                            self.disconnect_from_roster_tooltip_populate),
+            'roster_tooltip_populate': (self.connect_with_roster_tooltip_populate,
+                                        self.disconnect_from_roster_tooltip_populate),
             'gc_tooltip_populate': (self.connect_with_gc_tooltip_populate,
                                     self.disconnect_from_gc_tooltip_populate),
             }
@@ -215,7 +216,11 @@ class ClientsIconsPlugin(GajimPlugin):
     def add_tooltip_row(self, tooltip, contact, tooltip_grid):
         caps = contact.client_caps._node
         log.debug('connect_with_gc_tooltip_populate, caps: %s', caps)
-        caps_image , client_name = self.get_icon(caps, contact)
+        caps_image, client_name = self.get_icon(caps, contact)
+        identities = acontact.client_caps._lookup_in_cache(
+            caps_cache.capscache).identities
+        if identities:
+            client_name = identities[0].get('name', client_name)
         caps_image.set_halign(Gtk.PositionType.RIGHT)
         log.debug('connect_with_gc_tooltip_populate, client_name: %s', \
             client_name)
@@ -239,8 +244,8 @@ class ClientsIconsPlugin(GajimPlugin):
         label.show()
 
         # set client table to tooltip
-        tooltip_grid.insert_next_to(tooltip.resource_label,
-                                    Gtk.PositionType.BOTTOM)
+        #tooltip_grid.insert_next_to(tooltip.resource_label,
+                                    #Gtk.PositionType.BOTTOM)
         tooltip_grid.attach_next_to(label, tooltip.resource_label,
                                     Gtk.PositionType.BOTTOM, 1, 1)
         tooltip_grid.attach_next_to(self.table, label,
@@ -255,7 +260,7 @@ class ClientsIconsPlugin(GajimPlugin):
         for child in tooltip_grid.get_children():
             if child.get_name() == 'client_icons_grid':
                 caps = contact.client_caps._node
-                caps_image , client_name = self.get_icon(caps, contact)
+                caps_image, client_name = self.get_icon(caps, contact)
                 child.remove(child.get_child_at(1, 1))
                 child.attach(caps_image, 1, 1, 1, 1)
                 child.get_child_at(2, 1).set_markup(client_name)
@@ -295,13 +300,16 @@ class ClientsIconsPlugin(GajimPlugin):
         self.table.insert_row(0)
         self.table.insert_column(0)
         self.table.set_property('column-spacing', 2)
-        first_place = 100
 
         vcard_current_row = 0
         for priority in contact_keys:
             for acontact in contacts_dict[priority]:
                 caps = acontact.client_caps._node
-                caps_image , client_name = self.get_icon(caps, acontact)
+                caps_image, client_name = self.get_icon(caps, acontact)
+                identities = acontact.client_caps._lookup_in_cache(
+                    caps_cache.capscache).identities
+                if identities:
+                    client_name = identities[0].get('name', client_name)
                 caps_image.set_alignment(0, 0)
                 self.table.attach(caps_image, 1, vcard_current_row, 1, 1)
                 label = Gtk.Label()
@@ -309,6 +317,8 @@ class ClientsIconsPlugin(GajimPlugin):
                 label.set_markup(client_name)
                 self.table.attach(label, 2, vcard_current_row, 1, 1)
                 vcard_current_row += 1
+        self.table.show_all()
+        
         # set label
         label = Gtk.Label()
         label.set_alignment(0, 0)
@@ -318,14 +328,18 @@ class ClientsIconsPlugin(GajimPlugin):
             if contact.show == 'offline':
                 return
             label.set_markup(_('Client:'))
-        tooltip_grid.attach(label, 1, first_place,  1, 1)
+        label.show()
         # set clients table to tooltip
-        tooltip_grid.attach(self.table, 2, first_place, 1, 1)
+        #tooltip_grid.insert_next_to(tooltip.resource_label,
+                                    #Gtk.PositionType.BOTTOM)
+        tooltip_grid.attach_next_to(label, tooltip.resource_label,
+                                    Gtk.PositionType.BOTTOM, 1, 1)
+        tooltip_grid.attach_next_to(self.table, label,
+                                    Gtk.PositionType.RIGHT, 1, 1)
 
-    def get_icon(self, caps, contact=None):
+    def get_icon(self, caps, contact):
         if not caps:
             return Gtk.Image.new_from_pixbuf(self.default_pixbuf), _('Unknown')
-        log.debug('get_icon, caps: %s', caps)
         # libpurple returns pidgin.im/ only, we have to look for ressource name
         if 'pidgin.im/' in caps:
             caps = 'libpurple'
@@ -340,12 +354,25 @@ class ClientsIconsPlugin(GajimPlugin):
         if caps_from_jid:
             caps = caps_from_jid
         caps_ = caps.split('#')[0].split()
-        if caps_:
+        
+        client_name = _('Unknown')
+        client_icon = None
+        identities = contact.client_caps._lookup_in_cache(
+            caps_cache.capscache).identities
+        if identities:
+            log.debug('get_icon, identities: %s', str(identities))
+            client_name = identities[0].get('name', _('Unknown'))
+            name_splits = client_name.split()
+            name_splits = reversed([" ".join(name_splits[:(i+1)]) for i in range(len(name_splits))])
+            for name in name_splits:
+                if not client_icon:
+                    log.debug("get_icon, searching for name fragment '%s'..." % name)
+                    client_icon = clients.get(name, (None,))[0]
+        
+        if caps_ and not client_icon:
             client_icon = clients.get(caps_[0].split()[0], (None,))[0]
             client_name = clients.get(caps_[0].split()[0], ('', _('Unknown')))[1]
-        else:
-            client_icon = None
-
+        
         if not client_icon:
             return Gtk.Image.new_from_pixbuf(self.default_pixbuf), _('Unknown')
         else:
@@ -394,7 +421,7 @@ class ClientsIconsPlugin(GajimPlugin):
                 if not caps:
                     caps = self.check_jid(jid)
                 self.set_icon(roster.model, iter_, self.renderer_num,
-                    caps)
+                    caps, contact)
 
     @log_calls('ClientsIconsPlugin')
     def connect_with_groupchat_control(self, chat_control):
@@ -438,7 +465,7 @@ class ClientsIconsPlugin(GajimPlugin):
                 continue
             caps = gc_contact.client_caps._node
             self.set_icon(chat_control.model, iter_, self.muc_renderer_num,
-                caps)
+                caps, gc_contact)
         chat_control.draw_all_roles()
         # Recalculate column width for ellipsizin
         chat_control.list_treeview.columns_autosize()
@@ -515,7 +542,40 @@ class ClientsIconsPlugin(GajimPlugin):
             self.renderer_num + 1:]
         roster.setup_and_draw_roster()
 
-    def presence_received(self, iq_obj):
+    def caps_disco_received(self, iq_obj):
+        log.debug("caps disco received...")
+        if not self.config['show_in_roster']:
+            return
+        roster = app.interface.roster
+        contact = app.contacts.get_contact_from_full_jid(iq_obj.conn.name,
+            iq_obj.jid)
+        if contact is None:
+            room_jid, nick = app.get_room_and_nick_from_fjid(iq_obj.fjid)
+            contact = app.contacts.get_gc_contact(iq_obj.conn.name, room_jid,
+                nick)
+            if contact:
+                gc_control = app.interface.msg_win_mgr.get_gc_control(
+                    iq_obj.jid, iq_obj.conn.name)
+                iter_ = gc_control.get_contact_iter(nick)
+                self.set_icon(gc_control.model, iter_, self.muc_renderer_num,
+                    None, contact)
+                return
+        if not contact:
+            return
+        child_iters = roster._get_contact_iter(iq_obj.jid, iq_obj.conn.name,
+            contact, roster.model)
+        if not child_iters:
+            return
+        for iter_ in child_iters:
+            caps = contact.client_caps._node
+            caps_ = self.check_jid(iq_obj.jid)
+            if caps_:
+                caps = caps_
+            self.set_icon(roster.model, iter_, self.renderer_num,
+                caps, contact)
+    
+    def caps_presence_received(self, iq_obj):
+        log.debug("caps presence received...")
         if not self.config['show_in_roster']:
             return
         roster = app.interface.roster
@@ -533,17 +593,17 @@ class ClientsIconsPlugin(GajimPlugin):
         iter_ = iters[0]
 
         if contact.show == 'error':
-            self.set_icon(roster.model, iter_, self.renderer_num, None)
+            self.set_icon(roster.model, iter_, self.renderer_num, None, contact)
             return
 
-        if contact != iq_obj.contact:
-            # higest contact changed
-            if roster.model[iter_][self.renderer_num] is not None:
-                caps = contact.client_caps._node
-                if caps:
-                    log.debug('presence_received, caps: %s', caps)
-                    self.set_icon(roster.model, iter_, self.renderer_num, caps)
-                    return
+        # higest contact changed
+        if roster.model[iter_][self.renderer_num] is not None:
+            caps = contact.client_caps._node
+            if caps:
+                log.debug('caps_presence_received, caps: %s', caps)
+                self.set_icon(roster.model, iter_, self.renderer_num, caps, contact)
+                return
+
         caps = None
         tag = iq_obj.stanza.getTags('c')
         if tag:
@@ -562,9 +622,10 @@ class ClientsIconsPlugin(GajimPlugin):
             caps = caps_from_jid
 
         for iter_ in iters:
-            self.set_icon(roster.model, iter_, self.renderer_num, caps)
+            self.set_icon(roster.model, iter_, self.renderer_num, caps, contact)
 
     def gc_presence_received(self, iq_obj):
+        log.debug("gc presence received...")
         if not self.config['show_in_groupchats']:
             return
         contact = app.contacts.get_gc_contact(iq_obj.conn.name,
@@ -585,20 +646,29 @@ class ClientsIconsPlugin(GajimPlugin):
         model = iq_obj.gc_control.model
         if model[iter_][self.muc_renderer_num] is not None:
             return
-        self.set_icon(model, iter_, self.muc_renderer_num, caps)
+        self.set_icon(model, iter_, self.muc_renderer_num, caps, contact)
 
-    def set_icon(self, model, iter_, pos, caps):
-        if not caps:
-            if self.config['show_unknown_icon']:
-                model[iter_][pos] = self.default_pixbuf
-            return
-        caps_ = caps.split('#')[0].split()
-        if caps_:
-            log.debug('set_icon, caps_: %s', caps_)
-            client_icon = clients.get(caps_[0].split()[0], (None,))[0]
-        else:
-            client_icon = None
-
+    def set_icon(self, model, iter_, pos, caps, contact):
+        client_name = _('Unknown')
+        client_icon = None
+        identities = contact.client_caps._lookup_in_cache(
+            caps_cache.capscache).identities
+        if identities:
+            log.debug('set_icon, identities: %s', str(identities))
+            client_name = identities[0].get('name', _('Unknown'))
+            name_splits = client_name.split()
+            name_splits = reversed([" ".join(name_splits[:(i+1)]) for i in range(len(name_splits))])
+            for name in name_splits:
+                if not client_icon:
+                    log.debug("set_icon, searching for name fragment '%s'..." % name)
+                    client_icon = clients.get(name, (None,))[0]
+        
+        if caps and not client_icon:
+            caps_ = caps.split('#')[0].split()
+            if caps_:
+                log.debug('set_icon, caps_: %s', caps_)
+                client_icon = clients.get(caps_[0].split()[0], (None,))[0]
+        
         if not client_icon:
             if self.config['show_unknown_icon']:
                 model[iter_][pos] = self.default_pixbuf
