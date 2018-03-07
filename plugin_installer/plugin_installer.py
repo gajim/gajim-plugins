@@ -528,7 +528,7 @@ class DownloadAsync(threading.Thread):
             local_dir = os.path.join(user_dir, remote_dir)
             if not os.path.isdir(local_dir):
                 os.mkdir(local_dir)
-            local_dir = os.path.split(user_dir)[0]
+            local_dir = os.path.dirname(local_dir)
 
             # downloading zip file
             try:
@@ -538,7 +538,7 @@ class DownloadAsync(threading.Thread):
                 log.exception("Error downloading plugin %s" % filename)
                 continue
             with ZipFile(buf) as zip_file:
-                zip_file.extractall(os.path.join(local_dir, 'plugins'))
+                zip_file.extractall(local_dir)
         GLib.idle_add(self.plugin.on_plugin_downloaded, self.remote_dirs)
 
 
