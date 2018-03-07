@@ -52,7 +52,7 @@ class ImagePlugin(GajimPlugin):
             if base.chat_control == chat_control:
                 is_support_xhtml = chat_control.contact.supports(NS_XHTML_IM)
                 base.button.set_sensitive(is_support_xhtml and not \
-                    chat_control.gpg_is_active)
+                    chat_control.encryption)
                 if not is_support_xhtml:
                     text = _('This contact does not support XHTML_IM')
                 else:
@@ -64,13 +64,16 @@ class Base(object):
     def __init__(self, plugin, chat_control):
         self.plugin = plugin
         self.chat_control = chat_control
-        actions_hbox = chat_control.xml.get_object('actions_hbox')
+        actions_hbox = chat_control.xml.get_object('hbox')
 
         self.button = Gtk.Button(label=None, stock=None, use_underline=True)
+        self.button.get_style_context().add_class(
+            'chatcontrol-actionbar-button')
         self.button.set_property('relief', Gtk.ReliefStyle.NONE)
         self.button.set_property('can-focus', False)
         img = Gtk.Image()
-        img.set_from_stock('gtk-orientation-portrait', Gtk.IconSize.MENU)
+        img.set_from_icon_name('image-x-generic-symbolic.symbolic',
+            Gtk.IconSize.MENU)
         self.button.set_image(img)
         self.button.set_tooltip_text('Send image (Alt+L)')
         ag = Gtk.accel_groups_from_object(self.chat_control.parent_win.window)[0]
@@ -79,7 +82,7 @@ class Base(object):
 
         actions_hbox.pack_start(self.button, False, False , 0)
         actions_hbox.reorder_child(self.button,
-            len(actions_hbox.get_children()) - 3)
+            len(actions_hbox.get_children()) - 2)
         id_ = self.button.connect('clicked', self.on_image_button_clicked)
         self.button.show()
 
@@ -135,5 +138,5 @@ class Base(object):
         dlg = ImageChooserDialog(on_response_ok=on_ok, on_response_cancel=None)
 
     def disconnect_from_chat_control(self):
-        actions_hbox = self.chat_control.xml.get_object('actions_hbox')
+        actions_hbox = self.chat_control.xml.get_object('hbox')
         actions_hbox.remove(self.button)
