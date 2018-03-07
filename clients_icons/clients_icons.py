@@ -213,14 +213,36 @@ class ClientsIconsPlugin(GajimPlugin):
         self.icon_cache = {}
 
     @log_calls('ClientsIconsPlugin')
+    def get_client_name(self, contact, client_name):
+        identities = contact.client_caps.get_cache_lookup_strategy()(
+            caps_cache.capscache).identities
+        if identities:
+            log.debug('get_client_name, identities: %s', str(identities))
+            for entry in identities:
+                if entry['category'] == 'client':
+                    if entry['name']:
+                        client_name = entry['name']
+                        break
+        return client_name
+    
+    def get_client_icon_by_name(self, client_name):
+        client_icon = None
+        name_splits = client_name.split()
+        name_splits = reversed([" ".join(name_splits[:(i+1)]) for i in range(len(name_splits))])
+        for name in name_splits:
+            if not client_icon:
+                log.debug("get_client_icon_by_name, searching for name fragment '%s'..." % name)
+                client_icon = clients.get(name, (None,))[0]
+                if client_icon:
+                    break;
+        return client_icon
+    
+    @log_calls('ClientsIconsPlugin')
     def add_tooltip_row(self, tooltip, contact, tooltip_grid):
         caps = contact.client_caps._node
         log.debug('connect_with_gc_tooltip_populate, caps: %s', caps)
         caps_image, client_name = self.get_icon(caps, contact)
-        identities = acontact.client_caps._lookup_in_cache(
-            caps_cache.capscache).identities
-        if identities:
-            client_name = identities[0].get('name', client_name)
+        client_name = self.get_client_name(contact, client_name);
         caps_image.set_halign(Gtk.PositionType.RIGHT)
         log.debug('connect_with_gc_tooltip_populate, client_name: %s', \
             client_name)
@@ -244,8 +266,8 @@ class ClientsIconsPlugin(GajimPlugin):
         label.show()
 
         # set client table to tooltip
-        #tooltip_grid.insert_next_to(tooltip.resource_label,
-                                    #Gtk.PositionType.BOTTOM)
+        tooltip_grid.insert_next_to(tooltip.resource_label,
+                                    Gtk.PositionType.BOTTOM)
         tooltip_grid.attach_next_to(label, tooltip.resource_label,
                                     Gtk.PositionType.BOTTOM, 1, 1)
         tooltip_grid.attach_next_to(self.table, label,
@@ -306,10 +328,7 @@ class ClientsIconsPlugin(GajimPlugin):
             for acontact in contacts_dict[priority]:
                 caps = acontact.client_caps._node
                 caps_image, client_name = self.get_icon(caps, acontact)
-                identities = acontact.client_caps._lookup_in_cache(
-                    caps_cache.capscache).identities
-                if identities:
-                    client_name = identities[0].get('name', client_name)
+                client_name = self.get_client_name(acontact, client_name)
                 caps_image.set_alignment(0, 0)
                 self.table.attach(caps_image, 1, vcard_current_row, 1, 1)
                 label = Gtk.Label()
@@ -330,45 +349,34 @@ class ClientsIconsPlugin(GajimPlugin):
             label.set_markup(_('Client:'))
         label.show()
         # set clients table to tooltip
-        #tooltip_grid.insert_next_to(tooltip.resource_label,
-                                    #Gtk.PositionType.BOTTOM)
+        tooltip_grid.insert_next_to(tooltip.resource_label,
+                                    Gtk.PositionType.BOTTOM)
         tooltip_grid.attach_next_to(label, tooltip.resource_label,
                                     Gtk.PositionType.BOTTOM, 1, 1)
         tooltip_grid.attach_next_to(self.table, label,
                                     Gtk.PositionType.RIGHT, 1, 1)
 
     def get_icon(self, caps, contact):
-        if not caps:
-            return Gtk.Image.new_from_pixbuf(self.default_pixbuf), _('Unknown')
-        # libpurple returns pidgin.im/ only, we have to look for ressource name
-        if 'pidgin.im/' in caps:
-            caps = 'libpurple'
-            for client in libpurple_clients:
-                if client in contact.resource.lower():
-                    caps = libpurple_clients[client]
+        client_name = _('Unknown')
+        caps_ = None
+        if caps:
+            # libpurple returns pidgin.im/ only, we have to look for ressource name
+            if 'pidgin.im/' in caps:
+                caps = 'libpurple'
+                for client in libpurple_clients:
+                    if client in contact.resource.lower():
+                        caps = libpurple_clients[client]
 
-        if 'sleekxmpp.com'in caps:
-            caps = 'httр://sleekxmpp.com/ver/1.1.11'
-        client_name = _('Unknown')
-        caps_from_jid = self.check_jid(contact.jid)
-        if caps_from_jid:
-            caps = caps_from_jid
-        caps_ = caps.split('#')[0].split()
+            if 'sleekxmpp.com'in caps:
+                caps = 'httр://sleekxmpp.com/ver/1.1.11'
+            caps_from_jid = self.check_jid(contact.jid)
+            if caps_from_jid:
+                caps = caps_from_jid
+            caps_ = caps.split('#')[0].split()
         
-        client_name = _('Unknown')
-        client_icon = None
-        identities = contact.client_caps._lookup_in_cache(
-            caps_cache.capscache).identities
-        if identities:
-            log.debug('get_icon, identities: %s', str(identities))
-            client_name = identities[0].get('name', _('Unknown'))
-            name_splits = client_name.split()
-            name_splits = reversed([" ".join(name_splits[:(i+1)]) for i in range(len(name_splits))])
-            for name in name_splits:
-                if not client_icon:
-                    log.debug("get_icon, searching for name fragment '%s'..." % name)
-                    client_icon = clients.get(name, (None,))[0]
-        
+        client_name = self.get_client_name(contact, client_name)
+        client_icon = self.get_client_icon_by_name(client_name)
+
         if caps_ and not client_icon:
             client_icon = clients.get(caps_[0].split()[0], (None,))[0]
             client_name = clients.get(caps_[0].split()[0], ('', _('Unknown')))[1]
@@ -410,6 +418,8 @@ class ClientsIconsPlugin(GajimPlugin):
         if not self.active:
             return
         if not self.config['show_in_roster']:
+            return
+        if contact.is_groupchat():
             return
         child_iters = roster._get_contact_iter(jid, account, contact,
             roster.model)
@@ -462,8 +472,10 @@ class ClientsIconsPlugin(GajimPlugin):
                 gc_contact.role, gc_contact.affiliation, gc_contact.status,
                 gc_contact.jid)
             if not self.config['show_in_groupchats']:
+                log.debug("not showing in groupchats...")
                 continue
             caps = gc_contact.client_caps._node
+            log.debug("caps: %s" % str(caps))
             self.set_icon(chat_control.model, iter_, self.muc_renderer_num,
                 caps, gc_contact)
         chat_control.draw_all_roles()
@@ -549,6 +561,8 @@ class ClientsIconsPlugin(GajimPlugin):
         roster = app.interface.roster
         contact = app.contacts.get_contact_from_full_jid(iq_obj.conn.name,
             iq_obj.jid)
+        if contact.is_groupchat():
+            return
         if contact is None:
             room_jid, nick = app.get_room_and_nick_from_fjid(iq_obj.fjid)
             contact = app.contacts.get_gc_contact(iq_obj.conn.name, room_jid,
@@ -581,7 +595,7 @@ class ClientsIconsPlugin(GajimPlugin):
         roster = app.interface.roster
         contact = app.contacts.get_contact_with_highest_priority(
             iq_obj.conn.name, iq_obj.jid)
-        if not contact:
+        if not contact or contact.is_groupchat():
             return
 
         if iq_obj.resource == 'local':
@@ -649,19 +663,8 @@ class ClientsIconsPlugin(GajimPlugin):
         self.set_icon(model, iter_, self.muc_renderer_num, caps, contact)
 
     def set_icon(self, model, iter_, pos, caps, contact):
-        client_name = _('Unknown')
-        client_icon = None
-        identities = contact.client_caps._lookup_in_cache(
-            caps_cache.capscache).identities
-        if identities:
-            log.debug('set_icon, identities: %s', str(identities))
-            client_name = identities[0].get('name', _('Unknown'))
-            name_splits = client_name.split()
-            name_splits = reversed([" ".join(name_splits[:(i+1)]) for i in range(len(name_splits))])
-            for name in name_splits:
-                if not client_icon:
-                    log.debug("set_icon, searching for name fragment '%s'..." % name)
-                    client_icon = clients.get(name, (None,))[0]
+        client_icon = self.get_client_icon_by_name(
+            self.get_client_name(contact, _('Unknown')))
         
         if caps and not client_icon:
             caps_ = caps.split('#')[0].split()
