@@ -83,17 +83,18 @@ class JuickPlugin(GajimPlugin):
         if self.conn:
             self.conn.close()
 
-    def print_special_text(self, tv, special_text, other_tags, graphics=True,
-            additional_data={}):
+    def print_special_text(self, tv, special_text, other_tags, graphics,
+        additional_data, iter_):
         for control in self.controls:
             if control.chat_control.conv_textview != tv:
                 continue
-            control.print_special_text(special_text, other_tags, graphics=True)
+            control.print_special_text(special_text, other_tags, graphics,
+                additional_data, iter_)
 
-    def print_special_text1(self, chat_control, special_text, other_tags=None,
-        graphics=True, additional_data={}):
+    def print_special_text1(self, tv, special_text, other_tags, graphics,
+        additional_data, iter_):
         for control in self.controls:
-            if control.chat_control == chat_control:
+            if control.chat_control == tv:
                 control.disconnect_from_chat_control()
                 self.controls.remove(control)
 
@@ -139,8 +140,9 @@ class Base(object):
 
         self.create_patterns()
         self.create_link_menu()
-        self.create_tag_menu()
         self.create_buttons()
+        self.create_juick_menu()
+        self.create_tag_menu()
 
     def create_patterns(self):
         self.juick_post_uid = self.juick_nick = ''
@@ -163,13 +165,16 @@ class Base(object):
 
     def create_buttons(self):
         # create juick button
-        actions_hbox = self.chat_control.xml.get_object('actions_hbox')
-        self.button = Gtk.Button(label=None, stock=None, use_underline=True)
+        actions_hbox = self.chat_control.xml.get_object('hbox')
+        self.button = Gtk.MenuButton(label=None, stock=None, use_underline=True)
+        self.button.get_style_context().add_class(
+            'chatcontrol-actionbar-button')
         self.button.set_property('relief', Gtk.ReliefStyle.NONE)
         self.button.set_property('can-focus', False)
         img = Gtk.Image()
         img_path = self.plugin.local_file_path('juick.png')
         pixbuf = GdkPixbuf.Pixbuf.new_from_file(img_path)
+        #img.set_from_pixbuf(pixbuf)
         iconset = Gtk.IconSet(pixbuf=pixbuf)
         factory = Gtk.IconFactory()
         factory.add('juick', iconset)
@@ -180,17 +185,18 @@ class Base(object):
 
         actions_hbox.pack_start(self.button, False, False , 0)
         actions_hbox.reorder_child(self.button,
-            len(actions_hbox.get_children()) - 3)
-        id_ = self.button.connect('clicked', self.on_juick_button_clicked)
-        self.chat_control.handlers[id_] = self.button
+            len(actions_hbox.get_children()) - 2)
         self.button.show()
         # create juick tag button
-        self.tag_button = Gtk.Button(label=None, stock=None, use_underline=True)
+        self.tag_button = Gtk.MenuButton(label=None, stock=None, use_underline=True)
+        self.tag_button.get_style_context().add_class(
+            'chatcontrol-actionbar-button')
         self.tag_button.set_property('relief', Gtk.ReliefStyle.NONE)
         self.tag_button.set_property('can-focus', False)
         img = Gtk.Image()
         img_path = self.plugin.local_file_path('juick_tag_button.png')
         pixbuf = GdkPixbuf.Pixbuf.new_from_file(img_path)
+        #img.set_from_pixbuf(pixbuf)
         iconset = Gtk.IconSet(pixbuf=pixbuf)
         factory.add('juick_tag', iconset)
         factory.add_default()
@@ -198,9 +204,7 @@ class Base(object):
         self.tag_button.set_image(img)
         actions_hbox.pack_start(self.tag_button, False, False , 0)
         actions_hbox.reorder_child(self.tag_button,
-            len(actions_hbox.get_children()) - 4)
-        id_ = self.tag_button.connect('clicked', self.on_juick_tag_button_clicked)
-        self.chat_control.handlers[id_] = self.tag_button
+            len(actions_hbox.get_children()) - 3)
         self.tag_button.set_no_show_all(True)
         self.tag_button.set_tooltip_text(_('Juick tags'))
         self.tag_button.set_property('visible', self.plugin.config[
@@ -258,6 +262,7 @@ class Base(object):
             item.connect('activate', self.on_insert, text)
             self.menu.append(item)
         self.menu.show_all()
+        self.tag_button.set_popup(self.menu)
 
     def juick_hyperlink_handler(self, texttag, widget, event, iter_, kind):
         # handle message links( #12345 or #12345/6) and juick nicks
@@ -314,43 +319,41 @@ class Base(object):
             if kind == 'juick_nick':
                 self.on_insert(widget, 'PM %s' % word.rstrip(':'))
 
-    def print_special_text(self, special_text, other_tags, graphics=True):
+    def print_special_text(self, special_text, other_tags, graphics, additional_data, iter_):
+        self.textview.plugin_modified = True
+        buffer_ = self.textview.tv.get_buffer()
+        if not iter_:
+            iter_ = buffer_.get_end_iter()
         if app.interface.sharp_slash_re.match(special_text):
             # insert post num #123456//
-            buffer_, iter_, tag = self.get_iter_and_tag('sharp_slash')
+            tag = self.get_iter_and_tag('sharp_slash', buffer_)
             buffer_.insert_with_tags(iter_, special_text, tag)
             self.last_juick_num = special_text
-            self.textview.plugin_modified = True
             return
         if app.interface.juick_nick_re.match(special_text):
             # insert juick nick @nickname////
-            buffer_, iter_, tag = self.get_iter_and_tag('juick_nick')
+            tag = self.get_iter_and_tag('juick_nick', buffer_)
             mark = buffer_.create_mark(None, iter_, True)
             nick = special_text[1:].rstrip(':')
             buffer_.insert_with_tags(iter_, special_text, tag)
             # insert avatars
             if not self.plugin.config['SHOW_AVATARS']:
-                self.textview.plugin_modified = True
                 return
             b_nick = buffer_.get_text(buffer_.get_start_iter(),
                 buffer_.get_iter_at_mark(mark),False)
             if self.plugin.config['ONLY_AUTHOR_AVATAR'] and not \
             special_text.endswith(':') and b_nick[-9:] not in ('Subscribed to '
             ):
-                self.textview.plugin_modified = True
                 return
             if self.plugin.config['ONLY_FIRST_AVATAR']:
                 if b_nick[-9:] not in ('Reply by ', 'message from ', 'ended by ',
                 'Subscribed to '):
                     if b_nick[-2] != app.config.get('after_nickname'):
-                        self.textview.plugin_modified = True
                         return
                     elif b_nick[-1] == '\n':
-                        self.textview.plugin_modified = True
                         return
             conn = app.connections[self.chat_control.account]
             if not conn.connected:
-                self.textview.plugin_modified = True
                 return
             # search id in the db
             query = "select nick, id from person where nick = :nick"
@@ -360,7 +363,6 @@ class Base(object):
                 # nick in the db
                 pixbuf = self.get_avatar(db_item[1], nick, True)
                 if not pixbuf:
-                    self.textview.plugin_modified = True
                     return
                 end_iter = buffer_.get_iter_at_mark(mark)
                 anchor = buffer_.create_child_anchor(end_iter)
@@ -368,7 +370,6 @@ class Base(object):
                 img.set_from_pixbuf(pixbuf)
                 img.show()
                 self.textview.tv.add_child_at_anchor(img, anchor)
-                self.textview.plugin_modified = True
                 return
             else:
                 # nick not in the db
@@ -382,20 +383,19 @@ class Base(object):
                 iq.setID(id_)
                 conn.connection.SendAndCallForResponse(iq, self._on_response,
                     {'mark': mark, 'special_text': special_text})
-                self.textview.plugin_modified = True
                 return
         if app.interface.juick_pic_re.match(special_text) and \
             self.plugin.config['SHOW_PREVIEW']:
             # show pics preview
-            buffer_, iter_, tag = self.get_iter_and_tag('url')
+            tag = self.get_iter_and_tag('url', buffer_)
             mark = buffer_.create_mark(None, iter_, True)
             buffer_.insert_with_tags(iter_, special_text, tag)
             uid = special_text.split('/')[-1]
             url = "http://i.juick.com/photos-512/%s" % uid
             app.thread_interface(self.insert_pic_preview, [mark, special_text,
                 url])
-            self.textview.plugin_modified = True
             return
+        self.textview.plugin_modified = False
 
     def insert_pic_preview(self, mark, special_text, url):
         pixbuf = self.get_pixbuf_from_url( url, self.plugin.config[
@@ -410,11 +410,10 @@ class Base(object):
             img.show()
             self.textview.tv.add_child_at_anchor(img, anchor)
 
-    def get_iter_and_tag(self, tag_name):
-        buffer_ = self.textview.tv.get_buffer()
+    def get_iter_and_tag(self, tag_name, buffer_):
         ttable = buffer_.get_tag_table()
         tag = ttable.lookup(tag_name)
-        return buffer_, buffer_.get_end_iter(), tag
+        return tag
 
     def _on_response(self, a, resp, **kwargs):
         # insert avatar to text mark
@@ -517,7 +516,7 @@ class Base(object):
 
         x, y = obj.tv.window_to_buffer_coords(Gtk.TextWindowType.TEXT,
             int(event.x), int(event.y))
-        iter_ = obj.tv.get_iter_at_location(x, y)
+        iter_ = obj.tv.get_iter_at_location(x, y)[1]
         tags = iter_.get_tags()
 
         if tags:
@@ -530,24 +529,25 @@ class Base(object):
 
     def on_textview_motion_notify_event(self, widget, event):
         # Change the cursor to a hand when we are over a nicks or an post nums
-        pointer_x, pointer_y = self.textview.tv.get_window(
-            Gtk.TextWindowType.TEXT).get_pointer()[1:3]
-        x, y = self.textview.tv.window_to_buffer_coords(Gtk.TextWindowType.TEXT,
-            pointer_x, pointer_y)
-        tags = self.textview.tv.get_iter_at_location(x, y).get_tags()
         tag_table = self.textview.tv.get_buffer().get_tag_table()
+        window = self.textview.tv.get_window(Gtk.TextWindowType.TEXT)
+        x_pos, y_pos = self.textview.tv.window_to_buffer_coords(
+            Gtk.TextWindowType.TEXT, event.x, event.y)
+        if Gtk.MINOR_VERSION > 18:
+            iter_ = self.textview.tv.get_iter_at_position(x_pos, y_pos)[1]
+        else:
+            iter_ = self.textview.tv.get_iter_at_position(x_pos, y_pos)[0]
+        tags = iter_.get_tags()
         if self.change_cursor:
-            self.textview.tv.get_window(Gtk.TextWindowType.TEXT).set_cursor(
-                    Gdk.Cursor.new(Gdk.CursorType.XTERM))
+            window.set_cursor(gtkgui_helpers.get_cursor('XTERM'))
             self.change_cursor = False
         for tag in tags:
-            if tag in (self.textview.tagSharpSlash, self.textview.tagJuickNick):
-                self.textview.tv.get_window(Gtk.TextWindowType.TEXT).set_cursor(
-                    Gdk.Cursor.new(Gdk.CursorType.HAND2))
+            tag_name = tag.get_property('name')
+            if tag_name in ('juick_nick', 'sharp_slash'):
+                window.set_cursor(gtkgui_helpers.get_cursor('HAND2'))
             self.change_cursor = True
-        self.textview.on_textview_motion_notify_event(widget, event)
 
-    def on_juick_button_clicked(self, widget):
+    def create_juick_menu(self):
         """
         Popup juick menu
         """
@@ -571,12 +571,7 @@ class Base(object):
             menu.append(item)
 
         menu.show_all()
-        gtkgui_helpers.popup_emoticons_under_button(menu, widget,
-                self.chat_control.parent_win)
-
-    def on_juick_tag_button_clicked(self, widget):
-        gtkgui_helpers.popup_emoticons_under_button(self.menu, widget,
-                                                self.chat_control.parent_win)
+        self.button.set_popup(menu)
 
     def send(self, widget, text):
         msg = text.replace('WORD', self.juick_post_uid).replace(
@@ -588,6 +583,7 @@ class Base(object):
         """
         Insert text to conversation input box, at cursor position
         """
+        self.chat_control.msg_textview.remove_placeholder()
         text = text.rstrip() + ' '
         message_buffer = self.chat_control.msg_textview.get_buffer()
         message_buffer.insert_at_cursor(text)
@@ -618,7 +614,7 @@ class Base(object):
             tag_table.remove(self.textview.tagSharpSlash)
             tag_table.remove(self.textview.tagJuickNick)
             tag_table.remove(self.textview.tagJuickPic)
-        actions_hbox = self.chat_control.xml.get_object('actions_hbox')
+        actions_hbox = self.chat_control.xml.get_object('hbox')
         actions_hbox.remove(self.button)
         actions_hbox.remove(self.tag_button)
 
