@@ -401,6 +401,22 @@ class Base(object):
             log.error("Failed to write file '%s'!", path)
             raise
 
+    def _get_at_end(self):
+        try:
+            # Gajim 1.0.0
+            return self.textview.at_the_end()
+        except AttributeError:
+            # Gajim 1.0.1
+            return self.textview.autoscroll
+
+    def _scroll_to_end(self):
+        try:
+            # Gajim 1.0.0
+            self.textview.scroll_to_end_iter()
+        except AttributeError:
+            # Gajim 1.0.1
+            self.textview.scroll_to_end()
+
     def _update_img(self, pixbuf, url, repl_start, repl_end,
                     filepath, encrypted):
         if pixbuf is None:
@@ -421,7 +437,7 @@ class Base(object):
 
         def add_to_textview():
             try:
-                at_end = self.textview.at_the_end()
+                at_end = self._get_at_end()
 
                 buffer_ = repl_start.get_buffer()
                 iter_ = buffer_.get_iter_at_mark(repl_start)
@@ -448,7 +464,7 @@ class Base(object):
                                buffer_.get_iter_at_mark(repl_end))
 
                 if at_end:
-                    GLib.idle_add(self.textview.scroll_to_end_iter)
+                    self._scroll_to_end()
             except Exception as ex:
                 log.exception("Exception while loading %s: %s", url, ex)
             return False
