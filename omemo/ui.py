@@ -350,10 +350,13 @@ class OMEMOConfigDialog(GajimPluginConfigDialog):
         if PILLOW:
             path = self.get_qrcode(
                 app.get_jid_from_account(account), deviceid, ownfpr[2:])
-            self.qrcode.set_from_pixbuf(GdkPixbuf.Pixbuf.new_from_file(path))
+            pixbuf = GdkPixbuf.Pixbuf.new_from_file(path)
+            self.qrcode.set_from_pixbuf(pixbuf)
+            self.qrcode.show()
             self.qrinfo.hide()
         else:
             self.qrinfo.show()
+            self.qrcode.hide()
 
 
 class FingerprintWindow(Gtk.Dialog):
