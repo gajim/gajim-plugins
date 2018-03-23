@@ -105,8 +105,11 @@ class OMEMOConfigDialog(GajimPluginConfigDialog):
 
     def update_account_store(self):
         for account in sorted(app.contacts.get_accounts()):
-            if account not in self.disabled_accounts and \
-                    not self.is_in_accountstore(account):
+            if account in self.disabled_accounts:
+                continue
+            if account == 'Local':
+                continue
+            if not self.is_in_accountstore(account):
                 self.account_store.append(row=(account,))
 
     def update_account_combobox(self):
