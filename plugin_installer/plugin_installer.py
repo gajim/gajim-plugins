@@ -332,18 +332,27 @@ class PluginInstaller(GajimPlugin):
         dialog.popup()
 
     def available_plugins_treeview_selection_changed(self, treeview_selection):
-        model, iter = treeview_selection.get_selected()
+        model, iter_ = treeview_selection.get_selected()
         self.description_textview.get_buffer().set_text('')
-        self.name_label.set_text(model.get_value(iter, Column.NAME))
-        self.version_label.set_text(model.get_value(iter, Column.VERSION))
-        self.authors_label.set_text(model.get_value(iter, Column.AUTHORS))
+        if not iter_:
+            self.name_label.set_text('')
+            self.version_label.set_text('')
+            self.authors_label.set_text('')
+            self.homepage_linkbutton.set_uri('')
+            self.homepage_linkbutton.set_label('')
+            self.install_button.set_sensitive(False)
+            return
+        self.install_button.set_sensitive(True)
+        self.name_label.set_text(model.get_value(iter_, Column.NAME))
+        self.version_label.set_text(model.get_value(iter_, Column.VERSION))
+        self.authors_label.set_text(model.get_value(iter_, Column.AUTHORS))
         self.homepage_linkbutton.set_uri(
-            model.get_value(iter, Column.HOMEPAGE))
+            model.get_value(iter_, Column.HOMEPAGE))
         self.homepage_linkbutton.set_label(
-            model.get_value(iter, Column.HOMEPAGE))
+            model.get_value(iter_, Column.HOMEPAGE))
         link_label = self.homepage_linkbutton.get_children()[0]
         link_label.set_ellipsize(Pango.EllipsizeMode.END)
-        desc = _(model.get_value(iter, Column.DESCRIPTION))
+        desc = _(model.get_value(iter_, Column.DESCRIPTION))
         if not desc.startswith('<body '):
             desc = ('<body xmlns=\'http://www.w3.org/1999/xhtml\'>'
                     '%s</body>') % desc
@@ -353,12 +362,13 @@ class PluginInstaller(GajimPlugin):
 
     def select_root_iter(self):
         selection = self.available_treeview.get_selection()
-        if selection.count_selected_rows() == 0:
-            root_iter = self.available_plugins_model.get_iter_first()
-            path = self.available_plugins_model.get_path(root_iter)
-            selection.select_iter(root_iter)
+        model, iter_ = selection.get_selected()
+        if not iter_:
+            iter_ = self.available_plugins_model.get_iter_first()
+            selection.select_iter(iter_)
         self.name_label.show()
         self.homepage_linkbutton.show()
+        path = self.available_plugins_model.get_path(iter_)
         self.available_treeview.scroll_to_cell(path)
 
 
