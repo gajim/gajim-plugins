@@ -25,6 +25,7 @@ import threading
 import platform
 import subprocess
 import binascii
+import ssl
 from urllib.request import urlopen
 from urllib.error import URLError
 from urllib.parse import urlparse, urldefrag
@@ -32,6 +33,7 @@ from io import BufferedWriter, FileIO, BytesIO
 
 from gi.repository import GLib
 from gajim import gtkgui_helpers
+from gajim.common import app
 from gajim.common import configpaths
 from gajim.dialogs import ErrorDialog, YesNoDialog
 if os.name == 'nt':
@@ -70,7 +72,8 @@ def encrypt_file(data):
 
 
 class File:
-    def __init__(self, url):
+    def __init__(self, url, account):
+        self.account = account
         self.url, self.fragment = urldefrag(url)
         self.key = None
         self.iv = None
@@ -88,7 +91,7 @@ class FileDecryption:
             return
         self.window = window
         urlparts = urlparse(url)
-        file = File(urlparts.geturl())
+        file = File(urlparts.geturl(), instance.account)
 
         if urlparts.scheme not in ['https', 'aesgcm'] or not urlparts.netloc:
             log.info("Not accepting URL for decryption: %s", url)
@@ -190,11 +193,21 @@ class Download:
     def load_url(self):
         try:
             stream = BytesIO()
-            if os.name == 'nt':
-                get_request = urlopen(
-                    self.file.url, cafile=certifi.where(), timeout=30)
+            if not app.config.get_per('accounts',
+                                      self.file.account,
+                                      'httpupload_verify'):
+                context = ssl.create_default_context()
+                context.check_hostname = False
+                context.verify_mode = ssl.CERT_NONE
+                log.warning('CERT Verification disabled')
+                get_request = urlopen(self.file.url, timeout=30, context=context)
             else:
-                get_request = urlopen(self.file.url, timeout=30)
+                if os.name == 'nt':
+                    get_request = urlopen(
+                        self.file.url, cafile=certifi.where(), timeout=30)
+                else:
+                    get_request = urlopen(self.file.url, timeout=30)
+
             size = get_request.info()['Content-Length']
             if not size:
                 errormsg = 'Content-Length not found in header'
