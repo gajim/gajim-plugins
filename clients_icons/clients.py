@@ -25,6 +25,7 @@ CLIENTS = {
     'http://coccinella.sourceforge.net/protocol/caps': \
         ['coccinella.png', 'Coccinella'],
     'http://conversations.im': ['conversations.png', 'Conversations'],
+    'Conversations Legacy': ['conversations-legacy.png', 'Conversations Legacy'],
     'http://digsby.com/caps': ['digsby.png', 'Digsby'],
     'https://dino.im': ['dino.png', 'Dino'],
     'http://emess.eqx.su/caps': ['emess.png', 'Emess'],
