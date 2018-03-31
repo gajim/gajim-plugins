@@ -84,6 +84,7 @@ CLIENTS = {
     'http://megafonvolga.ru/': ['megafon.png', 'Megafon'],
     'http://miranda-im.org/caps': ['miranda.png', 'Miranda'],
     'http://miranda-ng.org/caps' :['miranda_ng.png', 'Miranda NG'],
+    'http://moxl.movim.eu/': ['movim.png', 'Movim'],
     'nimbuzz:caps': ['nimbuzz.png', 'Nimbuzz'],
     'http://nimbuzz.com/caps': ['nimbuzz.png', 'Nimbuzz'],
     'http://home.gna.org/': ['omnipresence.png', 'Omnipresence'],
