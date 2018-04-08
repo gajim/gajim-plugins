@@ -35,7 +35,6 @@ from axolotl.sessionbuilder import SessionBuilder
 from axolotl.sessioncipher import SessionCipher
 from axolotl.state.prekeybundle import PreKeyBundle
 from axolotl.util.keyhelper import KeyHelper
-from Crypto.Random import get_random_bytes
 
 from .aes_gcm import NoValidSessions, decrypt, encrypt
 from .liteaxolotlstore import (LiteAxolotlStore, DEFAULT_PREKEY_AMOUNT,
@@ -218,8 +217,8 @@ class OmemoState:
         return result
 
     def create_msg(self, from_jid, jid, plaintext):
-        key = get_random_bytes(16)
-        iv = get_random_bytes(16)
+        key = os.urandom(16)
+        iv = os.urandom(16)
         encrypted_keys = {}
 
         devices_list = self.device_list_for(jid)
