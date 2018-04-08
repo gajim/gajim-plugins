@@ -1,3 +1,6 @@
+2.5.9 / 2018-04-08
+- Remove pycrypo dependency
+
 2.5.8 / 2018-03-31
 - Bug fix
 
