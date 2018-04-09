@@ -153,10 +153,10 @@ class ClientsIconsPlugin(GajimPlugin):
         for contact in contacts:
             if contact.resource:
                 num_resources += 1
-                if contact.priority in contacts_dict:
-                    contacts_dict[contact.priority].append(contact)
+                if int(contact.priority) in contacts_dict:
+                    contacts_dict[int(contact.priority)].append(contact)
                 else:
-                    contacts_dict[contact.priority] = [contact]
+                    contacts_dict[int(contact.priority)] = [contact]
         contact_keys = sorted(contacts_dict.keys())
         contact_keys.reverse()
 
