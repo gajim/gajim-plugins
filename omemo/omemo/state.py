@@ -273,8 +273,8 @@ class OmemoState:
         return result
 
     def create_gc_msg(self, from_jid, jid, plaintext):
-        key = get_random_bytes(16)
-        iv = get_random_bytes(16)
+        key = os.urandom(16)
+        iv = os.urandom(16)
         encrypted_keys = {}
         room = jid
         encrypted_jids = []
