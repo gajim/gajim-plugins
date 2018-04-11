@@ -37,7 +37,10 @@ log = logging.getLogger('gajim.plugin_system.oldpgp')
 
 ERROR_MSG = ''
 if not app.HAVE_GPG:
-    ERROR_MSG = 'Please install python-gnupg'
+    if os.name == 'nt':
+        ERROR_MSG = _('Please install GnuPG / Gpg4win')
+    else:
+        ERROR_MSG = _('Please install python-gnupg and PGP')
 
 ALLOWED_TAGS = [('request', nbxmpp.NS_RECEIPTS),
                 ('active', nbxmpp.NS_CHATSTATES),
@@ -57,6 +60,7 @@ ALLOWED_TAGS = [('request', nbxmpp.NS_RECEIPTS),
 class OldPGPPlugin(GajimPlugin):
 
     def init(self):
+        self.description = _('PGP encryption as per XEP-0027')
         if ERROR_MSG:
             self.activatable = False
             self.available_text = ERROR_MSG
