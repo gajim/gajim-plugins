@@ -3,6 +3,7 @@
 from gi.repository import Gtk
 from gi.repository import Gdk
 import os
+import logging
 
 from gajim.plugins import GajimPlugin
 from gajim.plugins.helpers import log_calls
@@ -13,25 +14,31 @@ from gajim.common import dbus_support
 if dbus_support.supported:
     from gajim.music_track_listener import MusicTrackListener
 
+
+log = logging.getLogger('gajim.plugin_system.now_listen')
+
 class NowListenPlugin(GajimPlugin):
 
     @log_calls('NowListenPlugin')
     def init(self):
-        self.description = _('Copy tune info to conversation input box '
-            '(alt + n) at cursor position')
+        self.description = _('Copy tune info of playing music to conversation '
+            'input box at cursor position (Alt + N)')
         self.config_dialog = NowListenPluginConfigDialog(self)
         self.gui_extension_points = {'chat_control_base':
-            (self.connect_with_chat_control, self.disconnect_from_chat_control)}
+                                         (self.connect_with_chat_control,
+                                          self.disconnect_from_chat_control)}
 
         self.config_default_values = {
-        'format_string': ('Now listen:"%title" by %artist from %album', ''),
-        'format_string_http': ('Now listen:"%title" by %artist', ''),}
+            'format_string':
+                (_('Now listening to: "%title" by %artist from %album'), ''),
+            'format_string_http':
+                (_('Now listening to: "%title" by %artist'), ''),}
 
         self.controls = []
         self.first_run = True
         self.music_track_changed_signal = None
         if os.name == 'nt':
-            self.available_text = _('Plugin can\'t be run under Windows.')
+            self.available_text = _('Plugin cannot be run under Windows.')
             self.activatable = False
 
     @log_calls('NowListenPlugin')
@@ -54,7 +61,7 @@ class NowListenPlugin(GajimPlugin):
         if not self.music_track_changed_signal:
             self.music_track_changed_signal = listener.connect(
                 'music-track-changed', self.music_track_changed)
-        track = listener.get_playing_track()
+        track = listener.get_playing_track('org.mpris.MediaPlayer2')
         self.music_track_changed(listener, track)
 
     @log_calls('NowListenPlugin')
@@ -66,15 +73,15 @@ class NowListenPlugin(GajimPlugin):
                 self.music_track_changed_signal = None
 
     def music_track_changed(self, unused_listener, music_track_info,
-        account=None):
-        is_paused = hasattr(music_track_info, 'paused') and \
-            music_track_info.paused == 0
-        if not music_track_info or is_paused:
-            self.artist = self.title = self.source = ''
+                            account=None):
+
+        if music_track_info is None or music_track_info.paused:
+            artist = title = album = ''
         else:
             self.artist = music_track_info.artist
             self.title = music_track_info.title
-            self.source = music_track_info.album
+            self.album = music_track_info.album
+            log.debug(self.artist + " - " + self.title)
             if hasattr(music_track_info, 'url'):
                 self.url = music_track_info.url
                 self.albumartist = music_track_info.albumartist
@@ -86,11 +93,12 @@ class Base(object):
     def __init__(self, plugin, chat_control):
         self.plugin = plugin
         self.chat_control = chat_control
-        self.plugin.artist = self.plugin.title = self.plugin.source = ''
+        if not hasattr(self.plugin, 'title'):
+            self.plugin.artist = self.plugin.title = self.plugin.album = ''
         self.plugin.url = self.plugin.albumartist = ''
 
         self.id_ = self.chat_control.msg_textview.connect('key_press_event',
-            self.on_insert)
+                                                          self.on_insert)
         self.chat_control.handlers[self.id_] = self.chat_control.msg_textview
 
     def disconnect_from_chat_control(self):
@@ -109,16 +117,23 @@ class Base(object):
         if not event.state & Gdk.ModifierType.MOD1_MASK:  # ALT+N
             return
 
-        if self.plugin.artist == self.plugin.title == self.plugin.source == '':
-            tune_string = 'paused or stopped'
+        if self.plugin.artist == self.plugin.title == self.plugin.album == '':
+            tune_string = _('No music playing')
         else:
             format_string = self.plugin.config['format_string']
             if self.plugin.url and not self.plugin.url.startswith('file://'):
                 format_string = self.plugin.config['format_string_http']
-            tune_string = format_string.replace(
-            '%artist', self.plugin.artist).replace(
-            '%title', self.plugin.title).replace('%album',self.plugin.source).\
-            replace('%url', self.plugin.url)
+
+            if self.plugin.artist is None:
+                self.plugin.artist = _('unknown artist')
+            if self.plugin.album is None:
+                self.plugin.album = _('unknown album')
+
+            tune_string = format_string.\
+                replace('%artist', self.plugin.artist).\
+                    replace('%title', self.plugin.title).\
+                        replace('%album',self.plugin.album).\
+                            replace('%url', self.plugin.url)
 
         message_buffer = self.chat_control.msg_textview.get_buffer()
         message_buffer.insert_at_cursor(tune_string)
@@ -129,24 +144,24 @@ class Base(object):
 class NowListenPluginConfigDialog(GajimPluginConfigDialog):
     def init(self):
         self.GTK_BUILDER_FILE_PATH = self.plugin.local_file_path(
-                'config_dialog.ui')
+            'config_dialog.ui')
         self.xml = Gtk.Builder()
         self.xml.set_translation_domain('gajim_plugins')
         self.xml.add_objects_from_file(self.GTK_BUILDER_FILE_PATH,
-                ['now_listen_config_vbox'])
+                                       ['now_listen_config'])
 
-        self.config_vbox = self.xml.get_object('now_listen_config_vbox')
+        self.config_vbox = self.xml.get_object('now_listen_config')
         self.get_child().pack_start(self.config_vbox, True, True, 0)
 
-        self.format_sting = self.xml.get_object('format_sting')
-        self.format_sting_http = self.xml.get_object('format_sting_http')
+        self.format_string = self.xml.get_object('format_string')
+        self.format_string_http = self.xml.get_object('format_string_http')
         self.xml.connect_signals(self)
         self.connect('hide', self.on_hide)
 
     def on_run(self):
-        self.format_sting.set_text(self.plugin.config['format_string'])
-        self.format_sting_http.set_text(self.plugin.config['format_string_http'])
+        self.format_string.set_text(self.plugin.config['format_string'])
+        self.format_string_http.set_text(self.plugin.config['format_string_http'])
 
     def on_hide(self, widget):
-        self.plugin.config['format_string'] = self.format_sting.get_text()
-        self.plugin.config['format_string_http'] = self.format_sting_http.get_text()
+        self.plugin.config['format_string'] = self.format_string.get_text()
+        self.plugin.config['format_string_http'] = self.format_string_http.get_text()
