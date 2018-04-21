@@ -11,6 +11,7 @@ from nbxmpp import JID
 from gajim.common import app
 from gajim.common import ged
 from gajim.common import helpers
+from gajim.common import configpaths
 from gajim.common.connection_handlers_events import (
     MessageReceivedEvent, MamMessageReceivedEvent, MessageNotSentEvent,
     MamGcMessageReceivedEvent)
@@ -21,9 +22,6 @@ from omemo.xmpp import (
     OmemoMessage, successful, unpack_device_bundle,
     unpack_device_list_update, unpack_encrypted)
 from omemo.omemo.state import OmemoState
-
-DB_DIR_OLD = app.gajimpaths.data_root
-DB_DIR_NEW = app.gajimpaths['MY_DATA']
 
 ALLOWED_TAGS = [('request', nbxmpp.NS_RECEIPTS),
                 ('active', nbxmpp.NS_CHATSTATES),
@@ -80,21 +78,6 @@ class OMEMOConnection:
             return self.get_con().get_own_jid().getStripped()
         return self.get_con().get_own_jid()
 
-    def migrate_dbpath(self):
-        old_dbpath = os.path.join(DB_DIR_OLD, 'omemo_' + self.account + '.db')
-        new_dbpath = os.path.join(DB_DIR_NEW, 'omemo_' + self.own_jid + '.db')
-
-        if os.path.exists(old_dbpath):
-            log.debug('Migrating DBName and Path ..')
-            try:
-                shutil.move(old_dbpath, new_dbpath)
-                return new_dbpath
-            except Exception:
-                log.exception('Migration Error:')
-                return old_dbpath
-
-        return new_dbpath
-
     def __get_omemo(self):
         """ Returns the the OmemoState for the specified account.
             Creates the OmemoState if it does not exist yet.
@@ -108,7 +91,8 @@ class OMEMOConnection:
             -------
             OmemoState
         """
-        db_path = self.migrate_dbpath()
+        data_dir = configpaths.get('MY_DATA')
+        db_path = os.path.join(data_dir, 'omemo_' + self.own_jid + '.db')
         conn = sqlite3.connect(db_path, check_same_thread=False)
         return OmemoState(self.own_jid, conn, self.account, self)
 
