@@ -227,6 +227,10 @@ class OMEMOConnection:
             from_jid = app.get_jid_without_resource(from_jid)
 
             msg_dict = unpack_encrypted(omemo_encrypted_tag)
+            if msg_dict is None:
+                log.error('Invalid omemo message received:\n%s', msg.msg_)
+                msg.encrypted = 'drop'
+                return
 
             msg_dict['sender_jid'] = from_jid
 
