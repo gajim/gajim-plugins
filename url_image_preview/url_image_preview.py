@@ -139,9 +139,9 @@ class Base(object):
         self.textview = textview
         self.handlers = {}
 
-        self.directory = os.path.join(configpaths.gajimpaths['MY_DATA'],
+        self.directory = os.path.join(configpaths.get('MY_DATA'),
                                       'downloads')
-        self.thumbpath = os.path.join(configpaths.gajimpaths['MY_CACHE'],
+        self.thumbpath = os.path.join(configpaths.get('MY_CACHE'),
                                       'downloads.thumb')
 
         try:
