@@ -476,9 +476,9 @@ class Base(object):
                          key, iv, encrypted):
         file_mime, file_size = tuple_arg
         # Check if mime type is acceptable
-        if (file_mime == '' and file_size == 0) or file_mime is None:
-            log.info("Failed to load HEAD Request for URL: '%s'"
-                     "(see debug log for more info)", url)
+        if not file_mime or not file_size:
+            log.info("Failed to load HEAD Request for URL: '%s' "
+                     "mime: %s, size: %s", url, file_mime, file_size)
             # URL is already displayed
             return
         if file_mime.lower() not in ACCEPTED_MIME_TYPES:
