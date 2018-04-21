@@ -127,7 +127,7 @@ class OMEMOConfigDialog(GajimPluginConfigDialog):
     def get_qrcode(self, jid, sid, fingerprint):
         file_name = 'omemo_{}.png'.format(jid)
         path = os.path.join(
-            configpaths.gajimpaths['MY_DATA'], file_name)
+            configpaths.get('MY_DATA'), file_name)
 
         ver_string = 'xmpp:{}?omemo-sid-{}={}'.format(jid, sid, fingerprint)
         log.debug('Verification String: ' + ver_string)

@@ -52,7 +52,7 @@ except ImportError:
     log.exception('ImportError')
     ERROR = True
 
-DIRECTORY = os.path.join(configpaths.gajimpaths['MY_DATA'], 'downloads')
+DIRECTORY = os.path.join(configpaths.get('MY_DATA'), 'downloads')
 
 try:
     if not os.path.exists(DIRECTORY):
