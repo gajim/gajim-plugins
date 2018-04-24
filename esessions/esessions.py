@@ -18,11 +18,8 @@ You should have received a copy of the GNU General Public License
 along with Gajim. If not, see <http://www.gnu.org/licenses/>.
 '''
 
-import os
+
 import logging
-import time
-import threading
-import queue
 
 import nbxmpp
 
@@ -37,7 +34,13 @@ from gajim.plugins import GajimPlugin
 log = logging.getLogger('gajim.plugin_system.esessions')
 
 ERROR_MSG = ''
-if not app.HAVE_PYCRYPTO:
+if hasattr(app, 'HAVE_PYCRYPTO'):
+    # Gajim 1.0.0
+    CRYPTO_AVAILABLE = app.HAVE_PYCRYPTO
+else:
+    # Gajim 1.0.3+
+    CRYPTO_AVAILABLE = app.is_installed('PYCRYPTO')
+if not CRYPTO_AVAILABLE:
     ERROR_MSG = 'Please install pycrypto'
 
 
@@ -120,7 +123,7 @@ class ESessionsPlugin(GajimPlugin):
             # Esessions cant decrypt Carbon Copys
             return
         if obj.stanza.getTag('feature', namespace=nbxmpp.NS_FEATURE):
-            if app.HAVE_PYCRYPTO:
+            if CRYPTO_AVAILABLE:
                 feature = obj.stanza.getTag(name='feature',
                                             namespace=nbxmpp.NS_FEATURE)
                 form = nbxmpp.DataForm(node=feature.getTag('x'))
