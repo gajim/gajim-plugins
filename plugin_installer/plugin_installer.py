@@ -49,6 +49,7 @@ try:
     from gtkgui_helpers import get_action
 except ImportError:
     from gajim.common import app
+    from gajim.common import configpaths
     from gajim.plugins import GajimPlugin
     from gajim.plugins.gui import GajimPluginConfigDialog
     from gajim.htmltextview import HtmlTextView
@@ -95,7 +96,7 @@ def get_local_version(plugin_manifest):
     if not active:
         return
     manifest_path = os.path.join(
-        app.PLUGINS_DIRS[1], short_name, 'manifest.ini')
+        configpaths.get('PLUGINS_USER'), short_name, 'manifest.ini')
     if not os.path.exists(manifest_path):
         return
     conf = configparser.ConfigParser()
@@ -294,7 +295,7 @@ class PluginInstaller(GajimPlugin):
         for _dir in plugin_dirs:
             is_active = False
             plugins = None
-            plugin_dir = os.path.join(app.PLUGINS_DIRS[1], _dir)
+            plugin_dir = os.path.join(configpaths.get('PLUGINS_USER'), _dir)
             plugin = app.plugin_manager.get_plugin_by_path(plugin_dir)
             if plugin:
                 if plugin.active:
@@ -571,7 +572,7 @@ class DownloadAsync(threading.Thread):
         for remote_dir in self.remote_dirs:
             filename = remote_dir + '.zip'
             log.info('Download: %s', filename)
-            base_dir, user_dir = app.PLUGINS_DIRS
+            user_dir = configpaths.get('PLUGINS_USER')
             if not os.path.isdir(user_dir):
                 os.mkdir(user_dir)
             local_dir = os.path.join(user_dir, remote_dir)
