@@ -15,6 +15,7 @@ from gajim.plugins.helpers import log_calls
 from gajim.common import app
 from gajim.common import ged
 from gajim.common import helpers
+from gajim.common import configpaths
 from gajim import gtkgui_helpers
 from gajim.dialogs import InputDialog, WarningDialog
 
@@ -281,7 +282,8 @@ class SetLocationPluginConfigDialog(GajimPluginConfigDialog):
         if jid:
             # we want an avatar
             puny_jid = helpers.sanitize_filename(jid)
-            path_to_file = os.path.join(app.AVATAR_PATH, puny_jid) + suffix
+            path_to_file = os.path.join(
+                configpaths.get('AVATAR'), puny_jid) + suffix
             path_to_local_file = path_to_file + '_local'
             for extension in ('.png', '.jpeg'):
                 path_to_local_file_full = path_to_local_file + extension
