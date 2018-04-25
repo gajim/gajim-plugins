@@ -24,6 +24,7 @@ except (ValueError, ImportError):
 
 # Gajim
 from gajim.common import app, ged
+from gajim.common import configpaths
 from gajim.plugins import GajimPlugin
 from gajim.plugins.gajimplugin import GajimPluginException
 from gajim.plugins.helpers import log_calls
@@ -80,7 +81,7 @@ class AppindicatorIntegrationPlugin(GajimPlugin):
         self.indicator = appindicator.Indicator.new(
             'Gajim', self.offline_icon,
             appindicator.IndicatorCategory.COMMUNICATIONS)
-        self.indicator.set_icon_theme_path(app.ICONS_DIR)
+        self.indicator.set_icon_theme_path(configpaths.get('ICONS'))
         self.indicator.set_attention_icon('mail-unread')
         self.indicator.set_status(appindicator.IndicatorStatus.ACTIVE)
         self.indicator.set_menu(self.menu)
