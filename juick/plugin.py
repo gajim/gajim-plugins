@@ -12,6 +12,7 @@ import sqlite3
 
 from gajim.common import helpers
 from gajim.common import app
+from gajim.common import configpaths
 from gajim.plugins import GajimPlugin
 from gajim.plugins.helpers import log_calls, log
 from gajim.plugins.gui import GajimPluginConfigDialog
@@ -58,7 +59,7 @@ class JuickPlugin(GajimPlugin):
         self.chat_control = None
         self.controls = []
         self.conn = None
-        self.cache_path = os.path.join(app.AVATAR_PATH, 'juick')
+        self.cache_path = os.path.join(configpaths.get('AVATAR'), 'juick')
         if not os.path.isdir(self.cache_path):
             os.makedirs(self.cache_path)
 
