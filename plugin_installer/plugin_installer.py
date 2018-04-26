@@ -292,7 +292,13 @@ class PluginInstaller(GajimPlugin):
                     is_active = True
                     log.info('Deactivate Plugin: %s', plugin)
                     app.plugin_manager.deactivate_plugin(plugin)
-                app.plugin_manager.plugins.remove(plugin)
+
+                if hasattr(app.plugin_manager, 'uninstall_plugin'):
+                    # check if we are running a new version of gajim. Check 
+                    # uninstall because remove_plugin existed before
+                    app.plugin_manager.remove_plugin(plugin)
+                else:
+                    app.plugin_manager.plugins.remove(plugin)
 
                 model = self.installed_plugins_model
                 for row in range(len(model)):
