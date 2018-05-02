@@ -41,8 +41,8 @@ class BirthDayPlugin(GajimPlugin):
                 except:
                     image = None
 
-                popup('Send message', contact.jid, account, msg_type='', \
-                      path_to_image=image, title=title, text=text + ' ' + nick)
+                popup('Send message', contact.jid, account, type_='',
+                    path_to_image=image, title=title, text=text + ' ' + nick)
 
         accounts = app.contacts.get_accounts()
         vcards = []
