@@ -198,35 +198,6 @@ class Base(object):
             *[(ttt.lookup(t) if isinstance(t, str) else t) for t in ["url"]])
         repl_end = buffer_.create_mark(None, iter_, True)
 
-        if not real_text.startswith('geo:'):
-            weburl = real_text
-            filename = os.path.basename(urlparts.path)
-            ext = os.path.splitext(filename)[1]
-            name = os.path.splitext(filename)[0]
-            namehash = hashlib.sha1(real_text.encode('utf-8')).hexdigest()
-            newfilename = name + '_' + namehash + ext
-            thumbfilename = name + '_' + namehash + '_thumb_' \
-                + str(self.plugin.config['PREVIEW_SIZE']) + ext
-
-            filepath = os.path.join(self.directory, newfilename)
-            thumbpath = os.path.join(self.thumbpath, thumbfilename)
-            filepaths = [filepath, thumbpath]
-
-            key = ''
-            iv = ''
-            encrypted = False
-            if urlparts.fragment:
-                fragment = binascii.unhexlify(urlparts.fragment)
-                key = fragment[16:]
-                iv = fragment[:16]
-                if len(key) == 32 and len(iv) == 16:
-                    encrypted = True
-                if not encrypted:
-                    key = fragment[12:]
-                    iv = fragment[:12]
-                    if len(key) == 32 and len(iv) == 12:
-                        encrypted = True
-
         # Handle geo:-URIs
         if real_text.startswith('geo:'):
             if self.plugin.config['GEO_PREVIEW_PROVIDER'] == 'no_preview':
@@ -270,11 +241,39 @@ class Base(object):
                       'getmap?key={}&center={}&zoom={}&size={},{}&type=map' \
                       '&imagetype=png&pois={},{}&scalebar=false' \
                       .format(apikey, location, zoom, size, size, color,
-                          location)
+                              location)
                 weburl = 'http://www.openstreetmap.org/' \
                          '?mlat={}&mlon={}#map={}/{}/{}&layers=N' \
                          .format(lat, lon, zoom, lat, lon)
                 real_text = url
+        else:
+            weburl = real_text
+            filename = os.path.basename(urlparts.path)
+            ext = os.path.splitext(filename)[1]
+            name = os.path.splitext(filename)[0]
+            namehash = hashlib.sha1(real_text.encode('utf-8')).hexdigest()
+            newfilename = name + '_' + namehash + ext
+            thumbfilename = name + '_' + namehash + '_thumb_' \
+                + str(self.plugin.config['PREVIEW_SIZE']) + ext
+
+            filepath = os.path.join(self.directory, newfilename)
+            thumbpath = os.path.join(self.thumbpath, thumbfilename)
+            filepaths = [filepath, thumbpath]
+
+            key = ''
+            iv = ''
+            encrypted = False
+            if urlparts.fragment:
+                fragment = binascii.unhexlify(urlparts.fragment)
+                key = fragment[16:]
+                iv = fragment[:16]
+                if len(key) == 32 and len(iv) == 16:
+                    encrypted = True
+                if not encrypted:
+                    key = fragment[12:]
+                    iv = fragment[:12]
+                    if len(key) == 32 and len(iv) == 12:
+                        encrypted = True
 
         # file exists but thumbnail got deleted
         if os.path.exists(filepath) and not os.path.exists(thumbpath):
