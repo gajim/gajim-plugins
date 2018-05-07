@@ -81,7 +81,7 @@ class UrlImagePreviewPlugin(GajimPlugin):
             'print_real_text': (self.print_real_text, None), }
         self.config_default_values = {
             'PREVIEW_SIZE': (150, 'Preview size(10-512)'),
-            'MAX_FILE_SIZE': (524288, 'Max file size for image preview'),
+            'MAX_FILE_SIZE': (5242880, 'Max file size for image preview'),
             'LEFTCLICK_ACTION': ('open_menuitem', 'Open'),
             'ANONYMOUS_MUC': (False, ''),
             'GEO_PREVIEW_PROVIDER': ('Google', 'Google Maps'),
