@@ -108,9 +108,7 @@ class UrlImagePreviewPlugin(GajimPlugin):
     @log_calls('UrlImagePreviewPlugin')
     def connect_with_history(self, history_window):
         if self.history_window_control:
-            log.error("connect_with_history: deinit handlers")
             self.history_window_control.deinit_handlers()
-        log.error("connect_with_history: create base")
         self.history_window_control = Base(
             self, history_window.history_textview)
 
