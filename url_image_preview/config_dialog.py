@@ -57,6 +57,10 @@ class UrlImagePreviewConfigDialog(OptionsDialog):
                    props={'items': sizes,
                           'plugin': self.plugin}),
 
+            Option(OptionKind.SWITCH, _('Preview all Image URLs'),
+                   OptionType.VALUE, self.plugin.config['ALLOW_ALL_IMAGES'],
+                   callback=self.on_option, data='ALLOW_ALL_IMAGES'),
+
             Option('PreviewComboOption', _('Left click action'),
                    OptionType.VALUE, self.plugin.config['LEFTCLICK_ACTION'],
                    callback=self.on_option, data='LEFTCLICK_ACTION',

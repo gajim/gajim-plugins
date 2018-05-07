@@ -82,6 +82,7 @@ class UrlImagePreviewPlugin(GajimPlugin):
         self.config_default_values = {
             'PREVIEW_SIZE': (150, 'Preview size(10-512)'),
             'MAX_FILE_SIZE': (5242880, 'Max file size for image preview'),
+            'ALLOW_ALL_IMAGES': (False, ''),
             'LEFTCLICK_ACTION': ('open_menuitem', 'Open'),
             'ANONYMOUS_MUC': (False, ''),
             'GEO_PREVIEW_PROVIDER': ('Google', 'Google Maps'),
@@ -177,14 +178,11 @@ class Base(object):
         except (KeyError, AttributeError):
             oob_url = None
 
-        # allow aesgcm uris without oob marker (aesgcm uris are always
-        # httpupload filetransfers)
-        if urlparts.scheme != "aesgcm" and real_text != oob_url:
-            if urlparts.scheme != "geo":
-                log.info("Not accepting URL for image preview "
-                         "(wrong or no oob data): %s", real_text)
-                log.debug("additional_data: %s", additional_data)
-                return
+        if not self._accept_uri(urlparts, real_text, oob_url):
+            log.info("Not accepting URL for image preview "
+                     "(wrong or no oob data): %s", real_text)
+            log.debug("additional_data: %s", additional_data)
+            return
 
         # Don't print the URL in the message window (in the calling function)
         self.textview.plugin_modified = True
@@ -315,6 +313,17 @@ class Base(object):
                     self._check_mime_size, [real_text, weburl, repl_start,
                                             repl_end, filepaths, key, iv,
                                             encrypted])
+
+    def _accept_uri(self, urlparts, real_text, oob_url):
+        # allow aesgcm uris without oob marker (aesgcm uris are always
+        # httpupload filetransfers)
+        if urlparts.scheme in ('aesgcm', 'geo'):
+            return True
+
+        if real_text != oob_url:
+            if self.plugin.config['ALLOW_ALL_IMAGES']:
+                return True
+            return False
 
     def _save_thumbnail(self, thumbpath, mem):
         size = self.plugin.config['PREVIEW_SIZE']
