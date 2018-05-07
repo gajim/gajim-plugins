@@ -161,25 +161,9 @@ class Base(object):
 
     def print_real_text(self, real_text, text_tags, graphics, iter_,
                         additional_data):
+
         urlparts = urlparse(real_text)
-        if urlparts.scheme == "geo":
-            if self.plugin.config['GEO_PREVIEW_PROVIDER'] == 'no_preview':
-                return
-        elif (urlparts.scheme not in ["https", "aesgcm"] or not urlparts.netloc):
-            if urlparts.scheme != "geo":
-                log.info("Not accepting URL scheme '%s' for image preview: %s",
-                         urlparts.scheme, real_text)
-                return
-
-        try:
-            oob_url = additional_data["gajim"]["oob_url"]
-        except (KeyError, AttributeError):
-            oob_url = None
-
-        if not self._accept_uri(urlparts, real_text, oob_url):
-            log.info("Not accepting URL for image preview "
-                     "(wrong or no oob data): %s", real_text)
-            log.debug("additional_data: %s", additional_data)
+        if not self._accept_uri(urlparts, real_text, additional_data):
             return
 
         # Don't print the URL in the message window (in the calling function)
@@ -311,16 +295,36 @@ class Base(object):
                                             repl_end, filepaths, key, iv,
                                             encrypted])
 
-    def _accept_uri(self, urlparts, real_text, oob_url):
-        # allow aesgcm uris without oob marker (aesgcm uris are always
-        # httpupload filetransfers)
-        if urlparts.scheme in ('aesgcm', 'geo'):
+    def _accept_uri(self, urlparts, real_text, additional_data):
+        try:
+            oob_url = additional_data["gajim"]["oob_url"]
+        except (KeyError, AttributeError):
+            oob_url = None
+
+        if not urlparts.netloc:
+            log.info('No netloc found in URL %s', real_text)
+            return False
+
+        # geo
+        if urlparts.scheme == "geo":
+            if self.plugin.config['GEO_PREVIEW_PROVIDER'] == 'no_preview':
+                log.info('geo: link preview is disabled')
+                return False
             return True
 
-        if real_text != oob_url:
-            if self.plugin.config['ALLOW_ALL_IMAGES']:
+        # aesgcm
+        if urlparts.scheme == 'aesgcm':
+            return True
+
+        # https
+        if urlparts.scheme == 'https':
+            if real_text == oob_url or self.plugin.config['ALLOW_ALL_IMAGES']:
                 return True
+            log.info('Incorrect oob data found')
             return False
+
+        log.info('Not supported URI scheme found: %s', real_text)
+        return False
 
     def _save_thumbnail(self, thumbpath, mem):
         size = self.plugin.config['PREVIEW_SIZE']
