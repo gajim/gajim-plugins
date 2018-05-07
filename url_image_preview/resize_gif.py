@@ -3,7 +3,7 @@ from PIL import Image
 
 
 def resize_gif(mem, path, resize_to):
-    frames = extract_and_resize_frames(mem, resize_to)
+    frames, result = extract_and_resize_frames(mem, resize_to)
 
     if len(frames) == 1:
         frames[0].save(path, optimize=True)
@@ -12,6 +12,7 @@ def resize_gif(mem, path, resize_to):
                        optimize=True,
                        save_all=True,
                        append_images=frames[1:],
+                       duration=result['duration'],
                        loop=1000)
 
 
@@ -25,7 +26,9 @@ def analyse_image(mem):
     results = {
         'size': image.size,
         'mode': 'full',
+        'duration': image.info["duration"]
     }
+
     try:
         while True:
             if image.tile:
@@ -42,7 +45,7 @@ def analyse_image(mem):
 
 
 def extract_and_resize_frames(mem, resize_to):
-    mode = analyse_image(mem)['mode']
+    result = analyse_image(mem)
     image = Image.open(BytesIO(mem))
 
     i = 0
@@ -69,7 +72,7 @@ def extract_and_resize_frames(mem, resize_to):
             If so, we need to construct the new frame by
             pasting it on top of the preceding frames.
             '''
-            if mode == 'partial':
+            if result['mode'] == 'partial':
                 new_frame.paste(last_frame)
 
             new_frame.paste(image, (0, 0), image.convert('RGBA'))
@@ -84,4 +87,4 @@ def extract_and_resize_frames(mem, resize_to):
     except EOFError:
         pass
 
-    return frames
+    return frames, result
