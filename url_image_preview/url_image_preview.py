@@ -38,6 +38,12 @@ from url_image_preview.http_functions import get_http_head, get_http_file
 from url_image_preview.config_dialog import UrlImagePreviewConfigDialog
 from url_image_preview.resize_gif import resize_gif
 
+try:
+    from gajim.filechoosers import FileSaveDialog
+    NEW_FILECHOOSER = True
+except ImportError:
+    NEW_FILECHOOSER = False
+
 log = logging.getLogger('gajim.plugin_system.preview')
 
 PILLOW_AVAILABLE = True
@@ -590,8 +596,12 @@ class Base(object):
         id_ = open_menuitem.connect(
             'activate', self.on_open_menuitem_activate, data)
         self.handlers[id_] = open_menuitem
-        id_ = save_as_menuitem.connect(
-            'activate', self.on_save_as_menuitem_activate, data)
+        if NEW_FILECHOOSER:
+            id_ = save_as_menuitem.connect(
+                'activate', self.on_save_as_menuitem_activate_new, data)
+        else:
+            id_ = save_as_menuitem.connect(
+                'activate', self.on_save_as_menuitem_activate, data)
         self.handlers[id_] = save_as_menuitem
         id_ = copy_link_location_menuitem.connect(
             'activate', self.on_copy_link_location_menuitem_activate, data)
@@ -668,6 +678,25 @@ class Base(object):
         dialog.set_current_name(original_filename)
         dialog.connect('delete-event', lambda widget, event:
                        on_cancel(widget))
+
+    def on_save_as_menuitem_activate_new(self, menu, data):
+        filepath = data["filepath"]
+        original_filename = data["original_filename"]
+
+        def on_ok(target_path):
+            dirname = os.path.dirname(target_path)
+            if not os.access(dirname, os.W_OK):
+                dialogs.ErrorDialog(
+                    _('Directory "%s" is not writable') % dirname,
+                    _('You do not have permission to '
+                      'create files in this directory.'))
+                return
+            shutil.copy(filepath, target_path)
+
+        FileSaveDialog(on_ok,
+                       path=app.config.get('last_save_dir'),
+                       file_name=original_filename,
+                       transient_for=app.app.get_active_window())
 
     def on_copy_link_location_menuitem_activate(self, menu, data):
         url = data["url"]
