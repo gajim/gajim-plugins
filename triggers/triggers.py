@@ -19,9 +19,10 @@
 ## along with Gajim. If not, see <http://www.gnu.org/licenses/>.
 ##
 
-from gi.repository import Gtk
-import sys
+
 import os
+
+from gi.repository import Gtk
 
 from gajim.common import app
 from gajim.common import ged
@@ -30,7 +31,20 @@ from gajim.plugins import GajimPlugin
 from gajim.plugins.helpers import log_calls
 from gajim.plugins.gui import GajimPluginConfigDialog
 
-from gajim.dialogs import SoundChooserDialog
+try:
+    from gajim.filechoosers import NativeFileChooserDialog, Filter
+
+    NEW_FILECHOOSER = True
+
+    class SoundChooserDialog(NativeFileChooserDialog):
+
+        _title = _('Choose Sound')
+        _filters = [Filter(_('All files'), '*', False),
+                    Filter(_('WAV files'), '*.wav', True)]
+
+except ImportError:
+    from gajim.dialogs import SoundChooserDialog
+    NEW_FILECHOOSER = False
 
 
 class Triggers(GajimPlugin):
@@ -705,6 +719,26 @@ class TriggersPluginConfigDialog(GajimPluginConfigDialog):
             self.sound_file_hbox.set_sensitive(False)
 
     def on_browse_for_sounds_button_clicked(self, widget, data=None):
+        if NEW_FILECHOOSER:
+            self._new_filechooser()
+        else:
+            self._old_filechooser(widget, data)
+
+    def _new_filechooser(self):
+        if self.active_num < 0:
+            return
+
+        def on_ok(path_to_snd_file):
+            self.config[self.active_num]['sound_file'] = path_to_snd_file
+            self.sound_entry.set_text(path_to_snd_file)
+
+        path_to_snd_file = self.sound_entry.get_text()
+        path_to_snd_file = os.path.join(os.getcwd(), path_to_snd_file)
+        SoundChooserDialog(on_ok,
+                           path=path_to_snd_file,
+                           transient_for=self)
+
+    def _old_filechooser(self, widget, data=None):
         if self.active_num < 0:
             return
 
