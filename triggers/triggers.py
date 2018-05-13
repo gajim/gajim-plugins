@@ -115,7 +115,7 @@ class Triggers(GajimPlugin):
         if not ctrl:
             # Does not apply in this case
             return True
-        has_focus = ctrl.parent_win.window.has_focus
+        has_focus = ctrl.parent_win.window.has_focus()
         if has_focus and rule['has_focus'] == 'no':
             return False
         elif not has_focus and rule['has_focus'] == 'yes':
