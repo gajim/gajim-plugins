@@ -146,6 +146,7 @@ CLIENTS = {
     'http://www.igniterealtime.org/projects/smack/': ['xabber.png', 'Xabber'],
     'http://www.xfire.com/': ['xfire.png', 'Xfire'],
     'http://www.xfire.com/caps': ['xfire.png', 'Xfire'],
+    'https://www.yaxim.org/': ['yaxim.png', 'Yaxim'],
     'http://xu-6.jabbrik.ru/caps': ['bot.png', 'XU-6'],
 }
 LIBPURPLE_CLIENTS = {
