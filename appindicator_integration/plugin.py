@@ -8,27 +8,22 @@ Rewriten from Ubuntu Ayatana Integration plugin
 :license: GPLv3
 """
 
-import os
 import time
 
 import gi
 from gi.repository import Gtk, GLib, Gdk
 
 try:
-    gi.require_version('AppIndicator3', '0.1')
-    from gi.repository import AppIndicator3 as appindicator
+    gi.require_version('AyatanaAppIndicator3', '0.1')
+    from gi.repository import AyatanaAppIndicator3 as appindicator
     ERRORMSG = None
 except (ValueError, ImportError):
     ERRORMSG = _('Please install libappindicator3')
 
-
-# Gajim
 from gajim.common import app, ged
 from gajim.common import configpaths
 from gajim.plugins import GajimPlugin
-from gajim.plugins.gajimplugin import GajimPluginException
 from gajim.plugins.helpers import log_calls
-from gajim import gtkgui_helpers
 
 
 class AppindicatorIntegrationPlugin(GajimPlugin):
