@@ -179,12 +179,18 @@ class OmemoPlugin(GajimPlugin):
         return True
 
     def _message_received(self, conn, obj, callback):
+        if conn.name == 'Local':
+            return
         self.connections[conn.name].message_received(conn, obj, callback)
 
     def _gc_encrypt_message(self, conn, obj, callback):
+        if conn.name == 'Local':
+            return
         self.connections[conn.name].gc_encrypt_message(conn, obj, callback)
 
     def _encrypt_message(self, conn, obj, callback):
+        if conn.name == 'Local':
+            return
         self.connections[conn.name].encrypt_message(conn, obj, callback)
 
     def _file_decryption(self, url, kind, instance, window):
