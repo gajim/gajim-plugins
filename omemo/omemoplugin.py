@@ -228,6 +228,8 @@ class OmemoPlugin(GajimPlugin):
 
     def before_sendmessage(self, chat_control):
         account = chat_control.account
+        if account == 'Local':
+            return
         contact = chat_control.contact
         con = self.connections[account]
         self.new_fingerprints_available(chat_control)
