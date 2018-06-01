@@ -26,13 +26,10 @@ Tictactoe plugin.
 :license: GPL
 '''
 
+import string
+import itertools
+import random
 
-from gajim.common import helpers
-from gajim.common import app
-from gajim.plugins import GajimPlugin
-from gajim.plugins.gajimplugin import GajimPluginException
-from gajim.plugins.helpers import log_calls, log
-from gajim.plugins.gui import GajimPluginConfigDialog
 import nbxmpp
 from gi.repository import Gtk
 from gi.repository import Gdk
@@ -41,11 +38,15 @@ from gi.repository import GLib
 import gi
 gi.require_version('PangoCairo', '1.0')
 from gi.repository import PangoCairo
+
+from gajim.common import helpers
+from gajim.common import app
+from gajim.plugins import GajimPlugin
+from gajim.plugins.helpers import log_calls, log
+from gajim.plugins.gui import GajimPluginConfigDialog
 from gajim import chat_control
 from gajim.common import ged
 from gajim import dialogs
-from gajim.common import caps_cache
-from gajim.common import stanza_session
 from gajim.common.connection_handlers_events import InformationEvent
 
 NS_GAMES = 'http://jabber.org/protocol/games'
@@ -57,19 +58,22 @@ class TictactoePlugin(GajimPlugin):
         self.description = _('Play Tictactoe.')
         self.config_dialog = TictactoePluginConfigDialog(self)
         self.events_handlers = {
-            'decrypted-message-received': (ged.GUI1,
-                self._nec_decrypted_message_received),
+            'decrypted-message-received': (
+                ged.PREGUI, self._nec_decrypted_message_received),
         }
+
         self.gui_extension_points = {
-            'chat_control' : (self.connect_with_chat_control,
-                self.disconnect_from_chat_control),
-            'chat_control_base_update_toolbar': (self.update_button_state,
-                None),
+            'chat_control': (self.connect_with_chat_control,
+                             self.disconnect_from_chat_control),
+            'chat_control_base_update_toolbar': (
+                self.update_button_state, None),
             'update_caps': (self._update_caps, None),
         }
+
         self.config_default_values = {
             'board_size': (5, ''),
         }
+
         self.controls = []
         self.announce_caps = True
 
@@ -218,15 +222,43 @@ class Base(object):
 class InvalidMove(Exception):
     pass
 
-class TicTacToeSession(stanza_session.StanzaSession):
+class TicTacToeSession(object):
     def __init__(self, conn, jid, thread_id, type_):
-        stanza_session.StanzaSession.__init__(self, conn, jid, thread_id, type_)
-        contact = app.contacts.get_contact(conn.name,
-            app.get_jid_without_resource(str(jid)))
+        self.conn = conn
+        self.jid = jid
+        self.type_ = type_
+        self.resource = jid.getResource()
+
+        if thread_id:
+            self.received_thread_id = True
+            self.thread_id = thread_id
+        else:
+            self.received_thread_id = False
+            self.thread_id = self.generate_thread_id()
+
+        contact = app.contacts.get_contact(
+            conn.name, app.get_jid_without_resource(str(jid)))
         self.name = contact.get_shown_name()
         self.base = None
         self.control = None
         self.enable_encryption = False
+
+    def send(self, msg):
+        if self.thread_id:
+            msg.NT.thread = self.thread_id
+
+        msg.setAttr('to', self.get_to())
+        self.conn.send_stanza(msg)
+
+    def get_to(self):
+        to = str(self.jid)
+        return app.get_jid_without_resource(to) + '/' + self.resource
+
+    def generate_thread_id(self):
+        return ''.join(
+            [f(string.ascii_letters) for f in itertools.repeat(
+                random.choice, 32)]
+        )
 
     # initiate a session
     def begin(self, role_s='x'):
