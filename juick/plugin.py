@@ -274,7 +274,7 @@ class Base(object):
         if event.type == Gdk.EventType.BUTTON_PRESS and event.button.button == 3:
             # show popup menu (right mouse button clicked)
             begin_iter = iter_.copy()
-            # we get the begining of the tag
+            # we get the beginning of the tag
             while not begin_iter.begins_tag(texttag):
                 begin_iter.backward_char()
             end_iter = iter_.copy()
@@ -290,27 +290,27 @@ class Base(object):
             nick = self.juick_nick_re.search(word)
             if post is None and nick is None:
                 return
-            childs = self.juick_link_menu.get_children()
+            children = self.juick_link_menu.get_children()
             if post:
                 self.juick_post_full = app.interface.sharp_slash_re\
                                                     .search(word).group(0)
                 self.juick_post_uid = post.group(1)
                 for menuitem in range(7):
-                    childs[menuitem].show()
+                    children[menuitem].show()
                 for menuitem in range(7, 13):
-                    childs[menuitem].hide()
+                    children[menuitem].hide()
             if nick:
                 self.juick_nick = nick.group(0)
                 for menuitem in range(7):
-                    childs[menuitem].hide()
+                    children[menuitem].hide()
                 for menuitem in range(7, 13):
-                    childs[menuitem].show()
+                    children[menuitem].show()
             self.juick_link_menu.popup(None, None, None, None,
                 event.button.button, event.time)
         if event.type == Gdk.EventType.BUTTON_PRESS and event.button.button == 1:
             # insert message num or nick (left mouse button clicked)
             begin_iter = iter_.copy()
-            # we get the begining of the tag
+            # we get the beginning of the tag
             while not begin_iter.begins_tag(texttag):
                 begin_iter.backward_char()
             end_iter = iter_.copy()

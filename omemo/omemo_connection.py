@@ -287,8 +287,8 @@ class OMEMOConnection:
                         from_jid = self.omemo.store. \
                             getJidFromDevice(msg_dict['sid'])
                         if not from_jid:
-                            log.error('%s => Cant decrypt GroupChat Message '
-                                      'from %s', self.account, msg.resource)
+                            log.error("%s => Can't decrypt GroupChat Message "
+                                      "from %s", self.account, msg.resource)
                             msg.encrypted = 'drop'
                             return
                         self.groupchat[msg.jid][msg.resource] = from_jid
@@ -301,7 +301,7 @@ class OMEMOConnection:
                     plaintext = self.gc_message[msg_dict['payload']]
                     del self.gc_message[msg_dict['payload']]
                 else:
-                    log.error('%s => Cant decrypt own GroupChat Message',
+                    log.error("%s => Can't decrypt own GroupChat Message",
                               self.account)
                     msg.encrypted = 'drop'
                     return
@@ -497,9 +497,9 @@ class OMEMOConnection:
                                              'namespace': NS_OMEMO})
         event.msg_iq.addChild(node=eme_node)
 
-        # Add Message for devices that dont support OMEMO
-        support_msg = _('You received a message encrypted with ' \
-                      'OMEMO but your client doesnt support OMEMO.')
+        # Add Message for devices that don't support OMEMO
+        support_msg = _("You received a message encrypted with " \
+                      "OMEMO but your client doesn't support OMEMO.")
         event.msg_iq.setBody(support_msg)
 
         # Store Hint for MAM
@@ -602,7 +602,7 @@ class OMEMOConnection:
 
         self._handle_device_list_update(None, event.stanza)
 
-        # Dont propagate event further
+        # Don't propagate event further
         return True
 
     def _handle_device_list_update(self, conn, stanza, fetch_bundle=False):
@@ -695,7 +695,7 @@ class OMEMOConnection:
                       self.account, stanza.getError())
 
     def are_keys_missing(self, contact_jid):
-        """ Checks if devicekeys are missing and querys the
+        """ Checks if devicekeys are missing and queries the
             bundles
 
             Parameters

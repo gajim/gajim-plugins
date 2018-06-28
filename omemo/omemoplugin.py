@@ -41,10 +41,11 @@ from omemo.xmpp import DevicelistPEP
 from omemo.gtk.key import KeyDialog
 from omemo.gtk.config import OMEMOConfigDialog
 
+
 CRYPTOGRAPHY_MISSING = 'You are missing Python3-Cryptography'
 AXOLOTL_MISSING = 'You are missing Python3-Axolotl or use an outdated version'
-PROTOBUF_MISSING = 'OMEMO cant import Google Protobuf, you can find help in ' \
-                   'the GitHub Wiki'
+PROTOBUF_MISSING = "OMEMO can't import Google Protobuf, you can find help in " \
+                   "the GitHub Wiki"
 ERROR_MSG = ''
 
 

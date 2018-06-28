@@ -112,7 +112,7 @@ class Base(object):
         if event.type == Gdk.EventType.BUTTON_PRESS and event.button.button == 1:
             # left mouse button clicked
             begin_iter = iter_.copy()
-            # we get the begining of the tag
+            # we get the beginning of the tag
             while not begin_iter.begins_tag(texttag):
                 begin_iter.backward_char()
             end_iter = iter_.copy()

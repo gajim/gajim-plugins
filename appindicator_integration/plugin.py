@@ -2,7 +2,7 @@
 """
 Appindicator integration plugin.
 
-Rewriten from Ubuntu Ayatana Integration plugin
+Rewritten from Ubuntu Ayatana Integration plugin
 2013 Denis Borenko <borenko@rambler.ru>
 2017 Philipp Hörist <philipp@hoerist.com>
 :license: GPLv3

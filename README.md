@@ -41,7 +41,7 @@ First, thanks for that! Here is how to start:
 
 **Before you put in any work, please contact us on [gajim@conference.gajim.org](xmpp:gajim@conference.gajim.org?join)**
 
-**Dont use dev.gajim.org for any projects that are not directly for the benefit of Gajim**
+**Don't use dev.gajim.org for any projects that are not directly for the benefit of Gajim**
 
 ## Plugins list
 

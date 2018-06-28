@@ -135,7 +135,7 @@ class Whiteboard(object):
         self.item_data = None
 
         # Will be {ID: {type:'element', data:[node, goocanvas]}, ID2: {}} instance
-        self.recieving = {}
+        self.receiving = {}
 
     def on_tool_button_toggled(self, widget):
         for btn in self.tool_buttons:
@@ -289,25 +289,25 @@ class Whiteboard(object):
     def recieve_element(self, element):
         node = self.image.g.addChild(name=element.getAttr('name'))
         self.image.g.addChild(node=node)
-        self.recieving[element.getAttr('rid')] = {'type':'element',
+        self.receiving[element.getAttr('rid')] = {'type':'element',
                                                   'data':[node],
                                                   'children':[]}
 
     def recieve_attr(self, element):
-        node = self.recieving[element.getAttr('parent')]['data'][0]
+        node = self.receiving[element.getAttr('parent')]['data'][0]
         node.setAttr(element.getAttr('name'), element.getAttr('chdata'))
 
-        self.recieving[element.getAttr('rid')] = {'type':'attr',
+        self.receiving[element.getAttr('rid')] = {'type':'attr',
                                                   'data':element.getAttr('name'),
                                                   'parent':node}
-        self.recieving[element.getAttr('parent')]['children'].append(element.getAttr('rid'))
+        self.receiving[element.getAttr('parent')]['children'].append(element.getAttr('rid'))
 
     def apply_new(self):
-        for x in self.recieving.keys():
-            if self.recieving[x]['type'] == 'element':
-                self.image.add_recieved(x, self.recieving)
+        for x in self.receiving.keys():
+            if self.receiving[x]['type'] == 'element':
+                self.image.add_recieved(x, self.receiving)
 
-        self.recieving = {}
+        self.receiving = {}
 
 
 class SVGObject():

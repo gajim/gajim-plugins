@@ -18,7 +18,7 @@
 #
 
 """ This module handles all the XMPP logic like creating different kind of
-stanza nodes and geting data from stanzas.
+stanza nodes and getting data from stanzas.
 """
 
 import logging

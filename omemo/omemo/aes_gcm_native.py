@@ -25,7 +25,7 @@ from cryptography.hazmat.primitives.ciphers import algorithms
 from cryptography.hazmat.primitives.ciphers.modes import GCM
 
 # On Windows we have to import a specific backend because the
-# default_backend() mechanism doesnt work in Gajim for Windows.
+# default_backend() mechanism doesn't work in Gajim for Windows.
 # Its because of how Gajim is build with cx_freeze
 
 if os.name == 'nt':

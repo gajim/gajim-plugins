@@ -428,7 +428,7 @@ class JingleWhiteboard(JingleContent):
         self.session.connection.connection.send(message)
 
     def send_items(self, items, rids):
-        # recieves dict items and a list of rids of items to send
+        # receives dict items and a list of rids of items to send
         # TODO: is there a less clumsy way that doesn't involve passing
         # whole list
         self.send_whiteboard_node(items, rids)

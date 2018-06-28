@@ -3,7 +3,7 @@
   <requires lib="gtk+" version="2.16"/>
   <!-- interface-naming-policy toplevel-contextual -->
   <object class="GtkTextBuffer" id="textbuffer1">
-    <property name="text">Plug-in decription should be displayed here. This text will be erased during PluginsWindow initialization.</property>
+    <property name="text">Plug-in description should be displayed here. This text will be erased during PluginsWindow initialization.</property>
   </object>
   <object class="GtkWindow" id="window1">
     <child>

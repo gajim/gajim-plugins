@@ -208,7 +208,7 @@ class ClientsIconsPlugin(GajimPlugin):
         client_name = _('Unknown')
         caps_ = None
         if caps:
-            # libpurple returns pidgin.im/ only, we have to look for ressource name
+            # libpurple returns pidgin.im/ only, we have to look for resource name
             if 'pidgin.im/' in caps:
                 caps = 'libpurple'
                 for client in LIBPURPLE_CLIENTS:
@@ -447,7 +447,7 @@ class ClientsIconsPlugin(GajimPlugin):
             self.set_icon(roster.model, iter_, self.renderer_num, None, contact)
             return
 
-        # higest contact changed
+        # highest contact changed
         if roster.model[iter_][self.renderer_num] is not None:
             caps = contact.client_caps._node
             if caps:

@@ -256,7 +256,7 @@ class OldPGPPlugin(GajimPlugin):
                                           'namespace': nbxmpp.NS_ENCRYPTED})
             obj.msg_iq.addChild(node=eme_node)
 
-            # Set xhtml to None so it doesnt get logged
+            # Set xhtml to None so it doesn't get logged
             obj.xhtml = None
             obj.encrypted = self.encryption_name
             self.add_additional_data(obj.additional_data)

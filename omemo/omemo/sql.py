@@ -33,7 +33,7 @@ class SQLDatabase():
         c.execute("PRAGMA synchronous=NORMAL;")
         c.execute("PRAGMA journal_mode;")
         mode = c.fetchone()[0]
-        # WAL is a persistent DB mode, dont override it if user has set it
+        # WAL is a persistent DB mode, don't override it if user has set it
         if mode != 'wal':
             c.execute("PRAGMA journal_mode=MEMORY;")
         self.dbConn.commit()
@@ -93,7 +93,7 @@ class SQLDatabase():
         """ Migrates the DB
         """
 
-        # Find all double entrys and delete them
+        # Find all double entries and delete them
         if user_version(self.dbConn) < 2:
             delete_dupes = """ DELETE FROM identities WHERE _id not in (
                                 SELECT MIN(_id)

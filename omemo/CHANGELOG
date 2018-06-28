@@ -96,7 +96,7 @@
 - Query only the most recent PEP items
 
 2.3.6 / 2017-08-21
-- Adapt to Gaim beeing now a Package
+- Adapt to Gaim being now a Package
 
 2.3.5 / 2017-08-07
 - Support 12bit IVs on httpupload files
@@ -139,7 +139,7 @@
 - Fix a bug when publishing devices
 - Fix copying fingerprint
 - Fix layout issue
-- Dont handle type 'normal' messages
+- Don't handle type 'normal' messages
 
 2.0.1 / 2017-01-14
 - Better XEP Compliance
