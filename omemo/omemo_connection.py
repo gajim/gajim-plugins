@@ -94,6 +94,7 @@ class OMEMOConnection:
         data_dir = configpaths.get('MY_DATA')
         db_path = os.path.join(data_dir, 'omemo_' + self.own_jid + '.db')
         conn = sqlite3.connect(db_path, check_same_thread=False)
+        conn.execute("PRAGMA secure_delete=1")
         return OmemoState(self.own_jid, conn, self.account, self)
 
     def signed_in(self, event):
