@@ -281,10 +281,6 @@ class OmemoState:
 
         devices_list = self.device_list_for(jid, True)
 
-        if len(devices_list) == 0:
-            log.error('No known devices')
-            return
-
         payload, tag = encrypt(key, iv, plaintext)
 
         key += tag
@@ -315,10 +311,6 @@ class OmemoState:
                     log.warning('Failed to find key for device ' +
                                 str(rid))
             encrypted_jids.append(jid_to)
-        if len(encrypted_keys) == 0:
-            log_msg = 'Encrypted keys empty'
-            log.error(log_msg)
-            raise NoValidSessions(log_msg)
 
         my_other_devices = set(self.own_devices) - set({self.own_device_id})
         # Encrypt the message key with for each of our own devices
@@ -335,6 +327,10 @@ class OmemoState:
             except:
                 log.exception('ERROR:')
                 log.warning('Failed to find key for device ' + str(dev))
+
+        if not encrypted_keys:
+            log.error('Encrypted keys empty')
+            raise NoValidSessions('Encrypted keys empty')
 
         result = {'sid': self.own_device_id,
                   'keys': encrypted_keys,

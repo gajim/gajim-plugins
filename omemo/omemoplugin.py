@@ -236,11 +236,8 @@ class OmemoPlugin(GajimPlugin):
         if isinstance(chat_control, GroupchatControl):
             room = chat_control.room_jid
             missing = True
-            own_jid = app.get_jid_from_account(account)
             for nick in con.groupchat[room]:
                 real_jid = con.groupchat[room][nick]
-                if real_jid == own_jid:
-                    continue
                 if not con.are_keys_missing(real_jid):
                     missing = False
             if missing:
