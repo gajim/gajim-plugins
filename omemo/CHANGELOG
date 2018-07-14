@@ -1,3 +1,7 @@
+2.5.14 / 2018-07-15
+- Make preparations for future Gajim versions
+- Allow writing encrypted messages in groupchats if there are no other participants
+
 2.5.13 / 2018-05-21
 - Bug fix
 
