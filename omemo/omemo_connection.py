@@ -1,6 +1,5 @@
 import os
 import time
-import shutil
 import logging
 import sqlite3
 
@@ -12,9 +11,7 @@ from gajim.common import app
 from gajim.common import ged
 from gajim.common import helpers
 from gajim.common import configpaths
-from gajim.common.connection_handlers_events import (
-    MessageReceivedEvent, MamMessageReceivedEvent, MessageNotSentEvent,
-    MamGcMessageReceivedEvent)
+from gajim.common.connection_handlers_events import MessageNotSentEvent
 
 from omemo.xmpp import (
     NS_NOTIFY, NS_OMEMO, NS_EME, NS_HINTS, BundleInformationAnnouncement,
@@ -138,16 +135,16 @@ class OMEMOConnection:
     def message_received(self, conn, obj, callback):
         if obj.encrypted:
             return
-        if isinstance(obj, MessageReceivedEvent):
+        if obj.name == 'message-received':
             self._message_received(obj)
-        elif isinstance(obj, MamMessageReceivedEvent):
+        elif obj.name == 'mam-message-received':
             self._mam_message_received(obj)
-        elif isinstance(obj, MamGcMessageReceivedEvent):
+        elif obj.name == 'mam-gc-message-received':
             self._mam_gc_message_received(obj)
         if obj.encrypted == 'OMEMO':
             callback(obj)
 
-    def _mam_gc_message_received(self, msg):
+    def _mam_gc_message_received(self, event):
         """ Handles an incoming GC MAM message
 
             Payload is decrypted and the plaintext is written into the
@@ -155,19 +152,26 @@ class OMEMOConnection:
 
             Parameters
             ----------
-            msg : MamGcMessageReceivedEvent
+            event : MamGcMessageReceivedEvent
 
             Returns
             -------
             Return means that the Event is passed on to Gajim
         """
-        if msg.conn.name != self.account:
+        if event.conn.name != self.account:
             return
-        omemo = msg.msg_.getTag('encrypted', namespace=NS_OMEMO)
+
+        # Compatibility for Gajim 1.0.3
+        if hasattr(event, 'message'):
+            message = event.message
+        else:
+            message = event.msg_
+
+        omemo = message.getTag('encrypted', namespace=NS_OMEMO)
         if omemo is None:
             return
 
-        if msg.real_jid is None:
+        if event.real_jid is None:
             log.error('%s => Received Groupchat Message without real jid',
                       self.account)
             return
@@ -175,20 +179,20 @@ class OMEMOConnection:
         log.info('%s => Groupchat Message received', self.account)
 
         msg_dict = unpack_encrypted(omemo)
-        msg_dict['sender_jid'] = JID(msg.real_jid).getStripped()
+        msg_dict['sender_jid'] = JID(event.real_jid).getStripped()
 
         plaintext = self.omemo.decrypt_msg(msg_dict)
 
         if not plaintext:
-            msg.encrypted = 'drop'
+            event.encrypted = 'drop'
             return
 
-        self.print_msg_to_log(msg.msg_)
+        self.print_msg_to_log(message)
 
-        msg.msgtxt = plaintext
-        msg.encrypted = self.plugin.encryption_name
+        event.msgtxt = plaintext
+        event.encrypted = self.plugin.encryption_name
 
-    def _mam_message_received(self, msg):
+    def _mam_message_received(self, event):
         """ Handles an incoming MAM message
 
             Payload is decrypted and the plaintext is written into the
@@ -196,39 +200,43 @@ class OMEMOConnection:
 
             Parameters
             ----------
-            msg : MamMessageReceivedEvent
+            event : MamMessageReceivedEvent
 
             Returns
             -------
             Return means that the Event is passed on to Gajim
         """
-        if msg.conn.name != self.account:
+        if event.conn.name != self.account:
             return
-        omemo_encrypted_tag = msg.msg_.getTag('encrypted', namespace=NS_OMEMO)
+
+        # Compatibility for Gajim 1.0.3
+        if hasattr(event, 'message'):
+            message = event.message
+        else:
+            message = event.msg_
+
+        omemo_encrypted_tag = message.getTag('encrypted', namespace=NS_OMEMO)
         if omemo_encrypted_tag:
             log.debug('%s => OMEMO MAM msg received', self.account)
 
-            from_jid = str(msg.msg_.getAttr('from'))
-            from_jid = app.get_jid_without_resource(from_jid)
-
             msg_dict = unpack_encrypted(omemo_encrypted_tag)
             if msg_dict is None:
-                log.error('Invalid omemo message received:\n%s', msg.msg_)
-                msg.encrypted = 'drop'
+                log.error('Invalid omemo message received:\n%s', message)
+                event.encrypted = 'drop'
                 return
 
-            msg_dict['sender_jid'] = from_jid
+            msg_dict['sender_jid'] = message.getFrom().getStripped()
 
             plaintext = self.omemo.decrypt_msg(msg_dict)
 
             if not plaintext:
-                msg.encrypted = 'drop'
+                event.encrypted = 'drop'
                 return
 
-            self.print_msg_to_log(msg.msg_)
+            self.print_msg_to_log(message)
 
-            msg.msgtxt = plaintext
-            msg.encrypted = self.plugin.encryption_name
+            event.msgtxt = plaintext
+            event.encrypted = self.plugin.encryption_name
             return
 
     def _message_received(self, msg):
