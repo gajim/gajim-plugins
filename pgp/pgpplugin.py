@@ -29,8 +29,7 @@ from gi.repository import GLib
 
 from gajim import dialogs
 from gajim.common import app
-from gajim.common.connection_handlers_events import (
-    MessageNotSentEvent, MessageReceivedEvent, MamMessageReceivedEvent)
+from gajim.common.connection_handlers_events import MessageNotSentEvent
 from gajim.plugins import GajimPlugin
 
 log = logging.getLogger('gajim.plugin_system.oldpgp')
@@ -147,10 +146,15 @@ class OldPGPPlugin(GajimPlugin):
             # Another Plugin already decrypted the message
             return
         account = conn.name
-        if isinstance(obj, MessageReceivedEvent):
+        if obj.name == 'message-received':
             enc_tag = obj.stanza.getTag('x', namespace=nbxmpp.NS_ENCRYPTED)
-        elif isinstance(obj, MamMessageReceivedEvent):
-            enc_tag = obj.msg_.getTag('x', namespace=nbxmpp.NS_ENCRYPTED)
+        elif obj.name == 'mam-message-received':
+            # Compatibility for Gajim 1.0.3
+            if hasattr(obj, 'message'):
+                message = obj.message
+            else:
+                message = obj.msg_
+            enc_tag = message.getTag('x', namespace=nbxmpp.NS_ENCRYPTED)
         else:
             return
         if enc_tag:
