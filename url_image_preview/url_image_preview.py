@@ -168,6 +168,11 @@ class Base(object):
     def print_real_text(self, real_text, text_tags, graphics, iter_,
                         additional_data):
 
+        if len(real_text.split(' ')) > 1:
+            # urlparse dont recognises spaces as URL delimiter
+            log.error('Url with text will not be displayed: %s', real_text)
+            return
+
         urlparts = urlparse(real_text)
         if not self._accept_uri(urlparts, real_text, additional_data):
             return
