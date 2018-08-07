@@ -170,7 +170,7 @@ class Base(object):
 
         if len(real_text.split(' ')) > 1:
             # urlparse dont recognises spaces as URL delimiter
-            log.error('Url with text will not be displayed: %s', real_text)
+            log.debug('Url with text will not be displayed: %s', real_text)
             return
 
         urlparts = urlparse(real_text)
