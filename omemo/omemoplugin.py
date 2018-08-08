@@ -288,20 +288,17 @@ class OmemoPlugin(GajimPlugin):
         omemo = self.get_omemo(account)
         transient = chat_control.parent_win.window
         if 'dialog' not in self.windowinstances:
-            if isinstance(chat_control, GroupchatControl):
-                self.windowinstances['dialog'] = \
-                    FingerprintWindow(self, contact, transient,
-                                      self.windowinstances, groupchat=True)
-            else:
-                self.windowinstances['dialog'] = \
-                    FingerprintWindow(self, contact, transient,
-                                      self.windowinstances)
+            is_groupchat = isinstance(chat_control, GroupchatControl)
+            self.windowinstances['dialog'] = \
+                FingerprintWindow(self, contact, transient,
+                                  self.windowinstances, groupchat=is_groupchat)
             self.windowinstances['dialog'].show_all()
             if fingerprints:
                 log.debug('%s => Showing Fingerprint Prompt for %s',
                           account, contact.jid)
                 omemo.store.setShownFingerprints(fingerprints)
         else:
+            self.windowinstances['dialog'].present()
             self.windowinstances['dialog'].update_context_list()
             if fingerprints:
                 omemo.store.setShownFingerprints(fingerprints)

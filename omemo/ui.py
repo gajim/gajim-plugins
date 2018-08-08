@@ -374,9 +374,8 @@ class FingerprintWindow(Gtk.Dialog):
                             title=(_('Fingerprints for %s')) % contact.jid,
                             parent=parent,
                             flags=Gtk.DialogFlags.DESTROY_WITH_PARENT)
-        close_button = self.add_button(Gtk.STOCK_CLOSE, Gtk.ResponseType.CLOSE)
-        close_button.connect('clicked', self.on_close_button_clicked)
-        self.connect('delete-event', self.on_window_delete)
+
+        self.connect('destroy', self._on_destroy)
 
         self.GTK_BUILDER_FILE_PATH = \
             self.plugin.local_file_path('fpr_dialog.ui')
@@ -389,7 +388,7 @@ class FingerprintWindow(Gtk.Dialog):
         self.fpr_view = self.xml.get_object('fingerprint_view')
         self.fpr_view_own = self.xml.get_object('fingerprint_view_own')
 
-        self.notebook = self.xml.get_object('notebook1')
+        self.notebook = self.xml.get_object('fingerprint_box')
         vbox = self.get_content_area()
         vbox.pack_start(self.notebook, True, True, 0)
 
@@ -405,21 +404,13 @@ class FingerprintWindow(Gtk.Dialog):
 
         self.show_all()
 
-    def on_close_button_clicked(self, widget):
+    def _on_destroy(self, *args):
         del self.windowinstances['dialog']
-        self.hide()
-
-    def on_window_delete(self, widget, event):
-        del self.windowinstances['dialog']
-        self.hide()
 
     def trust_button_clicked_cb(self, button, *args):
         state = self.omemostate
 
-        if self.notebook.get_current_page() == 1:
-            mod, paths = self.fpr_view_own.get_selection().get_selected_rows()
-        else:
-            mod, paths = self.fpr_view.get_selection().get_selected_rows()
+        mod, paths = self.fpr_view.get_selection().get_selected_rows()
 
         def on_yes(checked, identity_key):
             state.store.setTrust(identity_key, State.TRUSTED)
@@ -440,8 +431,10 @@ class FingerprintWindow(Gtk.Dialog):
             YesNoDialog(
                 _('Trust / Revoke Fingerprint?'),
                 _('Do you want to trust the fingerprint of <b>{jid}</b> '
-                'on your account <b>{account}</b>?\n\n'
-                '<tt>{fingerprint}</tt>').format(jid=jid, account=self.account, fingerprint=fpr),
+                  'on your account <b>{account}</b>?\n\n'
+                  '<tt>{fingerprint}</tt>').format(jid=jid,
+                                                   account=self.account,
+                                                   fingerprint=fpr),
                 on_response_yes=(on_yes, identity_key),
                 on_response_no=(on_no, identity_key),
                 transient_for=self)
@@ -468,10 +461,7 @@ class FingerprintWindow(Gtk.Dialog):
             return keep_selection
 
     def clipboard_button_cb(self, menuitem):
-        if self.notebook.get_current_page() == 1:
-            mod, paths = self.fpr_view_own.get_selection().get_selected_rows()
-        else:
-            mod, paths = self.fpr_view.get_selection().get_selected_rows()
+        mod, paths = self.fpr_view.get_selection().get_selected_rows()
 
         fprs = []
         for path in paths:
@@ -483,15 +473,14 @@ class FingerprintWindow(Gtk.Dialog):
 
     def update_context_list(self, *args):
         self.fpr_model.clear()
+        self._load_fingerprints(self.own_jid)
+        self._load_fingerprints(self.contact.jid, self.groupchat is True)
+
+    def _load_fingerprints(self, contact_jid, groupchat=False):
         state = self.omemostate
 
-        if self.notebook.get_current_page() == 1:
-            contact_jid = self.own_jid
-        else:
-            contact_jid = self.contact.jid
-
         trust_str = {0: 'False', 1: 'True', 2: 'Undecided'}
-        if self.groupchat and self.notebook.get_current_page() == 0:
+        if groupchat:
             contact_jids = []
             for nick in self.con.groupchat[contact_jid]:
                 real_jid = self.con.groupchat[contact_jid][nick]
