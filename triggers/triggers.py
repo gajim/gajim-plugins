@@ -32,7 +32,7 @@ from gajim.plugins.helpers import log_calls
 from gajim.plugins.gui import GajimPluginConfigDialog
 
 try:
-    from gajim.filechoosers import NativeFileChooserDialog, Filter
+    from gajim.gtk.filechoosers import NativeFileChooserDialog, Filter
 
     NEW_FILECHOOSER = True
 
