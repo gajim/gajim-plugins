@@ -31,7 +31,7 @@ except:
 from nbxmpp import Node
 
 try:
-    from gajim.filechoosers import NativeFileChooserDialog, Filter
+    from gajim.gtk.filechoosers import NativeFileChooserDialog, Filter
 
     NEW_FILECHOOSER = True
 
