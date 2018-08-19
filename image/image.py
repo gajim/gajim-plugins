@@ -1,18 +1,24 @@
-# -*- coding: utf-8 -*-
-##
-from gi.repository import Gtk
-from gi.repository import Gdk
-from gi.repository import GObject
 import os
 import base64
 import urllib
 
+from gi.repository import Gtk
+from gi.repository import Gdk
+
 from gajim import chat_control
 from gajim.plugins import GajimPlugin
 from gajim.plugins.helpers import log_calls
-from gajim.dialogs import ImageChooserDialog, ErrorDialog
+from gajim.dialogs import ErrorDialog
 
-NS_XHTML_IM = 'http://jabber.org/protocol/xhtml-im'             # XEP-0071
+try:
+    from gajim.gtk.filechoosers import FileChooserDialog
+    NEW_FILECHOOSER = True
+except ImportError:
+    from gajim.dialogs import ImageChooserDialog
+    NEW_FILECHOOSER = False
+
+
+NS_XHTML_IM = 'http://jabber.org/protocol/xhtml-im'
 
 
 class ImagePlugin(GajimPlugin):
@@ -99,43 +105,71 @@ class Base(object):
             return True
 
     def on_image_button_clicked(self, widget):
+        if NEW_FILECHOOSER:
+            self._new_filechooser()
+        else:
+            self._old_filechooser(widget)
+
+    def _new_filechooser(self):
+        def on_ok(filename):
+            image = self._check_file(filename)
+            if image is None:
+                return
+
+            self._send(image, filename)
+
+        FileChooserDialog(on_ok,
+                          select_multiple=False,
+                          transient_for=self.chat_control.parent_win.window)
+
+    def _old_filechooser(self, widget):
         def on_ok(widget, path_to_file):
-            filesize = os.path.getsize(path_to_file)  # in bytes
-            invalid_file = False
-            msg = ''
-            if os.path.isfile(path_to_file):
-                stat = os.stat(path_to_file)
-                if stat[6] == 0:
-                    invalid_file = True
-                    msg = _('File is empty')
-            else:
-                invalid_file = True
-                msg = _('File does not exist')
-            if filesize < 60000:
-                file_ = open(path_to_file, "rb")
-                img = urllib.parse.quote(base64.standard_b64encode(
-                    file_.read()), '')
-                if len(img) > 60000:
-                    invalid_file = True
-                    msg = _('File too big')
-                file_.close()
-            else:
-                invalid_file = True
-                msg = _('File too big')
-            if invalid_file:
-                ErrorDialog(_('Could not load image'), msg)
+            image = self._check_file(path_to_file)
+            if image is None:
                 return
 
             dlg.destroy()
-            msg = 'HTML image'
-            extension = os.path.splitext(os.path.split(path_to_file)[1])[1] \
-                .lower()[1:]
-            xhtml = '<body><br/> <img alt="img" src="data:image/%s;base64,%s"/> \
-                    </body>' % (extension, img)
-            self.chat_control.send_message(message=msg, xhtml=xhtml)
-            self.chat_control.msg_textview.grab_focus()
+
+            self._send(image, path_to_file)
 
         dlg = ImageChooserDialog(on_response_ok=on_ok, on_response_cancel=None)
+
+    def _check_file(self, filename):
+        filesize = os.path.getsize(filename)  # in bytes
+        invalid_file = False
+        msg = ''
+        if os.path.isfile(filename):
+            stat = os.stat(filename)
+            if stat[6] == 0:
+                invalid_file = True
+                msg = _('File is empty')
+        else:
+            invalid_file = True
+            msg = _('File does not exist')
+        if filesize < 60000:
+            file_ = open(filename, "rb")
+            img = urllib.parse.quote(base64.standard_b64encode(
+                file_.read()), '')
+            if len(img) > 60000:
+                invalid_file = True
+                msg = _('File too big')
+            file_.close()
+        else:
+            invalid_file = True
+            msg = _('File too big')
+        if invalid_file:
+            ErrorDialog(_('Could not load image'), msg)
+            return
+        return img
+
+    def _send(self, image, filename):
+        msg = 'HTML image'
+        extension = os.path.splitext(os.path.split(filename)[1])[1] \
+            .lower()[1:]
+        xhtml = '<body><br/> <img alt="img" src="data:image/%s;base64,%s"/> \
+                </body>' % (extension, image)
+        self.chat_control.send_message(message=msg, xhtml=xhtml)
+        self.chat_control.msg_textview.grab_focus()
 
     def disconnect_from_chat_control(self):
         actions_hbox = self.chat_control.xml.get_object('hbox')
