@@ -39,7 +39,7 @@ from url_image_preview.config_dialog import UrlImagePreviewConfigDialog
 from url_image_preview.resize_gif import resize_gif
 
 try:
-    from gajim.filechoosers import FileSaveDialog
+    from gajim.gtk.filechoosers import FileSaveDialog
     NEW_FILECHOOSER = True
 except ImportError:
     NEW_FILECHOOSER = False
