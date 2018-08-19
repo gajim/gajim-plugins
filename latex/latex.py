@@ -37,7 +37,6 @@ from gajim.plugins import GajimPlugin
 from gajim.plugins.helpers import log, log_calls
 from gajim.plugins.gui import GajimPluginConfigDialog
 
-Gdk.threads_init()
 
 def latex_template(code):
     return '''\\documentclass[12pt]{article}
