@@ -243,6 +243,9 @@ class TicTacToeSession(object):
         self.control = None
         self.enable_encryption = False
 
+    def is_loggable(self):
+        return False
+
     def send(self, msg):
         if self.thread_id:
             msg.NT.thread = self.thread_id
@@ -675,9 +678,9 @@ class TicTacToeBoard:
 
     def draw_x(self, cr, row, col, row_height, col_width):
         if self.session.role_s == 'x':
-            color = app.config.get('outmsgcolor')
+            color = '#3d79fb'  # out
         else:
-            color = app.config.get('inmsgcolor')
+            color = '#f03838'  # red
         rgba = Gdk.RGBA()
         rgba.parse(color)
         cr.set_source_rgba(rgba.red, rgba.green, rgba.blue, rgba.alpha)
@@ -700,9 +703,9 @@ class TicTacToeBoard:
 
     def draw_o(self, cr, row, col, row_height, col_width):
         if self.session.role_s == 'o':
-            color = app.config.get('outmsgcolor')
+            color = '#3d79fb'  # out
         else:
-            color = app.config.get('inmsgcolor')
+            color = '#f03838'  # red
         rgba = Gdk.RGBA()
         rgba.parse(color)
         cr.set_source_rgba(rgba.red, rgba.green, rgba.blue, rgba.alpha)
