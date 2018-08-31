@@ -97,7 +97,7 @@ class PGPKeylist(AbstractPEPModule):
                 if timestamp is None:
                     raise StanzaMalformed('Invalid date timestamp: %s', date)
 
-            keylist.append(Key(attrs['v4-fingerprint'], timestamp))
+            keylist.append(Key(attrs['v4-fingerprint'], int(timestamp)))
         return keylist
 
     def _notification_received(self, jid, keylist):

@@ -70,6 +70,7 @@ class PGPContext(gnupg.GPG):
 
         result = super().encrypt(str(payload).encode('utf8'),
                                  recipients,
+                                 armor=False,
                                  sign=self._own_fingerprint,
                                  always_trust=True,
                                  passphrase=self._passphrase)
@@ -79,7 +80,7 @@ class PGPContext(gnupg.GPG):
         else:
             error = result.status
 
-        return str(result), error
+        return result.data, error
 
     def decrypt(self, payload):
         result = super().decrypt(payload,

@@ -116,7 +116,7 @@ class ContactData:
 
     @property
     def default_trust(self):
-        for key in self._key_store:
+        for key in self._key_store.values():
             if key.trust in (Trust.NOT_TRUSTED, Trust.BLIND):
                 return Trust.UNKNOWN
         return Trust.BLIND

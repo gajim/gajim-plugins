@@ -177,8 +177,7 @@ def get_rpad():
 
 
 def create_openpgp_message(obj, encrypted_payload):
-    b64encoded_payload = b64encode(
-        encrypted_payload.encode('utf-8')).decode('utf8')
+    b64encoded_payload = b64encode(encrypted_payload).decode('utf8')
 
     openpgp_node = nbxmpp.Node('openpgp', attrs={'xmlns': NS_OPENPGP})
     openpgp_node.addData(b64encoded_payload)
