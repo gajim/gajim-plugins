@@ -36,7 +36,7 @@ TABLE_LAYOUT = '''
 
 class Storage:
     def __init__(self, folder_path):
-        self._con = sqlite3.connect(folder_path / 'contacts.db',
+        self._con = sqlite3.connect(str(folder_path / 'contacts.db'),
                                     detect_types=sqlite3.PARSE_DECLTYPES)
         self._con.row_factory = self._namedtuple_factory
         self._create_database()

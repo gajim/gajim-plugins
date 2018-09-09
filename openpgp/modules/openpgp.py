@@ -32,7 +32,6 @@ from openpgp.modules.util import NS_OPENPGP_PUBLIC_KEYS
 from openpgp.modules.util import NS_OPENPGP
 from openpgp.modules.util import Key
 from openpgp.modules.util import Trust
-from openpgp.modules.util import VerifyFailed
 from openpgp.modules.util import DecryptionFailed
 from openpgp.backend.sql import Storage
 from openpgp.backend.pygpg import PGPContext
@@ -412,7 +411,7 @@ class OpenPGP:
                     return
             log.info('Own key not published')
             if self._fingerprint is not None:
-                keylist.append(Key(self._fingerprint, None))
+                keylist.append(Key(self._fingerprint, self._date))
                 self._publish_key_list(keylist)
             return
 
