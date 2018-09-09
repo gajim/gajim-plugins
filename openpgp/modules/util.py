@@ -27,6 +27,8 @@ from base64 import b64decode, b64encode
 import nbxmpp
 from nbxmpp import Node
 
+from gajim.common.modules.date_and_time import parse_datetime
+
 NS_OPENPGP = 'urn:xmpp:openpgp:0'
 NS_OPENPGP_PUBLIC_KEYS = 'urn:xmpp:openpgp:0:public-keys'
 NS_NOTIFY = NS_OPENPGP_PUBLIC_KEYS + '+notify'
@@ -89,9 +91,17 @@ def unpack_public_key_list(stanza, from_jid):
             return
 
         date = attrs.get('date', None)
+        if date is None:
+            log.warning('No date in metadata')
+            return
+
+        timestamp = parse_datetime(date, epoch=True)
+        if timestamp is None:
+            log.warning('Invalid date timestamp: %s', date)
+            return
 
         fingerprints.append(
-            Key(attrs['v4-fingerprint'], date))
+            Key(attrs['v4-fingerprint'], int(timestamp)))
 
     return fingerprints
 

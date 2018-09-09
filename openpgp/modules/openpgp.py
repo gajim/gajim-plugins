@@ -382,6 +382,8 @@ class OpenPGP:
         else:
             from_jid = from_jid.getStripped()
 
+        log.info('Key list query received from %s', from_jid)
+
         keylist = util.unpack_public_key_list(stanza, from_jid)
         self.key_list_received(keylist, from_jid)
 

@@ -145,6 +145,7 @@ class OpenPGPPlugin(GajimPlugin):
             keys = app.connections[account].get_module('OpenPGP').get_keys(
                 jid, only_trusted=False)
             if not keys:
+                con.get_module('OpenPGP').query_key_list(jid)
                 ErrorDialog(
                     _('No OpenPGP key'),
                     _('We didnt receive a OpenPGP key from this contact.'))
