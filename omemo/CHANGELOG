@@ -1,3 +1,14 @@
+2.6.1 / 2018-08-08
+- Save encryption details to the database
+- Bugfixes
+
+2.6.0 / 2018-08-08
+- FingerprintDialog: show all fingerprints in one list
+
+2.5.14 / 2018-07-15
+- Make preparations for future Gajim versions
+- Allow writing encrypted messages in groupchats if there are no other participants
+
 2.5.14 / 2018-07-15
 - Make preparations for future Gajim versions
 - Allow writing encrypted messages in groupchats if there are no other participants
