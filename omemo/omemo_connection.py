@@ -191,6 +191,7 @@ class OMEMOConnection:
 
         event.msgtxt = plaintext
         event.encrypted = self.plugin.encryption_name
+        self.add_additional_data(event.additional_data)
 
     def _mam_message_received(self, event):
         """ Handles an incoming MAM message
@@ -237,6 +238,7 @@ class OMEMOConnection:
 
             event.msgtxt = plaintext
             event.encrypted = self.plugin.encryption_name
+            self.add_additional_data(event.additional_data)
             return
 
     def _message_received(self, msg):
@@ -315,6 +317,7 @@ class OMEMOConnection:
             # gets dropped from history
             msg.stanza.setBody(plaintext)
             msg.encrypted = self.plugin.encryption_name
+            self.add_additional_data(msg.additional_data)
 
     def room_memberlist_received(self, stanza):
         if not nbxmpp.isResultNode(stanza):
@@ -558,6 +561,7 @@ class OMEMOConnection:
         self.print_msg_to_log(event.msg_iq)
         event.xhtml = None
         event.encrypted = self.plugin.encryption_name
+        self.add_additional_data(event.additional_data)
         callback(event)
 
     @staticmethod
@@ -872,6 +876,9 @@ class OMEMOConnection:
         stanzastr = stanzastr[0:-1]
         log.debug(stanzastr)
         log.debug('-'*15)
+
+    def add_additional_data(self, data):
+        data['encrypted'] = {'name': self.plugin.encryption_name}
 
 
 class OMEMOError(Exception):
