@@ -28,6 +28,8 @@ from gajim.common import configpaths
 from gajim.common.connection_handlers_events import MessageNotSentEvent
 
 from openpgp.modules import util
+from openpgp.modules.util import ENCRYPTION_NAME
+from openpgp.modules.util import add_additional_data
 from openpgp.modules.util import NS_OPENPGP_PUBLIC_KEYS
 from openpgp.modules.util import NS_OPENPGP
 from openpgp.modules.util import Key
@@ -40,10 +42,8 @@ from openpgp.backend.pygpg import PGPContext
 log = logging.getLogger('gajim.plugin_system.openpgp')
 
 
-ENCRYPTION_NAME = 'OpenPGP'
-
 # Module name
-name = 'OpenPGP'
+name = ENCRYPTION_NAME
 zeroconf = False
 
 
@@ -198,6 +198,9 @@ class ContactData:
         return [k for k in keys if k.active and k.trust in (Trust.VERIFIED,
                                                             Trust.BLIND)]
 
+    def get_key(self, fingerprint):
+        return self._key_store.get(fingerprint, None)
+
     def set_trust(self, fingerprint, trust):
         self._storage.set_trust(self.jid, fingerprint, trust)
 
@@ -268,6 +271,16 @@ class PGPContacts:
             return contact_data.get_keys(only_trusted=only_trusted)
         except KeyError:
             return []
+
+    def get_trust(self, jid, fingerprint):
+        contact_data = self._contacts.get(jid, None)
+        if contact_data is None:
+            return Trust.UNKNOWN
+
+        key = contact_data.get_key(fingerprint)
+        if key is None:
+            return Trust.UNKNOWN
+        return key.trust
 
 
 class OpenPGP:
@@ -445,7 +458,8 @@ class OpenPGP:
         encrypted_payload = b64decode(b64encode_payload)
 
         try:
-            decrypted_payload = self._pgp.decrypt(encrypted_payload)
+            decrypted_payload, fingerprint = self._pgp.decrypt(
+                encrypted_payload)
         except DecryptionFailed as error:
             log.warning(error)
             return
@@ -482,6 +496,9 @@ class OpenPGP:
         if body:
             obj.msgtxt = body
 
+        add_additional_data(obj.additional_data,
+                            fingerprint)
+
         obj.encrypted = ENCRYPTION_NAME
         callback(obj)
 
@@ -507,6 +524,9 @@ class OpenPGP:
             return
 
         util.create_openpgp_message(obj, encrypted_payload)
+
+        add_additional_data(obj.additional_data,
+                            self._fingerprint)
 
         obj.encrypted = ENCRYPTION_NAME
         self.print_msg_to_log(obj.msg_iq)

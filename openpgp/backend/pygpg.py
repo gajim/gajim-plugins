@@ -89,7 +89,7 @@ class PGPContext(gnupg.GPG):
         if not result.ok:
             raise DecryptionFailed(result.status)
 
-        return result.data.decode('utf8')
+        return result.data.decode('utf8'), result.fingerprint
 
     def get_key(self, fingerprint):
         return super().list_keys(keys=[fingerprint])

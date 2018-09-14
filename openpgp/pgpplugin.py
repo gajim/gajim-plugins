@@ -32,6 +32,7 @@ from gajim.common.const import CSSPriority
 from gajim.gtk.dialogs import ErrorDialog
 
 from openpgp.modules.util import NS_NOTIFY
+from openpgp.modules.util import ENCRYPTION_NAME
 from openpgp.modules import pgp_keylist
 try:
     from openpgp.modules import openpgp
@@ -60,7 +61,7 @@ class OpenPGPPlugin(GajimPlugin):
         self.modules = [pgp_keylist,
                         openpgp]
 
-        self.encryption_name = 'OpenPGP'
+        self.encryption_name = ENCRYPTION_NAME
         self.config_dialog = None
         self.gui_extension_points = {
             'encrypt' + self.encryption_name: (self._encrypt_message, None),

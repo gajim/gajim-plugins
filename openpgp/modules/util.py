@@ -29,6 +29,7 @@ from nbxmpp import Node
 
 from gajim.common.modules.date_and_time import parse_datetime
 
+ENCRYPTION_NAME = 'OpenPGP'
 NS_OPENPGP = 'urn:xmpp:openpgp:0'
 NS_OPENPGP_PUBLIC_KEYS = 'urn:xmpp:openpgp:0:public-keys'
 NS_NOTIFY = NS_OPENPGP_PUBLIC_KEYS + '+notify'
@@ -204,6 +205,11 @@ def create_openpgp_message(obj, encrypted_payload):
 
 def get_info_message():
     return '[This message is *encrypted* with OpenPGP (See :XEP:`0373`]'
+
+
+def add_additional_data(data, fingerprint, trust):
+    data['encrypted'] = {'name': ENCRYPTION_NAME,
+                         'fingerprint': fingerprint}
 
 
 class VerifyFailed(Exception):
