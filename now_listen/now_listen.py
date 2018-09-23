@@ -8,31 +8,28 @@ import logging
 from gajim.plugins import GajimPlugin
 from gajim.plugins.helpers import log_calls
 from gajim.plugins.gui import GajimPluginConfigDialog
-from gajim.plugins.gajimplugin import GajimPluginException
-from gajim.common import dbus_support
 
-if dbus_support.supported:
-    from gajim.music_track_listener import MusicTrackListener
-
+from gajim.music_track_listener import MusicTrackListener
 
 log = logging.getLogger('gajim.plugin_system.now_listen')
+
 
 class NowListenPlugin(GajimPlugin):
 
     @log_calls('NowListenPlugin')
     def init(self):
         self.description = _('Copy tune info of playing music to conversation '
-            'input box at cursor position (Alt + N)')
+                             'input box at cursor position (Alt + N)')
         self.config_dialog = NowListenPluginConfigDialog(self)
         self.gui_extension_points = {'chat_control_base':
-                                         (self.connect_with_chat_control,
-                                          self.disconnect_from_chat_control)}
+                                     (self.connect_with_chat_control,
+                                      self.disconnect_from_chat_control)}
 
         self.config_default_values = {
             'format_string':
                 (_('Now listening to: "%title" by %artist from %album'), ''),
             'format_string_http':
-                (_('Now listening to: "%title" by %artist'), ''),}
+                (_('Now listening to: "%title" by %artist'), ''), }
 
         self.controls = []
         self.first_run = True
@@ -55,22 +52,27 @@ class NowListenPlugin(GajimPlugin):
 
     @log_calls('NowListenPlugin')
     def activate(self):
-        if not dbus_support.supported:
-            raise GajimPluginException(_('python-dbus is missing!'))
         listener = MusicTrackListener.get()
         if not self.music_track_changed_signal:
             self.music_track_changed_signal = listener.connect(
                 'music-track-changed', self.music_track_changed)
-        track = listener.get_playing_track('org.mpris.MediaPlayer2')
-        self.music_track_changed(listener, track)
+            try:
+                listener.start()
+            except AttributeError:
+                track = listener.get_playing_track('org.mpris.MediaPlayer2')
+                self.music_track_changed(listener, track)
+
 
     @log_calls('NowListenPlugin')
     def deactivate(self):
-        if dbus_support.supported:
-            listener = MusicTrackListener.get()
-            if self.music_track_changed_signal:
-                listener.disconnect(self.music_track_changed_signal)
-                self.music_track_changed_signal = None
+        listener = MusicTrackListener.get()
+        if self.music_track_changed_signal:
+            listener.disconnect(self.music_track_changed_signal)
+            self.music_track_changed_signal = None
+            try:
+                listener.stop()
+            except AttributeError:
+                pass
 
     def music_track_changed(self, unused_listener, music_track_info,
                             account=None):
@@ -131,9 +133,9 @@ class Base(object):
 
             tune_string = format_string.\
                 replace('%artist', self.plugin.artist).\
-                    replace('%title', self.plugin.title).\
-                        replace('%album',self.plugin.album).\
-                            replace('%url', self.plugin.url)
+                replace('%title', self.plugin.title).\
+                replace('%album', self.plugin.album).\
+                replace('%url', self.plugin.url)
 
         message_buffer = self.chat_control.msg_textview.get_buffer()
         message_buffer.insert_at_cursor(tune_string)
