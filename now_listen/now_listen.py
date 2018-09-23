@@ -76,12 +76,12 @@ class NowListenPlugin(GajimPlugin):
                             account=None):
 
         if music_track_info is None or music_track_info.paused:
-            artist = title = album = ''
+            self.artist = self.title = self.album = ''
         else:
             self.artist = music_track_info.artist
             self.title = music_track_info.title
             self.album = music_track_info.album
-            log.debug(self.artist + " - " + self.title)
+            log.debug("%s - %s", self.artist, self.title)
             if hasattr(music_track_info, 'url'):
                 self.url = music_track_info.url
                 self.albumartist = music_track_info.albumartist
