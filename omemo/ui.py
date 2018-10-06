@@ -43,6 +43,11 @@ from gajim.common import configpaths
 from gajim.dialogs import YesNoDialog
 from gajim.plugins.gui import GajimPluginConfigDialog
 
+# Since Gajim 1.1.0 _() has to be imported
+try:
+    from gajim.common.i18n import _
+except ImportError:
+    pass
 
 @unique
 class State(IntEnum):

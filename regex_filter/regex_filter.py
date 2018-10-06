@@ -27,12 +27,19 @@ Regex Filter plugin.
 import re
 
 from gajim.plugins import GajimPlugin
-from gajim.plugins.helpers import log, log_calls
+from gajim.plugins.helpers import log_calls
 
 from gajim.common import app
 from gajim.common import ged
 from gajim.command_system.framework import CommandContainer, command, doc
 from gajim.command_system.implementation.hosts import *
+
+# Since Gajim 1.1.0 _() has to be imported
+try:
+    from gajim.common.i18n import _
+except ImportError:
+    pass
+
 
 class RegexFilterPlugin(GajimPlugin):
 

@@ -21,22 +21,29 @@
 ##
 
 
-from threading import Thread
+
 import os
+import random
+from tempfile import mkstemp, mkdtemp
+from threading import Thread
+from subprocess import Popen, PIPE
+
 from gi.repository import Gtk
 from gi.repository import Gdk
 from gi.repository import GdkPixbuf
 from gi.repository import Pango
 from gi.repository import GObject
-from tempfile import mkstemp, mkdtemp
-import random
-from subprocess import Popen, PIPE
 
 from gajim.common import app
 from gajim.plugins import GajimPlugin
 from gajim.plugins.helpers import log, log_calls
 from gajim.plugins.gui import GajimPluginConfigDialog
 
+# Since Gajim 1.1.0 _() has to be imported
+try:
+    from gajim.common.i18n import _
+except ImportError:
+    pass
 
 def latex_template(code):
     return '''\\documentclass[12pt]{article}

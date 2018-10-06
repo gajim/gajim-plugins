@@ -11,6 +11,12 @@ from gajim.common import configpaths
 from gajim.common import app
 from gajim.common import ged
 
+# Since Gajim 1.1.0 _() has to be imported
+try:
+    from gajim.common.i18n import _
+except ImportError:
+    pass
+
 log = logging.getLogger('gajim.plugin_system.birthday')
 
 TITLE = _('%s has birthday today')

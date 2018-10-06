@@ -18,12 +18,18 @@ try:
     from gi.repository import AyatanaAppIndicator3 as appindicator
     ERRORMSG = None
 except (ValueError, ImportError):
-    ERRORMSG = _('Please install libappindicator3')
+    ERRORMSG = 'Please install libappindicator3'
 
 from gajim.common import app, ged
 from gajim.common import configpaths
 from gajim.plugins import GajimPlugin
 from gajim.plugins.helpers import log_calls
+
+# Since Gajim 1.1.0 _() has to be imported
+try:
+    from gajim.common.i18n import _
+except ImportError:
+    pass
 
 
 class AppindicatorIntegrationPlugin(GajimPlugin):

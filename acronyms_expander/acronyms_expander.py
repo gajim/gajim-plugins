@@ -24,14 +24,18 @@ Acronyms expander plugin.
 :license: GPL
 '''
 
-import sys
 import os
 
-from gi.repository import Gtk
 from gi.repository import GObject
 
 from gajim.plugins import GajimPlugin
 from gajim.plugins.helpers import log, log_calls
+
+# Since Gajim 1.1.0 _() has to be imported
+try:
+    from gajim.common.i18n import _
+except ImportError:
+    pass
 
 class AcronymsExpanderPlugin(GajimPlugin):
 

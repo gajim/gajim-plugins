@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 from gi.repository import Pango
 from gi.repository import Gtk
 from gi.repository import Gdk
@@ -10,6 +8,12 @@ from gajim.plugins import GajimPlugin
 from gajim.plugins.gui import GajimPluginConfigDialog
 from gajim.dialogs import ChangeActivityDialog, ChangeMoodDialog
 from gajim import gtkgui_helpers
+
+# Since Gajim 1.1.0 _() has to be imported
+try:
+    from gajim.common.i18n import _
+except ImportError:
+    pass
 
 
 class RosterTweaksPlugin(GajimPlugin):

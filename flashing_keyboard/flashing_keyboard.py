@@ -1,14 +1,18 @@
-# -*- coding: utf-8 -*-
+import subprocess
 
 from gi.repository import Gtk
 from gi.repository import GObject
-import subprocess
 
 from gajim.common import app
 from gajim.plugins import GajimPlugin
-from gajim.plugins.helpers import log_calls, log
+from gajim.plugins.helpers import log_calls
 from gajim.plugins.gui import GajimPluginConfigDialog
 
+# Since Gajim 1.1.0 _() has to be imported
+try:
+    from gajim.common.i18n import _
+except ImportError:
+    pass
 
 class FlashingKeyboard(GajimPlugin):
     @log_calls('FlashingKeyboard')

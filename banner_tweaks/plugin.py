@@ -29,8 +29,6 @@ http://trac.gajim.org/attachment/ticket/4133/gajim-chatbanneroptions-svn10008.pa
 :license: GPL
 '''
 
-import sys
-
 from gi.repository import Gtk
 from gi.repository import GObject
 from gajim import message_control
@@ -38,8 +36,15 @@ from gajim.common import app
 from gajim.common import helpers
 
 from gajim.plugins import GajimPlugin
-from gajim.plugins.helpers import log, log_calls
+from gajim.plugins.helpers import log_calls
 from gajim.plugins.gui import GajimPluginConfigDialog
+
+# Since Gajim 1.1.0 _() has to be imported
+try:
+    from gajim.common.i18n import _
+except ImportError:
+    pass
+
 
 class BannerTweaksPlugin(GajimPlugin):
 

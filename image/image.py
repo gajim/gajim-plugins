@@ -10,6 +10,12 @@ from gajim.plugins import GajimPlugin
 from gajim.plugins.helpers import log_calls
 from gajim.dialogs import ErrorDialog
 
+# Since Gajim 1.1.0 _() has to be imported
+try:
+    from gajim.common.i18n import _
+except ImportError:
+    pass
+
 try:
     from gajim.gtk.filechoosers import FileChooserDialog
     NEW_FILECHOOSER = True

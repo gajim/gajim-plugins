@@ -1,13 +1,10 @@
-# -*- coding: utf-8 -*-
-##
-
-from datetime import datetime
-from gi.repository import Gtk
-from gi.repository import GdkPixbuf
-import gi
 import os
 import time
 import logging
+from datetime import datetime
+
+import gi
+from gi.repository import Gtk
 
 from gajim.plugins.gui import GajimPluginConfigDialog
 from gajim.plugins import GajimPlugin
@@ -18,6 +15,12 @@ from gajim.common import helpers
 from gajim.common import configpaths
 from gajim import gtkgui_helpers
 from gajim.dialogs import InputDialog, WarningDialog
+
+# Since Gajim 1.1.0 _() has to be imported
+try:
+    from gajim.common.i18n import _
+except ImportError:
+    pass
 
 log = logging.getLogger('gajim.plugin_system.set_location')
 

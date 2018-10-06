@@ -32,6 +32,12 @@ from gajim.plugins import GajimPlugin
 from gajim.plugins.helpers import log, log_calls
 from gajim.plugins.gui import GajimPluginConfigDialog
 
+# Since Gajim 1.1.0 _() has to be imported
+try:
+    from gajim.common.i18n import _
+except ImportError:
+    pass
+
 class AntiSpamPlugin(GajimPlugin):
 
     @log_calls('AntiSpamPlugin')

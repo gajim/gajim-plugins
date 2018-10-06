@@ -1,5 +1,4 @@
-# -*- coding: utf-8 -*-
-##
+import unicodedata
 
 from gi.repository import GObject
 
@@ -9,7 +8,12 @@ from gajim.common import ged
 from gajim.common import app
 from gajim.common import helpers
 from gajim import gtkgui_helpers
-import unicodedata
+
+# Since Gajim 1.1.0 _() has to be imported
+try:
+    from gajim.common.i18n import _
+except ImportError:
+    pass
 
 def paragraph_direction_mark(text):
     """

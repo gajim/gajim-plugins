@@ -1,25 +1,29 @@
-# -*- coding: utf-8 -*-
+import re
+import os
+import time
+import sqlite3
 
+import nbxmpp
 from gi.repository import Pango
 from gi.repository import Gtk
 from gi.repository import GdkPixbuf
 from gi.repository import Gdk
-import re
-import os
-import time
-import locale
-import sqlite3
 
 from gajim.common import helpers
 from gajim.common import app
 from gajim.common import configpaths
 from gajim.plugins import GajimPlugin
-from gajim.plugins.helpers import log_calls, log
+from gajim.plugins.helpers import log_calls
 from gajim.plugins.gui import GajimPluginConfigDialog
 from gajim.conversation_textview import TextViewImage
 from gajim import gtkgui_helpers
 
-import nbxmpp
+
+# Since Gajim 1.1.0 _() has to be imported
+try:
+    from gajim.common.i18n import _
+except ImportError:
+    pass
 
 
 class JuickPlugin(GajimPlugin):

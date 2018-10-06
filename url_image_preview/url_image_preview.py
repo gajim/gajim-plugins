@@ -38,6 +38,12 @@ from url_image_preview.http_functions import get_http_head, get_http_file
 from url_image_preview.config_dialog import UrlImagePreviewConfigDialog
 from url_image_preview.resize_gif import resize_gif
 
+# Since Gajim 1.1.0 _() has to be imported
+try:
+    from gajim.common.i18n import _
+except ImportError:
+    pass
+
 try:
     from gajim.gtk.filechoosers import FileSaveDialog
     NEW_FILECHOOSER = True

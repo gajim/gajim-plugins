@@ -17,13 +17,19 @@
 
 import urllib.request as urllib2
 import socket
-import re
 import ssl
+import logging
+import os
 
 from gajim.common import app
-import logging
 
-import os
+# Since Gajim 1.1.0 _() has to be imported
+try:
+    from gajim.common.i18n import _
+except ImportError:
+    pass
+
+
 if os.name == 'nt':
     import certifi
 

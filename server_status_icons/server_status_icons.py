@@ -1,8 +1,5 @@
-# -*- coding: utf-8 -*-
-##
 import os
 
-from gajim.plugins.gui import GajimPluginConfigDialog
 from gajim.plugins import GajimPlugin
 from gajim.plugins.helpers import log_calls
 from gajim import gtkgui_helpers
@@ -10,6 +7,11 @@ from gajim.common import app
 from gajim.common import helpers
 from gajim.common import ged
 
+# Since Gajim 1.1.0 _() has to be imported
+try:
+    from gajim.common.i18n import _
+except ImportError:
+    pass
 
 class ServerStatusIconsPlugin(GajimPlugin):
 

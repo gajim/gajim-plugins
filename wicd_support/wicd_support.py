@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 import os
 
 from gajim.common import app
@@ -7,6 +5,11 @@ from gajim.plugins import GajimPlugin
 from gajim.plugins.helpers import log_calls
 from gajim.common import dbus_support
 
+# Since Gajim 1.1.0 _() has to be imported
+try:
+    from gajim.common.i18n import _
+except ImportError:
+    pass
 
 class WicdPlugin(GajimPlugin):
     @log_calls('WicdPlugin')

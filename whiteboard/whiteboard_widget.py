@@ -18,9 +18,17 @@
 ## along with Gajim. If not, see <http://www.gnu.org/licenses/>.
 ##
 
+from nbxmpp import Node
 from gi.repository import Gtk
 
 from gajim.common import app
+
+# Since Gajim 1.1.0 _() has to be imported
+try:
+    from gajim.common.i18n import _
+except ImportError:
+    pass
+
 try:
     import gi
     gi.require_version('GooCanvas', '2.0')
@@ -28,7 +36,7 @@ try:
     HAS_GOOCANVAS = True
 except:
     HAS_GOOCANVAS = False
-from nbxmpp import Node
+
 
 try:
     from gajim.gtk.filechoosers import NativeFileChooserDialog, Filter

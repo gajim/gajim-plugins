@@ -34,7 +34,6 @@ from gajim.plugins import GajimPlugin
 from gajim.plugins.gajimplugin import GajimPluginException
 from gajim.plugins.helpers import log_calls, log
 from nbxmpp import Message
-from gi.repository import Gtk
 from gi.repository import Gio
 from gi.repository import GLib
 from gajim import chat_control
@@ -44,7 +43,12 @@ from gajim.common.jingle_content import JingleContent
 from gajim.common.jingle_transport import JingleTransport, TransportType
 from gajim import dialogs
 from .whiteboard_widget import Whiteboard, HAS_GOOCANVAS
-from gajim.common import caps_cache
+
+# Since Gajim 1.1.0 _() has to be imported
+try:
+    from gajim.common.i18n import _
+except ImportError:
+    pass
 
 NS_JINGLE_XHTML = 'urn:xmpp:tmp:jingle:apps:xhtml'
 NS_JINGLE_SXE = 'urn:xmpp:tmp:jingle:transports:sxe'

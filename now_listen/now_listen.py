@@ -1,15 +1,20 @@
-# -*- coding: utf-8 -*-
+import os
+import logging
 
 from gi.repository import Gtk
 from gi.repository import Gdk
-import os
-import logging
 
 from gajim.plugins import GajimPlugin
 from gajim.plugins.helpers import log_calls
 from gajim.plugins.gui import GajimPluginConfigDialog
 
 from gajim.music_track_listener import MusicTrackListener
+
+# Since Gajim 1.1.0 _() has to be imported
+try:
+    from gajim.common.i18n import _
+except ImportError:
+    pass
 
 log = logging.getLogger('gajim.plugin_system.now_listen')
 
