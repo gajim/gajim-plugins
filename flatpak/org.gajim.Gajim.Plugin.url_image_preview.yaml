@@ -1,0 +1,28 @@
+id: org.gajim.Gajim.Plugin.url_image_preview
+runtime: org.gajim.Gajim
+sdk: org.gnome.Sdk//3.30
+build-extension: true
+separate-locales: false
+appstream-compose: false
+
+build-options:
+  env:
+    PYTHONPATH: /app/plugins/url_image_preview/lib/python3.7/site-packages/
+
+modules:
+  - modules/python3-pillow.yaml
+
+  - name: gajim-url_image_preview
+    buildsystem: simple
+    build-commands:
+      - 'cp -R -t ${FLATPAK_DEST} *'
+    post-install:
+      - install -Dm644 --target-directory=${FLATPAK_DEST}/share/metainfo org.gajim.Gajim.Plugin.url_image_preview.metainfo.xml
+      - appstream-compose --basename=org.gajim.Gajim.Plugin.url_image_preview --prefix=${FLATPAK_DEST} --origin=flatpak org.gajim.Gajim.Plugin.url_image_preview
+    sources:
+      - type: archive
+        url: https://ftp.gajim.org/plugins_releases/url_image_preview_2.3.1.zip
+        sha256: b90d50f5e7aaa46f8eff8bf531a98f208e48e771ac81b3d36a23d44ae13a0500
+      - type: file
+        path: org.gajim.Gajim.Plugin.url_image_preview.metainfo.xml
+        sha256: 3b11c6bcb9c349bb6b831031da6740f5da6fc1e925ab98c5c06a62d787ca26fc
