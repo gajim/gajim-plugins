@@ -1,9 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Generated with glade 3.20.0 -->
+<!-- Generated with glade 3.22.1 -->
 <interface>
-  <requires lib="gtk+" version="3.14"/>
+  <requires lib="gtk+" version="3.20"/>
   <object class="GtkWindow" id="ConfigWindow">
     <property name="can_focus">False</property>
+    <child>
+      <placeholder/>
+    </child>
     <child>
       <object class="GtkGrid" id="config_grid">
         <property name="visible">True</property>
@@ -55,47 +58,47 @@
   <object class="GtkWindow" id="AvailablePlugins">
     <property name="can_focus">False</property>
     <child>
-      <object class="GtkPaned" id="paned">
+      <placeholder/>
+    </child>
+    <child>
+      <object class="GtkBox" id="available_plugins_box">
         <property name="visible">True</property>
-        <property name="can_focus">True</property>
+        <property name="can_focus">False</property>
+        <property name="margin_left">18</property>
+        <property name="margin_right">18</property>
+        <property name="margin_top">18</property>
+        <property name="margin_bottom">18</property>
+        <property name="spacing">18</property>
         <child>
-          <object class="GtkGrid" id="plugin_grid">
+          <object class="GtkBox">
+            <property name="width_request">200</property>
             <property name="visible">True</property>
             <property name="can_focus">False</property>
+            <property name="hexpand">True</property>
+            <property name="orientation">vertical</property>
             <child>
-              <object class="GtkProgressBar" id="progressbar">
-                <property name="can_focus">False</property>
-                <property name="no_show_all">True</property>
-                <property name="ellipsize">end</property>
-              </object>
-              <packing>
-                <property name="left_attach">0</property>
-                <property name="top_attach">1</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkScrolledWindow" id="scrolledwindow2">
+              <object class="GtkScrolledWindow" id="scrolledwindow">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
-                <property name="hexpand">True</property>
-                <property name="vexpand">True</property>
-                <property name="border_width">6</property>
                 <property name="hscrollbar_policy">never</property>
+                <property name="shadow_type">out</property>
                 <child>
-                  <object class="GtkTreeView" id="available_treeview">
+                  <object class="GtkTreeView" id="available_plugins_treeview">
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
-                    <property name="vexpand">True</property>
                     <property name="model">plugin_store</property>
-                    <property name="headers_clickable">False</property>
-                    <property name="search_column">1</property>
                     <child internal-child="selection">
-                      <object class="GtkTreeSelection">
+                      <object class="GtkTreeSelection" id="treeview-selection">
                         <signal name="changed" handler="available_plugins_treeview_selection_changed" swapped="no"/>
                       </object>
                     </child>
                     <child>
                       <object class="GtkTreeViewColumn">
+                        <property name="resizable">True</property>
+                        <property name="sizing">fixed</property>
+                        <property name="fixed_width">200</property>
+                        <property name="min_width">150</property>
+                        <property name="max_width">300</property>
                         <property name="title" translatable="yes">Plugin</property>
                         <property name="expand">True</property>
                         <child>
@@ -137,7 +140,7 @@
                     <child>
                       <object class="GtkTreeViewColumn">
                         <property name="title" translatable="yes">Install /
-Upgrade</property>
+Update</property>
                         <property name="alignment">0.5</property>
                         <child>
                           <object class="GtkCellRendererToggle" id="togglerenderer">
@@ -149,200 +152,224 @@ Upgrade</property>
                         </child>
                       </object>
                     </child>
+                    <style>
+                      <class name="space"/>
+                    </style>
                   </object>
                 </child>
               </object>
               <packing>
-                <property name="left_attach">0</property>
-                <property name="top_attach">0</property>
+                <property name="expand">True</property>
+                <property name="fill">True</property>
+                <property name="position">0</property>
               </packing>
             </child>
             <child>
-              <object class="GtkButtonBox">
+              <object class="GtkToolbar">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="halign">start</property>
-                <property name="margin_top">2</property>
-                <property name="margin_bottom">2</property>
-                <property name="border_width">6</property>
-                <property name="orientation">vertical</property>
-                <property name="layout_style">start</property>
+                <property name="show_arrow">False</property>
+                <property name="icon_size">1</property>
                 <child>
-                  <object class="GtkButton" id="install_button">
-                    <property name="label" translatable="yes">Install/Upgrade</property>
+                  <object class="GtkToolButton" id="install_plugin_button">
                     <property name="visible">True</property>
-                    <property name="can_focus">True</property>
-                    <property name="receives_default">True</property>
-                    <property name="valign">start</property>
-                    <property name="vexpand">False</property>
-                    <property name="image">refresh</property>
-                    <property name="always_show_image">True</property>
+                    <property name="sensitive">False</property>
+                    <property name="can_focus">False</property>
+                    <property name="tooltip_text" translatable="yes">Install/Update Plugin</property>
+                    <property name="icon_name">system-software-update</property>
                     <signal name="clicked" handler="on_install_upgrade_clicked" swapped="no"/>
                   </object>
                   <packing>
-                    <property name="expand">True</property>
-                    <property name="fill">True</property>
-                    <property name="position">0</property>
+                    <property name="expand">False</property>
+                    <property name="homogeneous">False</property>
+                  </packing>
+                </child>
+                <style>
+                  <class name="inline-toolbar"/>
+                </style>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">1</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkProgressBar" id="progressbar">
+                <property name="can_focus">False</property>
+                <property name="no_show_all">True</property>
+                <property name="ellipsize">end</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">2</property>
+              </packing>
+            </child>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="position">0</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkBox">
+            <property name="width_request">400</property>
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="hexpand">True</property>
+            <property name="orientation">vertical</property>
+            <property name="spacing">18</property>
+            <child>
+              <object class="GtkLabel" id="plugin_name_label">
+                <property name="can_focus">False</property>
+                <property name="no_show_all">True</property>
+                <property name="halign">start</property>
+                <property name="label" translatable="yes">&lt;Plugin Name&gt;</property>
+                <property name="selectable">True</property>
+                <style>
+                  <class name="large-header"/>
+                </style>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">0</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkLabel" id="plugin_description">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="halign">start</property>
+                <property name="label" translatable="yes">&lt;Description&gt;</property>
+                <property name="wrap">True</property>
+                <property name="wrap_mode">word-char</property>
+                <property name="selectable">True</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">1</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkGrid">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="row_spacing">6</property>
+                <property name="column_spacing">12</property>
+                <child>
+                  <object class="GtkLabel">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="halign">end</property>
+                    <property name="valign">start</property>
+                    <property name="label" translatable="yes">Version</property>
+                    <style>
+                      <class name="dim-label"/>
+                    </style>
+                  </object>
+                  <packing>
+                    <property name="left_attach">0</property>
+                    <property name="top_attach">0</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkLabel">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="halign">end</property>
+                    <property name="valign">start</property>
+                    <property name="label" translatable="yes">Authors</property>
+                    <style>
+                      <class name="dim-label"/>
+                    </style>
+                  </object>
+                  <packing>
+                    <property name="left_attach">0</property>
+                    <property name="top_attach">1</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkLabel">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="halign">end</property>
+                    <property name="valign">start</property>
+                    <property name="label" translatable="yes">Homepage</property>
+                    <style>
+                      <class name="dim-label"/>
+                    </style>
+                  </object>
+                  <packing>
+                    <property name="left_attach">0</property>
+                    <property name="top_attach">2</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkLabel" id="plugin_version_label">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="halign">start</property>
+                    <property name="label" translatable="yes">&lt;empty&gt;</property>
+                    <property name="wrap">True</property>
+                    <property name="wrap_mode">word-char</property>
+                    <property name="selectable">True</property>
+                    <property name="xalign">0</property>
+                  </object>
+                  <packing>
+                    <property name="left_attach">1</property>
+                    <property name="top_attach">0</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkLabel" id="plugin_authors_label">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="halign">start</property>
+                    <property name="label" translatable="yes">&lt;empty&gt;</property>
+                    <property name="wrap">True</property>
+                    <property name="wrap_mode">word-char</property>
+                    <property name="selectable">True</property>
+                    <property name="xalign">0</property>
+                  </object>
+                  <packing>
+                    <property name="left_attach">1</property>
+                    <property name="top_attach">1</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkLabel" id="plugin_homepage_linkbutton">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="halign">start</property>
+                    <property name="label" translatable="yes">&lt;empty&gt;</property>
+                    <property name="wrap">True</property>
+                    <property name="wrap_mode">word-char</property>
+                    <property name="xalign">0</property>
+                  </object>
+                  <packing>
+                    <property name="left_attach">1</property>
+                    <property name="top_attach">2</property>
                   </packing>
                 </child>
               </object>
               <packing>
-                <property name="left_attach">0</property>
-                <property name="top_attach">2</property>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">2</property>
               </packing>
             </child>
           </object>
           <packing>
-            <property name="resize">True</property>
-            <property name="shrink">False</property>
-          </packing>
-        </child>
-        <child>
-          <object class="GtkGrid" id="description_grid">
-            <property name="width_request">350</property>
-            <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <property name="border_width">6</property>
-            <property name="row_spacing">3</property>
-            <property name="column_spacing">5</property>
-            <child>
-              <object class="GtkLabel" id="name_label">
-                <property name="can_focus">False</property>
-                <property name="no_show_all">True</property>
-                <property name="halign">start</property>
-                <property name="selectable">True</property>
-                <attributes>
-                  <attribute name="weight" value="bold"/>
-                </attributes>
-              </object>
-              <packing>
-                <property name="left_attach">0</property>
-                <property name="top_attach">0</property>
-                <property name="width">2</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkLabel" id="versionlabel">
-                <property name="visible">True</property>
-                <property name="can_focus">False</property>
-                <property name="halign">start</property>
-                <property name="label" translatable="yes">Version:</property>
-              </object>
-              <packing>
-                <property name="left_attach">0</property>
-                <property name="top_attach">1</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkLabel" id="authorslabel">
-                <property name="visible">True</property>
-                <property name="can_focus">False</property>
-                <property name="halign">start</property>
-                <property name="valign">start</property>
-                <property name="label" translatable="yes">Authors:</property>
-              </object>
-              <packing>
-                <property name="left_attach">0</property>
-                <property name="top_attach">2</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkLabel" id="homepage_label">
-                <property name="visible">True</property>
-                <property name="can_focus">False</property>
-                <property name="halign">start</property>
-                <property name="label" translatable="yes">Homepage:</property>
-              </object>
-              <packing>
-                <property name="left_attach">0</property>
-                <property name="top_attach">3</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkLabel" id="description_label">
-                <property name="visible">True</property>
-                <property name="can_focus">False</property>
-                <property name="halign">start</property>
-                <property name="label" translatable="yes">Description:</property>
-              </object>
-              <packing>
-                <property name="left_attach">0</property>
-                <property name="top_attach">4</property>
-                <property name="width">2</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkLabel" id="version_label">
-                <property name="visible">True</property>
-                <property name="can_focus">False</property>
-                <property name="halign">start</property>
-                <property name="hexpand">False</property>
-                <property name="selectable">True</property>
-              </object>
-              <packing>
-                <property name="left_attach">1</property>
-                <property name="top_attach">1</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkLabel" id="authors_label">
-                <property name="visible">True</property>
-                <property name="can_focus">False</property>
-                <property name="halign">start</property>
-                <property name="valign">start</property>
-                <property name="wrap_mode">word-char</property>
-                <property name="selectable">True</property>
-                <property name="ellipsize">end</property>
-              </object>
-              <packing>
-                <property name="left_attach">1</property>
-                <property name="top_attach">2</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkLinkButton" id="homepage_linkbutton">
-                <property name="can_focus">True</property>
-                <property name="focus_on_click">False</property>
-                <property name="receives_default">True</property>
-                <property name="no_show_all">True</property>
-                <property name="halign">start</property>
-                <property name="hexpand">True</property>
-                <property name="relief">none</property>
-              </object>
-              <packing>
-                <property name="left_attach">1</property>
-                <property name="top_attach">3</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkScrolledWindow" id="scrolled_description_window">
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="hexpand">True</property>
-                <property name="vexpand">True</property>
-                <property name="shadow_type">in</property>
-                <child>
-                  <placeholder/>
-                </child>
-              </object>
-              <packing>
-                <property name="left_attach">0</property>
-                <property name="top_attach">5</property>
-                <property name="width">2</property>
-              </packing>
-            </child>
-          </object>
-          <packing>
-            <property name="resize">True</property>
-            <property name="shrink">False</property>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="position">1</property>
           </packing>
         </child>
       </object>
     </child>
-  </object>
-  <object class="GtkImage" id="refresh">
-    <property name="visible">True</property>
-    <property name="can_focus">False</property>
-    <property name="stock">gtk-refresh</property>
   </object>
 </interface>

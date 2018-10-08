@@ -43,7 +43,6 @@ try:
     from common import gajim as app
     from plugins import GajimPlugin
     from plugins.gui import GajimPluginConfigDialog
-    from htmltextview import HtmlTextView
     from dialogs import WarningDialog, HigDialog, YesNoDialog
     from gtkgui_helpers import get_action
 except ImportError:
@@ -51,7 +50,6 @@ except ImportError:
     from gajim.common import configpaths
     from gajim.plugins import GajimPlugin
     from gajim.plugins.gui import GajimPluginConfigDialog
-    from gajim.htmltextview import HtmlTextView
     from gajim.dialogs import WarningDialog, HigDialog, YesNoDialog
     from gajim.gtkgui_helpers import get_action
 
@@ -131,7 +129,7 @@ class PluginInstaller(GajimPlugin):
     def warn_update(self, plugins):
         def open_update(dummy):
             get_action('plugins').activate()
-            page = self.notebook.page_num(self.paned)
+            page = self.notebook.page_num(self.available_plugins_box)
             self.notebook.set_current_page(page)
         if plugins:
             plugins_str = '\n' + '\n'.join(plugins)
@@ -154,7 +152,7 @@ class PluginInstaller(GajimPlugin):
 
     def deactivate(self):
         if hasattr(self, 'available_page'):
-            self.notebook.remove_page(self.notebook.page_num(self.paned))
+            self.notebook.remove_page(self.notebook.page_num(self.available_plugins_box))
             self.notebook.set_current_page(0)
             for id_, widget in list(self.connected_ids.items()):
                 widget.disconnect(id_)
@@ -182,34 +180,23 @@ class PluginInstaller(GajimPlugin):
         self.xml = Gtk.Builder()
         self.xml.set_translation_domain('gajim_plugins')
         self.xml.add_objects_from_file(self.Gtk_BUILDER_FILE_PATH,
-                                       ['refresh', 'paned', 'plugin_store'])
+                                       ['refresh', 'available_plugins_box', 'plugin_store'])
 
         widgets_to_extract = (
-            'name_label', 'available_treeview', 'progressbar', 'paned',
-            'install_button', 'authors_label', 'homepage_linkbutton',
-            'version_label', 'scrolled_description_window')
+            'available_plugins_box', 'install_plugin_button', 'plugin_name_label',
+            'plugin_version_label', 'plugin_authors_label', 'plugin_description',
+            'plugin_homepage_linkbutton', 'progressbar', 'available_plugins_treeview',
+            'available_text', 'available_text_label')
 
         for widget_name in widgets_to_extract:
             setattr(self, widget_name, self.xml.get_object(widget_name))
 
-        # Make Link in LinkButton not centered
-        style_provider = Gtk.CssProvider()
-        css = '.link { padding-left: 0px; padding-right: 0px; }'
-        style_provider.load_from_data(css.encode())
-        context = self.homepage_linkbutton.get_style_context()
-        context.add_provider(style_provider,
-                             Gtk.STYLE_PROVIDER_PRIORITY_USER)
-
         self.available_page = self.notebook.append_page(
-            self.paned, Gtk.Label.new(_('Available')))
+            self.available_plugins_box, Gtk.Label.new(_('Available')))
 
         self.available_plugins_model = self.xml.get_object('plugin_store')
         self.available_plugins_model.set_sort_column_id(
             2, Gtk.SortType.ASCENDING)
-
-        self.description_textview = HtmlTextView()
-        self.description_textview.set_wrap_mode(Gtk.WrapMode.WORD)
-        self.scrolled_description_window.add(self.description_textview)
 
         self.xml.connect_signals(self)
         self.window.show_all()
@@ -227,7 +214,7 @@ class PluginInstaller(GajimPlugin):
         for i in range(len(self.available_plugins_model)):
             if self.available_plugins_model[i][Column.UPGRADE]:
                 dir_list.append(self.available_plugins_model[i][Column.DIR])
-        self.install_button.set_property('sensitive', bool(dir_list))
+        self.install_plugin_button.set_property('sensitive', bool(dir_list))
 
     def on_notebook_switch_page(self, widget, page, page_num):
         tab_label_text = self.notebook.get_tab_label_text(page)
@@ -238,7 +225,7 @@ class PluginInstaller(GajimPlugin):
             self.start_download(upgrading=True)
 
     def on_install_upgrade_clicked(self, widget):
-        self.install_button.set_property('sensitive', False)
+        self.install_plugin_button.set_property('sensitive', False)
         dir_list = []
         for i in range(len(self.available_plugins_model)):
             if self.available_plugins_model[i][Column.UPGRADE]:
@@ -316,43 +303,31 @@ class PluginInstaller(GajimPlugin):
 
     def available_plugins_treeview_selection_changed(self, treeview_selection):
         model, iter_ = treeview_selection.get_selected()
-        self.description_textview.get_buffer().set_text('')
         if not iter_:
-            self.name_label.set_text('')
-            self.version_label.set_text('')
-            self.authors_label.set_text('')
-            self.homepage_linkbutton.set_uri('')
-            self.homepage_linkbutton.set_label('')
-            self.install_button.set_sensitive(False)
+            self.plugin_name_label.set_text('')
+            self.plugin_version_label.set_text('')
+            self.plugin_authors_label.set_text('')
+            self.plugin_homepage_linkbutton.set_text('')
+            self.install_plugin_button.set_sensitive(False)
             return
-        self.install_button.set_sensitive(True)
-        self.name_label.set_text(model.get_value(iter_, Column.NAME))
-        self.version_label.set_text(model.get_value(iter_, Column.VERSION))
-        self.authors_label.set_text(model.get_value(iter_, Column.AUTHORS))
-        self.homepage_linkbutton.set_uri(
-            model.get_value(iter_, Column.HOMEPAGE))
-        self.homepage_linkbutton.set_label(
-            model.get_value(iter_, Column.HOMEPAGE))
-        link_label = self.homepage_linkbutton.get_children()[0]
-        link_label.set_ellipsize(Pango.EllipsizeMode.END)
-        desc = _(model.get_value(iter_, Column.DESCRIPTION))
-        if not desc.startswith('<body '):
-            desc = ('<body xmlns=\'http://www.w3.org/1999/xhtml\'>'
-                    '%s</body>') % desc
-            desc = desc.replace('\n', '<br/>')
-        self.description_textview.display_html(
-            desc, self.description_textview, None)
+        self.plugin_name_label.set_text(model.get_value(iter_, Column.NAME))
+        self.plugin_version_label.set_text(model.get_value(iter_, Column.VERSION))
+        self.plugin_authors_label.set_text(model.get_value(iter_, Column.AUTHORS))
+        homepage = model.get_value(iter_, Column.HOMEPAGE)
+        markup = '<a href="%s">%s</a>' % (homepage, homepage)
+        self.plugin_homepage_linkbutton.set_markup(markup)
+        self.plugin_description.set_text(model.get_value(iter_, Column.DESCRIPTION))
 
     def select_root_iter(self):
-        selection = self.available_treeview.get_selection()
+        selection = self.available_plugins_treeview.get_selection()
         model, iter_ = selection.get_selected()
         if not iter_:
             iter_ = self.available_plugins_model.get_iter_first()
             selection.select_iter(iter_)
-        self.name_label.show()
-        self.homepage_linkbutton.show()
+        self.plugin_name_label.show()
+        self.plugin_homepage_linkbutton.show()
         path = self.available_plugins_model.get_path(iter_)
-        self.available_treeview.scroll_to_cell(path)
+        self.available_plugins_treeview.scroll_to_cell(path)
 
 
 class DownloadAsync(threading.Thread):
@@ -504,7 +479,7 @@ class DownloadAsync(threading.Thread):
                     if V(plugin['version']) > V(plugin['local_version']):
                         plugin['upgrade'] = True
                         GLib.idle_add(
-                            self.plugin.install_button.set_property,
+                            self.plugin.install_plugin_button.set_property,
                             'sensitive', True)
                 GLib.idle_add(self.model_append, plugin)
             GLib.idle_add(self.plugin.select_root_iter)
