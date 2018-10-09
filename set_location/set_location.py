@@ -35,7 +35,7 @@ try:
     GtkClutter.init([]) # Must be initialized before importing those:
     from gi.repository import Champlain, GtkChamplain
 except:
-    log.debug('Champlain library not available')
+    log.exception('Champlain library not available')
     CHAMPLAIN_AVAILABLE = False
 
 
@@ -43,9 +43,9 @@ class SetLocationPlugin(GajimPlugin):
     @log_calls('SetLocationPlugin')
     def init(self):
         self.description = _('Set information about your current geographical '
-            'or physical location. \n'
-            'To be able to set your location on the built-in map, '
-            'you must install gir1.2-gtkchamplain')
+            'or physical location. \nTo be able to set your location on the '
+            'built-in map, you need to have gir1.2-gtkchamplain and '
+            'gir1.2-gtkclutter-1.0 installed')
         self.config_dialog = SetLocationPluginConfigDialog(self)
         self.config_default_values = {
             'alt': (1609, ''),
@@ -93,7 +93,7 @@ class SetLocationPlugin(GajimPlugin):
             self._data[name] = self.config[name]
 
         if not acct:
-            #set geo for all accounts
+            # Set geo for all accounts
             for acct in app.connections:
                 if app.config.get_per('accounts', acct, 'publish_location'):
                     app.connections[acct].get_module('UserLocation').send(
@@ -108,10 +108,10 @@ class SetLocationPluginConfigDialog(GajimPluginConfigDialog):
                 'config_dialog.ui')
         self.xml = Gtk.Builder()
         self.xml.set_translation_domain('gajim_plugins')
-        self.xml.add_objects_from_file(self.GTK_BUILDER_FILE_PATH,
-                ['hbox1'])
-        hbox = self.xml.get_object('hbox1')
-        self.get_child().pack_start(hbox, True, True, 0)
+        self.xml.add_objects_from_file(self.GTK_BUILDER_FILE_PATH, 
+                ['config_box'])
+        config_box = self.xml.get_object('config_box')
+        self.get_child().pack_start(config_box, True, True, 0)
         self.xml.connect_signals(self)
         self.connect('hide', self.on_hide)
         self.connect('show', self.on_show)
@@ -124,6 +124,7 @@ class SetLocationPluginConfigDialog(GajimPluginConfigDialog):
         self.preset_combo.pack_start(cellrenderer, True)
         self.preset_combo.add_attribute(cellrenderer, 'text', 0)
         #self.plugin.config['presets'] = {'default': {}}
+
 
     @log_calls('SetLocationPlugin.SetLocationPluginConfigDialog')
     def on_run(self):
@@ -138,9 +139,17 @@ class SetLocationPluginConfigDialog(GajimPluginConfigDialog):
             widget = self.xml.get_object(name)
             widget.set_text(str(self.plugin.config[name]))
 
+        map_placeholder = self.xml.get_object('map_placeholder')
+        dependency_bar = self.xml.get_object('dependency_warning')
+        dependency_bar.connect("close", lambda b: b.hide())
+        dependency_bar.connect("response", lambda b,i: b.hide())
+
         if CHAMPLAIN_AVAILABLE and not self.is_active:
-            vbox = self.xml.get_object('vbox1')
-            vbox.set_size_request(400, -1)
+            map_placeholder.set_no_show_all(True)
+            map_placeholder.hide()
+            dependency_bar.set_revealed(False)
+            map_box = self.xml.get_object('map_box')
+            map_box.set_size_request(400, -1)
 
             embed = GtkChamplain.Embed()
 
@@ -165,11 +174,8 @@ class SetLocationPluginConfigDialog(GajimPluginConfigDialog):
 
             self.path_to_image = os.path.abspath(gtkgui_helpers.get_icon_path(
                 'org.gajim.Gajim', 16))
-            vbox.pack_start(embed, expand=True, fill=True, padding=6)
-            label = Gtk.Label(_(
-                'Click right mouse button to set your location, \n'\
-                'middle mouse button to show / hide your contacts on the map'))
-            vbox.pack_start(label, expand=False, fill=False, padding=6)
+            map_box.pack_start(embed, expand=True, fill=True, padding=0)
+
             self.is_active = True
             self.layer = Champlain.MarkerLayer()
             texture = Clutter.Texture()
@@ -198,6 +204,7 @@ class SetLocationPluginConfigDialog(GajimPluginConfigDialog):
                 continue
             widget = self.xml.get_object(name)
             self.plugin.config[name] = widget.get_text()
+
         lat = self.xml.get_object('lat').get_text()
         lon = self.xml.get_object('lon').get_text()
         if self.is_valid_coord(lat, lon):
@@ -208,7 +215,7 @@ class SetLocationPluginConfigDialog(GajimPluginConfigDialog):
         else:
             self.plugin.config['lat'] = '0.0'
             self.plugin.config['lon'] = '0.0'
-            error_text = 'lat or lon field contains wrong value.'
+            error_text = _('Latitude or Longitude field contains an invalid value')
             WarningDialog(_('Wrong coordinates'), error_text, self)
 
     def map_clicked(self, actor, event, view):
