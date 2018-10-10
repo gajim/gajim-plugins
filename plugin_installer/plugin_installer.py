@@ -282,59 +282,35 @@ class PluginInstaller(GajimPlugin):
         self.thread.start()
 
     def on_plugin_downloaded(self, plugin_dirs):
+        need_restart = False
         for _dir in plugin_dirs:
-            is_active = False
-            plugins = None
-            plugin_dir = os.path.join(configpaths.get('PLUGINS_USER'), _dir)
-            plugin = app.plugin_manager.get_plugin_by_path(plugin_dir)
-            if plugin:
-                if plugin.active:
-                    is_active = True
-                    log.info('Deactivate Plugin: %s', plugin)
-                    app.plugin_manager.deactivate_plugin(plugin)
-
-                if hasattr(app.plugin_manager, 'uninstall_plugin'):
-                    # check if we are running a new version of gajim. Check 
-                    # uninstall because remove_plugin existed before
-                    app.plugin_manager.remove_plugin(plugin)
-                else:
-                    app.plugin_manager.plugins.remove(plugin)
-
-                model = self.installed_plugins_model
-                for row in range(len(model)):
-                    if plugin == model[row][0]:
-                        model.remove(model.get_iter((row, 0)))
+            updated = app.plugin_manager.update_plugins(replace=False, activate=True, plugin_name=_dir)
+            if updated:
+                plugin = app.plugin_manager.get_active_plugin(updated[0])
+                for row in range(len(self.available_plugins_model)):
+                    model_row = self.available_plugins_model[row]
+                    if plugin.name == model_row[Column.NAME]:
+                        model_row[Column.LOCAL_VERSION] = plugin.version
+                        model_row[Column.UPGRADE] = False
                         break
+                # get plugin icon
+                icon_file = os.path.join(plugin.__path__, os.path.split(
+                    plugin.__path__)[1]) + '.png'
+                icon = FALLBACK_ICON
+                if os.path.isfile(icon_file):
+                    icon = GdkPixbuf.Pixbuf.new_from_file_at_size(icon_file, 16, 16)
+                row = [plugin, plugin.name, True, plugin.activatable, icon]
+                self.installed_plugins_model.append(row)
+            else:
+                need_restart = True
 
-            log.info('Load Plugin from: %s', plugin_dir)
-            plugins = app.plugin_manager.scan_dir_for_plugins(
-                plugin_dir, package=True)
-            if not plugins:
-                log.warning('Loading Plugin failed')
-                continue
-            app.plugin_manager.add_plugin(plugins[0])
-            plugin = app.plugin_manager.plugins[-1]
-            log.info('Loading successful')
-            for row in range(len(self.available_plugins_model)):
-                model_row = self.available_plugins_model[row]
-                if plugin.name == model_row[Column.NAME]:
-                    model_row[Column.LOCAL_VERSION] = plugin.version
-                    model_row[Column.UPGRADE] = False
-            if is_active:
-                log.info('Activate Plugin: %s', plugin)
-                app.plugin_manager.activate_plugin(plugin)
-            # get plugin icon
-            icon_file = os.path.join(plugin.__path__, os.path.split(
-                plugin.__path__)[1]) + '.png'
-            icon = FALLBACK_ICON
-            if os.path.isfile(icon_file):
-                icon = GdkPixbuf.Pixbuf.new_from_file_at_size(icon_file, 16, 16)
-            row = [plugin, plugin.name, is_active, plugin.activatable, icon]
-            self.installed_plugins_model.append(row)
-
+        if need_restart:
+            txt = _('All plugins downloaded.\nThe updates will '
+                'be installed on next Gajim restart.')
+        else:
+            txt = _('All selected plugins downloaded and activated')
         dialog = HigDialog(
-            self.window, Gtk.MessageType.INFO, Gtk.ButtonsType.OK,
-            '', _('All selected plugins downloaded'))
+            self.window, Gtk.MessageType.INFO, Gtk.ButtonsType.OK, '', txt)
         dialog.set_modal(False)
         dialog.popup()
 
@@ -539,9 +515,8 @@ class DownloadAsync(threading.Thread):
         for remote_dir in self.remote_dirs:
             filename = remote_dir + '.zip'
             log.info('Download: %s', filename)
-            user_dir = configpaths.get('PLUGINS_USER')
-            if not os.path.isdir(user_dir):
-                os.mkdir(user_dir)
+
+            user_dir = configpaths.get('PLUGINS_DOWNLOAD')
             local_dir = os.path.join(user_dir, remote_dir)
             if not os.path.isdir(local_dir):
                 os.mkdir(local_dir)
