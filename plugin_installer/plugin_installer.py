@@ -55,12 +55,6 @@ except ImportError:
     from gajim.dialogs import WarningDialog, HigDialog, YesNoDialog
     from gajim.gtkgui_helpers import get_action
 
-# Since Gajim 1.1.0 _() has to be imported
-try:
-    from gajim.common.i18n import _
-except ImportError:
-    pass
-
 log = logging.getLogger('gajim.plugin_system.plugin_installer')
 
 PLUGINS_URL = 'https://ftp.gajim.org/plugins_1/'
