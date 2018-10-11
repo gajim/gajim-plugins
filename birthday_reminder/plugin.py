@@ -1,121 +1,119 @@
 import os
-import json
+import glob
 import datetime
-import logging
-
-from gi.repository import GLib
+from xml.dom.minidom import *
+from gi.repository import GObject
 
 from gajim.plugins import GajimPlugin
+from gajim.plugins.helpers import log_calls
+from gajim.notify import popup
 
 from gajim.common import configpaths
 from gajim.common import app
 from gajim.common import ged
 
-# Since Gajim 1.1.0 _() has to be imported
-try:
-    from gajim.common.i18n import _
-except ImportError:
-    pass
-
-log = logging.getLogger('gajim.plugin_system.birthday')
-
-TITLE = _('%s has birthday today')
-TEXT = _('Send him a message')
-
 
 class BirthDayPlugin(GajimPlugin):
+
+    @log_calls('BirthDayPlugin')
     def init(self):
+
         self.config_dialog = None
         self.description = ('Birthday reminder plugin')
         self.events_handlers = {
-            'vcard-received': (ged.GUI2, self._vcard_received)}
-
-        self.timeout_id = None
-        self._timeout_id_start = None
-
+            'roster-received': (ged.GUI2, self.roster_received)}
+        configpath = configpaths.ConfigPaths()
+        cache_path = configpath.cache_root
+        self.vcard_path = os.path.join(cache_path, 'vcards') + os.sep
+        self.timeout_id = 0
         self.showed_accounts = []
 
-        self._birthdays = {}
-        self._load_birthdays()
+    def check_birthdays(self, account=None):
+        def show_popup(account, jid):
+            contact_instances = app.contacts.get_contacts(account, jid)
+            contact = app.contacts.get_highest_prio_contact_from_contacts(
+                contact_instances)
+            if contact:
+                nick = GObject.markup_escape_text(contact.get_shown_name())
+                try:
+                    image = os.path.dirname(__file__) + os.sep + \
+                            'birthday_reminder_large.png'
+                except:
+                    image = None
 
-    def activate(self):
-        self._timeout_id_start = GLib.timeout_add_seconds(
-            5, self._check_birthdays_at_start)
-        self._timeout_id = GLib.timeout_add_seconds(
-            86400, self._check_birthdays)
+                popup('Send message', contact.jid, account, type_='',
+                    path_to_image=image, title=title, text=text + ' ' + nick)
 
-    def deactivate(self):
-        if self._timeout_id is not None:
-            GLib.source_remove(self.timeout_id)
-        if self._timeout_id_start is not None:
-            GLib.source_remove(self._timeout_id_start)
+        accounts = app.contacts.get_accounts()
+        vcards = []
+        date_dict = {}
+        for jid in glob.glob(self.vcard_path + '*@*'):
+            if os.path.isfile(jid):
+                vcards.append(jid)
 
-    def _load_birthdays(self):
-        path = os.path.join(configpaths.get('MY_DATA'), 'birthdays.json')
-        if os.path.exists(path):
-            with open(path, 'r', encoding='utf-8') as file:
-                content = file.read()
-                if content:
-                    self._birthdays = json.loads(content)
-
-    def _store_birthdays(self):
-        path = os.path.join(configpaths.get('MY_DATA'), 'birthdays.json')
-        with open(path, 'w', encoding='utf-8') as file:
-            json.dump(self._birthdays, file)
-
-    def _vcard_received(self, event):
-        birthday = event.vcard_dict.get('BDAY')
-        if not birthday:
-            if event.jid in self._birthdays:
-                del self._birthdays[event.jid]
-                log.info('Received empty birthday: %s', event.jid)
-        else:
+        for xmldoc in vcards:
             try:
-                year, month, day = birthday.split('-')
-                year = int(year)
-                month = int(month)
-                day = int(day)
-            except Exception:
-                log.warning('Invalid date: %s', birthday)
-                if event.jid in self._birthdays:
-                    del self._birthdays[event.jid]
+                xml = parse(xmldoc)
+            except:
+                pass
             else:
-                self._birthdays[event.jid] = (year, month, day)
-                log.info('Received birthday: %s %s',
-                         event.jid, (year, month, day))
-        self._store_birthdays()
+                name = xml.getElementsByTagName('BDAY')
+                for node in name:
+                    try:
+                        data = node.childNodes[0].nodeValue
+                        date_dict[xmldoc[len(self.vcard_path):][:-1]] = data
+                    except:
+                        pass
 
-    def _check_birthdays_at_start(self):
-        self._check_birthdays()
-
-    def _check_birthdays(self):
-        log.info('Check birthdays...')
         today = datetime.date.today()
-        for jid, birthdate in self._birthdays.items():
-            year, month, day = birthdate
-            if today.month == month and today.day == day:
-                account, contact = self._find_contact(jid)
-                if contact is None:
-                    if jid in self._birthdays:
-                        del self._birthdays[jid]
-                        self._store_birthdays()
-                        continue
-                else:
-                    log.info('Issue notification for %s', jid)
-                    nick = contact.get_shown_name() or jid
-                    app.notification.popup(
-                        'reminder',
-                        jid,
-                        account,
-                        icon_name='trophy-gold',
-                        title=TITLE % GLib.markup_escape_text(nick),
-                        text=TEXT)
 
+        for key, value in date_dict.items():
+            try:
+                convert_date = datetime.datetime.strptime(value, "%Y-%m-%d")
+                user_bday = datetime.date(today.year, convert_date.month,
+                    convert_date.day)
+            except:
+                continue
+
+            if user_bday < today:
+                user_bday = user_bday.replace(year=today.year+1)
+
+            time_to_bday = abs(user_bday - today)
+            title = "BirthDay Reminder"
+            text = None
+
+            if time_to_bday.days > 5:
+                continue
+            if time_to_bday.days == 5:
+                text = "5 days before BDay"
+            elif time_to_bday.days == 3:
+                text = "3 days before BDay"
+            elif time_to_bday.days == 1:
+                text = "Tomorrow BDay"
+            elif time_to_bday.days == 0:
+                text = "Today BDay"
+            if not text:
+                continue
+            if account:
+                show_popup(account,key)
+            else:
+                for acct in accounts:
+                    show_popup(account, key)
         return True
 
-    def _find_contact(self, jid):
-        accounts = app.contacts.get_accounts()
-        for account in accounts:
-            contact = app.contacts.get_contacts(account, jid)
-            if contact is not None:
-                return account, contact[0]
+    @log_calls('BirthDayPlugin')
+    def activate(self):
+        self.timeout_id = GObject.timeout_add_seconds(24*3600,
+            self.check_birthdays)
+
+    @log_calls('BirthDayPlugin')
+    def deactivate(self):
+        if self.timeout_id > 0:
+            GObject.source_remove(self.timeout_id)
+
+
+    @log_calls('BirthDayPlugin')
+    def roster_received(self, obj):
+        if obj.conn.name not in self.showed_accounts:
+            self.check_birthdays(obj.conn.name)
+            self.showed_accounts.append(obj.conn.name)
