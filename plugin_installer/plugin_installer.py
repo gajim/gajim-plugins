@@ -57,9 +57,9 @@ except ImportError:
 
 log = logging.getLogger('gajim.plugin_system.plugin_installer')
 
-PLUGINS_URL = 'https://ftp.gajim.org/plugins_1/'
-MANIFEST_URL = 'https://ftp.gajim.org/plugins_1/manifests.zip'
-MANIFEST_IMAGE_URL = 'https://ftp.gajim.org/plugins_1/manifests_images.zip'
+PLUGINS_URL = 'https://ftp.gajim.org/plugins_master_zip/'
+MANIFEST_URL = 'https://ftp.gajim.org/plugins_master_zip/manifests.zip'
+MANIFEST_IMAGE_URL = 'https://ftp.gajim.org/plugins_master_zip/manifests_images.zip'
 MANDATORY_FIELDS = ['name', 'version', 'description', 'authors', 'homepage']
 FALLBACK_ICON = Gtk.IconTheme.get_default().load_icon(
     'preferences-system', Gtk.IconSize.MENU, 0)
