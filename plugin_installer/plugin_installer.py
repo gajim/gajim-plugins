@@ -445,6 +445,16 @@ class DownloadAsync(threading.Thread):
 
         return io.BytesIO(request.read())
 
+    def plugin_is_valid(self, plugin):
+        gajim_v = V(app.config.get('version'))
+        min_v = plugin.get('min_gajim_version', None)
+        min_v = V(min_v) if min_v else gajim_v
+        max_v = plugin.get('max_gajim_version', None)
+        max_v = V(max_v) if max_v else gajim_v
+        if (gajim_v >= min_v) and (gajim_v <= max_v):
+            return True
+        return False
+
     def run_check_update(self):
         to_update = []
         zipbuf = self.download_url(MANIFEST_URL)
@@ -452,13 +462,8 @@ class DownloadAsync(threading.Thread):
         for plugin in plugin_list:
             local_version = get_local_version(plugin)
             if local_version:
-                gajim_v = V(app.config.get('version'))
-                min_v = plugin.get('min_gajim_version', None)
-                min_v = V(min_v) if min_v else gajim_v
-                max_v = plugin.get('max_gajim_version', None)
-                max_v = V(max_v) if max_v else gajim_v
                 if (V(plugin['version']) > V(local_version)) and \
-                (gajim_v >= min_v) and (gajim_v <= max_v):
+                self.plugin_is_valid(plugin):
                     to_update.append(plugin['name'])
         GLib.idle_add(self.plugin.warn_update, to_update)
 
@@ -467,7 +472,11 @@ class DownloadAsync(threading.Thread):
             log.info('Downloading Pluginlist...')
             zipbuf = self.download_url(MANIFEST_IMAGE_URL)
             plugin_list = self.parse_manifest(zipbuf)
+            nb_plugins = 0
             for plugin in plugin_list:
+                if not self.plugin_is_valid(plugin):
+                    continue
+                nb_plugins += 1
                 plugin['local_version'] = get_local_version(plugin)
                 if self.upgrading and plugin['local_version']:
                     if V(plugin['version']) > V(plugin['local_version']):
@@ -476,7 +485,8 @@ class DownloadAsync(threading.Thread):
                             self.plugin.install_plugin_button.set_property,
                             'sensitive', True)
                 GLib.idle_add(self.model_append, plugin)
-            GLib.idle_add(self.plugin.select_root_iter)
+            if nb_plugins:
+                GLib.idle_add(self.plugin.select_root_iter)
         else:
             self.download_plugin()
 
