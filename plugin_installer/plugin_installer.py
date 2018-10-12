@@ -36,22 +36,18 @@ from urllib.request import urlopen
 
 from gi.repository import Gtk
 from gi.repository import GdkPixbuf
-from gi.repository import Pango
 from gi.repository import GLib
 
-try:
-    from common import gajim as app
-    from plugins import GajimPlugin
-    from plugins.gui import GajimPluginConfigDialog
-    from dialogs import WarningDialog, HigDialog, YesNoDialog
-    from gtkgui_helpers import get_action
-except ImportError:
-    from gajim.common import app
-    from gajim.common import configpaths
-    from gajim.plugins import GajimPlugin
-    from gajim.plugins.gui import GajimPluginConfigDialog
-    from gajim.dialogs import WarningDialog, HigDialog, YesNoDialog
-    from gajim.gtkgui_helpers import get_action
+from gajim.common import app
+from gajim.common import configpaths
+from gajim.plugins import GajimPlugin
+from gajim.plugins.gui import GajimPluginConfigDialog
+from gajim.plugins.plugins_i18n import _
+from gajim.plugins.helpers import get_builder
+from gajim.gtk.dialogs import WarningDialog
+from gajim.gtk.dialogs import HigDialog
+from gajim.gtk.dialogs import YesNoDialog
+from gajim.gtkgui_helpers import get_action
 
 log = logging.getLogger('gajim.plugin_system.plugin_installer')
 
@@ -176,11 +172,9 @@ class PluginInstaller(GajimPlugin):
         self.window = plugin_win.window
         id_ = self.window.connect('destroy', self.on_win_destroy)
         self.connected_ids[id_] = self.window
-        self.Gtk_BUILDER_FILE_PATH = self.local_file_path('config_dialog.ui')
-        self.xml = Gtk.Builder()
-        self.xml.set_translation_domain('gajim_plugins')
-        self.xml.add_objects_from_file(self.Gtk_BUILDER_FILE_PATH,
-                                       ['refresh', 'available_plugins_box', 'plugin_store'])
+        path = self.local_file_path('installer.ui')
+        self.xml = get_builder(
+            path, widgets=['refresh', 'available_plugins_box', 'plugin_store'])
 
         widgets_to_extract = (
             'available_plugins_box', 'install_plugin_button', 'plugin_name_label',
@@ -511,18 +505,14 @@ class DownloadAsync(threading.Thread):
 
 class PluginInstallerPluginConfigDialog(GajimPluginConfigDialog):
     def init(self):
-        glade_file_path = self.plugin.local_file_path('config_dialog.ui')
-        self.xml = Gtk.Builder()
-        self.xml.set_translation_domain('gajim_plugins')
-        self.xml.add_objects_from_file(glade_file_path, ['config_grid'])
-        grid = self.xml.get_object('config_grid')
-        self.get_child().pack_start(grid, True, True, 0)
+        glade_file_path = self.plugin.local_file_path('config.ui')
+        self.xml = get_builder(glade_file_path)
+        self.get_child().pack_start(self.xml.config_grid, True, True, 0)
 
         self.xml.connect_signals(self)
 
     def on_run(self):
-        self.xml.get_object('check_update').set_active(
-            self.plugin.config['check_update'])
+        self.xml.check_update.set_active(self.plugin.config['check_update'])
 
     def on_check_update_toggled(self, widget):
         self.plugin.config['check_update'] = widget.get_active()
