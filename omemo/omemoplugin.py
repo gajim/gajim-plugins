@@ -24,8 +24,11 @@ import logging
 import binascii
 import threading
 from enum import IntEnum, unique
+from pathlib import Path
 
 from gi.repository import GLib
+from gi.repository import Gtk
+from gi.repository import Gdk
 
 from gajim import dialogs
 from gajim.common import app, ged
@@ -34,6 +37,7 @@ from gajim.plugins import GajimPlugin
 from gajim.groupchat_control import GroupchatControl
 
 from omemo.xmpp import DevicelistPEP
+from omemo.gtk.key import KeyDialog
 
 CRYPTOGRAPHY_MISSING = 'You are missing Python-Cryptography'
 AXOLOTL_MISSING = 'You are missing Python-Axolotl or use an outdated version'
@@ -65,7 +69,7 @@ except Exception as error:
 if not ERROR_MSG:
     try:
         from omemo.omemo_connection import OMEMOConnection
-        from omemo.ui import OMEMOConfigDialog, FingerprintWindow
+        from omemo.ui import OMEMOConfigDialog
     except Exception as error:
         log.error(error)
         ERROR_MSG = 'Error: %s' % error
@@ -124,6 +128,25 @@ class OmemoPlugin(GajimPlugin):
         if 'aesgcm://' not in schemes.split():
             schemes += ' aesgcm://'
             app.config.set('uri_schemes', schemes)
+
+        self._load_css()
+
+    def _load_css(self):
+        path = Path(__file__).parent / 'gtk' / 'style.css'
+        try:
+            with open(path, "r") as f:
+                css = f.read()
+        except Exception as exc:
+            log.error('Error loading css: %s', exc)
+            return
+
+        try:
+            provider = Gtk.CssProvider()
+            provider.load_from_data(bytes(css.encode('utf-8')))
+            Gtk.StyleContext.add_provider_for_screen(Gdk.Screen.get_default(),
+                                                     provider, 610)
+        except Exception:
+            log.exception('Error loading application css')
 
     def signed_in(self, event):
         """ Method called on SignIn
@@ -290,16 +313,15 @@ class OmemoPlugin(GajimPlugin):
         if 'dialog' not in self.windowinstances:
             is_groupchat = isinstance(chat_control, GroupchatControl)
             self.windowinstances['dialog'] = \
-                FingerprintWindow(self, contact, transient,
-                                  self.windowinstances, groupchat=is_groupchat)
-            self.windowinstances['dialog'].show_all()
+                KeyDialog(self, contact, transient,
+                          self.windowinstances, groupchat=is_groupchat)
             if fingerprints:
                 log.debug('%s => Showing Fingerprint Prompt for %s',
                           account, contact.jid)
                 omemo.store.setShownFingerprints(fingerprints)
         else:
             self.windowinstances['dialog'].present()
-            self.windowinstances['dialog'].update_context_list()
+            self.windowinstances['dialog'].update()
             if fingerprints:
                 omemo.store.setShownFingerprints(fingerprints)
 

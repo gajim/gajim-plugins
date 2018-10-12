@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Generated with glade 3.20.2 -->
+<!-- Generated with glade 3.22.1 -->
 <interface>
   <requires lib="gtk+" version="3.20"/>
   <object class="GtkListStore" id="account_store">
@@ -20,51 +20,116 @@
       <column type="gchararray"/>
     </columns>
   </object>
-  <object class="GtkListStore" id="fingerprint_store">
-    <columns>
-      <!-- column-name id -->
-      <column type="gint"/>
-      <!-- column-name screenname -->
-      <column type="gchararray"/>
-      <!-- column-name trust -->
-      <column type="gchararray"/>
-      <!-- column-name fingerprint -->
-      <column type="gchararray"/>
-      <!-- column-name deviceid -->
-      <column type="gint"/>
-    </columns>
-  </object>
   <object class="GtkNotebook" id="notebook1">
     <property name="visible">True</property>
     <property name="can_focus">True</property>
     <child>
-      <object class="GtkVBox" id="vbox1">
+      <object class="GtkBox">
         <property name="visible">True</property>
         <property name="can_focus">False</property>
-        <property name="border_width">12</property>
-        <property name="spacing">10</property>
+        <property name="border_width">18</property>
+        <property name="orientation">vertical</property>
+        <property name="spacing">6</property>
         <child>
-          <object class="GtkHBox" id="hbox2">
-            <property name="visible">True</property>
+          <object class="GtkInfoBar" id="qrinfo">
             <property name="can_focus">False</property>
-            <property name="spacing">5</property>
-            <child>
-              <object class="GtkLabel" id="label4">
-                <property name="visible">True</property>
+            <property name="margin_bottom">6</property>
+            <property name="revealed">False</property>
+            <child internal-child="action_area">
+              <object class="GtkButtonBox">
                 <property name="can_focus">False</property>
-                <property name="label" translatable="yes" comments="label for account selector">&lt;b&gt;Account:&lt;/b&gt;</property>
-                <property name="use_markup">True</property>
+                <property name="spacing">6</property>
+                <property name="layout_style">end</property>
+                <child>
+                  <placeholder/>
+                </child>
               </object>
               <packing>
                 <property name="expand">False</property>
-                <property name="fill">True</property>
+                <property name="fill">False</property>
                 <property name="position">0</property>
+              </packing>
+            </child>
+            <child internal-child="content_area">
+              <object class="GtkBox">
+                <property name="can_focus">False</property>
+                <property name="halign">start</property>
+                <property name="spacing">6</property>
+                <child>
+                  <object class="GtkLabel">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="no_show_all">True</property>
+                    <property name="halign">start</property>
+                    <property name="label" translatable="yes">For verification via QR-Code you have to install</property>
+                    <property name="wrap">True</property>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">True</property>
+                    <property name="position">0</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkLabel">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="halign">start</property>
+                    <property name="label" translatable="yes">python-qrcode</property>
+                    <property name="selectable">True</property>
+                  </object>
+                  <packing>
+                    <property name="expand">True</property>
+                    <property name="fill">True</property>
+                    <property name="position">1</property>
+                  </packing>
+                </child>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">False</property>
+                <property name="position">0</property>
+              </packing>
+            </child>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="position">0</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkGrid">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="halign">start</property>
+            <property name="row_spacing">6</property>
+            <property name="column_spacing">12</property>
+            <child>
+              <object class="GtkLabel">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="halign">end</property>
+                <property name="label" translatable="yes" comments="label for account selector">Acc_ount</property>
+                <property name="use_underline">True</property>
+                <property name="mnemonic_widget">account_combobox</property>
+                <style>
+                  <class name="bold"/>
+                  <class name="dim-label"/>
+                </style>
+              </object>
+              <packing>
+                <property name="left_attach">0</property>
+                <property name="top_attach">0</property>
               </packing>
             </child>
             <child>
               <object class="GtkComboBox" id="account_combobox">
+                <property name="width_request">200</property>
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
+                <property name="has_focus">True</property>
+                <property name="halign">start</property>
                 <property name="model">account_store</property>
                 <signal name="changed" handler="account_combobox_changed_cb" swapped="no"/>
                 <child>
@@ -75,51 +140,128 @@
                 </child>
               </object>
               <packing>
-                <property name="expand">False</property>
-                <property name="fill">True</property>
-                <property name="position">1</property>
+                <property name="left_attach">1</property>
+                <property name="top_attach">0</property>
               </packing>
             </child>
-          </object>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">True</property>
-            <property name="position">0</property>
-          </packing>
-        </child>
-        <child>
-          <object class="GtkHBox" id="hbox1">
-            <property name="visible">True</property>
-            <property name="can_focus">False</property>
             <child>
-              <object class="GtkLabel" id="fingerprint_label_desc">
-                <property name="width_request">110</property>
+              <object class="GtkLabel">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="label" translatable="yes" comments="Descriptive label">Own Fingerprint:</property>
-                <property name="xalign">0</property>
-                <attributes>
-                  <attribute name="weight" value="bold"/>
-                </attributes>
+                <property name="halign">end</property>
+                <property name="margin_top">6</property>
+                <property name="label" translatable="yes" comments="Descriptive label">Own _Fingerprint</property>
+                <property name="use_underline">True</property>
+                <property name="mnemonic_widget">fingerprint_label</property>
+                <style>
+                  <class name="bold"/>
+                  <class name="dim-label"/>
+                </style>
               </object>
               <packing>
-                <property name="expand">False</property>
-                <property name="fill">True</property>
-                <property name="position">0</property>
+                <property name="left_attach">0</property>
+                <property name="top_attach">1</property>
               </packing>
             </child>
             <child>
               <object class="GtkLabel" id="fingerprint_label">
+                <property name="width_request">200</property>
+                <property name="height_request">30</property>
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
+                <property name="halign">start</property>
+                <property name="margin_top">6</property>
                 <property name="use_markup">True</property>
                 <property name="selectable">True</property>
               </object>
               <packing>
-                <property name="expand">False</property>
-                <property name="fill">True</property>
-                <property name="position">1</property>
+                <property name="left_attach">1</property>
+                <property name="top_attach">1</property>
               </packing>
+            </child>
+            <child>
+              <object class="GtkLabel">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="halign">end</property>
+                <property name="label" translatable="yes">Own _Device ID</property>
+                <property name="use_underline">True</property>
+                <property name="mnemonic_widget">ID</property>
+                <style>
+                  <class name="bold"/>
+                  <class name="dim-label"/>
+                </style>
+              </object>
+              <packing>
+                <property name="left_attach">0</property>
+                <property name="top_attach">2</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkLabel" id="ID">
+                <property name="width_request">200</property>
+                <property name="height_request">30</property>
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="halign">start</property>
+                <property name="selectable">True</property>
+                <property name="xalign">0</property>
+              </object>
+              <packing>
+                <property name="left_attach">1</property>
+                <property name="top_attach">2</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkImage" id="qrcode">
+                <property name="can_focus">False</property>
+                <property name="no_show_all">True</property>
+                <property name="tooltip_text" translatable="yes">Scan this QR-Code with your mobile device for easy verification</property>
+                <property name="halign">start</property>
+                <property name="margin_top">6</property>
+                <property name="margin_bottom">6</property>
+                <property name="stock">gtk-missing-image</property>
+                <property name="icon_size">1</property>
+              </object>
+              <packing>
+                <property name="left_attach">1</property>
+                <property name="top_attach">3</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkImage">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="tooltip_text">OMEMO</property>
+                <property name="valign">start</property>
+                <property name="pixbuf">omemo.png</property>
+              </object>
+              <packing>
+                <property name="left_attach">0</property>
+                <property name="top_attach">3</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkLabel">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="halign">start</property>
+                <property name="label" translatable="yes">Note: Fingerprints of your contacts are managed in the message window.</property>
+                <property name="wrap">True</property>
+                <attributes>
+                  <attribute name="style" value="italic"/>
+                </attributes>
+                <style>
+                  <class name="dim-label"/>
+                </style>
+              </object>
+              <packing>
+                <property name="left_attach">1</property>
+                <property name="top_attach">4</property>
+              </packing>
+            </child>
+            <child>
+              <placeholder/>
             </child>
           </object>
           <packing>
@@ -128,81 +270,10 @@
             <property name="position">1</property>
           </packing>
         </child>
-        <child>
-          <object class="GtkHBox" id="hbox5">
-            <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <child>
-              <object class="GtkLabel" id="OwnIDLabel">
-                <property name="width_request">110</property>
-                <property name="visible">True</property>
-                <property name="can_focus">False</property>
-                <property name="label" translatable="yes">Own Device ID:</property>
-                <property name="xalign">0</property>
-                <attributes>
-                  <attribute name="weight" value="bold"/>
-                </attributes>
-              </object>
-              <packing>
-                <property name="expand">False</property>
-                <property name="fill">False</property>
-                <property name="position">0</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkLabel" id="ID">
-                <property name="visible">True</property>
-                <property name="can_focus">False</property>
-                <property name="xalign">0</property>
-              </object>
-              <packing>
-                <property name="expand">False</property>
-                <property name="fill">True</property>
-                <property name="position">1</property>
-              </packing>
-            </child>
-          </object>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">False</property>
-            <property name="position">2</property>
-          </packing>
-        </child>
-        <child>
-          <object class="GtkImage" id="qrcode">
-            <property name="can_focus">False</property>
-            <property name="no_show_all">True</property>
-            <property name="halign">start</property>
-            <property name="stock">gtk-missing-image</property>
-            <property name="icon_size">1</property>
-          </object>
-          <packing>
-            <property name="expand">True</property>
-            <property name="fill">True</property>
-            <property name="position">3</property>
-          </packing>
-        </child>
-        <child>
-          <object class="GtkLabel" id="qrinfo">
-            <property name="can_focus">False</property>
-            <property name="no_show_all">True</property>
-            <property name="label" translatable="yes">For Verification QRCode please install python-qrcode</property>
-            <property name="xalign">0</property>
-            <attributes>
-              <attribute name="weight" value="bold"/>
-              <attribute name="foreground" value="#ffff00000000"/>
-            </attributes>
-          </object>
-          <packing>
-            <property name="expand">True</property>
-            <property name="fill">True</property>
-            <property name="position">4</property>
-          </packing>
-        </child>
       </object>
     </child>
     <child type="tab">
-      <object class="GtkLabel" id="label1">
+      <object class="GtkLabel">
         <property name="visible">True</property>
         <property name="can_focus">False</property>
         <property name="label" translatable="yes" comments="tab label">Own Fingerprints</property>
@@ -212,156 +283,27 @@
       </packing>
     </child>
     <child>
-      <object class="GtkVBox" id="vbox4">
+      <object class="GtkBox">
         <property name="visible">True</property>
         <property name="can_focus">False</property>
-        <property name="border_width">12</property>
-        <property name="spacing">10</property>
+        <property name="border_width">18</property>
+        <property name="orientation">vertical</property>
+        <property name="spacing">6</property>
         <child>
-          <object class="GtkScrolledWindow" id="scrolledwindow1">
-            <property name="height_request">200</property>
-            <property name="visible">True</property>
-            <property name="can_focus">True</property>
-            <child>
-              <object class="GtkTreeView" id="fingerprint_view">
-                <property name="height_request">300</property>
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="model">fingerprint_store</property>
-                <property name="search_column">0</property>
-                <property name="tooltip_column">3</property>
-                <signal name="button-press-event" handler="fpr_button_pressed_cb" swapped="no"/>
-                <child internal-child="selection">
-                  <object class="GtkTreeSelection" id="treeview-selection1"/>
-                </child>
-                <child>
-                  <object class="GtkTreeViewColumn" id="name_column">
-                    <property name="resizable">True</property>
-                    <property name="title" translatable="yes">Name</property>
-                    <property name="clickable">True</property>
-                    <property name="sort_indicator">True</property>
-                    <property name="sort_column_id">1</property>
-                    <child>
-                      <object class="GtkCellRendererText" id="cellrenderertext2"/>
-                      <attributes>
-                        <attribute name="text">1</attribute>
-                      </attributes>
-                    </child>
-                  </object>
-                </child>
-                <child>
-                  <object class="GtkTreeViewColumn" id="trust_column">
-                    <property name="resizable">True</property>
-                    <property name="title" translatable="yes">Trust</property>
-                    <child>
-                      <object class="GtkCellRendererText" id="cellrenderertoggle1"/>
-                      <attributes>
-                        <attribute name="text">2</attribute>
-                      </attributes>
-                    </child>
-                  </object>
-                </child>
-                <child>
-                  <object class="GtkTreeViewColumn" id="fingerprint_column">
-                    <property name="resizable">True</property>
-                    <property name="title" translatable="yes">Fingerprint</property>
-                    <child>
-                      <object class="GtkCellRendererText" id="cellrenderertext4"/>
-                      <attributes>
-                        <attribute name="markup">3</attribute>
-                      </attributes>
-                    </child>
-                  </object>
-                </child>
-              </object>
-            </child>
-          </object>
-          <packing>
-            <property name="expand">True</property>
-            <property name="fill">True</property>
-            <property name="position">0</property>
-          </packing>
-        </child>
-        <child>
-          <object class="GtkHBox" id="hbox3">
-            <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <property name="spacing">5</property>
-            <child>
-              <object class="GtkButton" id="trust_button">
-                <property name="label" translatable="yes" comments="button">Trust/Revoke Fingerprint</property>
-                <property name="width_request">200</property>
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">True</property>
-                <signal name="clicked" handler="trust_button_clicked_cb" swapped="no"/>
-              </object>
-              <packing>
-                <property name="expand">False</property>
-                <property name="fill">False</property>
-                <property name="position">0</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkButton" id="delfprbutton">
-                <property name="label" translatable="yes">Delete Fingerprint</property>
-                <property name="width_request">200</property>
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">True</property>
-                <signal name="clicked" handler="delfpr_button_clicked" swapped="no"/>
-              </object>
-              <packing>
-                <property name="expand">False</property>
-                <property name="fill">False</property>
-                <property name="position">1</property>
-              </packing>
-            </child>
-          </object>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">False</property>
-            <property name="position">1</property>
-          </packing>
-        </child>
-      </object>
-      <packing>
-        <property name="position">1</property>
-      </packing>
-    </child>
-    <child type="tab">
-      <object class="GtkLabel" id="label2">
-        <property name="visible">True</property>
-        <property name="can_focus">False</property>
-        <property name="label" translatable="yes" comments="tab label">Known Fingerprints</property>
-      </object>
-      <packing>
-        <property name="position">1</property>
-        <property name="tab_fill">False</property>
-      </packing>
-    </child>
-    <child>
-      <object class="GtkVBox" id="vbox3">
-        <property name="visible">True</property>
-        <property name="can_focus">False</property>
-        <property name="border_width">12</property>
-        <property name="spacing">10</property>
-        <child>
-          <object class="GtkLabel" id="label5">
+          <object class="GtkLabel">
             <property name="height_request">25</property>
             <property name="visible">True</property>
             <property name="can_focus">False</property>
+            <property name="halign">center</property>
             <property name="label" translatable="yes">Published Devices</property>
-            <property name="xalign">0</property>
-            <attributes>
-              <attribute name="style" value="normal"/>
-              <attribute name="weight" value="bold"/>
-            </attributes>
+            <style>
+              <class name="bold"/>
+              <class name="dim-label"/>
+            </style>
           </object>
           <packing>
             <property name="expand">False</property>
             <property name="fill">True</property>
-            <property name="padding">7</property>
             <property name="position">0</property>
           </packing>
         </child>
@@ -369,19 +311,23 @@
           <object class="GtkScrolledWindow" id="scrolledwindow2">
             <property name="visible">True</property>
             <property name="can_focus">True</property>
+            <property name="halign">center</property>
             <property name="hscrollbar_policy">never</property>
             <child>
               <object class="GtkTreeView" id="deviceid_view">
+                <property name="width_request">300</property>
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <property name="model">deviceid_store</property>
                 <property name="search_column">0</property>
+                <property name="enable_grid_lines">horizontal</property>
                 <child internal-child="selection">
                   <object class="GtkTreeSelection" id="treeview-selection2"/>
                 </child>
                 <child>
                   <object class="GtkTreeViewColumn" id="deviceid_column">
                     <property name="title" translatable="yes">Device ID</property>
+                    <property name="clickable">True</property>
                     <child>
                       <object class="GtkCellRendererText" id="cellrenderertext3"/>
                       <attributes>
@@ -400,18 +346,26 @@
           </packing>
         </child>
         <child>
-          <object class="GtkHBox" id="hbox4">
+          <object class="GtkBox">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
-            <property name="spacing">5</property>
+            <property name="halign">center</property>
+            <property name="margin_top">6</property>
+            <property name="spacing">12</property>
             <child>
               <object class="GtkButton" id="cleardevice_button">
-                <property name="label" translatable="yes">Clear Devices</property>
-                <property name="width_request">160</property>
+                <property name="label" translatable="yes">_Clear Devices</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
+                <property name="tooltip_text" translatable="yes">This clears your device list from the server.
+Clearing the device list helps you to remove unused devices from the encryption process.
+It is advised to go online with all of your actively used devices after clearing.</property>
+                <property name="use_underline">True</property>
                 <signal name="clicked" handler="cleardevice_button_clicked_cb" swapped="no"/>
+                <style>
+                  <class name="destructive-action"/>
+                </style>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -438,40 +392,79 @@
           </object>
           <packing>
             <property name="expand">False</property>
-            <property name="fill">False</property>
+            <property name="fill">True</property>
             <property name="position">2</property>
           </packing>
         </child>
       </object>
       <packing>
-        <property name="position">2</property>
+        <property name="position">1</property>
       </packing>
     </child>
     <child type="tab">
-      <object class="GtkLabel" id="label3">
+      <object class="GtkLabel">
         <property name="visible">True</property>
         <property name="can_focus">False</property>
         <property name="label" translatable="yes">Clear Devices</property>
       </object>
       <packing>
-        <property name="position">2</property>
+        <property name="position">1</property>
         <property name="tab_fill">False</property>
       </packing>
     </child>
     <child>
-      <object class="GtkVBox" id="vbox2">
+      <object class="GtkBox">
         <property name="visible">True</property>
         <property name="can_focus">False</property>
+        <property name="border_width">18</property>
+        <property name="orientation">vertical</property>
+        <property name="spacing">6</property>
         <child>
-          <object class="GtkLabel" id="label6">
-            <property name="height_request">30</property>
+          <object class="GtkInfoBar">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
-            <property name="label" translatable="yes">You have to restart Gajim for changes to take effect !</property>
-            <attributes>
-              <attribute name="weight" value="bold"/>
-              <attribute name="foreground" value="#ffff00000000"/>
-            </attributes>
+            <property name="message_type">warning</property>
+            <child internal-child="action_area">
+              <object class="GtkButtonBox">
+                <property name="can_focus">False</property>
+                <property name="spacing">6</property>
+                <property name="layout_style">end</property>
+                <child>
+                  <placeholder/>
+                </child>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">False</property>
+                <property name="position">0</property>
+              </packing>
+            </child>
+            <child internal-child="content_area">
+              <object class="GtkBox">
+                <property name="can_focus">False</property>
+                <child>
+                  <object class="GtkLabel">
+                    <property name="height_request">30</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="label" translatable="yes">You have to restart Gajim for changes to take effect !</property>
+                    <style>
+                      <class name="bold"/>
+                    </style>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">True</property>
+                    <property name="position">0</property>
+                  </packing>
+                </child>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">False</property>
+                <property name="position">0</property>
+              </packing>
+            </child>
           </object>
           <packing>
             <property name="expand">False</property>
@@ -480,137 +473,126 @@
           </packing>
         </child>
         <child>
-          <object class="GtkHBox" id="hbox6">
+          <object class="GtkGrid">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
-            <property name="border_width">12</property>
-            <property name="spacing">5</property>
+            <property name="row_spacing">6</property>
+            <property name="column_spacing">12</property>
+            <property name="column_homogeneous">True</property>
             <child>
-              <object class="GtkVBox" id="vbox5">
+              <object class="GtkScrolledWindow">
+                <property name="height_request">200</property>
                 <property name="visible">True</property>
-                <property name="can_focus">False</property>
+                <property name="can_focus">True</property>
+                <property name="shadow_type">out</property>
                 <child>
-                  <object class="GtkScrolledWindow" id="scrolledwindow3">
+                  <object class="GtkTreeView" id="active_accounts_view">
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
+                    <property name="vexpand">True</property>
+                    <property name="model">account_store</property>
+                    <property name="enable_grid_lines">horizontal</property>
+                    <child internal-child="selection">
+                      <object class="GtkTreeSelection" id="treeview-selection3"/>
+                    </child>
                     <child>
-                      <object class="GtkTreeView" id="active_accounts_view">
-                        <property name="visible">True</property>
-                        <property name="can_focus">True</property>
-                        <property name="model">account_store</property>
-                        <child internal-child="selection">
-                          <object class="GtkTreeSelection" id="treeview-selection3"/>
-                        </child>
+                      <object class="GtkTreeViewColumn" id="treeviewcolumn1">
+                        <property name="title" translatable="yes">Active Accounts</property>
+                        <property name="alignment">0.5</property>
                         <child>
-                          <object class="GtkTreeViewColumn" id="treeviewcolumn1">
-                            <property name="title" translatable="yes">Active Accounts</property>
-                            <property name="alignment">0.5</property>
-                            <child>
-                              <object class="GtkCellRendererText" id="cellrenderertext5"/>
-                              <attributes>
-                                <attribute name="text">0</attribute>
-                              </attributes>
-                            </child>
-                          </object>
+                          <object class="GtkCellRendererText" id="cellrenderertext5"/>
+                          <attributes>
+                            <attribute name="text">0</attribute>
+                          </attributes>
                         </child>
                       </object>
                     </child>
                   </object>
-                  <packing>
-                    <property name="expand">True</property>
-                    <property name="fill">True</property>
-                    <property name="position">0</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkButton" id="disable_accounts_btn">
-                    <property name="label" translatable="yes">Disable Account</property>
-                    <property name="visible">True</property>
-                    <property name="can_focus">True</property>
-                    <property name="receives_default">True</property>
-                    <signal name="clicked" handler="disable_accounts_btn_clicked" swapped="no"/>
-                  </object>
-                  <packing>
-                    <property name="expand">False</property>
-                    <property name="fill">False</property>
-                    <property name="position">1</property>
-                  </packing>
                 </child>
               </object>
               <packing>
-                <property name="expand">True</property>
-                <property name="fill">True</property>
-                <property name="position">0</property>
+                <property name="left_attach">0</property>
+                <property name="top_attach">0</property>
               </packing>
             </child>
             <child>
-              <object class="GtkVBox" id="vbox6">
+              <object class="GtkScrolledWindow">
                 <property name="visible">True</property>
-                <property name="can_focus">False</property>
+                <property name="can_focus">True</property>
+                <property name="shadow_type">out</property>
                 <child>
-                  <object class="GtkScrolledWindow" id="scrolledwindow4">
+                  <object class="GtkTreeView" id="disabled_accounts_view">
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
+                    <property name="vexpand">True</property>
+                    <property name="model">disabled_account_store</property>
+                    <property name="enable_grid_lines">horizontal</property>
+                    <child internal-child="selection">
+                      <object class="GtkTreeSelection" id="treeview-selection4"/>
+                    </child>
                     <child>
-                      <object class="GtkTreeView" id="disabled_accounts_view">
-                        <property name="visible">True</property>
-                        <property name="can_focus">True</property>
-                        <property name="model">disabled_account_store</property>
-                        <child internal-child="selection">
-                          <object class="GtkTreeSelection" id="treeview-selection4"/>
-                        </child>
+                      <object class="GtkTreeViewColumn" id="treeviewcolumn2">
+                        <property name="title" translatable="yes">Disabled Accounts</property>
+                        <property name="alignment">0.5</property>
                         <child>
-                          <object class="GtkTreeViewColumn" id="treeviewcolumn2">
-                            <property name="title" translatable="yes">Disabled Accounts</property>
-                            <property name="alignment">0.5</property>
-                            <child>
-                              <object class="GtkCellRendererText" id="cellrenderertext6"/>
-                              <attributes>
-                                <attribute name="text">0</attribute>
-                              </attributes>
-                            </child>
-                          </object>
+                          <object class="GtkCellRendererText" id="cellrenderertext6"/>
+                          <attributes>
+                            <attribute name="text">0</attribute>
+                          </attributes>
                         </child>
                       </object>
                     </child>
                   </object>
-                  <packing>
-                    <property name="expand">True</property>
-                    <property name="fill">True</property>
-                    <property name="position">0</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkButton" id="activate_accounts_btn">
-                    <property name="label" translatable="yes">Activate Account</property>
-                    <property name="visible">True</property>
-                    <property name="can_focus">True</property>
-                    <property name="receives_default">True</property>
-                    <signal name="clicked" handler="activate_accounts_btn_clicked" swapped="no"/>
-                  </object>
-                  <packing>
-                    <property name="expand">False</property>
-                    <property name="fill">False</property>
-                    <property name="position">1</property>
-                  </packing>
                 </child>
               </object>
               <packing>
-                <property name="expand">True</property>
-                <property name="fill">True</property>
-                <property name="position">1</property>
+                <property name="left_attach">1</property>
+                <property name="top_attach">0</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkButton" id="disable_accounts_btn">
+                <property name="label" translatable="yes">_Disable Account</property>
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="receives_default">True</property>
+                <property name="halign">center</property>
+                <property name="use_underline">True</property>
+                <signal name="clicked" handler="disable_accounts_btn_clicked" swapped="no"/>
+                <style>
+                  <class name="destructive-action"/>
+                </style>
+              </object>
+              <packing>
+                <property name="left_attach">0</property>
+                <property name="top_attach">1</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkButton" id="activate_accounts_btn">
+                <property name="label" translatable="yes">_Enable Account</property>
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="receives_default">True</property>
+                <property name="halign">center</property>
+                <property name="use_underline">True</property>
+                <signal name="clicked" handler="activate_accounts_btn_clicked" swapped="no"/>
+              </object>
+              <packing>
+                <property name="left_attach">1</property>
+                <property name="top_attach">1</property>
               </packing>
             </child>
           </object>
           <packing>
-            <property name="expand">True</property>
+            <property name="expand">False</property>
             <property name="fill">True</property>
             <property name="position">1</property>
           </packing>
         </child>
       </object>
       <packing>
-        <property name="position">3</property>
+        <property name="position">2</property>
       </packing>
     </child>
     <child type="tab">
@@ -620,22 +602,23 @@
         <property name="label" translatable="yes">Disable Accounts</property>
       </object>
       <packing>
-        <property name="position">3</property>
+        <property name="position">2</property>
         <property name="tab_fill">False</property>
       </packing>
     </child>
   </object>
-  <object class="GtkMenu" id="fprclipboard_menu">
-    <property name="visible">True</property>
-    <property name="can_focus">False</property>
-    <child>
-      <object class="GtkMenuItem" id="copyfprclipboard_item">
-        <property name="visible">True</property>
-        <property name="can_focus">False</property>
-        <property name="label" translatable="yes" comments="Context menu item">Copy to clipboard</property>
-        <property name="use_underline">True</property>
-        <signal name="activate" handler="clipboard_button_cb" swapped="no"/>
-      </object>
-    </child>
+  <object class="GtkListStore" id="fingerprint_store">
+    <columns>
+      <!-- column-name id -->
+      <column type="gint"/>
+      <!-- column-name screenname -->
+      <column type="gchararray"/>
+      <!-- column-name trust -->
+      <column type="gchararray"/>
+      <!-- column-name fingerprint -->
+      <column type="gchararray"/>
+      <!-- column-name deviceid -->
+      <column type="gint"/>
+    </columns>
   </object>
 </interface>
