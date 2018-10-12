@@ -1,0 +1,17 @@
+.omemo-dark-success-color { color: darker(@success_color); }
+.omemo-inactive-color { color: @unfocused_borders; }
+
+.omemo-mono { font-size: 12px; font-family: monospace; }
+
+.omemo-key-dialog > box { margin: 18px; }
+
+.omemo-key-dialog scrolledwindow row {
+    border-bottom: 1px solid;
+    border-color: @unfocused_borders;
+    padding: 10px 20px 10px 10px;
+}
+.omemo-key-dialog scrolledwindow row:last-child { border-bottom: 0px}
+
+.omemo-key-dialog scrolledwindow { border: 1px solid; border-color:@unfocused_borders; }
+
+.omemo-trust-popover row { padding: 10px 15px 10px 10px; }
