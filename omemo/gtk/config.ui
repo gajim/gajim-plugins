@@ -229,12 +229,11 @@
               </packing>
             </child>
             <child>
-              <object class="GtkImage">
+              <object class="GtkImage" id="image">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <property name="tooltip_text">OMEMO</property>
                 <property name="valign">start</property>
-                <property name="pixbuf">omemo.png</property>
               </object>
               <packing>
                 <property name="left_attach">0</property>
