@@ -38,6 +38,7 @@ from gajim.groupchat_control import GroupchatControl
 
 from omemo.xmpp import DevicelistPEP
 from omemo.gtk.key import KeyDialog
+from omemo.gtk.config import OMEMOConfigDialog
 
 CRYPTOGRAPHY_MISSING = 'You are missing Python-Cryptography'
 AXOLOTL_MISSING = 'You are missing Python-Axolotl or use an outdated version'
@@ -69,7 +70,6 @@ except Exception as error:
 if not ERROR_MSG:
     try:
         from omemo.omemo_connection import OMEMOConnection
-        from omemo.ui import OMEMOConfigDialog
     except Exception as error:
         log.error(error)
         ERROR_MSG = 'Error: %s' % error

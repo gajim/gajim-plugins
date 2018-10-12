@@ -32,10 +32,10 @@ from urllib.parse import urlparse, urldefrag
 from io import BufferedWriter, FileIO, BytesIO
 
 from gi.repository import GLib
-from gajim import gtkgui_helpers
 from gajim.common import app
 from gajim.common import configpaths
-from gajim.dialogs import ErrorDialog, YesNoDialog
+from gajim.gtk.dialogs import ErrorDialog, YesNoDialog
+from omemo.gtk.progress import ProgressWindow
 if os.name == 'nt':
     import certifi
 
@@ -263,40 +263,6 @@ class Download:
     def error(self, error):
         ErrorDialog(_('Error'), error, transient_for=self.window)
         return False
-
-
-class ProgressWindow:
-    def __init__(self, plugin, window, event):
-        self.plugin = plugin
-        self.event = event
-        self.xml = gtkgui_helpers.get_gtk_builder(
-            self.plugin.local_file_path('download_progress_dialog.ui'))
-        self.dialog = self.xml.get_object('progress_dialog')
-        self.dialog.set_transient_for(window)
-        self.label = self.xml.get_object('label')
-        self.progressbar = self.xml.get_object('progressbar')
-        self.progressbar.set_text("")
-        self.dialog.show_all()
-        self.xml.connect_signals(self)
-        self.seen = 0
-
-    def set_text(self, text):
-        self.label.set_markup('<big>%s</big>' % text)
-        return False
-
-    def update_progress(self, seen, total):
-        self.seen += seen
-        pct = (self.seen / float(total)) * 100.0
-        self.progressbar.set_fraction(self.seen / float(total))
-        self.progressbar.set_text(str(int(pct)) + "%")
-        return False
-
-    def close_dialog(self, *args):
-        self.dialog.destroy()
-        return False
-
-    def on_destroy(self, *args):
-        self.event.set()
 
 
 class DownloadAbortedException(Exception):
