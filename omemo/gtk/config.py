@@ -220,10 +220,10 @@ class OMEMOConfigDialog(GajimPluginConfigDialog):
             pixbuf = GdkPixbuf.Pixbuf.new_from_file(path)
             self.qrcode.set_from_pixbuf(pixbuf)
             self.qrcode.show()
-            self.qrinfo.set_revealed(False)
+            self.qrinfo.hide()
         else:
-            self.qrinfo.set_revealed(True)
             self.qrcode.hide()
+            self.qrinfo.show()
 
     def human_hash(self, fpr):
         fpr = fpr.upper()
