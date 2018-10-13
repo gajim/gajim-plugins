@@ -76,7 +76,7 @@ class SetLocationPlugin(GajimPlugin):
     def deactivate(self):
         self._data = {}
         for acct in app.connections:
-            app.connections[acct].send_location(self._data)
+            app.connections[acct].get_module('UserLocation').send(self._data)
         app.ged.remove_event_handler('signed-in', ged.POSTGUI,
             self.on_signed_in)
 
@@ -96,9 +96,10 @@ class SetLocationPlugin(GajimPlugin):
             #set geo for all accounts
             for acct in app.connections:
                 if app.config.get_per('accounts', acct, 'publish_location'):
-                    app.connections[acct].send_location(self._data)
+                    app.connections[acct].get_module('UserLocation').send(
+                        self._data)
         elif app.config.get_per('accounts', acct, 'publish_location'):
-            app.connections[acct].send_location(self._data)
+            app.connections[acct].get_module('UserLocation').send(self._data)
 
 
 class SetLocationPluginConfigDialog(GajimPluginConfigDialog):
