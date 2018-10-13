@@ -26,6 +26,7 @@ CLIENTS = {
         ['coccinella.png', 'Coccinella'],
     'http://conversations.im': ['conversations.png', 'Conversations'],
     'Conversations Legacy': ['conversations-legacy.png', 'Conversations Legacy'],
+    'https://conversejs.org': ['conversejs.png', 'Converse'],
     'http://digsby.com/caps': ['digsby.png', 'Digsby'],
     'https://dino.im': ['dino.png', 'Dino'],
     'http://emacs-jabber.sourceforge.net': ['emacs.png', 'Emacs Jabber client'],
