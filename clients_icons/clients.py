@@ -28,6 +28,7 @@ CLIENTS = {
     'Conversations Legacy': ['conversations-legacy.png', 'Conversations Legacy'],
     'http://digsby.com/caps': ['digsby.png', 'Digsby'],
     'https://dino.im': ['dino.png', 'Dino'],
+    'http://emacs-jabber.sourceforge.net': ['emacs.png', 'Emacs Jabber client'],
     'http://emess.eqx.su/caps': ['emess.png', 'Emess'],
     'http://live.gnome.org/empathy/caps': \
         ['telepathy.freedesktop.org.png', 'Empathy'],
