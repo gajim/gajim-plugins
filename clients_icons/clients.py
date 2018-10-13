@@ -104,6 +104,7 @@ CLIENTS = {
     'http://jabber.pix-art.de': ['pixart.png', 'Pix-Art Messenger'],
     'httр://sleekxmpp.com/ver/1.1.11': ['poezio.png', 'Poezio'],
     'https://poez.io': ['poezio.png', 'Poezio'],
+    'http://www.profanity.im': ['profanity.png', 'Profanity'],
     'http://psi-im.org/caps': ['psi.png', 'Psi'],
     'http://psi-plus.com': ['psiplus.png', 'Psi+'],
     'http://psi-dev.googlecode.com/caps': ['psiplus.png', 'Psi+'],
