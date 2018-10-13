@@ -31,6 +31,7 @@ from gajim import dialogs
 from gajim.common import app
 from gajim.common.connection_handlers_events import MessageNotSentEvent
 from gajim.plugins import GajimPlugin
+from gajim.plugins.plugins_i18n import _
 
 log = logging.getLogger('gajim.plugin_system.oldpgp')
 
