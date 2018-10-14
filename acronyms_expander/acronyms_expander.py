@@ -18,6 +18,7 @@
 import json
 import logging
 from pathlib import Path
+from functools import partial
 
 from gi.repository import GLib
 
@@ -27,6 +28,7 @@ from gajim.plugins import GajimPlugin
 from gajim.plugins.plugins_i18n import _
 
 from acronyms_expander.acronyms import DEFAULT_DATA
+from acronyms_expander.gtk.config import ConfigDialog
 
 log = logging.getLogger('gajim.plugin_system.acronyms')
 
@@ -35,35 +37,50 @@ class AcronymsExpanderPlugin(GajimPlugin):
     def init(self):
         self.description = _('Replaces acronyms (or other strings) '
                              'with given expansions/substitutes.')
-        self.config_dialog = None
+        self.config_dialog = partial(ConfigDialog, self)
         self.gui_extension_points = {
             'chat_control_base': (self._connect, self._disconnect)
         }
         self._invoker = ' '
-        self._acronyms = self._load_acronyms()
         self._replace_in_progress = False
         self._handler_ids = {}
+
+        self.acronyms = self._load_acronyms()
 
     @staticmethod
     def _load_acronyms():
         try:
-            path = Path(configpaths.get('PLUGINS_DATA')) / 'acronyms'
+            data_path = Path(configpaths.get('PLUGINS_DATA'))
         except KeyError:
             # PLUGINS_DATA was added in 1.0.99.1
             return DEFAULT_DATA
 
+        path = data_path / 'acronyms' / 'acronyms'
         if not path.exists():
             return DEFAULT_DATA
 
-        with open(path / 'acronyms', 'r') as file:
+        with open(path, 'r') as file:
             acronyms = json.load(file)
         return acronyms
 
     @staticmethod
     def _save_acronyms(acronyms):
-        path = Path(configpaths.get('PLUGINS_DATA')) / 'acronyms'
+        try:
+            data_path = Path(configpaths.get('PLUGINS_DATA'))
+        except KeyError:
+            # PLUGINS_DATA was added in 1.0.99.1
+            return
+
+        path = data_path / 'acronyms'
+        if not path.exists():
+            path.mkdir(parents=True)
+
         with open(path / 'acronyms', 'w') as file:
             json.dump(acronyms, file)
+
+    def set_acronyms(self, acronyms):
+        self.acronyms = acronyms
+        self._save_acronyms(acronyms)
 
     def _on_buffer_changed(self, _textview, buffer_):
         if self._replace_in_progress:
@@ -91,7 +108,7 @@ class AcronymsExpanderPlugin(GajimPlugin):
         # Get last word and cut invoker
         last_word = word_start_iter.get_slice(insert_iter).strip()
 
-        substitute = self._acronyms.get(last_word)
+        substitute = self.acronyms.get(last_word)
         if substitute is None:
             log.debug('%s not an acronym', last_word)
             return
