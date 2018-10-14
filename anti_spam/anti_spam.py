@@ -26,17 +26,15 @@ Block some incoming messages
 
 from gi.repository import Gtk
 import nbxmpp
-from gajim.common import app, ged
+
+from gajim.common import app
+from gajim.common import ged
 
 from gajim.plugins import GajimPlugin
 from gajim.plugins.helpers import log, log_calls
 from gajim.plugins.gui import GajimPluginConfigDialog
+from gajim.plugins.plugins_i18n import _
 
-# Since Gajim 1.1.0 _() has to be imported
-try:
-    from gajim.common.i18n import _
-except ImportError:
-    pass
 
 class AntiSpamPlugin(GajimPlugin):
 
@@ -164,13 +162,6 @@ class AntiSpamPlugin(GajimPlugin):
             log.info('Anti_spam wrong message type: %s', obj.mtype)
             return
 
-        # only for 'chat' messages
-        if obj.receipt_request_tag and obj.mtype == 'chat':
-            receipt = nbxmpp.Message(to=obj.fjid, typ='chat')
-            receipt.setTag('received', namespace='urn:xmpp:receipts', attrs={'id': obj.id_})
-            if obj.thread_id:
-                receipt.setThread(obj.thread_id)
-            app.connections[obj.conn.name].connection.send(receipt, now=True)
         question = self.config['msgtxt_question']
         log.info('Anti_spam enabled for %s, question: %s', jid, question)
         message = _('Antispam enabled. Please answer the question. The message must only ' + \
@@ -182,7 +173,7 @@ class AntiSpamPlugin(GajimPlugin):
         else: # for 'normal' type
             stanza = nbxmpp.Message(to=jid, body=message, subject='Antispam enabled', typ=obj.mtype)
 
-        app.connections[obj.conn.name].connection.send(stanza, now=True)
+        app.connections[obj.conn.name].connection.send(stanza)
 
     def contain_answer(self, msg, answer):
         return answer in msg.split('\n')
