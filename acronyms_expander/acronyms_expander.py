@@ -1,114 +1,124 @@
-# -*- coding: utf-8 -*-
+# Copyright (C) 2008 Mateusz Biliński <mateusz AT bilinski.it>
+# Copyright (C) 2018 Philipp Hörist <philipp AT hoerist.com>
+#
+# This file is part of Acronyms Expander.
+#
+# Acronyms Expander is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published
+# by the Free Software Foundation; version 3 only.
+#
+# Acronyms Expander is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with Acronyms Expander. If not, see <http://www.gnu.org/licenses/>.
 
-## This file is part of Gajim.
-##
-## Gajim is free software; you can redistribute it and/or modify
-## it under the terms of the GNU General Public License as published
-## by the Free Software Foundation; version 3 only.
-##
-## Gajim is distributed in the hope that it will be useful,
-## but WITHOUT ANY WARRANTY; without even the implied warranty of
-## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-## GNU General Public License for more details.
-##
-## You should have received a copy of the GNU General Public License
-## along with Gajim.  If not, see <http://www.gnu.org/licenses/>.
-##
+import json
+import logging
+from pathlib import Path
 
-'''
-Acronyms expander plugin.
+from gi.repository import GLib
 
-:author: Mateusz Biliński <mateusz@bilinski.it>
-:since: 9th June 2008
-:copyright: Copyright (2008) Mateusz Biliński <mateusz@bilinski.it>
-:license: GPL
-'''
-
-import os
-
-from gi.repository import GObject
+from gajim.common import configpaths
 
 from gajim.plugins import GajimPlugin
-from gajim.plugins.helpers import log, log_calls
+from gajim.plugins.plugins_i18n import _
 
-# Since Gajim 1.1.0 _() has to be imported
-try:
-    from gajim.common.i18n import _
-except ImportError:
-    pass
+from acronyms_expander.acronyms import DEFAULT_DATA
+
+log = logging.getLogger('gajim.plugin_system.acronyms')
+
 
 class AcronymsExpanderPlugin(GajimPlugin):
-
-    @log_calls('AcronymsExpanderPlugin')
     def init(self):
         self.description = _('Replaces acronyms (or other strings) '
-            'with given expansions/substitutes.')
+                             'with given expansions/substitutes.')
         self.config_dialog = None
-
         self.gui_extension_points = {
-            'chat_control_base': (self.connect_with_chat_control_base,
-                                  self.disconnect_from_chat_control_base)
+            'chat_control_base': (self._connect, self._disconnect)
         }
+        self._invoker = ' '
+        self._acronyms = self._load_acronyms()
+        self._replace_in_progress = False
+        self._handler_ids = {}
 
-        self.config_default_values = {
-            'INVOKER': (' ', ''),
-            'ACRONYMS': ({'/slap': '/me slaps',
-                          'PS-': 'plug-in system',
-                          'G-': 'Gajim',
-                          'GNT-': 'https://dev.gajim.org/gajim/gajim/issues',
-                          'GW-': 'https://dev.gajim.org/gajim/gajim/wikis/home',
-                         },
-                         ''),
-        }
-        if 'ACRONYMS' not in self.config:
-            myAcronyms = self.get_own_acronyms_list()
-            self.config['ACRONYMS'].update(myAcronyms)
+    @staticmethod
+    def _load_acronyms():
+        try:
+            path = Path(configpaths.get('PLUGINS_DATA')) / 'acronyms'
+        except KeyError:
+            # PLUGINS_DATA was added in 1.0.99.1
+            return DEFAULT_DATA
 
-    @log_calls('AcronymsExpanderPlugin')
-    def get_own_acronyms_list(self):
-        data_file = self.local_file_path('acronyms')
-        if not os.path.isfile(data_file):
-            return {}
-        data = open(data_file, 'r', encoding='utf-8')
-        acronyms = eval(data.read())
-        data.close()
+        if not path.exists():
+            return DEFAULT_DATA
+
+        with open(path / 'acronyms', 'r') as file:
+            acronyms = json.load(file)
         return acronyms
 
-    @log_calls('AcronymsExpanderPlugin')
-    def textbuffer_live_acronym_expander(self, tb):
-        """
-        @param tb gtk.TextBuffer
-        """
-        #assert isinstance(tb,gtk.TextBuffer)
-        ACRONYMS = self.config['ACRONYMS']
-        INVOKER = self.config['INVOKER']
-        t = tb.get_text(tb.get_start_iter(), tb.get_end_iter(), True)
-        #log.debug('%s %d'%(t, len(t)))
-        if t and t[-1] == INVOKER:
-            #log.debug('changing msg text')
-            base, sep, head=t[:-1].rpartition(INVOKER)
-            log.debug('%s | %s | %s'%(base, sep, head))
-            if head in ACRONYMS:
-                head = ACRONYMS[head]
-                #log.debug('head: %s'%(head))
-                t = ''.join((base, sep, head, INVOKER))
-                #log.debug("setting text: '%s'"%(t))
-                GObject.idle_add(tb.set_text, t)
+    @staticmethod
+    def _save_acronyms(acronyms):
+        path = Path(configpaths.get('PLUGINS_DATA')) / 'acronyms'
+        with open(path / 'acronyms', 'w') as file:
+            json.dump(acronyms, file)
 
-    @log_calls('AcronymsExpanderPlugin')
-    def connect_with_chat_control_base(self, chat_control):
-        d = {}
-        tv = chat_control.msg_textview
-        tb = tv.get_buffer()
-        h_id = tb.connect('changed', self.textbuffer_live_acronym_expander)
-        d['h_id'] = h_id
+    def _on_buffer_changed(self, _textview, buffer_):
+        if self._replace_in_progress:
+            return
 
-        chat_control.acronyms_expander_plugin_data = d
+        if buffer_.get_char_count() < 2:
+            return
+        # Get iter at cursor
+        insert_iter = buffer_.get_iter_at_mark(buffer_.get_insert())
 
-        return True
+        if insert_iter.get_offset() < 2:
+            # We need at least 2 chars and an invoker
+            return
 
-    @log_calls('AcronymsExpanderPlugin')
-    def disconnect_from_chat_control_base(self, chat_control):
-        d = chat_control.acronyms_expander_plugin_data
-        tv = chat_control.msg_textview
-        tv.get_buffer().disconnect(d['h_id'])
+        # Get last char
+        insert_iter.backward_char()
+        if insert_iter.get_char() != self._invoker:
+            log.debug('"%s" not an invoker', insert_iter.get_char())
+            return
+
+        # Get to the start of the last word
+        word_start_iter = insert_iter.copy()
+        word_start_iter.backward_word_start()
+
+        # Get last word and cut invoker
+        last_word = word_start_iter.get_slice(insert_iter).strip()
+
+        substitute = self._acronyms.get(last_word)
+        if substitute is None:
+            log.debug('%s not an acronym', last_word)
+            return
+
+        # Replace
+        word_end_iter = word_start_iter.copy()
+        word_end_iter.forward_word_end()
+        GLib.idle_add(self._replace_text,
+                      buffer_,
+                      word_start_iter,
+                      word_end_iter,
+                      substitute)
+
+    def _replace_text(self, buffer_, start, end, substitute):
+        self._replace_in_progress = True
+        buffer_.delete(start, end)
+        buffer_.insert(start, substitute)
+        self._replace_in_progress = False
+
+    def _connect(self, chat_control):
+        textview = chat_control.msg_textview
+        handler_id = textview.connect('text-changed', self._on_buffer_changed)
+        self._handler_ids[id(textview)] = handler_id
+
+    def _disconnect(self, chat_control):
+        textview = chat_control.msg_textview
+        handler_id = self._handler_ids.get(id(textview))
+        if handler_id is not None:
+            textview.disconnect(handler_id)
+            del self._handler_ids[id(textview)]
