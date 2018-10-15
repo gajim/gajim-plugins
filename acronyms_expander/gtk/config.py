@@ -38,7 +38,7 @@ class ConfigDialog(Gtk.ApplicationWindow):
         self.set_destroy_with_parent(True)
 
         ui_path = Path(__file__).parent
-        self._ui = get_builder(ui_path / 'config.ui')
+        self._ui = get_builder(ui_path.resolve() / 'config.ui')
 
         self._plugin = plugin
 
