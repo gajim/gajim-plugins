@@ -35,7 +35,7 @@ try:
     GtkClutter.init([]) # Must be initialized before importing those:
     from gi.repository import Champlain, GtkChamplain
 except:
-    log.exception('Champlain library not available')
+    log.exception('To view the map, you have to install all dependencies')
     CHAMPLAIN_AVAILABLE = False
 
 
@@ -141,13 +141,11 @@ class SetLocationPluginConfigDialog(GajimPluginConfigDialog):
 
         map_placeholder = self.xml.get_object('map_placeholder')
         dependency_bar = self.xml.get_object('dependency_warning')
-        dependency_bar.connect("close", lambda b: b.hide())
-        dependency_bar.connect("response", lambda b,i: b.hide())
 
         if CHAMPLAIN_AVAILABLE and not self.is_active:
             map_placeholder.set_no_show_all(True)
             map_placeholder.hide()
-            dependency_bar.set_revealed(False)
+            dependency_bar.hide()
             map_box = self.xml.get_object('map_box')
             map_box.set_size_request(400, -1)
 
