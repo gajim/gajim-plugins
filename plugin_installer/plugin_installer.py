@@ -47,6 +47,7 @@ from gajim.plugins.helpers import get_builder
 from gajim.gtk.dialogs import WarningDialog
 from gajim.gtk.dialogs import HigDialog
 from gajim.gtk.dialogs import YesNoDialog
+from gajim.gtk.dialogs import ConfirmationDialogCheck
 from gajim.gtkgui_helpers import get_action
 
 log = logging.getLogger('gajim.plugin_system.plugin_installer')
@@ -108,7 +109,9 @@ class PluginInstaller(GajimPlugin):
     def init(self):
         self.description = _('Install and Upgrade Plugins')
         self.config_dialog = PluginInstallerPluginConfigDialog(self)
-        self.config_default_values = {'check_update': (True, '')}
+        self.config_default_values = {'check_update': (True, ''),
+                                      'auto_update': (False, ''),
+                                      'auto_update_feedback': (True, '')}
         self.gui_extension_points = {'plugin_window': (self.on_activate, None)}
         self.window = None
         self.progressbar = None
@@ -123,17 +126,20 @@ class PluginInstaller(GajimPlugin):
             self.on_activate(app.interface.instances['plugins'])
 
     def warn_update(self, plugins):
-        def open_update(dummy):
+        def open_update(checked):
+            if checked:
+                self.config['auto_update'] = True
             get_action('plugins').activate()
             page = self.notebook.page_num(self.available_plugins_box)
             self.notebook.set_current_page(page)
         if plugins:
             plugins_str = '\n' + '\n'.join(plugins)
             YesNoDialog(
-                _('Plugins updates'),
-                _('Some updates are available for your installer plugins. '
-                  'Do you want to update those plugins:\n%s')
-                % plugins_str, on_response_yes=open_update)
+                _('Plugin updates'),
+                _('There are updates available for plugins you have installed.\n'
+                  'Do you want to update those plugins:\n%s') % plugins_str,
+                checktext=_('Update plugins automatically next time'),
+                on_response_yes=open_update)
         else:
             log.info('No updates found')
             if hasattr(self, 'thread'):
@@ -143,7 +149,8 @@ class PluginInstaller(GajimPlugin):
         if hasattr(self, 'thread'):
             return
         log.info('Checking for Updates...')
-        self.start_download(check_update=True)
+        auto_update = self.config['auto_update']
+        self.start_download(check_update=True, auto_update=auto_update)
         self.timeout_id = 0
 
     def deactivate(self):
@@ -225,19 +232,18 @@ class PluginInstaller(GajimPlugin):
             if self.available_plugins_model[i][Column.UPGRADE]:
                 dir_list.append(self.available_plugins_model[i][Column.DIR])
 
-        self.start_download(remote_dirs=dir_list)
+        self.start_download(remote_dirs=dir_list, auto_update=False)
 
     def on_error(self, reason):
         if reason == 'CERTIFICATE_VERIFY_FAILED':
             YesNoDialog(
                 _('Security error during download'),
-                _('A security error occurred when '
+                _('A security error occurred while '
                   'downloading. The certificate of the '
                   'plugin archive could not be verified. '
-                  'this might be a security attack. '
-                  '\n\nYou can continue at your risk. '
-                  'Do you want to do so? '
-                  '(not recommended)'
+                  'This might be a security attack. '
+                  '\n\nYou can continue at your own risk (not recommended). '
+                  'Do you want to continue?'
                   ),
                 on_response_yes=lambda dlg:
                 self.start_download(secure=False, upgrading=True))
@@ -251,49 +257,66 @@ class PluginInstaller(GajimPlugin):
                           _('An error occurred when downloading\n\n'
                           '<tt>[%s]</tt>' % (str(text))), self.window)
 
-    def start_download(self, secure=True, remote_dirs=False,
-                       upgrading=False, check_update=False):
+    def start_download(self, secure=True, remote_dirs=False, upgrading=False,
+                       check_update=False, auto_update=False):
         log.info('Start Download...')
         log.debug(
-            'secure: %s, remote_dirs: %s, upgrading: %s, check_update: %s',
-            secure, remote_dirs, upgrading, check_update)
+            'secure: %s, remote_dirs: %s, upgrading: %s, check_update: %s, auto_update: %s',
+            secure, remote_dirs, upgrading, check_update, auto_update)
         self.thread = DownloadAsync(
-            self, secure=secure, remote_dirs=remote_dirs,
-            upgrading=upgrading, check_update=check_update)
+            self, secure=secure, remote_dirs=remote_dirs, upgrading=upgrading,
+            check_update=check_update, auto_update=auto_update)
         self.thread.start()
 
-    def on_plugin_downloaded(self, plugin_dirs):
+    def on_plugin_downloaded(self, plugin_dirs, auto_update):
         need_restart = False
         for _dir in plugin_dirs:
             updated = app.plugin_manager.update_plugins(replace=False, activate=True, plugin_name=_dir)
             if updated:
-                plugin = app.plugin_manager.get_active_plugin(updated[0])
-                for row in range(len(self.available_plugins_model)):
-                    model_row = self.available_plugins_model[row]
-                    if plugin.name == model_row[Column.NAME]:
-                        model_row[Column.LOCAL_VERSION] = plugin.version
-                        model_row[Column.UPGRADE] = False
-                        break
-                # get plugin icon
-                icon_file = os.path.join(plugin.__path__, os.path.split(
-                    plugin.__path__)[1]) + '.png'
-                icon = FALLBACK_ICON
-                if os.path.isfile(icon_file):
-                    icon = GdkPixbuf.Pixbuf.new_from_file_at_size(icon_file, 16, 16)
-                row = [plugin, plugin.name, True, plugin.activatable, icon]
-                self.installed_plugins_model.append(row)
+                if not auto_update:
+                    plugin = app.plugin_manager.get_active_plugin(updated[0])
+                    for row in range(len(self.available_plugins_model)):
+                        model_row = self.available_plugins_model[row]
+                        if plugin.name == model_row[Column.NAME]:
+                            model_row[Column.LOCAL_VERSION] = plugin.version
+                            model_row[Column.UPGRADE] = False
+                            break
+                if not auto_update:
+                    # Get plugin icon
+                    icon_file = os.path.join(plugin.__path__, os.path.split(
+                        plugin.__path__)[1]) + '.png'
+                    icon = FALLBACK_ICON
+                    if os.path.isfile(icon_file):
+                        icon = GdkPixbuf.Pixbuf.new_from_file_at_size(icon_file, 16, 16)
+                    row = [plugin, plugin.name, True, plugin.activatable, icon]
+                    self.installed_plugins_model.append(row)
             else:
                 need_restart = True
 
         if need_restart:
             txt = _('All plugins downloaded.\nThe updates will '
-                'be installed on next Gajim restart.')
+                    'be installed the next time Gajim is started.')
         else:
             txt = _('All selected plugins downloaded and activated')
-        dialog = HigDialog(
-            self.window, Gtk.MessageType.INFO, Gtk.ButtonsType.OK, '', txt)
-        dialog.set_modal(False)
-        dialog.popup()
+        if not auto_update:
+            dialog = HigDialog(
+                self.window, Gtk.MessageType.INFO, Gtk.ButtonsType.OK, '', txt)
+            dialog.set_modal(False)
+            dialog.popup()
+        if auto_update and self.config['auto_update_feedback']:
+            def on_ok(checked):
+                if checked:
+                    self.config['auto_update_feedback'] = False
+            # Hide cancel button to mimic InfoDialogCheck
+            ConfirmationDialogCheck(_('Plugins updated'),
+                                    _('Plugin updates have successfully been downloaded.'
+                                      'Updates will be installed on next Gajim restart.'),
+                                    _('Do not show this message again'),
+                                    on_response_ok=on_ok).get_widget_for_response(
+                                        Gtk.ResponseType.CANCEL).hide()
+        if auto_update and not self.config['auto_update_feedback']:
+            log.info('Updates downloaded, will install on next restart')
+
 
     def available_plugins_treeview_selection_changed(self, treeview_selection):
         model, iter_ = treeview_selection.get_selected()
@@ -325,7 +348,8 @@ class PluginInstaller(GajimPlugin):
 
 
 class DownloadAsync(threading.Thread):
-    def __init__(self, plugin, secure, remote_dirs, upgrading, check_update):
+    def __init__(self, plugin, secure, remote_dirs,
+                 upgrading, check_update, auto_update):
         threading.Thread.__init__(self)
         self.plugin = plugin
         self.window = plugin.window
@@ -335,6 +359,7 @@ class DownloadAsync(threading.Thread):
         self.upgrading = upgrading
         self.secure = secure
         self.check_update = check_update
+        self.auto_update = auto_update
         self.pulse = None
 
     def model_append(self, row):
@@ -355,9 +380,10 @@ class DownloadAsync(threading.Thread):
             if self.check_update:
                 self.run_check_update()
             else:
-                GLib.idle_add(self.progressbar.show)
-                self.pulse = GLib.timeout_add(150, self.progressbar_pulse)
-                self.run_download_plugin_list()
+                if not self.auto_update:
+                    GLib.idle_add(self.progressbar.show)
+                    self.pulse = GLib.timeout_add(150, self.progressbar_pulse)
+                    self.run_download_plugin_list()
         except urllib.error.URLError as exc:
             if isinstance(exc.reason, ssl.SSLError):
                 ssl_reason = exc.reason.reason
@@ -413,7 +439,7 @@ class DownloadAsync(threading.Thread):
                 pix.close()
                 icon = pix.get_pixbuf()
 
-            # transform to dictonary
+            # Transform to dictonary
             config_dict = {}
             for key, value in config.items('info'):
                 config_dict[key] = value
@@ -457,6 +483,7 @@ class DownloadAsync(threading.Thread):
 
     def run_check_update(self):
         to_update = []
+        auto_update_list = []
         zipbuf = self.download_url(MANIFEST_URL)
         plugin_list = self.parse_manifest(zipbuf)
         for plugin in plugin_list:
@@ -465,7 +492,17 @@ class DownloadAsync(threading.Thread):
                 if (V(plugin['version']) > V(local_version)) and \
                 self.plugin_is_valid(plugin):
                     to_update.append(plugin['name'])
-        GLib.idle_add(self.plugin.warn_update, to_update)
+                    auto_update_list.append(plugin['remote_dir'])
+        if not self.auto_update:
+            GLib.idle_add(self.plugin.warn_update, to_update)
+        else:
+            if auto_update_list:
+                self.remote_dirs = auto_update_list
+                GLib.idle_add(self.download_plugin)
+            else:
+                log.info('No updates found')
+                if hasattr(self.plugin, 'thread'):
+                    del self.plugin.thread
 
     def run_download_plugin_list(self):
         if not self.remote_dirs:
@@ -501,7 +538,7 @@ class DownloadAsync(threading.Thread):
                 os.mkdir(local_dir)
             local_dir = os.path.dirname(local_dir)
 
-            # downloading zip file
+            # Downloading zip file
             try:
                 plugin = posixpath.join(PLUGINS_URL, filename)
                 buf = self.download_url(plugin)
@@ -510,7 +547,8 @@ class DownloadAsync(threading.Thread):
                 continue
             with ZipFile(buf) as zip_file:
                 zip_file.extractall(local_dir)
-        GLib.idle_add(self.plugin.on_plugin_downloaded, self.remote_dirs)
+        GLib.idle_add(self.plugin.on_plugin_downloaded,
+                      self.remote_dirs, self.auto_update)
 
 
 class PluginInstallerPluginConfigDialog(GajimPluginConfigDialog):
@@ -523,6 +561,23 @@ class PluginInstallerPluginConfigDialog(GajimPluginConfigDialog):
 
     def on_run(self):
         self.xml.check_update.set_active(self.plugin.config['check_update'])
+        self.xml.auto_update.set_sensitive(self.plugin.config['check_update'])
+        self.xml.auto_update.set_active(self.plugin.config['auto_update'])
+        self.xml.auto_update_feedback.set_sensitive(self.plugin.config['check_update'])
+        self.xml.auto_update_feedback.set_active(self.plugin.config['auto_update_feedback'])
 
     def on_check_update_toggled(self, widget):
         self.plugin.config['check_update'] = widget.get_active()
+        if not self.plugin.config['check_update']:
+            self.plugin.config['auto_update'] = False
+        self.xml.auto_update.set_sensitive(self.plugin.config['check_update'])
+        self.xml.auto_update.set_active(self.plugin.config['auto_update'])
+        self.xml.auto_update_feedback.set_sensitive(self.plugin.config['auto_update'])
+        self.xml.auto_update_feedback.set_active(self.plugin.config['auto_update_feedback'])
+
+    def on_auto_update_toggled(self, widget):
+        self.plugin.config['auto_update'] = widget.get_active()
+        self.xml.auto_update_feedback.set_sensitive(self.plugin.config['auto_update'])
+
+    def on_auto_update_feedback_toggled(self, widget):
+        self.plugin.config['auto_update_feedback'] = widget.get_active()
