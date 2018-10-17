@@ -34,6 +34,7 @@ from io import BufferedWriter, FileIO, BytesIO
 from gi.repository import GLib
 from gajim.common import app
 from gajim.common import configpaths
+from gajim.plugins.plugins_i18n import _
 from gajim.gtk.dialogs import ErrorDialog, YesNoDialog
 from omemo.gtk.progress import ProgressWindow
 if os.name == 'nt':

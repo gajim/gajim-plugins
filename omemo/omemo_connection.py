@@ -13,6 +13,8 @@ from gajim.common import helpers
 from gajim.common import configpaths
 from gajim.common.connection_handlers_events import MessageNotSentEvent
 
+from gajim.plugins.plugins_i18n import _
+
 from omemo.xmpp import (
     NS_NOTIFY, NS_OMEMO, NS_EME, NS_HINTS, BundleInformationAnnouncement,
     BundleInformationQuery, DeviceListAnnouncement, DevicelistQuery,

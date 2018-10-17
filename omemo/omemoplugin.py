@@ -34,6 +34,7 @@ from gajim import dialogs
 from gajim.common import app, ged
 from gajim.common.pep import SUPPORTED_PERSONAL_USER_EVENTS
 from gajim.plugins import GajimPlugin
+from gajim.plugins.plugins_i18n import _
 from gajim.groupchat_control import GroupchatControl
 
 from omemo.xmpp import DevicelistPEP
