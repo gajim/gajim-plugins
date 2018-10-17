@@ -180,7 +180,7 @@ class PluginInstaller(GajimPlugin):
         id_ = self.window.connect('destroy', self.on_win_destroy)
         self.connected_ids[id_] = self.window
         path = self.local_file_path('installer.ui')
-        self.xml = get_builder(
+        self._ui = get_builder(
             path, widgets=['refresh', 'available_plugins_box', 'plugin_store'])
 
         widgets_to_extract = (
@@ -190,16 +190,16 @@ class PluginInstaller(GajimPlugin):
             'available_text', 'available_text_label')
 
         for widget_name in widgets_to_extract:
-            setattr(self, widget_name, self.xml.get_object(widget_name))
+            setattr(self, widget_name, self._ui.get_object(widget_name))
 
         self.available_page = self.notebook.append_page(
             self.available_plugins_box, Gtk.Label.new(_('Available')))
 
-        self.available_plugins_model = self.xml.get_object('plugin_store')
+        self.available_plugins_model = self._ui.plugin_store
         self.available_plugins_model.set_sort_column_id(
             2, Gtk.SortType.ASCENDING)
 
-        self.xml.connect_signals(self)
+        self._ui.connect_signals(self)
         self.window.show_all()
 
     def on_win_destroy(self, widget):
@@ -554,30 +554,30 @@ class DownloadAsync(threading.Thread):
 class PluginInstallerPluginConfigDialog(GajimPluginConfigDialog):
     def init(self):
         glade_file_path = self.plugin.local_file_path('config.ui')
-        self.xml = get_builder(glade_file_path)
-        self.get_child().pack_start(self.xml.config_grid, True, True, 0)
+        self._ui = get_builder(glade_file_path)
+        self.get_child().pack_start(self._ui.config_grid, True, True, 0)
 
-        self.xml.connect_signals(self)
+        self._ui.connect_signals(self)
 
     def on_run(self):
-        self.xml.check_update.set_active(self.plugin.config['check_update'])
-        self.xml.auto_update.set_sensitive(self.plugin.config['check_update'])
-        self.xml.auto_update.set_active(self.plugin.config['auto_update'])
-        self.xml.auto_update_feedback.set_sensitive(self.plugin.config['check_update'])
-        self.xml.auto_update_feedback.set_active(self.plugin.config['auto_update_feedback'])
+        self._ui.check_update.set_active(self.plugin.config['check_update'])
+        self._ui.auto_update.set_sensitive(self.plugin.config['check_update'])
+        self._ui.auto_update.set_active(self.plugin.config['auto_update'])
+        self._ui.auto_update_feedback.set_sensitive(self.plugin.config['auto_update'])
+        self._ui.auto_update_feedback.set_active(self.plugin.config['auto_update_feedback'])
 
     def on_check_update_toggled(self, widget):
         self.plugin.config['check_update'] = widget.get_active()
         if not self.plugin.config['check_update']:
             self.plugin.config['auto_update'] = False
-        self.xml.auto_update.set_sensitive(self.plugin.config['check_update'])
-        self.xml.auto_update.set_active(self.plugin.config['auto_update'])
-        self.xml.auto_update_feedback.set_sensitive(self.plugin.config['auto_update'])
-        self.xml.auto_update_feedback.set_active(self.plugin.config['auto_update_feedback'])
+        self._ui.auto_update.set_sensitive(self.plugin.config['check_update'])
+        self._ui.auto_update.set_active(self.plugin.config['auto_update'])
+        self._ui.auto_update_feedback.set_sensitive(self.plugin.config['auto_update'])
+        self._ui.auto_update_feedback.set_active(self.plugin.config['auto_update_feedback'])
 
     def on_auto_update_toggled(self, widget):
         self.plugin.config['auto_update'] = widget.get_active()
-        self.xml.auto_update_feedback.set_sensitive(self.plugin.config['auto_update'])
+        self._ui.auto_update_feedback.set_sensitive(self.plugin.config['auto_update'])
 
     def on_auto_update_feedback_toggled(self, widget):
         self.plugin.config['auto_update_feedback'] = widget.get_active()
