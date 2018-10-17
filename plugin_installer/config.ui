@@ -7,14 +7,66 @@
     <property name="can_focus">False</property>
     <property name="margin_top">12</property>
     <property name="margin_bottom">12</property>
+    <property name="border_width">18</property>
+    <property name="row_spacing">6</property>
     <child>
-      <object class="GtkCheckButton" id="check_update">
-        <property name="label" translatable="yes">Check update after start</property>
+      <object class="GtkCheckButton" id="auto_update_feedback">
+        <property name="label" translatable="yes">_Show message when automatic update was successful</property>
         <property name="visible">True</property>
         <property name="can_focus">True</property>
-        <property name="focus_on_click">False</property>
         <property name="receives_default">False</property>
+        <property name="halign">start</property>
+        <property name="use_underline">True</property>
         <property name="draw_indicator">True</property>
+        <signal name="toggled" handler="on_auto_update_feedback_toggled" swapped="no"/>
+      </object>
+      <packing>
+        <property name="left_attach">0</property>
+        <property name="top_attach">3</property>
+      </packing>
+    </child>
+    <child>
+      <object class="GtkCheckButton" id="auto_update">
+        <property name="label" translatable="yes">_Update plugins automatically</property>
+        <property name="visible">True</property>
+        <property name="can_focus">True</property>
+        <property name="receives_default">False</property>
+        <property name="halign">start</property>
+        <property name="use_underline">True</property>
+        <property name="draw_indicator">True</property>
+        <signal name="toggled" handler="on_auto_update_toggled" swapped="no"/>
+      </object>
+      <packing>
+        <property name="left_attach">0</property>
+        <property name="top_attach">2</property>
+      </packing>
+    </child>
+    <child>
+      <object class="GtkCheckButton" id="check_update">
+        <property name="label" translatable="yes">_Check for updates after start</property>
+        <property name="visible">True</property>
+        <property name="can_focus">True</property>
+        <property name="receives_default">False</property>
+        <property name="halign">start</property>
+        <property name="use_underline">True</property>
+        <property name="draw_indicator">True</property>
+        <signal name="toggled" handler="on_check_update_toggled" swapped="no"/>
+      </object>
+      <packing>
+        <property name="left_attach">0</property>
+        <property name="top_attach">1</property>
+      </packing>
+    </child>
+    <child>
+      <object class="GtkLabel">
+        <property name="visible">True</property>
+        <property name="can_focus">False</property>
+        <property name="halign">start</property>
+        <property name="label" translatable="yes">Plugin updates</property>
+        <style>
+          <class name="bold"/>
+          <class name="dim-label"/>
+        </style>
       </object>
       <packing>
         <property name="left_attach">0</property>
