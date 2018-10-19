@@ -305,7 +305,7 @@ class TriggersPluginConfigDialog(GajimPluginConfigDialog):
         self.connect('hide', self.on_hide)
 
     def on_run(self):
-        # fill window
+        # Fill window
         for w in ('conditions_treeview', 'config_box', 'event_combobox',
         'recipient_type_combobox', 'recipient_list_entry', 'delete_button',
         'use_sound_cb', 'disable_sound_cb', 'use_popup_cb',
@@ -331,12 +331,12 @@ class TriggersPluginConfigDialog(GajimPluginConfigDialog):
         self.invisible_cb = self.xml.get_object('invisible_cb')
 
         if not self.conditions_treeview.get_column(0):
-            # window never opened
+            # Window never opened
             model = Gtk.ListStore(int, str)
             model.set_sort_column_id(0, Gtk.SortType.ASCENDING)
             self.conditions_treeview.set_model(model)
 
-            # means number
+            # '#' Means number
             col = Gtk.TreeViewColumn(_('#'))
             self.conditions_treeview.append_column(col)
             renderer = Gtk.CellRendererText()
@@ -485,9 +485,11 @@ class TriggersPluginConfigDialog(GajimPluginConfigDialog):
             status = _('and I am: ')
             for st in ('online', 'away', 'xa', 'dnd', 'invisible'):
                 if self.__dict__[st + '_cb'].get_active():
-                    status += helpers.get_uf_show(st) + ', '
-        model[iter_][1] = _("When event: %s for category: %s %s %s") % (event,
-            recipient_type, recipient, status)
+                    status += helpers.get_uf_show(st) + ' '
+        model[iter_][1] = _('When event: %(event)s for category: '
+                            '%(recipient_type)s %(recipient)s %(status)s') % {
+                                'event': event, 'recipient_type': recipient_type,
+                                'recipient': recipient, 'status': status}
 
     def on_conditions_treeview_cursor_changed(self, widget):
         (model, iter_) = widget.get_selection().get_selected()
