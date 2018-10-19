@@ -127,7 +127,7 @@
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
                     <property name="tooltip_text" translatable="yes">New rule</property>
-                    <property name="label" translatable="yes">New</property>
+                    <property name="label" translatable="yes">New rule</property>
                     <property name="use_underline">True</property>
                     <property name="stock_id">gtk-new</property>
                     <signal name="clicked" handler="on_new_button_clicked" swapped="no"/>
@@ -142,7 +142,7 @@
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
                     <property name="tooltip_text" translatable="yes">Delete rule</property>
-                    <property name="label" translatable="yes">Delete</property>
+                    <property name="label" translatable="yes">Delete rule</property>
                     <property name="use_underline">True</property>
                     <property name="stock_id">gtk-delete</property>
                     <signal name="clicked" handler="on_delete_button_clicked" swapped="no"/>
@@ -427,7 +427,7 @@
                             </child>
                             <child>
                               <object class="GtkCheckButton" id="dnd_cb">
-                                <property name="label" translatable="yes">Busy </property>
+                                <property name="label" translatable="yes">Busy</property>
                                 <property name="visible">True</property>
                                 <property name="sensitive">False</property>
                                 <property name="can_focus">True</property>
@@ -538,7 +538,7 @@
                     </child>
                     <child>
                       <object class="GtkCheckButton" id="has_focus_cb">
-                        <property name="label" translatable="yes">Has  focus</property>
+                        <property name="label" translatable="yes">Has focus</property>
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">False</property>
