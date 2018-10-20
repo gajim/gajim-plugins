@@ -8,19 +8,16 @@ from gi.repository import Gtk
 
 from gajim.plugins.gui import GajimPluginConfigDialog
 from gajim.plugins import GajimPlugin
+from gajim.plugins.plugins_i18n import _
 from gajim.plugins.helpers import log_calls
 from gajim.common import app
 from gajim.common import ged
 from gajim.common import helpers
 from gajim.common import configpaths
+
 from gajim import gtkgui_helpers
 from gajim.dialogs import InputDialog, WarningDialog
 
-# Since Gajim 1.1.0 _() has to be imported
-try:
-    from gajim.common.i18n import _
-except ImportError:
-    pass
 
 log = logging.getLogger('gajim.plugin_system.set_location')
 
