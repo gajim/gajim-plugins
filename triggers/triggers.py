@@ -29,6 +29,7 @@ from gajim.common import ged
 from gajim.common import helpers
 from gajim.plugins import GajimPlugin
 from gajim.plugins.helpers import log_calls
+from gajim.plugins.helpers import get_builder
 from gajim.plugins.gui import GajimPluginConfigDialog
 
 # Since Gajim 1.1.0 _() has to be imported
@@ -292,22 +293,20 @@ class TriggersPluginConfigDialog(GajimPluginConfigDialog):
         'one_shot']
 
     def init(self):
-        self.GTK_BUILDER_FILE_PATH = self.plugin.local_file_path(
-            'config_dialog.ui')
-        self.xml = Gtk.Builder()
-        self.xml.set_translation_domain('gajim_plugins')
-        self.xml.add_objects_from_file(self.GTK_BUILDER_FILE_PATH,
-            ['plugin_box', 'liststore1', 'liststore2'])
-        plugin_box = self.xml.get_object('plugin_box')
-        self.get_child().pack_start(plugin_box, True, True, 0)
+        path = self.plugin.local_file_path('config_dialog.ui')
+        self._ui = get_builder(path, widgets=['plugin_box', 'liststore1', 'liststore2'])
 
-        self.xml.connect_signals(self)
+        box = self.get_content_area()
+        box.pack_start(self._ui.plugin_box, True, True, 0)
+
+        self._ui.connect_signals(self)
         self.connect('hide', self.on_hide)
 
     def on_run(self):
         # Fill window
         for w in ('conditions_treeview', 'config_box', 'event_combobox',
         'recipient_type_combobox', 'recipient_list_entry', 'delete_button',
+        'online_cb', 'away_cb', 'xa_cb', 'dnd_cb', 'invisible_cb',
         'use_sound_cb', 'disable_sound_cb', 'use_popup_cb',
         'disable_popup_cb', 'use_auto_open_cb', 'disable_auto_open_cb',
         'use_systray_cb', 'disable_systray_cb', 'use_roster_cb',
@@ -315,41 +314,32 @@ class TriggersPluginConfigDialog(GajimPluginConfigDialog):
         'has_focus_cb', 'not_has_focus_cb', 'sound_entry', 'sound_file_box',
         'up_button', 'down_button', 'run_command_cb', 'command_entry',
         'one_shot_cb', 'use_urgency_hint_cb', 'disable_urgency_hint_cb'):
-            self.__dict__[w] = self.xml.get_object(w)
+            self._ui.__dict__[w] = self._ui.get_object(w)
 
         self.config = {}
         for n in self.plugin.config:
             self.config[int(n)] = self.plugin.config[n]
 
-        # Contains status checkboxes
-        self.all_status_rb = self.xml.get_object('all_status_rb')
-        self.special_status_rb = self.xml.get_object('special_status_rb')
-        self.online_cb = self.xml.get_object('online_cb')
-        self.away_cb = self.xml.get_object('away_cb')
-        self.xa_cb = self.xml.get_object('xa_cb')
-        self.dnd_cb = self.xml.get_object('dnd_cb')
-        self.invisible_cb = self.xml.get_object('invisible_cb')
-
-        if not self.conditions_treeview.get_column(0):
+        if not self._ui.conditions_treeview.get_column(0):
             # Window never opened
             model = Gtk.ListStore(int, str)
             model.set_sort_column_id(0, Gtk.SortType.ASCENDING)
-            self.conditions_treeview.set_model(model)
+            self._ui.conditions_treeview.set_model(model)
 
             # '#' Means number
             col = Gtk.TreeViewColumn(_('#'))
-            self.conditions_treeview.append_column(col)
+            self._ui.conditions_treeview.append_column(col)
             renderer = Gtk.CellRendererText()
             col.pack_start(renderer, expand=False)
             col.add_attribute(renderer, 'text', 0)
 
             col = Gtk.TreeViewColumn(_('Condition'))
-            self.conditions_treeview.append_column(col)
+            self._ui.conditions_treeview.append_column(col)
             renderer = Gtk.CellRendererText()
             col.pack_start(renderer, expand=True)
             col.add_attribute(renderer, 'text', 1)
         else:
-            model = self.conditions_treeview.get_model()
+            model = self._ui.conditions_treeview.get_model()
 
         model.clear()
 
@@ -358,19 +348,19 @@ class TriggersPluginConfigDialog(GajimPluginConfigDialog):
         while num in self.config:
             iter_ = model.append((num, ''))
             path = model.get_path(iter_)
-            self.conditions_treeview.set_cursor(path)
+            self._ui.conditions_treeview.set_cursor(path)
             self.active_num = num
             self.initiate_rule_state()
             self.set_treeview_string()
             num += 1
 
         # No rule selected at init time
-        self.conditions_treeview.get_selection().unselect_all()
+        self._ui.conditions_treeview.get_selection().unselect_all()
         self.active_num = -1
-        self.config_box.set_sensitive(False)
-        self.delete_button.set_sensitive(False)
-        self.down_button.set_sensitive(False)
-        self.up_button.set_sensitive(False)
+        self._ui.config_box.set_sensitive(False)
+        self._ui.delete_button.set_sensitive(False)
+        self._ui.down_button.set_sensitive(False)
+        self._ui.up_button.set_sensitive(False)
 
     def initiate_rule_state(self):
         """
@@ -381,110 +371,110 @@ class TriggersPluginConfigDialog(GajimPluginConfigDialog):
         # event
         value = self.config[self.active_num]['event']
         if value:
-            self.event_combobox.set_active(list(self.events_list.keys()).index(
+            self._ui.event_combobox.set_active(list(self.events_list.keys()).index(
                 value))
         else:
-            self.event_combobox.set_active(-1)
+            self._ui.event_combobox.set_active(-1)
         # recipient_type
         value = self.config[self.active_num]['recipient_type']
         if value:
-            self.recipient_type_combobox.set_active(
+            self._ui.recipient_type_combobox.set_active(
                 self.recipient_types_list.index(value))
         else:
-            self.recipient_type_combobox.set_active(-1)
+            self._ui.recipient_type_combobox.set_active(-1)
         # recipient
         value = self.config[self.active_num]['recipients']
         if not value:
             value = ''
-        self.recipient_list_entry.set_text(value)
+        self._ui.recipient_list_entry.set_text(value)
         # status
         value = self.config[self.active_num]['status']
         if value == 'all':
-            self.all_status_rb.set_active(True)
+            self._ui.all_status_rb.set_active(True)
         else:
-            self.special_status_rb.set_active(True)
+            self._ui.special_status_rb.set_active(True)
             values = value.split()
             for v in ('online', 'away', 'xa', 'dnd', 'invisible'):
                 if v in values:
-                    self.__dict__[v + '_cb'].set_active(True)
+                    self._ui.__dict__[v + '_cb'].set_active(True)
                 else:
-                    self.__dict__[v + '_cb'].set_active(False)
+                    self._ui.__dict__[v + '_cb'].set_active(False)
 
-        self.on_status_radiobutton_toggled(self.all_status_rb)
+        self.on_status_radiobutton_toggled(self._ui.all_status_rb)
 
         # tab_opened
         value = self.config[self.active_num]['tab_opened']
-        self.tab_opened_cb.set_active(True)
-        self.not_tab_opened_cb.set_active(True)
+        self._ui.tab_opened_cb.set_active(True)
+        self._ui.not_tab_opened_cb.set_active(True)
         if value == 'no':
-            self.tab_opened_cb.set_active(False)
+            self._ui.tab_opened_cb.set_active(False)
         elif value == 'yes':
-            self.not_tab_opened_cb.set_active(False)
+            self._ui.not_tab_opened_cb.set_active(False)
 
         # has_focus
         if 'has_focus' not in self.config[self.active_num]:
             self.config[self.active_num]['has_focus'] = 'both'
         value = self.config[self.active_num]['has_focus']
-        self.has_focus_cb.set_active(True)
-        self.not_has_focus_cb.set_active(True)
+        self._ui.has_focus_cb.set_active(True)
+        self._ui.not_has_focus_cb.set_active(True)
         if value == 'no':
-            self.has_focus_cb.set_active(False)
+            self._ui.has_focus_cb.set_active(False)
         elif value == 'yes':
-            self.not_has_focus_cb.set_active(False)
+            self._ui.not_has_focus_cb.set_active(False)
 
         # sound_file
         value = self.config[self.active_num]['sound_file']
-        self.sound_entry.set_text(value)
+        self._ui.sound_entry.set_text(value)
 
         # sound, popup, auto_open, systray, roster
         for option in ('sound', 'popup', 'auto_open', 'systray', 'roster',
         'urgency_hint'):
             value = self.config[self.active_num][option]
             if value == 'yes':
-                self.__dict__['use_' + option + '_cb'].set_active(True)
+                self._ui.__dict__['use_' + option + '_cb'].set_active(True)
             else:
-                self.__dict__['use_' + option + '_cb'].set_active(False)
+                self._ui.__dict__['use_' + option + '_cb'].set_active(False)
             if value == 'no':
-                self.__dict__['disable_' + option + '_cb'].set_active(True)
+                self._ui.__dict__['disable_' + option + '_cb'].set_active(True)
             else:
-                self.__dict__['disable_' + option + '_cb'].set_active(False)
+                self._ui.__dict__['disable_' + option + '_cb'].set_active(False)
 
         # run_command
         value = self.config[self.active_num]['run_command']
-        self.run_command_cb.set_active(value)
+        self._ui.run_command_cb.set_active(value)
 
         # command
         value = self.config[self.active_num]['command']
-        self.command_entry.set_text(value)
+        self._ui.command_entry.set_text(value)
 
         # one shot
         if 'one_shot' in self.config[self.active_num]:
             value = self.config[self.active_num]['one_shot']
         else:
             value = False
-        self.one_shot_cb.set_active(value)
+        self._ui.one_shot_cb.set_active(value)
 
     def set_treeview_string(self):
-        (model, iter_) = self.conditions_treeview.get_selection().get_selected()
+        (model, iter_) = self._ui.conditions_treeview.get_selection().get_selected()
         if not iter_:
             return
-        ind = self.event_combobox.get_active()
+        ind = self._ui.event_combobox.get_active()
         event = ''
         if ind > -1:
-            event = self.event_combobox.get_model()[ind][0]
-        ind = self.recipient_type_combobox.get_active()
+            event = self._ui.event_combobox.get_model()[ind][0]
+        ind = self._ui.recipient_type_combobox.get_active()
         recipient_type = ''
         if ind > -1:
-            recipient_type = self.recipient_type_combobox.get_model()[ind][0]
+            recipient_type = self._ui.recipient_type_combobox.get_model()[ind][0]
         recipient = ''
         if recipient_type != 'everybody':
-            recipient = self.recipient_list_entry.get_text()
-        if self.all_status_rb.get_active():
+            recipient = self._ui.recipient_list_entry.get_text()
+        if self._ui.all_status_rb.get_active():
             status = ''
         else:
             status = _('and I am: ')
             for st in ('online', 'away', 'xa', 'dnd', 'invisible'):
-                if self.__dict__[st + '_cb'].get_active():
+                if self._ui.__dict__[st + '_cb'].get_active():
                     status += helpers.get_uf_show(st) + ' '
         model[iter_][1] = _('When event: %(event)s for category: '
                             '%(recipient_type)s %(recipient)s %(status)s') % {
@@ -498,21 +488,21 @@ class TriggersPluginConfigDialog(GajimPluginConfigDialog):
             return
         self.active_num = model[iter_][0]
         if self.active_num == 0:
-            self.up_button.set_sensitive(False)
+            self._ui.up_button.set_sensitive(False)
         else:
-            self.up_button.set_sensitive(True)
-        _max = self.conditions_treeview.get_model().iter_n_children(None)
+            self._ui.up_button.set_sensitive(True)
+        _max = self._ui.conditions_treeview.get_model().iter_n_children(None)
         if self.active_num == _max - 1:
-            self.down_button.set_sensitive(False)
+            self._ui.down_button.set_sensitive(False)
         else:
-            self.down_button.set_sensitive(True)
+            self._ui.down_button.set_sensitive(True)
         self.initiate_rule_state()
-        self.config_box.set_sensitive(True)
-        self.delete_button.set_sensitive(True)
+        self._ui.config_box.set_sensitive(True)
+        self._ui.delete_button.set_sensitive(True)
 
     def on_new_button_clicked(self, widget):
-        model = self.conditions_treeview.get_model()
-        num = self.conditions_treeview.get_model().iter_n_children(None)
+        model = self._ui.conditions_treeview.get_model()
+        num = self._ui.conditions_treeview.get_model().iter_n_children(None)
         self.config[num] = {'event': 'message_received', 'recipient_type': 'all',
             'recipients': '', 'status': 'all', 'tab_opened': 'both',
             'has_focus': 'both', 'sound': '', 'sound_file': '', 'popup': '',
@@ -520,13 +510,13 @@ class TriggersPluginConfigDialog(GajimPluginConfigDialog):
             'roster': '', 'one_shot': False, 'urgency_hint': False}
         iter_ = model.append((num, ''))
         path = model.get_path(iter_)
-        self.conditions_treeview.set_cursor(path)
+        self._ui.conditions_treeview.set_cursor(path)
         self.active_num = num
         self.set_treeview_string()
-        self.config_box.set_sensitive(True)
+        self._ui.config_box.set_sensitive(True)
 
     def on_delete_button_clicked(self, widget):
-        (model, iter_) = self.conditions_treeview.get_selection().get_selected()
+        (model, iter_) = self._ui.conditions_treeview.get_selection().get_selected()
         if not iter_:
             return
         # up all others
@@ -540,13 +530,13 @@ class TriggersPluginConfigDialog(GajimPluginConfigDialog):
         model.remove(iter_)
         del self.config[num]
         self.active_num = ''
-        self.config_box.set_sensitive(False)
-        self.delete_button.set_sensitive(False)
-        self.up_button.set_sensitive(False)
-        self.down_button.set_sensitive(False)
+        self._ui.config_box.set_sensitive(False)
+        self._ui.delete_button.set_sensitive(False)
+        self._ui.up_button.set_sensitive(False)
+        self._ui.down_button.set_sensitive(False)
 
     def on_up_button_clicked(self, widget):
-        (model, iter_) = self.conditions_treeview.get_selection().get_selected()
+        (model, iter_) = self._ui.conditions_treeview.get_selection().get_selected()
         if not iter_:
             return
         conf = self.config[self.active_num].copy()
@@ -558,10 +548,10 @@ class TriggersPluginConfigDialog(GajimPluginConfigDialog):
         path = model.get_path(iter_)
         iter_ = model.get_iter((path[0] - 1,))
         model[iter_][0] = self.active_num
-        self.on_conditions_treeview_cursor_changed(self.conditions_treeview)
+        self.on_conditions_treeview_cursor_changed(self._ui.conditions_treeview)
 
     def on_down_button_clicked(self, widget):
-        (model, iter_) = self.conditions_treeview.get_selection().get_selected()
+        (model, iter_) = self._ui.conditions_treeview.get_selection().get_selected()
         if not iter_:
             return
         conf = self.config[self.active_num].copy()
@@ -571,12 +561,12 @@ class TriggersPluginConfigDialog(GajimPluginConfigDialog):
         model[iter_][0] = self.active_num + 1
         iter_ = model.iter_next(iter_)
         model[iter_][0] = self.active_num
-        self.on_conditions_treeview_cursor_changed(self.conditions_treeview)
+        self.on_conditions_treeview_cursor_changed(self._ui.conditions_treeview)
 
     def on_event_combobox_changed(self, widget):
         if self.active_num < 0:
             return
-        active = self.event_combobox.get_active()
+        active = self._ui.event_combobox.get_active()
         if active == -1:
             return
         else:
@@ -584,22 +574,22 @@ class TriggersPluginConfigDialog(GajimPluginConfigDialog):
         self.config[self.active_num]['event'] = event
         for w in ('use_systray_cb', 'disable_systray_cb', 'use_roster_cb',
         'disable_roster_cb'):
-            self.__dict__[w].set_sensitive(True)
+            self._ui.__dict__[w].set_sensitive(True)
         for w in self.events_list[event]:
-            self.__dict__[w].set_sensitive(False)
-            self.__dict__[w].set_state(False)
+            self._ui.__dict__[w].set_sensitive(False)
+            self._ui.__dict__[w].set_state(False)
         self.set_treeview_string()
 
     def on_recipient_type_combobox_changed(self, widget):
         if self.active_num < 0:
             return
         recipient_type = self.recipient_types_list[
-            self.recipient_type_combobox.get_active()]
+            self._ui.recipient_type_combobox.get_active()]
         self.config[self.active_num]['recipient_type'] = recipient_type
         if recipient_type == 'all':
-            self.recipient_list_entry.set_sensitive(False)
+            self._ui.recipient_list_entry.set_sensitive(False)
         else:
-            self.recipient_list_entry.set_sensitive(True)
+            self._ui.recipient_list_entry.set_sensitive(True)
         self.set_treeview_string()
 
     def on_recipient_list_entry_changed(self, widget):
@@ -615,7 +605,7 @@ class TriggersPluginConfigDialog(GajimPluginConfigDialog):
             return
         status = ''
         for st in ('online', 'away', 'xa', 'dnd', 'invisible'):
-            if self.__dict__[st + '_cb'].get_active():
+            if self._ui.__dict__[st + '_cb'].get_active():
                 status += st + ' '
         if status:
             status = status[:-1]
@@ -625,18 +615,18 @@ class TriggersPluginConfigDialog(GajimPluginConfigDialog):
     def on_status_radiobutton_toggled(self, widget):
         if self.active_num < 0:
             return
-        if self.all_status_rb.get_active():
-            self.xml.get_object('status_expander').set_expanded(False)
+        if self._ui.all_status_rb.get_active():
+            self._ui.status_expander.set_expanded(False)
             self.config[self.active_num]['status'] = 'all'
             # 'All status' clicked
             for st in ('online', 'away', 'xa', 'dnd', 'invisible'):
-                self.__dict__[st + '_cb'].set_sensitive(False)
+                self._ui.__dict__[st + '_cb'].set_sensitive(False)
         else:
-            self.xml.get_object('status_expander').set_expanded(True)
+            self._ui.status_expander.set_expanded(True)
             self.set_status_config()
             # 'special status' clicked
             for st in ('online', 'away', 'xa', 'dnd', 'invisible'):
-                self.__dict__[st + '_cb'].set_sensitive(True)
+                self._ui.__dict__[st + '_cb'].set_sensitive(True)
 
         self.set_treeview_string()
 
@@ -649,54 +639,54 @@ class TriggersPluginConfigDialog(GajimPluginConfigDialog):
     def on_tab_opened_cb_toggled(self, widget):
         if self.active_num < 0:
             return
-        if self.tab_opened_cb.get_active():
-            self.has_focus_cb.set_sensitive(True)
-            self.not_has_focus_cb.set_sensitive(True)
-            if self.not_tab_opened_cb.get_active():
+        if self._ui.tab_opened_cb.get_active():
+            self._ui.has_focus_cb.set_sensitive(True)
+            self._ui.not_has_focus_cb.set_sensitive(True)
+            if self._ui.not_tab_opened_cb.get_active():
                 self.config[self.active_num]['tab_opened'] = 'both'
             else:
                 self.config[self.active_num]['tab_opened'] = 'yes'
         else:
-            self.has_focus_cb.set_sensitive(False)
-            self.not_has_focus_cb.set_sensitive(False)
-            self.not_tab_opened_cb.set_active(True)
+            self._ui.has_focus_cb.set_sensitive(False)
+            self._ui.not_has_focus_cb.set_sensitive(False)
+            self._ui.not_tab_opened_cb.set_active(True)
             self.config[self.active_num]['tab_opened'] = 'no'
 
     def on_not_tab_opened_cb_toggled(self, widget):
         if self.active_num < 0:
             return
-        if self.not_tab_opened_cb.get_active():
-            if self.tab_opened_cb.get_active():
+        if self._ui.not_tab_opened_cb.get_active():
+            if self._ui.tab_opened_cb.get_active():
                 self.config[self.active_num]['tab_opened'] = 'both'
             else:
                 self.config[self.active_num]['tab_opened'] = 'no'
         else:
-            self.tab_opened_cb.set_active(True)
+            self._ui.tab_opened_cb.set_active(True)
             self.config[self.active_num]['tab_opened'] = 'yes'
 
     # has_focus OR (not xor) not_has_focus must be active
     def on_has_focus_cb_toggled(self, widget):
         if self.active_num < 0:
             return
-        if self.has_focus_cb.get_active():
-            if self.not_has_focus_cb.get_active():
+        if self._ui.has_focus_cb.get_active():
+            if self._ui.not_has_focus_cb.get_active():
                 self.config[self.active_num]['has_focus'] = 'both'
             else:
                 self.config[self.active_num]['has_focus'] = 'yes'
         else:
-            self.not_has_focus_cb.set_active(True)
+            self._ui.not_has_focus_cb.set_active(True)
             self.config[self.active_num]['has_focus'] = 'no'
 
     def on_not_has_focus_cb_toggled(self, widget):
         if self.active_num < 0:
             return
-        if self.not_has_focus_cb.get_active():
-            if self.has_focus_cb.get_active():
+        if self._ui.not_has_focus_cb.get_active():
+            if self._ui.has_focus_cb.get_active():
                 self.config[self.active_num]['has_focus'] = 'both'
             else:
                 self.config[self.active_num]['has_focus'] = 'no'
         else:
-            self.has_focus_cb.set_active(True)
+            self._ui.has_focus_cb.set_active(True)
             self.config[self.active_num]['has_focus'] = 'yes'
 
     def on_use_it_toggled(self, widget, oposite_widget, option):
@@ -720,11 +710,11 @@ class TriggersPluginConfigDialog(GajimPluginConfigDialog):
             self.config[self.active_num][option] = ''
 
     def on_use_sound_cb_toggled(self, widget):
-        self.on_use_it_toggled(widget, self.disable_sound_cb, 'sound')
+        self.on_use_it_toggled(widget, self._ui.disable_sound_cb, 'sound')
         if widget.get_active():
-            self.sound_file_box.set_sensitive(True)
+            self._ui.sound_file_box.set_sensitive(True)
         else:
-            self.sound_file_box.set_sensitive(False)
+            self._ui.sound_file_box.set_sensitive(False)
 
     def on_browse_for_sounds_button_clicked(self, widget, data=None):
         if NEW_FILECHOOSER:
@@ -738,9 +728,9 @@ class TriggersPluginConfigDialog(GajimPluginConfigDialog):
 
         def on_ok(path_to_snd_file):
             self.config[self.active_num]['sound_file'] = path_to_snd_file
-            self.sound_entry.set_text(path_to_snd_file)
+            self._ui.sound_entry.set_text(path_to_snd_file)
 
-        path_to_snd_file = self.sound_entry.get_text()
+        path_to_snd_file = self._ui.sound_entry.get_text()
         path_to_snd_file = os.path.join(os.getcwd(), path_to_snd_file)
         SoundChooserDialog(on_ok,
                            path=path_to_snd_file,
@@ -755,65 +745,65 @@ class TriggersPluginConfigDialog(GajimPluginConfigDialog):
             if not path_to_snd_file:
                 path_to_snd_file = ''
             self.config[self.active_num]['sound_file'] = path_to_snd_file
-            self.sound_entry.set_text(path_to_snd_file)
+            self._ui.sound_entry.set_text(path_to_snd_file)
 
-        path_to_snd_file = self.sound_entry.get_text()
+        path_to_snd_file = self._ui.sound_entry.get_text()
         path_to_snd_file = os.path.join(os.getcwd(), path_to_snd_file)
         dialog = SoundChooserDialog(path_to_snd_file, on_ok)
 
     def on_play_button_clicked(self, widget):
-        helpers.play_sound_file(self.sound_entry.get_text())
+        helpers.play_sound_file(self._ui.sound_entry.get_text())
 
     def on_disable_sound_cb_toggled(self, widget):
-        self.on_disable_it_toggled(widget, self.use_sound_cb, 'sound')
+        self.on_disable_it_toggled(widget, self._ui.use_sound_cb, 'sound')
 
     def on_sound_entry_changed(self, widget):
         self.config[self.active_num]['sound_file'] = widget.get_text()
 
     def on_use_popup_cb_toggled(self, widget):
-        self.on_use_it_toggled(widget, self.disable_popup_cb, 'popup')
+        self.on_use_it_toggled(widget, self._ui.disable_popup_cb, 'popup')
 
     def on_disable_popup_cb_toggled(self, widget):
-        self.on_disable_it_toggled(widget, self.use_popup_cb, 'popup')
+        self.on_disable_it_toggled(widget, self._ui.use_popup_cb, 'popup')
 
     def on_use_auto_open_cb_toggled(self, widget):
-        self.on_use_it_toggled(widget, self.disable_auto_open_cb, 'auto_open')
+        self.on_use_it_toggled(widget, self._ui.disable_auto_open_cb, 'auto_open')
 
     def on_disable_auto_open_cb_toggled(self, widget):
-        self.on_disable_it_toggled(widget, self.use_auto_open_cb, 'auto_open')
+        self.on_disable_it_toggled(widget, self._ui.use_auto_open_cb, 'auto_open')
 
     def on_run_command_cb_toggled(self, widget):
         self.config[self.active_num]['run_command'] = widget.get_active()
         if widget.get_active():
-            self.command_entry.set_sensitive(True)
+            self._ui.command_entry.set_sensitive(True)
         else:
-            self.command_entry.set_sensitive(False)
+            self._ui.command_entry.set_sensitive(False)
 
     def on_command_entry_changed(self, widget):
         self.config[self.active_num]['command'] = widget.get_text()
 
     def on_use_systray_cb_toggled(self, widget):
-        self.on_use_it_toggled(widget, self.disable_systray_cb, 'systray')
+        self.on_use_it_toggled(widget, self._ui.disable_systray_cb, 'systray')
 
     def on_disable_systray_cb_toggled(self, widget):
-        self.on_disable_it_toggled(widget, self.use_systray_cb, 'systray')
+        self.on_disable_it_toggled(widget, self._ui.use_systray_cb, 'systray')
 
     def on_use_roster_cb_toggled(self, widget):
-        self.on_use_it_toggled(widget, self.disable_roster_cb, 'roster')
+        self.on_use_it_toggled(widget, self._ui.disable_roster_cb, 'roster')
 
     def on_disable_roster_cb_toggled(self, widget):
-        self.on_disable_it_toggled(widget, self.use_roster_cb, 'roster')
+        self.on_disable_it_toggled(widget, self._ui.use_roster_cb, 'roster')
 
     def on_one_shot_cb_toggled(self, widget):
         self.config[self.active_num]['one_shot'] = widget.get_active()
-        self.command_entry.set_sensitive(widget.get_active())
+        self._ui.command_entry.set_sensitive(widget.get_active())
 
     def on_use_urgency_hint_cb_toggled(self, widget):
-        self.on_use_it_toggled(widget, self.disable_urgency_hint_cb,
+        self.on_use_it_toggled(widget, self._ui.disable_urgency_hint_cb,
             'uregency_hint')
 
     def on_disable_urgency_hint_cb_toggled(self, widget):
-        self.on_disable_it_toggled(widget, self.use_urgency_hint_cb,
+        self.on_disable_it_toggled(widget, self._ui.use_urgency_hint_cb,
             'uregency_hint')
 
     def on_hide(self, widget):
