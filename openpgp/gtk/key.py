@@ -25,6 +25,7 @@ from gajim.common import app
 from gajim.common.const import DialogButton, ButtonAction
 
 from gajim.gtk import NewConfirmationDialog
+from gajim.plugins.plugins_i18n import _
 
 from openpgp.modules.util import Trust
 

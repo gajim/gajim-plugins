@@ -24,6 +24,7 @@ from gi.repository import Gtk
 from gi.repository import GLib
 
 from gajim.common import app
+from gajim.plugins.plugins_i18n import _
 
 log = logging.getLogger('gajim.plugin_system.openpgp.wizard')
 
