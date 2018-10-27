@@ -30,6 +30,7 @@ from gajim.common import configpaths
 from gajim.common import helpers
 from gajim.common.const import CSSPriority
 from gajim.gtk.dialogs import ErrorDialog
+from gajim.plugins.plugins_i18n import _
 
 from openpgp.modules.util import NS_NOTIFY
 from openpgp.modules.util import ENCRYPTION_NAME
