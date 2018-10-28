@@ -26,7 +26,7 @@ def analyse_image(mem):
     results = {
         'size': image.size,
         'mode': 'full',
-        'duration': image.info["duration"]
+        'duration': image.info.get('duration', 0)
     }
 
     try:
