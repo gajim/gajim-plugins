@@ -22,12 +22,8 @@ from gi.repository import Gtk
 
 from gajim.options_dialog import OptionsDialog, GenericOption, SpinOption
 from gajim.common.const import Option, OptionType, OptionKind
+from gajim.plugins.plugins_i18n import _
 
-# Since Gajim 1.1.0 _() has to be imported
-try:
-    from gajim.common.i18n import _
-except ImportError:
-    pass
 
 class UrlImagePreviewConfigDialog(OptionsDialog):
     def __init__(self, plugin, parent):

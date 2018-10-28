@@ -22,12 +22,7 @@ import logging
 import os
 
 from gajim.common import app
-
-# Since Gajim 1.1.0 _() has to be imported
-try:
-    from gajim.common.i18n import _
-except ImportError:
-    pass
+from gajim.plugins.plugins_i18n import _
 
 
 if os.name == 'nt':

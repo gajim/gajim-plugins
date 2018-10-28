@@ -30,25 +30,20 @@ from gi.repository import Gtk, Gdk, GLib, GdkPixbuf
 from gajim.common import app
 from gajim.common import helpers
 from gajim.common import configpaths
+
 from gajim import dialogs
 from gajim import gtkgui_helpers
+
 from gajim.plugins import GajimPlugin
 from gajim.plugins.helpers import log_calls
+from gajim.plugins.plugins_i18n import _
+
 from url_image_preview.http_functions import get_http_head, get_http_file
 from url_image_preview.config_dialog import UrlImagePreviewConfigDialog
 from url_image_preview.resize_gif import resize_gif
 
-# Since Gajim 1.1.0 _() has to be imported
-try:
-    from gajim.common.i18n import _
-except ImportError:
-    pass
+from gajim.gtk.filechoosers import FileSaveDialog
 
-try:
-    from gajim.gtk.filechoosers import FileSaveDialog
-    NEW_FILECHOOSER = True
-except ImportError:
-    NEW_FILECHOOSER = False
 
 log = logging.getLogger('gajim.plugin_system.preview')
 
@@ -607,12 +602,8 @@ class Base(object):
         id_ = open_menuitem.connect(
             'activate', self.on_open_menuitem_activate, data)
         self.handlers[id_] = open_menuitem
-        if NEW_FILECHOOSER:
-            id_ = save_as_menuitem.connect(
-                'activate', self.on_save_as_menuitem_activate_new, data)
-        else:
-            id_ = save_as_menuitem.connect(
-                'activate', self.on_save_as_menuitem_activate, data)
+        id_ = save_as_menuitem.connect(
+            'activate', self.on_save_as_menuitem_activate_new, data)
         self.handlers[id_] = save_as_menuitem
         id_ = copy_link_location_menuitem.connect(
             'activate', self.on_copy_link_location_menuitem_activate, data)
@@ -634,61 +625,6 @@ class Base(object):
             helpers.launch_browser_mailer('url', url)
             return
         helpers.launch_file_manager(filepath)
-
-    def on_save_as_menuitem_activate(self, menu, data):
-        filepath = data["filepath"]
-        original_filename = data["original_filename"]
-
-        def on_continue(response, target_path):
-            if response < 0:
-                return
-            shutil.copy(filepath, target_path)
-            dialog.destroy()
-
-        def on_ok(widget):
-            target_path = dialog.get_filename()
-            if os.path.exists(target_path):
-                # check if we have write permissions
-                if not os.access(target_path, os.W_OK):
-                    file_name = os.path.basename(target_path)
-                    dialogs.ErrorDialog(
-                        _('Cannot overwrite existing file "%s"') % file_name,
-                        _('A file with this name already exists and you do '
-                          'not have permission to overwrite it.'))
-                    return
-                dialog2 = dialogs.FTOverwriteConfirmationDialog(
-                    _('This file already exists'),
-                    _('What do you want to do?'),
-                    propose_resume=False,
-                    on_response=(on_continue, target_path),
-                    transient_for=dialog)
-                dialog2.set_destroy_with_parent(True)
-            else:
-                dirname = os.path.dirname(target_path)
-                if not os.access(dirname, os.W_OK):
-                    dialogs.ErrorDialog(
-                        _('Directory "%s" is not writable') % dirname,
-                        _('You do not have permission to '
-                          'create files in this directory.'))
-                    return
-                on_continue(0, target_path)
-
-        def on_cancel(widget):
-            dialog.destroy()
-
-        dialog = dialogs.FileChooserDialog(
-            title_text=_('Save Image as...'),
-            action=Gtk.FileChooserAction.SAVE,
-            buttons=(Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL,
-                     Gtk.STOCK_SAVE, Gtk.ResponseType.OK),
-            default_response=Gtk.ResponseType.OK,
-            current_folder=app.config.get('last_save_dir'),
-            on_response_ok=on_ok,
-            on_response_cancel=on_cancel)
-
-        dialog.set_current_name(original_filename)
-        dialog.connect('delete-event', lambda widget, event:
-                       on_cancel(widget))
 
     def on_save_as_menuitem_activate_new(self, menu, data):
         filepath = data["filepath"]
