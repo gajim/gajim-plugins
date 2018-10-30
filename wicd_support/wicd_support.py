@@ -34,7 +34,7 @@ class WicdPlugin(GajimPlugin):
     def activate(self):
         try:
             import dbus
-            from app.common.dbus_support import system_bus
+            from gajim.common.dbus_support import system_bus
 
             self.bus = system_bus.bus()
 
