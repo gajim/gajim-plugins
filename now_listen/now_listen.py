@@ -8,7 +8,7 @@ from gajim.plugins import GajimPlugin
 from gajim.plugins.helpers import log_calls
 from gajim.plugins.gui import GajimPluginConfigDialog
 
-from gajim.music_track_listener import MusicTrackListener
+from gajim.common.dbus.music_track import MusicTrackListener
 
 # Since Gajim 1.1.0 _() has to be imported
 try:
