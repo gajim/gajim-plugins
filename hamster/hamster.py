@@ -10,13 +10,9 @@ from gajim.common import dbus_support
 
 from gajim.plugins import GajimPlugin
 from gajim.plugins.helpers import log_calls
-from gajim.common.pep import ACTIVITIES
+from gajim.plugins.plugins_i18n import _
+from gajim.common.const import ACTIVITIES
 
-# Since Gajim 1.1.0 _() has to be imported
-try:
-    from gajim.common.i18n import _
-except ImportError:
-    pass
 
 HAMSTAER_INTERFACE = 'org.gnome.Hamster'
 SUBACTIVITIES = []
@@ -31,9 +27,8 @@ class HamsterIntegrationPlugin(GajimPlugin):
 
     @log_calls('HamsterIntegrationPlugin')
     def init(self):
-        self.description = _('Integration with project hamster\n'
-        'see https://trac.gajim.org/ticket/6993\n'
-        'and http://projecthamster.wordpress.com/about/')
+        self.description = _('Integration with project hamster, see '
+        'http://projecthamster.wordpress.com/about/')
         self.config_dialog = None
         self.events_handlers = {}
         if os.name == 'nt':
@@ -79,7 +74,7 @@ class HamsterIntegrationPlugin(GajimPlugin):
             for account in accounts:
                 if app.account_is_connected(account):
                     connection = app.connections[account]
-                    connection.retract_activity()
+                    connection.get_module('UserActivity').send(None)
             return
 
         last_fact = self.from_dbus_fact(facts[-1])
@@ -98,8 +93,8 @@ class HamsterIntegrationPlugin(GajimPlugin):
         for account in app.connections:
             if app.account_is_connected(account):
                 connection = app.connections[account]
-                connection.send_activity(activity, subactivity,
-                    last_fact['fact'])
+                connection.get_module('UserActivity').send(
+                    (activity, subactivity, last_fact['fact']))
 
     def from_dbus_fact(self, fact):
         '''unpack the struct into a proper dict'''
