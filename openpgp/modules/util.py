@@ -207,7 +207,7 @@ def get_info_message():
     return '[This message is *encrypted* with OpenPGP (See :XEP:`0373`]'
 
 
-def add_additional_data(data, fingerprint, trust):
+def add_additional_data(data, fingerprint):
     data['encrypted'] = {'name': ENCRYPTION_NAME,
                          'fingerprint': fingerprint}
 
