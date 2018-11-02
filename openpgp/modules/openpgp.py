@@ -109,9 +109,9 @@ class ContactData:
 
     @property
     def userid(self):
-        if self._jid is None:
+        if self.jid is None:
             raise ValueError('JID not set')
-        return 'xmpp:%s' % self._jid
+        return 'xmpp:%s' % self.jid
 
     @property
     def default_trust(self):
@@ -185,7 +185,7 @@ class ContactData:
         try:
             keydata = self._key_store[fingerprint]
         except KeyError:
-            log.warning('Set public key on unknown fingerprint',
+            log.warning('Set public key on unknown fingerprint: %s %s',
                         self.jid, fingerprint)
         else:
             keydata.has_pubkey = True
