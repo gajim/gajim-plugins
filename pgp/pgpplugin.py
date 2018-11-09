@@ -36,13 +36,7 @@ from gajim.plugins.plugins_i18n import _
 log = logging.getLogger('gajim.plugin_system.oldpgp')
 
 ERROR_MSG = ''
-if hasattr(app, 'HAVE_GPG'):
-    # Gajim 1.0.0
-    HAVE_GPG = app.HAVE_GPG
-else:
-    # Gajim 1.0.3+
-    HAVE_GPG = app.is_installed('GPG')
-if not HAVE_GPG:
+if not app.is_installed('GPG'):
     if os.name == 'nt':
         ERROR_MSG = _('Please install GnuPG / Gpg4win')
     else:
