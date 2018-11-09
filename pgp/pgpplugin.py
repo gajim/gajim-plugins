@@ -155,6 +155,7 @@ class OldPGPPlugin(GajimPlugin):
             key_id = app.config.get_per('accounts', account, 'keyid')
             if key_id:
                 obj.encrypted = self.encryption_name
+                self.add_additional_data(obj.additional_data)
                 self.decrypt_queue.put([encmsg, key_id, obj, conn, callback])
                 if not self.thread:
                     self.thread = threading.Thread(target=self.worker)
@@ -253,6 +254,7 @@ class OldPGPPlugin(GajimPlugin):
             # Set xhtml to None so it doesnt get logged
             obj.xhtml = None
             obj.encrypted = self.encryption_name
+            self.add_additional_data(obj.additional_data)
             print_msg_to_log(obj.msg_iq)
 
         callback(obj)
@@ -280,7 +282,7 @@ class OldPGPPlugin(GajimPlugin):
             return
         GLib.idle_add(callback, file)
 
-    @staticmethod    
+    @staticmethod
     def _on_file_encryption_error(file, error):
         dialogs.ErrorDialog(
             _('Error'), error, transient_for=file.control.parent_win.window)
@@ -298,6 +300,9 @@ class OldPGPPlugin(GajimPlugin):
             if node:
                 stanza.addChild(node=node)
         obj.msg_iq = stanza
+
+    def add_additional_data(self, data):
+        data['encrypted'] = {'name': self.encryption_name}
 
 
 def print_msg_to_log(stanza):
