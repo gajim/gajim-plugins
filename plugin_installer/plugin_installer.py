@@ -268,27 +268,37 @@ class PluginInstaller(GajimPlugin):
             check_update=check_update, auto_update=auto_update)
         self.thread.start()
 
+    @staticmethod
+    def _get_plugin(short_name):
+        for plugin in app.plugin_manager.plugins:
+            if plugin.short_name == short_name:
+                return plugin
+
     def on_plugin_downloaded(self, plugin_dirs, auto_update):
         need_restart = False
         for _dir in plugin_dirs:
-            updated = app.plugin_manager.update_plugins(replace=False, activate=True, plugin_name=_dir)
+            updated = app.plugin_manager.update_plugins(
+                replace=False, activate=True, plugin_name=_dir)
             if updated:
                 if not auto_update:
-                    plugin = app.plugin_manager.get_active_plugin(updated[0])
+                    plugin = self._get_plugin(updated[0])
+                    if plugin is None:
+                        log.error('Plugin %s not found', updated[0])
+                        continue
                     for row in range(len(self.available_plugins_model)):
                         model_row = self.available_plugins_model[row]
                         if plugin.name == model_row[Column.NAME]:
                             model_row[Column.LOCAL_VERSION] = plugin.version
                             model_row[Column.UPGRADE] = False
                             break
-                if not auto_update:
+
                     # Get plugin icon
                     icon_file = os.path.join(plugin.__path__, os.path.split(
                         plugin.__path__)[1]) + '.png'
                     icon = FALLBACK_ICON
                     if os.path.isfile(icon_file):
                         icon = GdkPixbuf.Pixbuf.new_from_file_at_size(icon_file, 16, 16)
-                    row = [plugin, plugin.name, True, plugin.activatable, icon]
+                    row = [plugin, plugin.name, plugin.active, plugin.activatable, icon]
                     self.installed_plugins_model.append(row)
             else:
                 need_restart = True
