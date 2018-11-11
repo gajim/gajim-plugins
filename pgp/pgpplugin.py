@@ -25,11 +25,14 @@ import queue
 import nbxmpp
 from gi.repository import GLib
 
-from gajim import dialogs
 from gajim.common import app
 from gajim.common.connection_handlers_events import MessageNotSentEvent
 from gajim.plugins import GajimPlugin
 from gajim.plugins.plugins_i18n import _
+
+from gajim.gtk.dialogs import ErrorDialog
+from gajim.gtk.dialogs import InformationDialog
+from gajim.gtk.dialogs import YesNoDialog
 
 log = logging.getLogger('gajim.plugin_system.oldpgp')
 
@@ -106,19 +109,19 @@ class OldPGPPlugin(GajimPlugin):
         key_id = chat_control.contact.keyID
         transient = chat_control.parent_win.window
         authenticated, info = check_state(key_id, account)
-        dialogs.InformationDialog(authenticated, info, transient)
+        InformationDialog(authenticated, info, transient)
 
     @staticmethod
     def _before_sendmessage(chat_control):
         account = chat_control.account
         if not chat_control.contact.keyID:
-            dialogs.ErrorDialog(
+            ErrorDialog(
                 _('No OpenPGP key assigned'),
                 _('No OpenPGP key is assigned to this contact. So you cannot '
                   'encrypt messages with OpenPGP.'))
             chat_control.sendmessage = False
         elif not app.config.get_per('accounts', account, 'keyid'):
-            dialogs.ErrorDialog(
+            ErrorDialog(
                 _('No OpenPGP key assigned'),
                 _('No OpenPGP key is assigned to your account. So you cannot '
                   'encrypt messages with OpenPGP.'))
@@ -211,7 +214,7 @@ class OldPGPPlugin(GajimPlugin):
                         self._finished_encrypt(
                             obj, msgenc=msgenc, error=error, conn=conn)
 
-                    dialogs.YesNoDialog(
+                    YesNoDialog(
                         _('Untrusted OpenPGP key'),
                         _('The OpenPGP key used to encrypt this chat is not '
                           'trusted. Do you really want to encrypt this '
@@ -267,7 +270,7 @@ class OldPGPPlugin(GajimPlugin):
 
     def _encrypt_file_thread(self, file, account, callback):
         my_key_id = app.config.get_per('accounts', account, 'keyid')
-        key_list = [file.control.contact.keyID, my_key_id]
+        key_list = [file.contact.keyID, my_key_id]
 
         encrypted = self.get_gpg(account).encrypt_file(file.get_data(), key_list)
         if not encrypted:
@@ -284,8 +287,7 @@ class OldPGPPlugin(GajimPlugin):
 
     @staticmethod
     def _on_file_encryption_error(file, error):
-        dialogs.ErrorDialog(
-            _('Error'), error, transient_for=file.control.parent_win.window)
+        ErrorDialog(_('Error'), error)
 
     @staticmethod
     def cleanup_stanza(obj):
