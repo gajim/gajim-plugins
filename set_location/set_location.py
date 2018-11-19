@@ -254,8 +254,8 @@ class SetLocationPluginConfigDialog(GajimPluginConfigDialog):
                 pep = accounts[account].contacts._contacts[contact][0].pep
                 if 'location' not in pep:
                     continue
-                lat = pep['location']._pep_specific_data.get('lat', None)
-                lon = pep['location']._pep_specific_data.get('lon', None)
+                lat = pep['location'].data.get('lat', None)
+                lon = pep['location'].data.get('lon', None)
                 if not lat or not lon:
                     continue
                 name = accounts[account].contacts.get_first_contact_from_jid(
