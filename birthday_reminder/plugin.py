@@ -40,7 +40,7 @@ class BirthDayPlugin(GajimPlugin):
         self.events_handlers = {
             'vcard-received': (ged.GUI2, self._vcard_received)}
 
-        self.timeout_id = None
+        self._timeout_id = None
         self._timeout_id_start = None
 
         self.showed_accounts = []
@@ -56,7 +56,7 @@ class BirthDayPlugin(GajimPlugin):
 
     def deactivate(self):
         if self._timeout_id is not None:
-            GLib.source_remove(self.timeout_id)
+            GLib.source_remove(self._timeout_id)
         if self._timeout_id_start is not None:
             GLib.source_remove(self._timeout_id_start)
 
