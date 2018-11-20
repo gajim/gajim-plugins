@@ -17,9 +17,9 @@ from gajim.plugins.plugins_i18n import _
 
 from omemo.xmpp import (
     NS_NOTIFY, NS_OMEMO, NS_EME, NS_HINTS, BundleInformationAnnouncement,
-    BundleInformationQuery, DeviceListAnnouncement, DevicelistQuery,
+    BundleInformationQuery, DevicelistQuery,
     OmemoMessage, successful, unpack_device_bundle,
-    unpack_device_list_update, unpack_encrypted)
+    unpack_device_list_update, unpack_encrypted, NS_DEVICE_LIST)
 from omemo.omemo.state import OmemoState
 
 ALLOWED_TAGS = [('request', nbxmpp.NS_RECEIPTS),
@@ -677,13 +677,19 @@ class OMEMOConnection:
             devices_list = list(set(devices_list))
         self.omemo.set_own_devices(devices_list)
 
+        list_node = Node('list', attrs={'xmlns': NS_OMEMO})
+        for device in devices_list:
+            list_node.addChild('device').setAttr('id', device)
+
+        con = app.connections[self.account]
+        con.get_module('PubSub').send_pb_publish(
+            '', NS_DEVICE_LIST, list_node, 'current',
+            cb=self.device_list_publish_result)
+
         log.info('%s => Publishing own Devices: %s',
                  self.account, devices_list)
-        device_announce = DeviceListAnnouncement(devices_list)
-        self.send_with_callback(device_announce,
-                                self.device_list_publish_result)
 
-    def device_list_publish_result(self, stanza):
+    def device_list_publish_result(self, _con, stanza):
         if not nbxmpp.isResultNode(stanza):
             log.error('%s => Publishing devicelist failed: %s',
                       self.account, stanza.getError())
@@ -851,23 +857,6 @@ class OMEMOConnection:
             log.error('%s => Devicelistquery was NOT successful: %s',
                       self.account, stanza.getError())
             self.publish_own_devices_list(new=True)
-
-    def clear_device_list(self):
-        """ Overwrite the current devicelist on the server with only
-            our device id.
-        """
-        if not app.account_is_connected(self.account):
-            return
-        devices_list = [self.omemo.own_device_id]
-        self.omemo.set_own_devices(devices_list)
-
-        log.info('%s => Clearing devices_list %s', self.account, devices_list)
-        device_announce = DeviceListAnnouncement(devices_list)
-        self.send_with_callback(device_announce, self.clear_device_list_result)
-
-    @staticmethod
-    def clear_device_list_result(stanza):
-        log.info(stanza)
 
     @staticmethod
     def print_msg_to_log(stanza):
