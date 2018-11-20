@@ -16,8 +16,8 @@ from gajim.common.connection_handlers_events import MessageNotSentEvent
 from gajim.plugins.plugins_i18n import _
 
 from omemo.xmpp import (
-    NS_NOTIFY, NS_OMEMO, NS_EME, NS_HINTS, BundleInformationAnnouncement,
-    BundleInformationQuery, DevicelistQuery,
+    NS_NOTIFY, NS_OMEMO, NS_EME, NS_HINTS, NS_BUNDLES,
+    BundleInformationQuery, DevicelistQuery, make_bundle,
     OmemoMessage, successful, unpack_device_bundle,
     unpack_device_list_update, unpack_encrypted, NS_DEVICE_LIST)
 from omemo.omemo.state import OmemoState
@@ -811,12 +811,16 @@ class OMEMOConnection:
     def publish_bundle(self):
         """ Publish our bundle information to the PEP node """
 
-        bundle_announce = BundleInformationAnnouncement(
-            self.omemo.bundle, self.omemo.own_device_id)
-        log.info('%s => Publishing bundle ...', self.account)
-        self.send_with_callback(bundle_announce, self.handle_publish_result)
+        bundle = make_bundle(self.omemo.bundle)
+        node = '%s%s' % (NS_BUNDLES, self.omemo.own_device_id)
 
-    def handle_publish_result(self, stanza):
+        log.info('%s => Publishing bundle ...', self.account)
+
+        con = app.connections[self.account]
+        con.get_module('PubSub').send_pb_publish(
+            '', node, bundle, 'current', cb=self.handle_publish_result)
+
+    def handle_publish_result(self, _con, stanza):
         """ Log if publishing our bundle was successful
 
             Parameters
