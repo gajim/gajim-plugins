@@ -43,13 +43,6 @@ NS_HINTS = 'urn:xmpp:hints'
 log = logging.getLogger('gajim.plugin_system.omemo')
 
 
-class PublishNode(Node):
-    def __init__(self, node_str, data):
-        assert node_str is not None and isinstance(data, Node)
-        Node.__init__(self, tag='publish', attrs={'node': node_str})
-        self.addChild('item').addChild(node=data)
-
-
 class PubsubNode(Node):
     def __init__(self, data):
         assert isinstance(data, Node)
@@ -88,39 +81,6 @@ class BundleInformationQuery(Iq):
         self.addChild(node=pubsub)
 
 
-class BundleInformationAnnouncement(Iq):
-    def __init__(self, state_bundle, device_id):
-        id_ = app.get_an_id()
-        attrs = {'id': id_}
-        Iq.__init__(self, typ='set', attrs=attrs)
-        bundle_node = self.make_bundle_node(state_bundle)
-        publish = PublishNode(NS_BUNDLES + str(device_id), bundle_node)
-        pubsub = PubsubNode(publish)
-        self.addChild(node=pubsub)
-
-    def make_bundle_node(self, state_bundle):
-        result = Node('bundle', attrs={'xmlns': NS_OMEMO})
-        prekey_pub_node = result.addChild(
-            'signedPreKeyPublic',
-            attrs={'signedPreKeyId': state_bundle['signedPreKeyId']})
-        prekey_pub_node.addData(state_bundle['signedPreKeyPublic']
-                                .decode('utf-8'))
-
-        prekey_sig_node = result.addChild('signedPreKeySignature')
-        prekey_sig_node.addData(state_bundle['signedPreKeySignature']
-                                .decode('utf-8'))
-
-        identity_key_node = result.addChild('identityKey')
-        identity_key_node.addData(state_bundle['identityKey'].decode('utf-8'))
-        prekeys = result.addChild('prekeys')
-
-        for key in state_bundle['prekeys']:
-            prekeys.addChild('preKeyPublic',
-                             attrs={'preKeyId': key[0]}) \
-                             .addData(key[1].decode('utf-8'))
-        return result
-
-
 class DevicelistQuery(Iq):
     def __init__(self, contact_jid):
         id_ = app.get_an_id()
@@ -137,6 +97,29 @@ class DevicelistPEP(AbstractPEP):
 
     def _extract_info(self, items):
         return ({}, [])
+
+
+def make_bundle(state_bundle):
+    result = Node('bundle', attrs={'xmlns': NS_OMEMO})
+    prekey_pub_node = result.addChild(
+        'signedPreKeyPublic',
+        attrs={'signedPreKeyId': state_bundle['signedPreKeyId']})
+    prekey_pub_node.addData(state_bundle['signedPreKeyPublic']
+                            .decode('utf-8'))
+
+    prekey_sig_node = result.addChild('signedPreKeySignature')
+    prekey_sig_node.addData(state_bundle['signedPreKeySignature']
+                            .decode('utf-8'))
+
+    identity_key_node = result.addChild('identityKey')
+    identity_key_node.addData(state_bundle['identityKey'].decode('utf-8'))
+    prekeys = result.addChild('prekeys')
+
+    for key in state_bundle['prekeys']:
+        prekeys.addChild('preKeyPublic',
+                         attrs={'preKeyId': key[0]}) \
+                         .addData(key[1].decode('utf-8'))
+    return result
 
 
 @log_calls('OmemoPlugin')
