@@ -57,24 +57,6 @@ class PubsubNode(Node):
         self.addChild(node=data)
 
 
-class DeviceListAnnouncement(Iq):
-    def __init__(self, device_list):
-        assert isinstance(device_list, list)
-        assert len(device_list) > 0
-        id_ = app.get_an_id()
-        attrs = {'id': id_}
-        Iq.__init__(self, typ='set', attrs=attrs)
-
-        list_node = Node('list', attrs={'xmlns': NS_OMEMO})
-        for device in device_list:
-            list_node.addChild('device').setAttr('id', device)
-
-        publish = PublishNode(NS_DEVICE_LIST, list_node)
-        pubsub = PubsubNode(publish)
-
-        self.addChild(node=pubsub)
-
-
 class OmemoMessage(Node):
     def __init__(self, msg_dict):
         # , contact_jid, key, iv, payload, dev_id, my_dev_id):
