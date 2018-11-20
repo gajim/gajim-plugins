@@ -1,3 +1,17 @@
+# This file is part of Birthday Reminder.
+#
+# Birthday Reminder is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published
+# by the Free Software Foundation; version 3 only.
+#
+# Birthday Reminder is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with Birthday Reminder.  If not, see <http://www.gnu.org/licenses/>.
+
 import os
 import json
 import datetime
@@ -5,17 +19,13 @@ import logging
 
 from gi.repository import GLib
 
-from gajim.plugins import GajimPlugin
-
 from gajim.common import configpaths
 from gajim.common import app
 from gajim.common import ged
 
-# Since Gajim 1.1.0 _() has to be imported
-try:
-    from gajim.common.i18n import _
-except ImportError:
-    pass
+from gajim.plugins import GajimPlugin
+from gajim.plugins.plugins_i18n import _
+
 
 log = logging.getLogger('gajim.plugin_system.birthday')
 
@@ -113,7 +123,8 @@ class BirthDayPlugin(GajimPlugin):
 
         return True
 
-    def _find_contact(self, jid):
+    @staticmethod
+    def _find_contact(jid):
         accounts = app.contacts.get_accounts()
         for account in accounts:
             contact = app.contacts.get_contacts(account, jid)
