@@ -379,12 +379,12 @@ class Base(object):
                     width, height, GdkPixbuf.InterpType.BILINEAR)
                 thumbnail.savev(thumbpath, 'png', [], [])
         except Exception as error:
-            dialogs.ErrorDialog(
+            GLib.idle_add(
+                self._raise_error_dialog,
                 _('Could not save file'),
                 _('Exception raised while saving thumbnail '
                   'for image file (see error log for more '
-                  'information)'),
-                transient_for=app.app.get_active_window())
+                  'information)'))
             log.exception(error)
             return
         return thumbnail
@@ -545,11 +545,11 @@ class Base(object):
             # Write file to harddisk
             self._write_file(filepath, mem)
         except Exception as e:
-            dialogs.ErrorDialog(
+            GLib.idle_add(
+                self._raise_error_dialog,
                 _('Could not save file'),
                 _('Exception raised while saving image file'
-                  ' (see error log for more information)'),
-                transient_for=app.app.get_active_window())
+                  ' (see error log for more information)'))
             log.error(str(e))
 
         # Create thumbnail, write it to harddisk and return it
@@ -712,6 +712,13 @@ class Base(object):
             # menu.attach_to_widget(self.tv, None)
             # menu.popup(None, None, None, event.button, event.time)
             menu.popup_at_pointer(event)
+
+    @staticmethod
+    def _raise_error_dialog(pritext, sectext):
+        # Used by methods that run in a different thread
+        dialogs.ErrorDialog(pritext,
+                            sectext,
+                            transient_for=app.app.get_active_window())
 
     def disconnect_from_chat_control(self):
         pass
