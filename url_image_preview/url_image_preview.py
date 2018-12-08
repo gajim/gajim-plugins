@@ -21,6 +21,7 @@ import binascii
 import logging
 import math
 from urllib.parse import urlparse
+from urllib.parse import unquote
 from io import BytesIO
 import shutil
 from functools import partial
@@ -174,7 +175,7 @@ class Base(object):
             log.debug('Url with text will not be displayed: %s', real_text)
             return
 
-        urlparts = urlparse(real_text)
+        urlparts = urlparse(unquote(real_text))
         if not self._accept_uri(urlparts, real_text, additional_data):
             return
 
@@ -245,6 +246,12 @@ class Base(object):
             filename = os.path.basename(urlparts.path)
             ext = os.path.splitext(filename)[1]
             name = os.path.splitext(filename)[0]
+            if len(name) > 90:
+                # Many Filesystems have a limit on filename length
+                # Most have 255, some encrypted ones only 143
+                # We add around 50 chars for the hash,
+                # so the filename should not exceed 90
+                name = name[:90]
             namehash = hashlib.sha1(real_text.encode('utf-8')).hexdigest()
             newfilename = name + '_' + namehash + ext
             thumbfilename = name + '_' + namehash + '_thumb_' \
@@ -447,7 +454,7 @@ class Base(object):
             log.error('Could not download image for URL: %s', url)
             return
 
-        urlparts = urlparse(url)
+        urlparts = urlparse(unquote(url))
         filename = os.path.basename(urlparts.path)
         if os.path.basename(filepath).startswith('location_'):
             filename = os.path.basename(filepath)
