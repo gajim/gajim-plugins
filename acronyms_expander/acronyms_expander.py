@@ -22,6 +22,7 @@ from functools import partial
 
 from gi.repository import GLib
 
+from gajim.common import app
 from gajim.common import configpaths
 
 from gajim.plugins import GajimPlugin
@@ -82,7 +83,7 @@ class AcronymsExpanderPlugin(GajimPlugin):
         self.acronyms = acronyms
         self._save_acronyms(acronyms)
 
-    def _on_buffer_changed(self, _textview, buffer_):
+    def _on_buffer_changed(self, _textview, buffer_, contact, account):
         if self._replace_in_progress:
             return
 
@@ -108,6 +109,17 @@ class AcronymsExpanderPlugin(GajimPlugin):
         # Get last word and cut invoker
         last_word = word_start_iter.get_slice(insert_iter).strip()
 
+        if contact.is_groupchat():
+            nick_list = app.contacts.get_nick_list(account, contact.jid)
+            if last_word in nick_list:
+                log.info('Groupchat participant has same nick as acronym')
+                return
+
+        if contact.is_pm_contact:
+            if last_word == contact.get_shown_name():
+                log.info('Contact name equals acronym')
+                return
+
         substitute = self.acronyms.get(last_word)
         if substitute is None:
             log.debug('%s not an acronym', last_word)
@@ -130,7 +142,10 @@ class AcronymsExpanderPlugin(GajimPlugin):
 
     def _connect(self, chat_control):
         textview = chat_control.msg_textview
-        handler_id = textview.connect('text-changed', self._on_buffer_changed)
+        handler_id = textview.connect('text-changed',
+                                      self._on_buffer_changed,
+                                      chat_control.contact,
+                                      chat_control.account)
         self._handler_ids[id(textview)] = handler_id
 
     def _disconnect(self, chat_control):
