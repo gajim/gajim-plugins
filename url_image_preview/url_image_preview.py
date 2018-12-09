@@ -44,6 +44,7 @@ from url_image_preview.config_dialog import UrlImagePreviewConfigDialog
 from url_image_preview.resize_gif import resize_gif
 
 from gajim.gtk.filechoosers import FileSaveDialog
+from gajim.gtk.util import get_cursor
 
 
 log = logging.getLogger('gajim.plugin_system.preview')
@@ -459,12 +460,6 @@ class Base(object):
         if os.path.basename(filepath).startswith('location_'):
             filename = os.path.basename(filepath)
 
-        event_box = Gtk.EventBox()
-        event_box.connect('button-press-event', self.on_button_press_event,
-                          filepath, filename, url, encrypted)
-        event_box.connect('enter-notify-event', self.on_enter_event)
-        event_box.connect('leave-notify-event', self.on_leave_event)
-
         def add_to_textview():
             try:
                 at_end = self._get_at_end()
@@ -475,23 +470,16 @@ class Base(object):
                 anchor = buffer_.create_child_anchor(iter_)
                 anchor.plaintext = url
 
-                if isinstance(pixbuf, GdkPixbuf.PixbufAnimation):
-                    image = Gtk.Image.new_from_animation(pixbuf)
-                else:
-                    image = Gtk.Image.new_from_pixbuf(pixbuf)
+                image = self._create_clickable_image(pixbuf, url)
 
-                css = '''#Preview {
-                box-shadow: 0px 0px 3px 0px alpha(@theme_text_color, 0.2);
-                margin: 5px 10px 5px 10px; }'''
-                gtkgui_helpers.add_css_to_widget(image, css)
-                image.set_name('Preview')
-
-                event_box.set_tooltip_text(url)
-                event_box.add(image)
-                event_box.show_all()
-                self.textview.tv.add_child_at_anchor(event_box, anchor)
+                self.textview.tv.add_child_at_anchor(image, anchor)
                 buffer_.delete(iter_,
                                buffer_.get_iter_at_mark(repl_end))
+
+                image.connect(
+                    'button-press-event', self.on_button_press_event,
+                    filepath, filename, url, encrypted)
+                image.get_window().set_cursor(get_cursor('HAND2'))
 
                 if at_end:
                     self._scroll_to_end()
@@ -500,6 +488,24 @@ class Base(object):
             return False
         # add to mainloop --> make call threadsafe
         GLib.idle_add(add_to_textview)
+
+    def _create_clickable_image(self, pixbuf, url):
+        if isinstance(pixbuf, GdkPixbuf.PixbufAnimation):
+            image = Gtk.Image.new_from_animation(pixbuf)
+        else:
+            image = Gtk.Image.new_from_pixbuf(pixbuf)
+
+        css = '''#Preview {
+        box-shadow: 0px 0px 3px 0px alpha(@theme_text_color, 0.2);
+        margin: 5px 10px 5px 10px; }'''
+        gtkgui_helpers.add_css_to_widget(image, css)
+        image.set_name('Preview')
+
+        event_box = Gtk.EventBox()
+        event_box.set_tooltip_text(url)
+        event_box.add(image)
+        event_box.show_all()
+        return event_box
 
     def _check_mime_size(self, tuple_arg,
                          url, weburl, repl_start, repl_end, filepaths,
@@ -689,17 +695,6 @@ class Base(object):
             helpers.exec_command(command)
         except Exception:
             pass
-
-    # Change mouse pointer to HAND2 when
-    # mouse enter the eventbox with the image
-    def on_enter_event(self, eb, event):
-        self.textview.tv.get_window(
-            Gtk.TextWindowType.TEXT).set_cursor(Gdk.Cursor(Gdk.CursorType.HAND2))
-
-    # Change mouse pointer to default when mouse leaves the eventbox
-    def on_leave_event(self, eb, event):
-        self.textview.tv.get_window(
-            Gtk.TextWindowType.TEXT).set_cursor(Gdk.Cursor(Gdk.CursorType.XTERM))
 
     def on_button_press_event(self, eb, event, filepath,
                               original_filename, url, encrypted):
