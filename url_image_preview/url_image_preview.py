@@ -41,7 +41,6 @@ from gajim.plugins.plugins_i18n import _
 
 from url_image_preview.http_functions import get_http_head, get_http_file
 from url_image_preview.config_dialog import UrlImagePreviewConfigDialog
-from url_image_preview.resize_gif import resize_gif
 
 from gajim.gtk.filechoosers import FileSaveDialog
 from gajim.gtk.util import get_cursor
@@ -49,12 +48,13 @@ from gajim.gtk.util import get_cursor
 
 log = logging.getLogger('gajim.plugin_system.preview')
 
-PILLOW_AVAILABLE = True
+ERROR_MSG = None
 try:
     from PIL import Image
+    from url_image_preview.resize_gif import resize_gif
 except:
     log.debug('Pillow not available')
-    PILLOW_AVAILABLE = False
+    ERROR_MSG = 'Please install python-pillow'
 
 try:
     if os.name == 'nt':
@@ -79,6 +79,12 @@ ACCEPTED_MIME_TYPES = ('image/png', 'image/jpeg', 'image/gif', 'image/raw',
 class UrlImagePreviewPlugin(GajimPlugin):
     @log_calls('UrlImagePreviewPlugin')
     def init(self):
+        if ERROR_MSG:
+            self.activatable = False
+            self.available_text = ERROR_MSG
+            self.config_dialog = None
+            return
+
         if not decryption_available:
             self.available_text = DEP_MSG
         self.config_dialog = partial(UrlImagePreviewConfigDialog, self)
@@ -361,9 +367,6 @@ class Base(object):
             log.info('Failed to load image using Gdk.Pixbuf')
             log.debug(error)
 
-            if not PILLOW_AVAILABLE:
-                log.info('Pillow not available')
-                return
             # Try Pillow
             image = Image.open(BytesIO(mem)).convert("RGBA")
             array = GLib.Bytes.new(image.tobytes())
