@@ -40,10 +40,6 @@ class PGPKeylistData(AbstractPEPData):
 
     type_ = 'openpgp-keylist'
 
-    def __init__(self, keylist):
-        self._pep_specific_data = keylist
-        self.data = keylist
-
 
 class PGPKeylist(AbstractPEPModule):
     '''
@@ -66,11 +62,6 @@ class PGPKeylist(AbstractPEPModule):
     pep_class = PGPKeylistData
     store_publish = True
     _log = log
-
-    def __init__(self, con):
-        AbstractPEPModule.__init__(self, con, con.name)
-
-        self.handlers = []
 
     def _extract_info(self, item):
         keylist_tag = item.getTag('public-keys-list',
