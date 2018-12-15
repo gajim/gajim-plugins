@@ -1,3 +1,15 @@
+2.6.35 / 2018-12-15
+- Better handle key exchange messages
+
+2.6.34 / 2018-11-20
+- Use "current" as pubsub node id
+
+2.6.33 / 2018-10-17
+- Bug fix
+
+2.6.32 / 2018-10-13
+- Bug fix
+
 2.6.31 / 2018-10-12
 - GUI adjustments
 - Use new fingerprints dialog
