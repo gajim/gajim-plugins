@@ -211,9 +211,12 @@ class OmemoState:
             log.warning('Duplicate message found ' + str(e.args))
             return
 
-        result = decrypt(key, iv, payload)
-
-        log.debug("Decrypted Message => " + result)
+        if payload is None:
+            result = None
+            log.debug("Decrypted Key Exchange Message")
+        else:
+            result = decrypt(key, iv, payload)
+            log.debug("Decrypted Message => " + result)
         return result
 
     def create_msg(self, from_jid, jid, plaintext):
