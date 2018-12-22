@@ -263,8 +263,8 @@ class OMEMOConnection:
             log.debug('%s => OMEMO msg received', self.account)
 
             if msg.forwarded and msg.sent:
-                from_jid = str(msg.stanza.getTo())  # why gajim? why?
-                log.debug('message was forwarded doing magic')
+                from_jid = self.own_jid
+                log.debug('Sent Carbon')
             else:
                 from_jid = str(msg.stanza.getFrom())
 
