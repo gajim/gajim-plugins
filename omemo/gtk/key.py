@@ -46,8 +46,7 @@ TRUST_DATA = {
 class KeyDialog(Gtk.Dialog):
     def __init__(self, plugin, contact, transient, windowinstances,
                  groupchat=False):
-        flags = Gtk.DialogFlags.DESTROY_WITH_PARENT
-        super().__init__(_('OMEMO Fingerprints'), None, flags)
+        super().__init__(title=_('OMEMO Fingerprints'), destroy_with_parent=True)
 
         self.set_transient_for(transient)
         self.set_resizable(True)
@@ -66,7 +65,7 @@ class KeyDialog(Gtk.Dialog):
 
         # Header
         jid = self._contact.jid
-        self._header = Gtk.Label(_('Fingerprints for %s') % jid)
+        self._header = Gtk.Label(label=_('Fingerprints for %s') % jid)
         self._header.get_style_context().add_class('bold')
         self._header.get_style_context().add_class('dim-label')
 
@@ -80,7 +79,7 @@ class KeyDialog(Gtk.Dialog):
         self._scrolled.add(self._listbox)
 
         # Own fingerprint
-        self._label = Gtk.Label(_('Own Fingerprint'))
+        self._label = Gtk.Label(label=_('Own Fingerprint'))
         self._label.get_style_context().add_class('bold')
         self._label.get_style_context().add_class('dim-label')
 
@@ -92,7 +91,7 @@ class KeyDialog(Gtk.Dialog):
         ownfpr = binascii.hexlify(self.omemostate.store.getIdentityKeyPair()
                                   .getPublicKey().serialize()).decode('utf-8')
         ownfpr_format = KeyRow._format_fingerprint(ownfpr[2:])
-        self._ownfpr = Gtk.Label(ownfpr_format)
+        self._ownfpr = Gtk.Label(label=ownfpr_format)
         self._ownfpr.get_style_context().add_class('omemo-mono')
         self._ownfpr.set_selectable(True)
 
@@ -168,7 +167,7 @@ class KeyRow(Gtk.ListBoxRow):
         box.add(self._trust_button)
 
         label_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        jid_label = Gtk.Label(jid)
+        jid_label = Gtk.Label(label=jid)
         jid_label.get_style_context().add_class('dim-label')
         jid_label.set_selectable(False)
         jid_label.set_halign(Gtk.Align.START)
@@ -176,8 +175,7 @@ class KeyRow(Gtk.ListBoxRow):
         jid_label.set_hexpand(True)
         label_box.add(jid_label)
 
-        fingerprint = Gtk.Label(
-            label=self._format_fingerprint(fpr))
+        fingerprint = Gtk.Label(label=self._format_fingerprint(fpr))
         fingerprint.get_style_context().add_class('omemo-mono')
         if not active:
             fingerprint.get_style_context().add_class('omemo-inactive-color')
