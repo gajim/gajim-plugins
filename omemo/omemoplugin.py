@@ -32,12 +32,10 @@ from gi.repository import Gdk
 
 from gajim import dialogs
 from gajim.common import app, ged
-from gajim.common.pep import SUPPORTED_PERSONAL_USER_EVENTS
 from gajim.plugins import GajimPlugin
 from gajim.plugins.plugins_i18n import _
 from gajim.groupchat_control import GroupchatControl
 
-from omemo.xmpp import DevicelistPEP
 from omemo.gtk.key import KeyDialog
 from omemo.gtk.config import OMEMOConfigDialog
 
@@ -72,6 +70,7 @@ except Exception as error:
 if not ERROR_MSG:
     try:
         from omemo.modules import omemo
+        from omemo.modules import omemo_devicelist
     except Exception as error:
         log.error(error)
         ERROR_MSG = 'Error: %s' % error
@@ -102,7 +101,7 @@ class OmemoPlugin(GajimPlugin):
         }
         self.modules = [
             omemo,
-            # omemo_devicelist,
+            omemo_devicelist,
         ]
         self.config_dialog = OMEMOConfigDialog(self)
         self.gui_extension_points = {
@@ -119,7 +118,6 @@ class OmemoPlugin(GajimPlugin):
                 self.encryption_state, None),
             'update_caps': (self._update_caps, None)}
 
-        SUPPORTED_PERSONAL_USER_EVENTS.append(DevicelistPEP)
         self.disabled_accounts = []
         self.windowinstances = {}
 

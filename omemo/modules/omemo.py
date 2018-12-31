@@ -90,8 +90,6 @@ class OMEMO:
         self.query_for_bundles = []
         self.query_for_devicelists = []
 
-        app.ged.register_event_handler('pep-received', ged.PRECORE,
-                                       self.handle_device_list_update)
         app.ged.register_event_handler('signed-in', ged.PRECORE,
                                        self.signed_in)
         app.ged.register_event_handler('muc-config-changed', ged.GUI2,
@@ -620,29 +618,40 @@ class OMEMO:
                 stanza.addChild(node=node)
         obj.msg_iq = stanza
 
-    def handle_device_list_update(self, event):
-        """ Check if the passed event is a device list update and store the new
-            device ids.
-
-            Parameters
-            ----------
-            event : PEPReceivedEvent
-
-            Returns
-            -------
-            bool
-                True if the given event was a valid device list update event
-        """
-        if event.conn.name != self._account:
+    def device_list_received(self, device_list, jid):
+        if not device_list:
+            log.error('%s => Received empty or invalid Devicelist from: %s',
+                      self._account, jid)
             return
 
-        if event.pep_type != 'omemo-devicelist':
-            return
+        if self.get_own_jid().bareMatch(jid):
+            log.info('%s => Received own device list: %s',
+                     self._account, device_list)
+            self.omemo.set_own_devices(device_list)
+            self.omemo.store.sessionStore.setActiveState(
+                device_list, self.own_jid)
 
-        self._handle_device_list_update(None, event.stanza)
+            # remove contact from list, so on send button pressed
+            # we query for bundle and build a session
+            if jid in self.query_for_bundles:
+                self.query_for_bundles.remove(jid)
 
-        # Don't propagate event further
-        return True
+            if not self.omemo.own_device_id_published():
+                # Our own device_id is not in the list, it could be
+                # overwritten by some other client
+                self.publish_own_devices_list()
+        else:
+            log.info('%s => Received device list for %s: %s',
+                     self._account, jid, device_list)
+            self.omemo.set_devices(jid, device_list)
+            self.omemo.store.sessionStore.setActiveState(
+                device_list, jid)
+
+            # remove contact from list, so on send button pressed
+            # we query for bundle and build a session
+            if jid in self.query_for_bundles:
+                self.query_for_bundles.remove(jid)
+
 
     def _handle_device_list_update(self, conn, stanza, fetch_bundle=False):
         """ Check if the passed event is a device list update and store the new

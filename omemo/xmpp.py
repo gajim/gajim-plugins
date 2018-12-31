@@ -29,7 +29,6 @@ from nbxmpp.protocol import NS_PUBSUB, Iq
 from nbxmpp.simplexml import Node
 
 from gajim.common import app  # pylint: disable=import-error
-from gajim.common.pep import AbstractPEP  # pylint: disable=import-error
 from gajim.plugins.helpers import log_calls  # pylint: disable=import-error
 
 NS_PUBSUB_EVENT = NS_PUBSUB + '#event'
@@ -89,14 +88,6 @@ class DevicelistQuery(Iq):
         items = Node('items', attrs={'node': NS_DEVICE_LIST, 'max_items': 1})
         pubsub = PubsubNode(items)
         self.addChild(node=pubsub)
-
-
-class DevicelistPEP(AbstractPEP):
-    type_ = 'omemo-devicelist'
-    namespace = NS_DEVICE_LIST
-
-    def _extract_info(self, items):
-        return ({}, [])
 
 
 def make_bundle(state_bundle):
