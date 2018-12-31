@@ -171,7 +171,7 @@ class OMEMOConfigDialog(GajimPluginConfigDialog):
     def cleardevice_button_clicked_cb(self, button, *args):
         active = self._ui.get_object('account_combobox').get_active()
         account = self.account_store[active][0]
-        self.plugin.connections[account].publish_own_devices_list(new=True)
+        app.connections[account].get_module('OMEMO').publish_own_devices_list(new=True)
         self.update_context_list()
 
     def refresh_button_clicked_cb(self, button, *args):

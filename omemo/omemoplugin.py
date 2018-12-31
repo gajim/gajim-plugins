@@ -71,7 +71,7 @@ except Exception as error:
 
 if not ERROR_MSG:
     try:
-        from omemo.omemo_connection import OMEMOConnection
+        from omemo.modules import omemo
     except Exception as error:
         log.error(error)
         ERROR_MSG = 'Error: %s' % error
@@ -98,8 +98,12 @@ class OmemoPlugin(GajimPlugin):
         self.allow_groupchat = True
         self.events_handlers = {
             'signed-in': (ged.PRECORE, self.signed_in),
-            }
-
+            'omemo-new-fingerprint': (ged.PRECORE, self._on_new_fingerprints),
+        }
+        self.modules = [
+            omemo,
+            # omemo_devicelist,
+        ]
         self.config_dialog = OMEMOConfigDialog(self)
         self.gui_extension_points = {
             'hyperlink_handler': (self._file_decryption, None),
@@ -118,7 +122,6 @@ class OmemoPlugin(GajimPlugin):
         SUPPORTED_PERSONAL_USER_EVENTS.append(DevicelistPEP)
         self.disabled_accounts = []
         self.windowinstances = {}
-        self.connections = {}
 
         self.config_default_values = {'DISABLED_ACCOUNTS': ([], ''), }
 
@@ -162,9 +165,6 @@ class OmemoPlugin(GajimPlugin):
             return
         if account in self.disabled_accounts:
             return
-        if account not in self.connections:
-            self.connections[account] = OMEMOConnection(account, self)
-            self.connections[account].signed_in(event)
 
     def activate(self):
         """ Method called when the Plugin is activated in the PluginManager
@@ -174,27 +174,24 @@ class OmemoPlugin(GajimPlugin):
                 continue
             if account in self.disabled_accounts:
                 continue
-            self.connections[account] = OMEMOConnection(account, self)
-            self.connections[account].activate()
+            app.connections[account].get_module('OMEMO').activate()
 
     def deactivate(self):
         """ Method called when the Plugin is deactivated in the PluginManager
         """
-        for account in self.connections:
+        for account in app.connections:
             if account == 'Local':
                 continue
-            self.connections[account].deactivate()
+            app.connections[account].get_module('OMEMO').deactivate()
 
     def _update_caps(self, account):
         if account == 'Local':
             return
-        if account not in self.connections:
-            self.connections[account] = OMEMOConnection(account, self)
-        self.connections[account].update_caps(account)
+        app.connections[account].get_module('OMEMO').update_caps(account)
 
     def activate_encryption(self, chat_control):
         if isinstance(chat_control, GroupchatControl):
-            omemo_con = self.connections[chat_control.account]
+            omemo_con = app.connections[chat_control.account].get_module('OMEMO')
             if chat_control.room_jid not in omemo_con.groupchat:
                 dialogs.ErrorDialog(
                     _('Bad Configuration'),
@@ -206,17 +203,17 @@ class OmemoPlugin(GajimPlugin):
     def _message_received(self, conn, obj, callback):
         if conn.name == 'Local':
             return
-        self.connections[conn.name].message_received(conn, obj, callback)
+        app.connections[conn.name].get_module('OMEMO').message_received(conn, obj, callback)
 
     def _gc_encrypt_message(self, conn, obj, callback):
         if conn.name == 'Local':
             return
-        self.connections[conn.name].gc_encrypt_message(conn, obj, callback)
+        app.connections[conn.name].get_module('OMEMO').gc_encrypt_message(conn, obj, callback)
 
     def _encrypt_message(self, conn, obj, callback):
         if conn.name == 'Local':
             return
-        self.connections[conn.name].encrypt_message(conn, obj, callback)
+        app.connections[conn.name].get_module('OMEMO').encrypt_message(conn, obj, callback)
 
     def _file_decryption(self, url, kind, instance, window):
         file_crypto.FileDecryption(self).hyperlink_handler(
@@ -249,14 +246,14 @@ class OmemoPlugin(GajimPlugin):
         self.show_fingerprint_window(chat_control)
 
     def get_omemo(self, account):
-        return self.connections[account].omemo
+        return app.connections[account].get_module('OMEMO').omemo
 
     def before_sendmessage(self, chat_control):
         account = chat_control.account
         if account == 'Local':
             return
         contact = chat_control.contact
-        con = self.connections[account]
+        con = app.connections[account].get_module('OMEMO')
         self.new_fingerprints_available(chat_control)
         if isinstance(chat_control, GroupchatControl):
             room = chat_control.room_jid
@@ -286,10 +283,13 @@ class OmemoPlugin(GajimPlugin):
                 log.debug('%s => Sending Message to %s',
                           account, contact.jid)
 
+    def _on_new_fingerprints(self, event):
+        self.new_fingerprints_available(event.chat_control)
+
     def new_fingerprints_available(self, chat_control):
         jid = chat_control.contact.jid
         account = chat_control.account
-        con = self.connections[account]
+        con = app.connections[account].get_module('OMEMO')
         omemo = self.get_omemo(account)
         if isinstance(chat_control, GroupchatControl):
             room_jid = chat_control.room_jid

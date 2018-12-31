@@ -60,7 +60,7 @@ class KeyDialog(Gtk.Dialog):
         self._windowinstances = windowinstances
         self._account = self._contact.account.name
         self._plugin = plugin
-        self._con = plugin.connections[self._account]
+        self._con = app.connections[self._account].get_module('OMEMO')
         self.omemostate = self._plugin.get_omemo(self._account)
         self._own_jid = app.get_jid_from_account(self._account)
 
