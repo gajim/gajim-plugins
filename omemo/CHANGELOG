@@ -1,3 +1,8 @@
+2.6.38 / 2019-01-01
+- Add new devicelist module
+- Fix deprecation warnings
+- Fix an error in non-anonymous MUCs
+
 2.6.37 / 2019-01-01
 - Adapt to Gajim and nbxmpp changes
 
