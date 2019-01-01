@@ -408,11 +408,12 @@ class OMEMO:
         nick = properties.muc_nickname
         status_codes = properties.muc_status_codes or []
 
-        muc_user = properties.muc_user
-        if muc_user is None:
+        jid = properties.muc_user.jid
+        if jid is None:
+            # No real jid found
             return
 
-        jid = properties.muc_user.jid.getBare()
+        jid = jid.getBare()
 
         if properties.is_nickname_changed:
             new_nick = properties.muc_user.nick
