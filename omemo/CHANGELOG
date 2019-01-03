@@ -1,3 +1,6 @@
+2.6.38 / 2019-01-04
+- Adapt to Gajim changes
+
 2.6.38 / 2019-01-01
 - Add new devicelist module
 - Fix deprecation warnings
