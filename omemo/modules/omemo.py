@@ -33,7 +33,6 @@ from gajim.common import ged
 from gajim.common import helpers
 from gajim.common import configpaths
 from gajim.common.nec import NetworkEvent
-from gajim.common.connection_handlers_events import MessageNotSentEvent
 
 from gajim.plugins.plugins_i18n import _
 
@@ -519,8 +518,8 @@ class OMEMO:
         except OMEMOError as error:
             log.error(error)
             app.nec.push_incoming_event(
-                MessageNotSentEvent(
-                    None, conn=conn, jid=event.jid, message=event.message,
+                NetworkEvent(
+                    'message-not-sent', conn=conn, jid=event.jid, message=event.message,
                     error=error, time_=time.time(), session=None))
             return
 
@@ -581,8 +580,8 @@ class OMEMO:
         except OMEMOError as error:
             log.error(error)
             app.nec.push_incoming_event(
-                MessageNotSentEvent(
-                    None, conn=conn, jid=event.jid, message=event.message,
+                NetworkEvent(
+                    'message-not-sent', conn=conn, jid=event.jid, message=event.message,
                     error=error, time_=time.time(), session=event.session))
             return
 
