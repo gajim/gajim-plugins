@@ -20,8 +20,8 @@ Adjustable chat window banner.
 
 Includes tweaks to make it compact.
 
-Based on patch by pb in ticket  #4133:
-http://trac.gajim.org/attachment/ticket/4133/gajim-chatbanneroptions-svn10008.patch
+Based on patch by pb in issue #4133:
+https://dev.gajim.org/uploads/-/system/note/attachment/162938/gajim-chatbanneroptions-svn10008.patch
 
 :author: Mateusz Biliński <mateusz@bilinski.it>
 :since: 30 July 2008
@@ -47,8 +47,8 @@ class BannerTweaksPlugin(GajimPlugin):
     def init(self):
         self.description = _('Allows user to tweak chat window banner '
             'appearance (eg. make it compact).\n'
-            'Based on patch by pb in ticket #4133:\n'
-            'http://trac.gajim.org/attachment/ticket/4133.')
+            'Based on patch by pb in issue #4133:\n'
+            'https://dev.gajim.org/gajim/gajim/issues/4133.')
         self.config_dialog = BannerTweaksPluginConfigDialog(self)
 
         self.gui_extension_points = {
