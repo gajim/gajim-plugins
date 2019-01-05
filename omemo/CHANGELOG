@@ -1,4 +1,8 @@
-2.6.38 / 2019-01-04
+2.6.39 / 2019-01-05
+- Fix label color
+- Add fallback body
+
+2.6.39 / 2019-01-04
 - Adapt to Gajim changes
 
 2.6.38 / 2019-01-01
