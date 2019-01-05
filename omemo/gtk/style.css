@@ -1,5 +1,5 @@
 .omemo-dark-success-color { color: darker(@success_color); }
-.omemo-inactive-color { color: @unfocused_borders; }
+.omemo-inactive-color { color: @insensitive_fg_color; }
 
 .omemo-mono { font-size: 12px; font-family: monospace; }
 
