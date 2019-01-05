@@ -557,6 +557,11 @@ class OMEMOConnection:
                                              'namespace': NS_OMEMO})
         event.msg_iq.addChild(node=eme_node)
 
+        # Add Message for devices that don't support OMEMO
+        support_msg = _("You received a message encrypted with " \
+                      "OMEMO but your client doesn't support OMEMO.")
+        event.msg_iq.setBody(support_msg)
+
         # Store Hint for MAM
         store = Node('store', attrs={'xmlns': NS_HINTS})
         event.msg_iq.addChild(node=store)
