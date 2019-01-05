@@ -1,3 +1,8 @@
+2.6.26 / 2019-01-05
+- Fix label color
+- Dont add additional thread node
+- Add fallback body
+
 2.6.25 / 2018-12-15
 - Better handle key exchange messages
 
