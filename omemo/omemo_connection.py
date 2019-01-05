@@ -579,7 +579,6 @@ class OMEMOConnection:
             to=obj.msg_iq.getTo(),
             typ=obj.msg_iq.getType())
         stanza.setID(obj.stanza_id)
-        stanza.setThread(obj.msg_iq.getThread())
         for tag, ns in ALLOWED_TAGS:
             node = obj.msg_iq.getTag(tag, namespace=ns)
             if node:
