@@ -69,12 +69,15 @@ class AntiSpamPlugin(GajimPlugin):
             'msgtxt_answer': ('', ''),
             'antispam_for_conference': (False, ''),
             'conference_white_list': ([], ''), # conference private chat jid's
+            'block_domains': ('', ''),    # comma separated list of domain names to block
         }
 
         # List of outgoing jid's
         # Needs to avoid chat of two anti spam plugins
         # Contain all jid's where are you initiate a chat
         self.outgoing_jids = []
+
+        self.block_domains = [h.strip() for h in self.config['block_domains'].split(",") if len(h.strip())]
 
     @log_calls('AntiSpamPlugin')
     def _nec_atom_entry_received(self, obj):
@@ -89,12 +92,22 @@ class AntiSpamPlugin(GajimPlugin):
         if self.config['disable_xhtml_pm'] and obj.gc_control and \
         obj.resource and obj.mtype == 'chat':
             self.remove_xhtml(obj)
+
+        if obj.jid.split("@", 1)[1] in self.block_domains:
+            log.info('discarding message from %s, domain is blocked', obj.jid)
+            return True
+
         return False
 
     @log_calls('AntiSpamPlugin')
     def _nec_decrypted_message_received_received(self, obj):
         if not obj.msgtxt:
             return False
+
+        if obj.jid.split("@", 1)[1] in self.block_domains:
+            log.info('discarding message from %s, domain is blocked', obj.jid)
+            return True
+
         if self._nec_decrypted_message_received_question(obj):
             return True
         limit = self.config['msgtxt_limit']
@@ -106,7 +119,11 @@ class AntiSpamPlugin(GajimPlugin):
     def _nec_subscribe_presence_received(self, obj):
         if self.config['block_subscription_requests'] and \
         not app.contacts.get_contacts(obj.conn.name, obj.jid):
-            log.info('discarding subscription request from %s' % obj.jid)
+            log.info('discarding subscription request from %s', obj.jid)
+            return True
+
+        if obj.jid.split("@", 1)[1] in self.block_domains:
+            log.info('discarding subscription request from %s, domain is blocked', obj.jid)
             return True
 
     @log_calls('AntiSpamPlugin')
@@ -217,6 +234,8 @@ class AntiSpamPluginConfigDialog(GajimPluginConfigDialog):
         widget.set_text(str(self.plugin.config['msgtxt_answer']))
         widget = self.xml.get_object('antispam_for_conference')
         widget.set_active(self.plugin.config['antispam_for_conference'])
+        widget = self.xml.get_object('block_domains_entry')
+        widget.set_text(str(self.plugin.config['block_domains']))
 
     def on_block_pubsub_messages_checkbutton_toggled(self, button):
         self.plugin.config['block_pubsub_messages'] = button.get_active()
@@ -250,4 +269,10 @@ class AntiSpamPluginConfigDialog(GajimPluginConfigDialog):
 
     def on_antispam_for_conference_checkbutton_toggled(self, button):
         self.plugin.config['antispam_for_conference'] = button.get_active()
-			
+
+    def on_block_domains_entry_changed(self, entry):
+        try:
+            block_domains = self.plugin.config['block_domains'] = entry.get_text()
+            self.plugin.block_domains = [h.strip() for h in block_domains.split(",") if len(h.strip())]
+        except Exception as e:
+            log.debug(str(e))
