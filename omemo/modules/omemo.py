@@ -403,6 +403,9 @@ class OMEMO:
         if properties.type == PresenceType.ERROR:
             return
 
+        if properties.is_muc_destroyed:
+            return
+
         room = properties.jid.getBare()
         nick = properties.muc_nickname
         status_codes = properties.muc_status_codes or []
