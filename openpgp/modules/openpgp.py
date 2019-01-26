@@ -25,7 +25,7 @@ from nbxmpp import Node, isResultNode
 
 from gajim.common import app
 from gajim.common import configpaths
-from gajim.common.connection_handlers_events import MessageNotSentEvent
+from gajim.common.nec import NetworkEvent
 
 from openpgp.modules import util
 from openpgp.modules.util import ENCRYPTION_NAME
@@ -518,9 +518,12 @@ class OpenPGP:
         if error:
             log.error('Error: %s', error)
             app.nec.push_incoming_event(
-                MessageNotSentEvent(
-                    None, conn=self._con, jid=obj.jid, message=obj.message,
-                    error=error, time_=time.time()))
+                NetworkEvent('message-not-sent',
+                             conn=self._con,
+                             jid=obj.jid,
+                             message=obj.message,
+                             error=error,
+                             time_=time.time()))
             return
 
         util.create_openpgp_message(obj, encrypted_payload)
