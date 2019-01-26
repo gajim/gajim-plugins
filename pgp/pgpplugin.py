@@ -28,7 +28,7 @@ import nbxmpp
 from gi.repository import GLib
 
 from gajim.common import app
-from gajim.common.connection_handlers_events import MessageNotSentEvent
+from gajim.common.nec import NetworkEvent
 from gajim.plugins import GajimPlugin
 from gajim.plugins.plugins_i18n import _
 
@@ -240,9 +240,13 @@ class OldPGPPlugin(GajimPlugin):
         if error:
             log.error('python-gnupg error: %s', error)
             app.nec.push_incoming_event(
-                MessageNotSentEvent(
-                    None, conn=conn, jid=obj.jid, message=obj.message,
-                    error=error, time_=time.time(), session=obj.session))
+                NetworkEvent('message-not-sent',
+                             conn=conn,
+                             jid=obj.jid,
+                             message=obj.message,
+                             error=error,
+                             time_=time.time(),
+                             session=obj.session))
             return
 
         self.cleanup_stanza(obj)
