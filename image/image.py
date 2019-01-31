@@ -8,20 +8,9 @@ from gi.repository import Gdk
 from gajim import chat_control
 from gajim.plugins import GajimPlugin
 from gajim.plugins.helpers import log_calls
-from gajim.dialogs import ErrorDialog
-
-# Since Gajim 1.1.0 _() has to be imported
-try:
-    from gajim.common.i18n import _
-except ImportError:
-    pass
-
-try:
-    from gajim.gtk.filechoosers import FileChooserDialog
-    NEW_FILECHOOSER = True
-except ImportError:
-    from gajim.dialogs import ImageChooserDialog
-    NEW_FILECHOOSER = False
+from gajim.plugins.plugins_i18n import _
+from gajim.gtk.dialogs import ErrorDialog
+from gajim.gtk.filechoosers import FileChooserDialog
 
 
 NS_XHTML_IM = 'http://jabber.org/protocol/xhtml-im'
@@ -110,13 +99,7 @@ class Base(object):
             self.on_image_button_clicked(widget)
             return True
 
-    def on_image_button_clicked(self, widget):
-        if NEW_FILECHOOSER:
-            self._new_filechooser()
-        else:
-            self._old_filechooser(widget)
-
-    def _new_filechooser(self):
+    def on_image_button_clicked(self, *args):
         def on_ok(filename):
             image = self._check_file(filename)
             if image is None:
@@ -127,18 +110,6 @@ class Base(object):
         FileChooserDialog(on_ok,
                           select_multiple=False,
                           transient_for=self.chat_control.parent_win.window)
-
-    def _old_filechooser(self, widget):
-        def on_ok(widget, path_to_file):
-            image = self._check_file(path_to_file)
-            if image is None:
-                return
-
-            dlg.destroy()
-
-            self._send(image, path_to_file)
-
-        dlg = ImageChooserDialog(on_response_ok=on_ok, on_response_cancel=None)
 
     def _check_file(self, filename):
         filesize = os.path.getsize(filename)  # in bytes
