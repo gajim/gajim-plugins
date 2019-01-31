@@ -31,27 +31,15 @@ from gajim.plugins import GajimPlugin
 from gajim.plugins.helpers import log_calls
 from gajim.plugins.helpers import get_builder
 from gajim.plugins.gui import GajimPluginConfigDialog
+from gajim.plugins.plugins_i18n import _
 
-# Since Gajim 1.1.0 _() has to be imported
-try:
-    from gajim.common.i18n import _
-except ImportError:
-    pass
+from gajim.gtk.filechoosers import NativeFileChooserDialog, Filter
 
-try:
-    from gajim.gtk.filechoosers import NativeFileChooserDialog, Filter
+class SoundChooserDialog(NativeFileChooserDialog):
 
-    NEW_FILECHOOSER = True
-
-    class SoundChooserDialog(NativeFileChooserDialog):
-
-        _title = _('Choose Sound')
-        _filters = [Filter(_('All files'), '*', False),
-                    Filter(_('WAV files'), '*.wav', True)]
-
-except ImportError:
-    from gajim.dialogs import SoundChooserDialog
-    NEW_FILECHOOSER = False
+    _title = _('Choose Sound')
+    _filters = [Filter(_('All files'), '*', False),
+                Filter(_('WAV files'), '*.wav', True)]
 
 
 class Triggers(GajimPlugin):
@@ -717,10 +705,7 @@ class TriggersPluginConfigDialog(GajimPluginConfigDialog):
             self._ui.sound_file_box.set_sensitive(False)
 
     def on_browse_for_sounds_button_clicked(self, widget, data=None):
-        if NEW_FILECHOOSER:
-            self._new_filechooser()
-        else:
-            self._old_filechooser(widget, data)
+        self._new_filechooser()
 
     def _new_filechooser(self):
         if self.active_num < 0:
@@ -735,21 +720,6 @@ class TriggersPluginConfigDialog(GajimPluginConfigDialog):
         SoundChooserDialog(on_ok,
                            path=path_to_snd_file,
                            transient_for=self)
-
-    def _old_filechooser(self, widget, data=None):
-        if self.active_num < 0:
-            return
-
-        def on_ok(widget, path_to_snd_file):
-            dialog.destroy()
-            if not path_to_snd_file:
-                path_to_snd_file = ''
-            self.config[self.active_num]['sound_file'] = path_to_snd_file
-            self._ui.sound_entry.set_text(path_to_snd_file)
-
-        path_to_snd_file = self._ui.sound_entry.get_text()
-        path_to_snd_file = os.path.join(os.getcwd(), path_to_snd_file)
-        dialog = SoundChooserDialog(path_to_snd_file, on_ok)
 
     def on_play_button_clicked(self, widget):
         helpers.play_sound_file(self._ui.sound_entry.get_text())
