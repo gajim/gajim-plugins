@@ -3,12 +3,7 @@ from gi.repository import Gtk
 from gajim.plugins import GajimPlugin
 from gajim.plugins.helpers import log_calls
 from gajim.plugins.gui import GajimPluginConfigDialog
-
-# Since Gajim 1.1.0 _() has to be imported
-try:
-    from gajim.common.i18n import _
-except ImportError:
-    pass
+from gajim.plugins.plugins_i18n import _
 
 
 class MsgBoxSizePlugin(GajimPlugin):

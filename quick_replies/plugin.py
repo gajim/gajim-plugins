@@ -6,12 +6,7 @@ from gajim.common import app
 from gajim.plugins import GajimPlugin
 from gajim.plugins.gui import GajimPluginConfigDialog
 from gajim.plugins.helpers import log_calls
-
-# Since Gajim 1.1.0 _() has to be imported
-try:
-    from gajim.common.i18n import _
-except ImportError:
-    pass
+from gajim.plugins.plugins_i18n import _
 
 class QuickRepliesPlugin(GajimPlugin):
 

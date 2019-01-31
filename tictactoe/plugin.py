@@ -48,12 +48,7 @@ from gajim import chat_control
 from gajim.common import ged
 from gajim import dialogs
 from gajim.common.connection_handlers_events import InformationEvent
-
-# Since Gajim 1.1.0 _() has to be imported
-try:
-    from gajim.common.i18n import _
-except ImportError:
-    pass
+from gajim.plugins.plugins_i18n import _
 
 NS_GAMES = 'http://jabber.org/protocol/games'
 NS_GAMES_TICTACTOE = NS_GAMES + '/tictactoe'

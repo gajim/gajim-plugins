@@ -6,12 +6,7 @@ from gajim import gtkgui_helpers
 from gajim.common import app
 from gajim.common import helpers
 from gajim.common import ged
-
-# Since Gajim 1.1.0 _() has to be imported
-try:
-    from gajim.common.i18n import _
-except ImportError:
-    pass
+from gajim.plugins.plugins_i18n import _
 
 class ServerStatusIconsPlugin(GajimPlugin):
 
