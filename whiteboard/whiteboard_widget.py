@@ -23,11 +23,10 @@ from gi.repository import Gtk
 
 from gajim.common import app
 
-# Since Gajim 1.1.0 _() has to be imported
-try:
-    from gajim.common.i18n import _
-except ImportError:
-    pass
+from gajim.gtk.filechoosers import NativeFileChooserDialog, Filter
+
+from gajim.plugins.plugins_i18n import _
+
 
 try:
     import gi
@@ -38,55 +37,11 @@ except:
     HAS_GOOCANVAS = False
 
 
-try:
-    from gajim.gtk.filechoosers import NativeFileChooserDialog, Filter
+class SvgSaveDialog(NativeFileChooserDialog):
 
-    NEW_FILECHOOSER = True
-
-    class SvgSaveDialog(NativeFileChooserDialog):
-
-        _title = _('Save File as…')
-        _filters = [Filter(_('All files'), '*', False),
-                    Filter(_('SVG files'), '*.svg', True)]
-
-except ImportError:
-    from gajim.dialogs import FileChooserDialog
-
-    NEW_FILECHOOSER = False
-
-    class SvgChooserDialog(FileChooserDialog):
-        def __init__(self, on_response_ok=None, on_response_cancel=None):
-            '''
-            Choose in which SVG file to store the image
-            '''
-            def on_ok(widget, callback):
-                '''
-                check if file exists and call callback
-                '''
-                path_to_file = self.get_filename()
-                widget.destroy()
-                callback(path_to_file)
-
-            FileChooserDialog.__init__(self,
-                title_text=_('Save Image as...'),
-                action=Gtk.FileChooserAction.SAVE,
-                buttons=(Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL, Gtk.STOCK_SAVE,
-                    Gtk.ResponseType.OK),
-                current_folder='',
-                default_response=Gtk.ResponseType.OK,
-                on_response_ok=(on_ok, on_response_ok),
-                on_response_cancel=on_response_cancel)
-
-            filter_ = Gtk.FileFilter()
-            filter_.set_name(_('All files'))
-            filter_.add_pattern('*')
-            self.add_filter(filter_)
-
-            filter_ = Gtk.FileFilter()
-            filter_.set_name(_('SVG Files'))
-            filter_.add_pattern('*.svg')
-            self.add_filter(filter_)
-            self.set_filter(filter_)
+    _title = _('Save File as…')
+    _filters = [Filter(_('All files'), '*', False),
+                Filter(_('SVG files'), '*.svg', True)]
 
 '''
 A whiteboard widget made for Gajim.
@@ -167,11 +122,8 @@ class Whiteboard(object):
         self.image.clear_canvas()
 
     def on_export_button_clicked(self, widget):
-        if NEW_FILECHOOSER:
-            SvgSaveDialog(self.image.export_svg,
-                          transient_for=app.app.get_active_window())
-        else:
-            SvgChooserDialog(self.image.export_svg)
+        SvgSaveDialog(self.image.export_svg,
+                      transient_for=app.app.get_active_window())
 
     def on_fg_color_button_color_set(self, widget):
         c = self.fg_color_select_button.get_rgba()

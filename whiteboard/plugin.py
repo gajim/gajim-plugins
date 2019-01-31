@@ -27,28 +27,27 @@ Whiteboard plugin.
 :license: GPL
 '''
 
+from gi.repository import Gio
+from gi.repository import GLib
+from nbxmpp import Message
+
 from gajim import common
 from gajim.common import helpers
 from gajim.common import app
+
 from gajim.plugins import GajimPlugin
 from gajim.plugins.gajimplugin import GajimPluginException
 from gajim.plugins.helpers import log_calls, log
-from nbxmpp import Message
-from gi.repository import Gio
-from gi.repository import GLib
+from gajim.plugins.plugins_i18n import _
+
 from gajim import chat_control
 from gajim.common import ged
 from gajim.common.jingle_session import JingleSession
 from gajim.common.jingle_content import JingleContent
 from gajim.common.jingle_transport import JingleTransport, TransportType
-from gajim import dialogs
+from gajim.gtk.dialogs import NonModalConfirmationDialog
 from .whiteboard_widget import Whiteboard, HAS_GOOCANVAS
 
-# Since Gajim 1.1.0 _() has to be imported
-try:
-    from gajim.common.i18n import _
-except ImportError:
-    pass
 
 NS_JINGLE_XHTML = 'urn:xmpp:tmp:jingle:apps:xhtml'
 NS_JINGLE_SXE = 'urn:xmpp:tmp:jingle:transports:sxe'
@@ -152,7 +151,7 @@ class WhiteboardPlugin(GajimPlugin):
         pritext = _('Incoming Whiteboard')
         sectext = _('%(name)s (%(jid)s) wants to start a whiteboard with '
             'you. Do you want to accept?') % {'name': name, 'jid': jid}
-        dialog = dialogs.NonModalConfirmationDialog(pritext, sectext=sectext,
+        dialog = NonModalConfirmationDialog(pritext, sectext=sectext,
             on_response_ok=on_ok, on_response_cancel=on_cancel)
         dialog.popup()
 
