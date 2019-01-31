@@ -16,7 +16,7 @@ from gajim.common import helpers
 from gajim.common import configpaths
 
 from gajim import gtkgui_helpers
-from gajim.dialogs import InputDialog, WarningDialog
+from gajim.gtk.dialogs import InputDialog, WarningDialog
 
 
 log = logging.getLogger('gajim.plugin_system.set_location')
