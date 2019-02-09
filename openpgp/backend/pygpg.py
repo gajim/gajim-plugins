@@ -1,20 +1,18 @@
-# Copyright (C) 2018 Philipp Hörist <philipp AT hoerist.com>
+# Copyright (C) 2019 Philipp Hörist <philipp AT hoerist.com>
 #
-# This file is part of Gajim.
+# This file is part of the OpenPGP Gajim Plugin.
 #
-# Gajim is free software; you can redistribute it and/or modify
+# OpenPGP Gajim Plugin is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published
 # by the Free Software Foundation; version 3 only.
 #
-# Gajim is distributed in the hope that it will be useful,
+# OpenPGP Gajim Plugin is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with Gajim. If not, see <http://www.gnu.org/licenses/>.
-
-# XEP-0373: OpenPGP for XMPP
+# along with OpenPGP Gajim Plugin. If not, see <http://www.gnu.org/licenses/>.
 
 import os
 import logging
@@ -27,7 +25,6 @@ from gajim.common import app
 from openpgp.modules.util import DecryptionFailed
 
 log = logging.getLogger('gajim.plugin_system.openpgp.pygnupg')
-# gnupg.logger = log
 
 KeyringItem = namedtuple('KeyringItem', 'jid keyid fingerprint')
 
@@ -38,7 +35,7 @@ class PGPContext(gnupg.GPG):
             self, gpgbinary=app.get_gpg_binary(), gnupghome=str(gnupghome))
 
         self._passphrase = 'gajimopenpgppassphrase'
-        self._jid = jid
+        self._jid = jid.getBare()
         self._own_fingerprint = None
 
     def _get_key_params(self, jid, passphrase):
@@ -122,7 +119,7 @@ class PGPContext(gnupg.GPG):
             log.error(result.results[0])
             return
 
-        if not self.validate_key(data, jid):
+        if not self.validate_key(data, str(jid)):
             return None
         key = self.get_key(result.results[0]['fingerprint'])
         return self._make_keyring_item(key[0])

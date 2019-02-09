@@ -1,30 +1,30 @@
-# Copyright (C) 2018 Philipp Hörist <philipp AT hoerist.com>
+# Copyright (C) 2019 Philipp Hörist <philipp AT hoerist.com>
 #
-# This file is part of Gajim.
+# This file is part of the OpenPGP Gajim Plugin.
 #
-# Gajim is free software; you can redistribute it and/or modify
+# OpenPGP Gajim Plugin is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published
 # by the Free Software Foundation; version 3 only.
 #
-# Gajim is distributed in the hope that it will be useful,
+# OpenPGP Gajim Plugin is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with Gajim. If not, see <http://www.gnu.org/licenses/>.
-
-# XEP-0373: OpenPGP for XMPP
+# along with OpenPGP Gajim Plugin. If not, see <http://www.gnu.org/licenses/>.
 
 import sqlite3
 import logging
 from collections import namedtuple
 
+from nbxmpp import JID
+
 log = logging.getLogger('gajim.plugin_system.openpgp.sql')
 
 TABLE_LAYOUT = '''
     CREATE TABLE contacts (
-        jid TEXT,
+        jid JID,
         fingerprint TEXT,
         active BOOLEAN,
         trust INTEGER,
@@ -34,10 +34,25 @@ TABLE_LAYOUT = '''
     CREATE UNIQUE INDEX jid_fingerprint ON contacts (jid, fingerprint);'''
 
 
+def _jid_adapter(jid):
+    return str(jid)
+
+
+def _jid_converter(jid):
+    return JID(jid.decode())
+
+
+sqlite3.register_adapter(JID, _jid_adapter)
+sqlite3.register_converter('JID', _jid_converter)
+
+
 class Storage:
     def __init__(self, folder_path):
         self._con = sqlite3.connect(str(folder_path / 'contacts.db'),
                                     detect_types=sqlite3.PARSE_DECLTYPES)
+
+
+
         self._con.row_factory = self._namedtuple_factory
         self._create_database()
         self._migrate_database()
@@ -72,10 +87,7 @@ class Storage:
         pass
 
     def load_contacts(self):
-        sql = 'SELECT * from contacts'
-        rows = self._con.execute(sql).fetchall()
-        if rows is not None:
-            return rows
+        return self._con.execute('SELECT * from contacts').fetchall()
 
     def save_contact(self, db_values):
         sql = '''REPLACE INTO

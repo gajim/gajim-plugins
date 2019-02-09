@@ -1,20 +1,18 @@
-# Copyright (C) 2018 Philipp Hörist <philipp AT hoerist.com>
+# Copyright (C) 2019 Philipp Hörist <philipp AT hoerist.com>
 #
-# This file is part of Gajim.
+# This file is part of the OpenPGP Gajim Plugin.
 #
-# Gajim is free software; you can redistribute it and/or modify
+# OpenPGP Gajim Plugin is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published
 # by the Free Software Foundation; version 3 only.
 #
-# Gajim is distributed in the hope that it will be useful,
+# OpenPGP Gajim Plugin is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with Gajim. If not, see <http://www.gnu.org/licenses/>.
-
-# XEP-0373: OpenPGP for XMPP
+# along with OpenPGP Gajim Plugin. If not, see <http://www.gnu.org/licenses/>.
 
 import logging
 import threading
@@ -177,8 +175,8 @@ class NewKeyPage(RequestPage):
             error = e
         else:
             self._con.get_module('OpenPGP').get_own_key_details()
-            self._con.get_module('OpenPGP').publish_key()
-            self._con.get_module('OpenPGP').query_key_list()
+            self._con.get_module('OpenPGP').set_public_key()
+            self._con.get_module('OpenPGP').request_keylist()
         GLib.idle_add(self.finished, error)
 
     def finished(self, error):
