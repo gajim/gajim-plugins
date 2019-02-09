@@ -1,0 +1,1 @@
+from .syntax_highlight import SyntaxHighlighterPlugin
