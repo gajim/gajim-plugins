@@ -1,46 +1,30 @@
-# Copyright (C) 2018 Philipp Hörist <philipp AT hoerist.com>
+# Copyright (C) 2019 Philipp Hörist <philipp AT hoerist.com>
 #
-# This file is part of OMEMO.
+# This file is part of OMEMO Gajim Plugin.
 #
-# OMEMO is free software; you can redistribute it and/or modify
+# OMEMO Gajim Plugin is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published
 # by the Free Software Foundation; version 3 only.
 #
-# OMEMO is distributed in the hope that it will be useful,
+# OMEMO Gajim Plugin is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with OMEMO. If not, see <http://www.gnu.org/licenses/>.
+# along with OMEMO Gajim Plugin. If not, see <http://www.gnu.org/licenses/>.
 
-# XEP-0384: OMEMO Encryption
-
-import logging
 
 import nbxmpp
 
-from gajim.common.exceptions import StanzaMalformed
+
+def prepare_stanza(stanza, plaintext):
+    delete_nodes(stanza, 'encrypted', nbxmpp.NS_OMEMO_TEMP)
+    delete_nodes(stanza, 'body')
+    stanza.setBody(plaintext)
 
 
-log = logging.getLogger('gajim.plugin_system.omemo')
-
-NS_OMEMO = 'eu.siacs.conversations.axolotl'
-NS_DEVICE_LIST = NS_OMEMO + '.devicelist'
-
-
-def unpack_devicelist(item):
-    list_ = item.getTag('list', namespace=NS_OMEMO)
-    if list_ is None:
-        raise StanzaMalformed('No list node')
-
-    device_list = list_.getTags('device')
-
-    devices = []
-    for device in device_list:
-        id_ = device.getAttr('id')
-        if id_ is None:
-            raise StanzaMalformed('No id for device found')
-
-        devices.append(int(id_))
-    return devices
+def delete_nodes(stanza, name, namespace=None):
+    nodes = stanza.getTags(name, namespace=namespace)
+    for node in nodes:
+        stanza.delChild(node)

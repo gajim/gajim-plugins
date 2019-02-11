@@ -1,21 +1,18 @@
-# -*- coding: utf-8 -*-
+# Copyright (C) 2019 Philipp Hörist <philipp AT hoerist.com>
 #
-# Copyright 2017 Philipp Hörist <philipp@hoerist.com>
+# This file is part of OMEMO Gajim Plugin.
 #
-# This file is part of Gajim-OMEMO plugin.
+# OMEMO Gajim Plugin is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published
+# by the Free Software Foundation; version 3 only.
 #
-# The Gajim-OMEMO plugin is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by the Free
-# Software Foundation, either version 3 of the License, or (at your option) any
-# later version.
+# OMEMO Gajim Plugin is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
 #
-# Gajim-OMEMO is distributed in the hope that it will be useful, but WITHOUT ANY
-# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
-# A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License along with
-# the Gajim-OMEMO plugin.  If not, see <http://www.gnu.org/licenses/>.
-#
+# You should have received a copy of the GNU General Public License
+# along with OMEMO Gajim Plugin. If not, see <http://www.gnu.org/licenses/>.
 
 import os
 import hashlib
@@ -32,44 +29,29 @@ from urllib.parse import urlparse, urldefrag
 from io import BufferedWriter, FileIO, BytesIO
 
 from gi.repository import GLib
+
 from gajim.common import app
 from gajim.common import configpaths
 from gajim.plugins.plugins_i18n import _
 from gajim.gtk.dialogs import ErrorDialog, YesNoDialog
+
 from omemo.gtk.progress import ProgressWindow
+from omemo.backend.aes import aes_decrypt_file
+
 if os.name == 'nt':
     import certifi
 
 log = logging.getLogger('gajim.plugin_system.omemo.filedecryption')
 
-ERROR = False
-try:
-    from cryptography.hazmat.primitives.ciphers import Cipher
-    from cryptography.hazmat.primitives.ciphers import algorithms
-    from cryptography.hazmat.primitives.ciphers.modes import GCM
-    from cryptography.hazmat.backends import default_backend
-    from omemo.omemo.aes_gcm_native import aes_encrypt
-except ImportError:
-    log.exception('ImportError')
-    ERROR = True
-
 DIRECTORY = os.path.join(configpaths.get('MY_DATA'), 'downloads')
 
+ERROR = False
 try:
     if not os.path.exists(DIRECTORY):
         os.makedirs(DIRECTORY)
 except Exception:
     ERROR = True
     log.exception('Error')
-
-
-def encrypt_file(data):
-    key = os.urandom(32)
-    iv = os.urandom(16)
-
-    payload, tag = aes_encrypt(key, iv, data)
-    encrypted_data = payload + tag
-    return (encrypted_data, key, iv)
 
 
 class File:
@@ -105,7 +87,7 @@ class FileDecryption:
         if not self.is_encrypted(file):
             log.info('Url not encrypted: %s', url)
             return
-
+        print('ADASD')
         self.create_paths(file)
 
         if os.path.exists(file.filepath):
@@ -181,7 +163,10 @@ class Download:
             return
 
         GLib.idle_add(self.progressbar.set_text, _('Decrypting...'))
-        decrypted_data = self.aes_decrypt(data)
+
+        decrypted_data = aes_decrypt_file(self.file.key,
+                                          self.file.iv,
+                                          data.getvalue())
 
         GLib.idle_add(
             self.progressbar.set_text, _('Writing file to harddisk...'))
@@ -203,11 +188,11 @@ class Download:
                 log.warning('CERT Verification disabled')
                 get_request = urlopen(self.file.url, timeout=30, context=context)
             else:
+                cafile = None
                 if os.name == 'nt':
-                    get_request = urlopen(
-                        self.file.url, cafile=certifi.where(), timeout=30)
-                else:
-                    get_request = urlopen(self.file.url, timeout=30)
+                    cafile = certifi.where()
+                context = ssl.create_default_context(cafile=cafile)
+                get_request = urlopen(self.file.url, timeout=30, context=context)
 
             size = get_request.info()['Content-Length']
             if not size:
@@ -240,17 +225,6 @@ class Download:
             errormsg = error
         stream.close()
         return str(errormsg)
-
-    def aes_decrypt(self, payload):
-        # Use AES128 GCM with the given key and iv to decrypt the payload.
-        payload = payload.getvalue()
-        data = payload[:-16]
-        tag = payload[-16:]
-        decryptor = Cipher(
-            algorithms.AES(self.file.key),
-            GCM(self.file.iv, tag=tag),
-            backend=default_backend()).decryptor()
-        return decryptor.update(data) + decryptor.finalize()
 
     def write_file(self, data):
         log.info('Writing data to %s', self.file.filepath)

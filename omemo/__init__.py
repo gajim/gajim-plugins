@@ -1,1 +1,1 @@
-from .omemoplugin import OmemoPlugin
+from omemo.plugin import OmemoPlugin

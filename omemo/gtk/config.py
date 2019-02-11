@@ -1,22 +1,20 @@
-'''
-Copyright 2015 Bahtiar `kalkin-` Gadimov <bahtiar@gadimov.de>
-Copyright 2015 Daniel Gultsch <daniel@cgultsch.de>
-Copyright 2016 Philipp Hörist <philipp@hoerist.com>
-
-This file is part of Gajim-OMEMO plugin.
-
-The Gajim-OMEMO plugin is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by the Free
-Software Foundation, either version 3 of the License, or (at your option) any
-later version.
-
-Gajim-OMEMO is distributed in the hope that it will be useful, but WITHOUT ANY
-WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
-A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License along with
-the Gajim-OMEMO plugin.  If not, see <http://www.gnu.org/licenses/>.
-'''
+# Copyright (C) 2019 Philipp Hörist <philipp AT hoerist.com>
+# Copyright (C) 2015 Bahtiar `kalkin-` Gadimov <bahtiar@gadimov.de>
+# Copyright (C) 2015 Daniel Gultsch <daniel@cgultsch.de>
+#
+# This file is part of OMEMO Gajim Plugin.
+#
+# OMEMO Gajim Plugin is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published
+# by the Free Software Foundation; version 3 only.
+#
+# OMEMO Gajim Plugin is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with OMEMO Gajim Plugin. If not, see <http://www.gnu.org/licenses/>.
 
 import binascii
 import logging
@@ -171,7 +169,7 @@ class OMEMOConfigDialog(GajimPluginConfigDialog):
     def cleardevice_button_clicked_cb(self, button, *args):
         active = self._ui.get_object('account_combobox').get_active()
         account = self.account_store[active][0]
-        app.connections[account].get_module('OMEMO').publish_own_devices_list(new=True)
+        app.connections[account].get_module('OMEMO').set_devicelist(new=True)
         self.update_context_list()
 
     def refresh_button_clicked_cb(self, button, *args):

@@ -1,24 +1,20 @@
-# -*- coding: utf-8 -*-
-
-'''
-Copyright 2015 Bahtiar `kalkin-` Gadimov <bahtiar@gadimov.de>
-Copyright 2015 Daniel Gultsch <daniel@cgultsch.de>
-Copyright 2016 Philipp Hörist <philipp@hoerist.com>
-
-This file is part of Gajim-OMEMO plugin.
-
-The Gajim-OMEMO plugin is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by the Free
-Software Foundation, either version 3 of the License, or (at your option) any
-later version.
-
-Gajim-OMEMO is distributed in the hope that it will be useful, but WITHOUT ANY
-WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
-A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License along with
-the Gajim-OMEMO plugin.  If not, see <http://www.gnu.org/licenses/>.
-'''
+# Copyright (C) 2019 Philipp Hörist <philipp AT hoerist.com>
+# Copyright (C) 2015 Bahtiar `kalkin-` Gadimov <bahtiar@gadimov.de>
+# Copyright (C) 2015 Daniel Gultsch <daniel@cgultsch.de>
+#
+# This file is part of OMEMO Gajim Plugin.
+#
+# OMEMO Gajim Plugin is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published
+# by the Free Software Foundation; version 3 only.
+#
+# OMEMO Gajim Plugin is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with OMEMO Gajim Plugin. If not, see <http://www.gnu.org/licenses/>.
 
 import logging
 import binascii
@@ -36,11 +32,12 @@ from gajim.plugins import GajimPlugin
 from gajim.plugins.plugins_i18n import _
 from gajim.groupchat_control import GroupchatControl
 
+from omemo import file_crypto
 from omemo.gtk.key import KeyDialog
 from omemo.gtk.config import OMEMOConfigDialog
+from omemo.backend.aes import aes_encrypt_file
 
 
-CRYPTOGRAPHY_MISSING = 'You are missing Python3-Cryptography'
 AXOLOTL_MISSING = 'You are missing Python3-Axolotl or use an outdated version'
 PROTOBUF_MISSING = "OMEMO can't import Google Protobuf, you can find help in " \
                    "the GitHub Wiki"
@@ -48,12 +45,11 @@ ERROR_MSG = ''
 
 
 log = logging.getLogger('gajim.plugin_system.omemo')
-
-try:
-    from omemo import file_crypto
-except Exception as error:
-    log.exception(error)
-    ERROR_MSG = CRYPTOGRAPHY_MISSING
+if log.getEffectiveLevel() == logging.DEBUG:
+    log_axolotl = logging.getLogger('axolotl')
+    log_axolotl.setLevel(logging.DEBUG)
+    log_axolotl.addHandler(logging.StreamHandler())
+    log_axolotl.propagate = False
 
 try:
     import google.protobuf
@@ -70,13 +66,9 @@ except Exception as error:
 if not ERROR_MSG:
     try:
         from omemo.modules import omemo
-        from omemo.modules import omemo_devicelist
     except Exception as error:
         log.error(error)
         ERROR_MSG = 'Error: %s' % error
-
-# pylint: disable=no-init
-# pylint: disable=attribute-defined-outside-init
 
 
 @unique
@@ -87,7 +79,6 @@ class UserMessages(IntEnum):
 
 class OmemoPlugin(GajimPlugin):
     def init(self):
-        """ Init """
         if ERROR_MSG:
             self.activatable = False
             self.available_text = ERROR_MSG
@@ -99,17 +90,13 @@ class OmemoPlugin(GajimPlugin):
             'signed-in': (ged.PRECORE, self.signed_in),
             'omemo-new-fingerprint': (ged.PRECORE, self._on_new_fingerprints),
         }
-        self.modules = [
-            omemo,
-            omemo_devicelist,
-        ]
+        self.modules = [omemo]
         self.config_dialog = OMEMOConfigDialog(self)
         self.gui_extension_points = {
             'hyperlink_handler': (self._file_decryption, None),
             'encrypt' + self.encryption_name: (self._encrypt_message, None),
             'gc_encrypt' + self.encryption_name: (
                 self._gc_encrypt_message, None),
-            'decrypt': (self._message_received, None),
             'send_message' + self.encryption_name: (
                 self.before_sendmessage, None),
             'encryption_dialog' + self.encryption_name: (
@@ -198,11 +185,6 @@ class OmemoPlugin(GajimPlugin):
                 return False
         return True
 
-    def _message_received(self, conn, obj, callback):
-        if conn.name == 'Local':
-            return
-        app.connections[conn.name].get_module('OMEMO').message_received(conn, obj, callback)
-
     def _gc_encrypt_message(self, conn, obj, callback):
         if conn.name == 'Local':
             return
@@ -225,12 +207,11 @@ class OmemoPlugin(GajimPlugin):
 
     @staticmethod
     def _encrypt_file_thread(file, callback, *args, **kwargs):
-        encrypted_data, key, iv = file_crypto.encrypt_file(
-            file.get_data(full=True))
+        result = aes_encrypt_file(file.get_data(full=True))
         file.encrypted = True
-        file.size = len(encrypted_data)
-        file.user_data = binascii.hexlify(iv + key).decode('utf-8')
-        file.data = encrypted_data
+        file.size = len(result.payload)
+        file.user_data = binascii.hexlify(result.iv + result.key).decode()
+        file.data = result.payload
         if file.event.isSet():
             return
         GLib.idle_add(callback, file)
@@ -267,7 +248,7 @@ class OmemoPlugin(GajimPlugin):
         else:
             # check if we have devices for the contact
             if not self.get_omemo(account).device_list_for(contact.jid):
-                con.query_devicelist(contact.jid, True)
+                con.request_devicelist(contact.jid, True)
                 self.print_message(chat_control, UserMessages.QUERY_DEVICES)
                 chat_control.sendmessage = False
                 return
