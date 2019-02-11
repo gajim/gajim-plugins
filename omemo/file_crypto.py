@@ -15,6 +15,7 @@
 # along with OMEMO Gajim Plugin. If not, see <http://www.gnu.org/licenses/>.
 
 import os
+import sys
 import hashlib
 import logging
 import socket
@@ -38,7 +39,7 @@ from gajim.gtk.dialogs import ErrorDialog, YesNoDialog
 from omemo.gtk.progress import ProgressWindow
 from omemo.backend.aes import aes_decrypt_file
 
-if os.name == 'nt':
+if sys.platform in ('win32', 'darwin'):
     import certifi
 
 log = logging.getLogger('gajim.plugin_system.omemo.filedecryption')
@@ -189,7 +190,7 @@ class Download:
                 get_request = urlopen(self.file.url, timeout=30, context=context)
             else:
                 cafile = None
-                if os.name == 'nt':
+                if sys.platform in ('win32', 'darwin'):
                     cafile = certifi.where()
                 context = ssl.create_default_context(cafile=cafile)
                 get_request = urlopen(self.file.url, timeout=30, context=context)
