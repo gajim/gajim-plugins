@@ -455,8 +455,6 @@ class ChatSyntaxHighlighter:
         buf.get_tag_table().add(tag)
         buf.apply_tag(tag, start_iter, buf.get_end_iter())
 
-        buf.end_user_action()
-
     def __init__(self, config, textview):
         self.last_end_mark  = None
         self.config         = config
