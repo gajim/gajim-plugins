@@ -88,7 +88,7 @@ class FileDecryption:
         if not self.is_encrypted(file):
             log.info('Url not encrypted: %s', url)
             return
-        print('ADASD')
+
         self.create_paths(file)
 
         if os.path.exists(file.filepath):

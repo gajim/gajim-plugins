@@ -534,8 +534,7 @@ class OMEMO(BaseModule):
             log.info('%s => Received own device list: %s',
                      self._account, devicelist)
             self.omemo.set_own_devices(devicelist)
-            self.omemo.store.sessionStore.setActiveState(
-                devicelist, self.own_jid)
+            self.omemo.store.setActiveState(devicelist, self.own_jid)
 
             # remove contact from list, so on send button pressed
             # we query for bundle and build a session
@@ -551,7 +550,7 @@ class OMEMO(BaseModule):
             log.info('%s => Received device list for %s: %s',
                      self._account, jid, devicelist)
             self.omemo.set_devices(jid, devicelist)
-            self.omemo.store.sessionStore.setActiveState(devicelist, jid)
+            self.omemo.store.setActiveState(devicelist, jid)
 
             # remove contact from list, so on send button pressed
             # we query for bundle and build a session

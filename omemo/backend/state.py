@@ -1,21 +1,19 @@
-# -*- coding: utf-8 -*-
+# Copyright (C) 2019 Philipp Hörist <philipp AT hoerist.com>
+# Copyright (C) 2015 Bahtiar `kalkin-` Gadimov <bahtiar@gadimov.de>
 #
-# Copyright 2015 Bahtiar `kalkin-` Gadimov <bahtiar@gadimov.de>
+# This file is part of OMEMO Gajim Plugin.
 #
-# This file is part of Gajim-OMEMO plugin.
+# OMEMO Gajim Plugin is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published
+# by the Free Software Foundation; version 3 only.
 #
-# The Gajim-OMEMO plugin is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by the Free
-# Software Foundation, either version 3 of the License, or (at your option) any
-# later version.
+# OMEMO Gajim Plugin is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
 #
-# Gajim-OMEMO is distributed in the hope that it will be useful, but WITHOUT ANY
-# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
-# A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License along with
-# the Gajim-OMEMO plugin.  If not, see <http://www.gnu.org/licenses/>.
-#
+# You should have received a copy of the GNU General Public License
+# along with OMEMO Gajim Plugin. If not, see <http://www.gnu.org/licenses/>.
 
 import logging
 import time
@@ -35,9 +33,12 @@ from axolotl.state.prekeybundle import PreKeyBundle
 from axolotl.util.keyhelper import KeyHelper
 
 from omemo.backend.aes import aes_decrypt, aes_encrypt
-from .liteaxolotlstore import (LiteAxolotlStore, DEFAULT_PREKEY_AMOUNT,
-                               MIN_PREKEY_AMOUNT, SPK_CYCLE_TIME,
-                               SPK_ARCHIVE_TIME)
+from omemo.backend.liteaxolotlstore import LiteAxolotlStore
+from omemo.backend.liteaxolotlstore import DEFAULT_PREKEY_AMOUNT
+from omemo.backend.liteaxolotlstore import MIN_PREKEY_AMOUNT
+from omemo.backend.liteaxolotlstore import SPK_CYCLE_TIME
+from omemo.backend.liteaxolotlstore import SPK_ARCHIVE_TIME
+
 
 log = logging.getLogger('gajim.plugin_system.omemo')
 
@@ -49,10 +50,6 @@ UNDECIDED = 2
 
 class OmemoState:
     def __init__(self, own_jid, db_con, account, xmpp_con):
-        """ Instantiates an OmemoState object.
-
-            :param connection: an :py:class:`sqlite3.Connection`
-        """
         self.account = account
         self.xmpp_con = xmpp_con
         self.session_ciphers = {}
@@ -60,20 +57,19 @@ class OmemoState:
         self.device_ids = {}
         self.own_devices = []
         self.store = LiteAxolotlStore(db_con)
-        self.encryption = self.store.encryptionStore
         for jid, device_id in self.store.getActiveDeviceTuples():
             if jid != own_jid:
                 self.add_device(jid, device_id)
             else:
                 self.add_own_device(device_id)
 
-        log.info(self.account + ' => Roster devices after boot:' +
-                 str(self.device_ids))
-        log.info(self.account + ' => Own devices after boot:' +
-                 str(self.own_devices))
-        log.debug(self.account + ' => ' +
-                  str(self.store.preKeyStore.getPreKeyCount()) +
-                  ' PreKeys available')
+        log.info('%s => Roster devices after boot: %s',
+                 self.account, self.device_ids)
+        log.info('%s => Own devices after boot: %s',
+                 self.account, self.own_devices)
+        log.debug('%s => %s PreKeys available',
+                  self.account,
+                  self.store.getPreKeyCount())
 
     def build_session(self, recipient_id, device_id, bundle):
         sessionBuilder = SessionBuilder(self.store, self.store, self.store,
@@ -110,7 +106,7 @@ class OmemoState:
         """
 
         self.device_ids[name] = devices
-        log.info(self.account + ' => Saved devices for ' + name)
+        log.info('%s => Saved devices for %s', self.account, name)
 
     def add_device(self, name, device_id):
         if name not in self.device_ids:
@@ -128,7 +124,7 @@ class OmemoState:
                 A list of device_ids
         """
         self.own_devices = devices
-        log.info(self.account + ' => Saved own devices')
+        log.info('%s => Saved own devices', self.account)
 
     def add_own_device(self, device_id):
         if device_id not in self.own_devices:
@@ -140,7 +136,7 @@ class OmemoState:
         assert reg_id is not None, \
             "Requested device_id but there is no generated"
 
-        return ((reg_id % 2147483646) + 1)
+        return (reg_id % 2147483646) + 1
 
     def own_device_id_published(self):
         """ Return `True` only if own device id was added via
@@ -153,7 +149,7 @@ class OmemoState:
         self.checkPreKeyAmount()
 
         bundle = {'otpks': []}
-        for k in self.store.loadPreKeys():
+        for k in self.store.loadPendingPreKeys():
             key = k.getKeyPair().getPublicKey().serialize()
             bundle['otpks'].append({'key': key, 'id': k.getId()})
 
@@ -261,7 +257,7 @@ class OmemoState:
 
         devices_list = self.device_list_for(jid, True)
 
-        result = aes_encrypt(plaintext, append_tag=True)
+        result = aes_encrypt(plaintext)
 
         for tup in devices_list:
             self.get_session_cipher(tup[0], tup[1])
@@ -382,8 +378,8 @@ class OmemoState:
                            for dev in known_devices
                            if not self.store.containsSession(jid, dev)]
         if missing_devices:
-            log.info(self.account + ' => Missing device sessions for ' +
-                     jid + ': ' + str(missing_devices))
+            log.info('%s => Missing device sessions for %s: %s',
+                     self.account, jid, missing_devices)
         return missing_devices
 
     def get_session_cipher(self, jid, device_id):
@@ -400,44 +396,43 @@ class OmemoState:
     def handlePreKeyWhisperMessage(self, recipient_id, device_id, key):
         preKeyWhisperMessage = PreKeyWhisperMessage(serialized=key)
         if not preKeyWhisperMessage.getPreKeyId():
-            raise Exception("Received PreKeyWhisperMessage without PreKey =>" +
-                            recipient_id)
+            raise Exception('Received PreKeyWhisperMessage '
+                            'without PreKey => %s' % recipient_id)
         sessionCipher = self.get_session_cipher(recipient_id, device_id)
         try:
-            log.debug(self.account +
-                      " => Received PreKeyWhisperMessage from " +
-                      recipient_id)
+            log.debug('%s => Received PreKeyWhisperMessage from %s',
+                      self.account, recipient_id)
             key = sessionCipher.decryptPkmsg(preKeyWhisperMessage)
             # Publish new bundle after PreKey has been used
             # for building a new Session
             self.xmpp_con.set_bundle()
             self.add_device(recipient_id, device_id)
             return key
-        except UntrustedIdentityException as e:
-            log.info(self.account + " => Received WhisperMessage " +
-                     "from Untrusted Fingerprint! => " + e.getName())
+        except UntrustedIdentityException as error:
+            log.info('%s => Received WhisperMessage '
+                     'from Untrusted Fingerprint! => %s',
+                     self.account, error.getName())
 
     def handleWhisperMessage(self, recipient_id, device_id, key):
         whisperMessage = WhisperMessage(serialized=key)
-        log.debug(self.account + " => Received WhisperMessage from " +
-                  recipient_id)
+        log.debug('%s => Received WhisperMessage from %s',
+                  self.account, recipient_id)
         if self.isTrusted(recipient_id, device_id):
             sessionCipher = self.get_session_cipher(recipient_id, device_id)
             key = sessionCipher.decryptMsg(whisperMessage, textMsg=False)
             self.add_device(recipient_id, device_id)
             return key
-        else:
-            raise Exception("Received WhisperMessage "
-                            "from Untrusted Fingerprint! => " + recipient_id)
+
+        raise Exception('Received WhisperMessage '
+                        'from Untrusted Fingerprint! => %s' % recipient_id)
 
     def checkPreKeyAmount(self):
         # Check if enough PreKeys are available
-        preKeyCount = self.store.preKeyStore.getPreKeyCount()
+        preKeyCount = self.store.getPreKeyCount()
         if preKeyCount < MIN_PREKEY_AMOUNT:
             newKeys = DEFAULT_PREKEY_AMOUNT - preKeyCount
-            self.store.preKeyStore.generateNewPreKeys(newKeys)
-            log.info(self.account + ' => ' + str(newKeys) +
-                     ' PreKeys created')
+            self.store.generateNewPreKeys(newKeys)
+            log.info('%s => %s PreKeys created', self.account, newKeys)
 
     def cycleSignedPreKey(self, identityKeyPair):
         # Publish every SPK_CYCLE_TIME a new SignedPreKey
@@ -449,8 +444,8 @@ class OmemoState:
             signedPreKey = KeyHelper.generateSignedPreKey(
                 identityKeyPair, self.store.getNextSignedPreKeyId())
             self.store.storeSignedPreKey(signedPreKey.getId(), signedPreKey)
-            log.debug(self.account +
-                      ' => New SignedPreKey created, because none existed')
+            log.debug('%s => New SignedPreKey created, because none existed',
+                      self.account)
 
         # if SPK_CYCLE_TIME is reached, generate a new SignedPreKey
         now = int(time.time())
@@ -461,7 +456,7 @@ class OmemoState:
             signedPreKey = KeyHelper.generateSignedPreKey(
                 identityKeyPair, self.store.getNextSignedPreKeyId())
             self.store.storeSignedPreKey(signedPreKey.getId(), signedPreKey)
-            log.debug(self.account + ' => Cycled SignedPreKey')
+            log.debug('%s => Cycled SignedPreKey', self.account)
 
         # Delete all SignedPreKeys that are older than SPK_ARCHIVE_TIME
         timestamp = now - SPK_ARCHIVE_TIME
