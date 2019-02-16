@@ -109,11 +109,6 @@ class OMEMO(BaseModule):
         self.query_for_bundles = []
         self.query_for_devicelists = []
 
-        app.ged.register_event_handler('signed-in', ged.PRECORE,
-                                       self.signed_in)
-        app.ged.register_event_handler('muc-config-changed', ged.GUI2,
-                                       self._on_config_changed)
-
     def get_own_jid(self, stripped=False):
         if stripped:
             return self._con.get_own_jid().getStripped()
@@ -126,10 +121,7 @@ class OMEMO(BaseModule):
         conn.execute("PRAGMA secure_delete=1")
         return OmemoState(self.own_jid, conn, self._account, self)
 
-    def signed_in(self, event):
-        if event.conn.name != self._account:
-            return
-
+    def on_signed_in(self):
         log.info('%s => Announce Support after Sign In', self._account)
         self.query_for_bundles = []
         self.set_bundle()
@@ -346,10 +338,7 @@ class OMEMO(BaseModule):
             return False
         return contact.sub == 'both'
 
-    def _on_config_changed(self, event):
-        if event.account != self._account:
-            return
-
+    def on_muc_config_changed(self, event):
         room = event.jid.getBare()
         status_codes = event.status_codes or []
         if StatusCode.CONFIG_NON_ANONYMOUS in status_codes:

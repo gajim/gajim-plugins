@@ -87,8 +87,9 @@ class OmemoPlugin(GajimPlugin):
         self.encryption_name = 'OMEMO'
         self.allow_groupchat = True
         self.events_handlers = {
-            'signed-in': (ged.PRECORE, self.signed_in),
             'omemo-new-fingerprint': (ged.PRECORE, self._on_new_fingerprints),
+            'signed-in': (ged.PRECORE, self._on_signed_in),
+            'muc-config-changed': (ged.GUI2, self._on_muc_config_changed),
         }
         self.modules = [omemo]
         self.config_dialog = OMEMOConfigDialog(self)
@@ -138,18 +139,15 @@ class OmemoPlugin(GajimPlugin):
         except Exception:
             log.exception('Error loading application css')
 
-    def signed_in(self, event):
-        """ Method called on SignIn
+    def _on_signed_in(self, event):
+        if event.conn.name in self.disabled_accounts:
+            return
+        app.connections[event.conn.name].get_module('OMEMO').on_signed_in()
 
-            Parameters
-            ----------
-            event : SignedInEvent
-        """
-        account = event.conn.name
-        if account == 'Local':
+    def _on_muc_config_changed(self, event):
+        if event.account in self.disabled_accounts:
             return
-        if account in self.disabled_accounts:
-            return
+        app.connections[event.account].get_module('OMEMO').on_muc_config_changed(event)
 
     def activate(self):
         """ Method called when the Plugin is activated in the PluginManager
