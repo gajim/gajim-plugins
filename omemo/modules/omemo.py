@@ -39,7 +39,13 @@ from gajim.common.modules.base import BaseModule
 from gajim.common.modules.util import event_node
 
 from omemo.backend.state import OmemoState
+from omemo.backend.state import KeyExchangeMessage
+from omemo.backend.state import SelfMessage
+from omemo.backend.state import MessageNotForDevice
+from omemo.backend.state import DecryptionFailed
+from omemo.backend.state import DuplicateMessage
 from omemo.modules.util import prepare_stanza
+
 
 ALLOWED_TAGS = [
     ('request', nbxmpp.NS_RECEIPTS),
@@ -159,64 +165,72 @@ class OMEMO(BaseModule):
             return
 
         if properties.is_mam_message:
-            if properties.omemo.sid == self.omemo.own_device_id:
-                log.info('%s => Skip message because it was sent by us',
-                         self._account)
-                raise NodeProcessed
-            log.info('%s => Message received, archive: %s',
-                     self._account, properties.mam.archive)
+            from_jid = self._process_mam_message(properties)
+        elif properties.from_muc:
+            from_jid = self._process_muc_message(properties)
         else:
-            log.info('%s => Message received', self._account)
+            from_jid = properties.jid.getBare()
 
-        from_jid = properties.jid.getBare()
+        if from_jid is None:
+            return
 
-        if properties.from_muc:
-            if properties.is_mam_message:
-                log.info('%s => MUC MAM Message received', self._account)
-                if properties.muc_user.jid is None:
-                    log.info('No real jid found, ignore message')
-                    return
-                from_jid = properties.muc_user.jid.getBare()
-            else:
-                room_jid = properties.jid.getBare()
-                resource = properties.jid.getResource()
-                if properties.muc_ofrom is not None:
-                    # History Message from MUC
-                    from_jid = properties.muc_ofrom.getBare()
-                else:
-                    try:
-                        from_jid = self.groupchat[room_jid][resource]
-                    except KeyError:
-                        log.debug('Groupchat: Last resort trying to '
-                                  'find SID in DB')
-                        from_jid = self.omemo.store.getJidFromDevice(
-                            properties.omemo.sid)
-                        if not from_jid:
-                            log.error("%s => Can't decrypt GroupChat Message "
-                                      "from %s", self._account, resource)
-                            return
-                        self.groupchat[room_jid][resource] = from_jid
+        log.info('%s => Message received from: %s', self._account, from_jid)
 
-                log.debug('GroupChat Message from: %s', from_jid)
+        try:
+            return self.omemo.decrypt_message(properties.omemo,
+                                              from_jid)
+        except (KeyExchangeMessage, DuplicateMessage):
+            raise NodeProcessed
 
-        plaintext = ''
-        if properties.omemo.sid == self.omemo.own_device_id:
-            if properties.omemo.payload in self.gc_message:
-                plaintext = self.gc_message[properties.omemo.payload]
-                del self.gc_message[properties.omemo.payload]
-            else:
-                log.error("%s => Can't decrypt own GroupChat Message",
-                          self._account)
-                return
-        else:
-            plaintext = self.omemo.decrypt_msg(properties.omemo, from_jid)
+        except SelfMessage:
+            if properties.from_muc:
+                if properties.omemo.payload in self.gc_message:
+                    plaintext = self.gc_message[properties.omemo.payload]
+                    del self.gc_message[properties.omemo.payload]
+                    return plaintext
 
-        if not plaintext:
+                log.warning("%s => Can't decrypt own GroupChat Message",
+                            self._account)
+            raise NodeProcessed
+
+        except (DecryptionFailed, MessageNotForDevice):
             return
 
         prepare_stanza(stanza, plaintext)
-        self.print_msg_to_log(stanza)
+        self._debug_print_stanza(stanza)
         properties.encrypted = EncryptionData({'name': ENCRYPTION_NAME})
+
+    def _process_muc_message(self, properties):
+        room_jid = properties.jid.getBare()
+        resource = properties.jid.getResource()
+        if properties.muc_ofrom is not None:
+            # History Message from MUC
+            return properties.muc_ofrom.getBare()
+
+        try:
+            return self.groupchat[room_jid][resource]
+        except KeyError:
+            log.info('%s => Groupchat: Last resort trying to '
+                     'find SID in DB', self._account)
+            from_jid = self.omemo.store.getJidFromDevice(properties.omemo.sid)
+            if not from_jid:
+                log.error("%s => Can't decrypt GroupChat Message "
+                          "from %s", self._account, resource)
+                return
+            self.groupchat[room_jid][resource] = from_jid
+            return from_jid
+
+    def _process_mam_message(self, properties):
+        log.info('%s => Message received, archive: %s',
+                 self._account, properties.mam.archive)
+        from_jid = properties.jid.getBare()
+        if properties.from_muc:
+            log.info('%s => MUC MAM Message received', self._account)
+            if properties.muc_user.jid is None:
+                log.info('%s => No real jid found', self._account)
+                return
+            from_jid = properties.muc_user.jid.getBare()
+        return from_jid
 
     def _on_muc_user_presence(self, _con, _stanza, properties):
         if properties.type == PresenceType.ERROR:
@@ -371,7 +385,7 @@ class OMEMO(BaseModule):
         create_omemo_message(event.msg_iq, omemo_message,
                              node_whitelist=ALLOWED_TAGS)
 
-        self.print_msg_to_log(event.msg_iq)
+        self._debug_print_stanza(event.msg_iq)
         callback(event)
 
     def encrypt_message(self, conn, event, callback):
@@ -385,8 +399,7 @@ class OMEMO(BaseModule):
         to_jid = app.get_jid_without_resource(event.jid)
 
         try:
-            omemo_message = self.omemo.create_msg(
-                self.own_jid, to_jid, event.message)
+            omemo_message = self.omemo.create_msg(to_jid, event.message)
             if omemo_message is None:
                 raise OMEMOError('Error while encrypting')
 
@@ -401,7 +414,7 @@ class OMEMO(BaseModule):
         create_omemo_message(event.msg_iq, omemo_message,
                              node_whitelist=ALLOWED_TAGS)
 
-        self.print_msg_to_log(event.msg_iq)
+        self._debug_print_stanza(event.msg_iq)
         event.xhtml = None
         event.encrypted = ENCRYPTION_NAME
         event.additional_data['encrypted'] = {'name': ENCRYPTION_NAME}
@@ -561,7 +574,7 @@ class OMEMO(BaseModule):
                 self.are_keys_missing(jid)
 
     @staticmethod
-    def print_msg_to_log(stanza):
+    def _debug_print_stanza(stanza):
         log.debug('-'*15)
         stanzastr = '\n' + stanza.__str__(fancy=True)
         stanzastr = stanzastr[0:-1]
