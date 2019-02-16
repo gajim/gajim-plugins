@@ -17,8 +17,6 @@
 
 import logging
 import time
-import binascii
-import textwrap
 from collections import defaultdict
 
 from nbxmpp.structs import OMEMOBundle
@@ -53,14 +51,15 @@ UNDECIDED = 2
 
 
 class OmemoState:
-    def __init__(self, own_jid, db_con, account, xmpp_con):
+    def __init__(self, own_jid, db_path, account, xmpp_con):
         self.account = account
         self.xmpp_con = xmpp_con
         self._session_ciphers = defaultdict(dict)
         self.own_jid = own_jid
         self.device_ids = {}
         self.own_devices = []
-        self.store = LiteAxolotlStore(db_con)
+
+        self.store = LiteAxolotlStore(db_path)
         for jid, device_id in self.store.getActiveDeviceTuples():
             if jid != own_jid:
                 self.add_device(jid, device_id)

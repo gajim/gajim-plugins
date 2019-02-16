@@ -19,7 +19,6 @@
 import os
 import time
 import logging
-import sqlite3
 
 import nbxmpp
 from nbxmpp.protocol import NodeProcessed
@@ -30,7 +29,6 @@ from nbxmpp.structs import StanzaHandler
 from nbxmpp.modules.omemo import create_omemo_message
 
 from gajim.common import app
-from gajim.common import ged
 from gajim.common import helpers
 from gajim.common import configpaths
 from gajim.common.nec import NetworkEvent
@@ -117,9 +115,7 @@ class OMEMO(BaseModule):
     def __get_omemo(self):
         data_dir = configpaths.get('MY_DATA')
         db_path = os.path.join(data_dir, 'omemo_' + self.own_jid + '.db')
-        conn = sqlite3.connect(db_path, check_same_thread=False)
-        conn.execute("PRAGMA secure_delete=1")
-        return OmemoState(self.own_jid, conn, self._account, self)
+        return OmemoState(self.own_jid, db_path, self._account, self)
 
     def on_signed_in(self):
         log.info('%s => Announce Support after Sign In', self._account)
