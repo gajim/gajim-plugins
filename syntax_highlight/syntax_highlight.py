@@ -51,20 +51,8 @@ class CodeMarkerOptions(IntEnum):
 
 PYGMENTS_MISSING = 'You are missing Python-Pygments.'
 
-log = logging.getLogger('gajim.plugin_system.syntax_highlight')
-DEFAULT_LEXER = "python"
 
-# Only on multi-line code blocks:
-DEFAULT_LINE_BREAK = LineBreakOptions.MULTILINE
 
-DEFAULT_STYLE = "default"
-
-DEFAULT_FONT = "Monospace 10"
-
-DEFAULT_BGCOLOR = "#ccc"
-DEFAULT_OVERRIDE_BGCOLOR = False
-
-DEFAULT_CODE_MARKER_SETTING = CodeMarkerOptions.AS_COMMENT
 
 
 
@@ -475,16 +463,16 @@ class ChatSyntaxHighlighter:
 
 class SyntaxHighlighterConfig:
     def _create_lexer_list(self):
-        self.lexers = []
+        lexers = []
 
         # Iteration over get_all_lexers() seems to be broken somehow. Workarround
         all_lexers = get_all_lexers()
         for lexer in all_lexers:
             # We don't want to add lexers that we cant identify by name later
             if lexer[1] is not None and lexer[1]:
-                self.lexers.append((lexer[0], lexer[1][0]))
-        self.lexers.sort()
-        return self.lexers
+                lexers.append((lexer[0], lexer[1][0]))
+        lexers.sort()
+        return lexers
 
     def get_lexer_by_name(self, name):
         lexer = None
@@ -503,14 +491,12 @@ class SyntaxHighlighterConfig:
         return lexer
 
     def set_font(self, font):
-        if font is None or font == "":
-            font = DEFAULT_FONT
-        self.config['font'] = font
+        if font is not None and font != "":
+            self.config['font'] = font
 
     def set_style(self, style):
-        if style is None or style == "":
-            style = DEFAULT_STYLE
-        self.config['style'] = style
+        if style is not None and style != "":
+            self.config['style'] = style
 
     def set_line_break_action(self, option):
         if isinstance(option, int):
@@ -548,6 +534,9 @@ class SyntaxHighlighterConfig:
             option = CodeMarkerOptions(option)
         self.config['code_marker'] = option
 
+    def set_pygments_path(self, path):
+        self.config['pygments_path'] = path
+
     def get_default_lexer(self):
         return self.default_lexer[1]
 
@@ -559,40 +548,32 @@ class SyntaxHighlighterConfig:
 
     def get_line_break_action(self):
         # return int only
+        if isinstance(self.config['line_break'], int):
+            # in case of legacy settings, convert.
+            action = self.config['line_break']
+            self.set_line_break_action(action)
+        else:
+            action = self.config['line_break'].value
 
-        action = DEFAULT_LINE_BREAK.value
-        if 'line_break' in self.config:
-            # in case of legacy settings...
-            if isinstance(self.config['line_break'], int):
-                action = self.config['line_break']
-            else:
-                action = self.config['line_break'].value
         return action
 
+    def get_pygments_path(self):
+        return self.config['pygments_path']
+
     def get_font(self):
-        return DEFAULT_FONT \
-                if 'font' not in self.config \
-                else self.config['font']
+        return self.config['font']
 
     def get_style_name(self):
-        return DEFAULT_STYLE \
-                if 'style' not in self.config \
-                else self.config['style']
+        return self.config['style']
 
     def is_bgcolor_override_enabled(self):
-        return DEFAULT_OVERRIDE_BGCOLOR \
-                if 'bgcolor_override' not in self.config \
-                else self.config['bgcolor_override']
+        return self.config['bgcolor_override']
 
     def get_bgcolor(self):
-        return DEFAULT_BGCOLOR \
-                if 'bgcolor' not in self.config \
-                else self.config['bgcolor']
+        return self.config['bgcolor']
 
     def get_code_marker_setting(self):
-        return DEFAULT_CODE_MARKER_SETTING \
-                if 'code_marker' not in self.config \
-                else self.config['code_marker']
+        return self.config['code_marker']
 
     def get_styles_list(self):
         return self.style_list
