@@ -1,5 +1,8 @@
 import logging
 import re
+import sys
+import importlib
+
 from enum import Enum, IntEnum, unique
 
 from gi.repository import Gtk, Gdk
@@ -10,6 +13,25 @@ from gajim.plugins.helpers import log_calls, log
 from gajim.plugins import GajimPlugin
 from gajim.plugins.gui import GajimPluginConfigDialog
 
+
+log = logging.getLogger('gajim.plugin_system.syntax_highlight')
+
+def try_loading_pygments():
+    success = importlib.find_loader('pygments') is not None
+    if success:
+        try:
+            import pygments
+            from pygments.lexers import get_lexer_by_name, get_all_lexers
+            from pygments.styles import get_all_styles
+            from .gtkformatter import GTKFormatter
+            global pygments, get_lexer_by_name, get_all_lexers, get_all_styles, GTKFormatter
+            success = True
+            log.debug("pygments loaded.")
+        except Exception as exception:
+            log.error("Import Error: %s.", exception)
+            success = False
+
+    return success
 
 class MatchType(Enum):
     INLINE      = 0
@@ -28,7 +50,6 @@ class CodeMarkerOptions(IntEnum):
     HIDE        = 1
 
 PYGMENTS_MISSING = 'You are missing Python-Pygments.'
-ERROR_MSG = ''
 
 log = logging.getLogger('gajim.plugin_system.syntax_highlight')
 DEFAULT_LEXER = "python"
@@ -45,14 +66,6 @@ DEFAULT_OVERRIDE_BGCOLOR = False
 
 DEFAULT_CODE_MARKER_SETTING = CodeMarkerOptions.AS_COMMENT
 
-try:
-    import pygments
-    from pygments.lexers import get_lexer_by_name, get_all_lexers
-    from pygments.styles import get_all_styles
-    from .gtkformatter import GTKFormatter
-except Exception as exception:
-    log.error("Import Error: %s.", exception)
-    ERROR_MSG = PYGMENTS_MISSING
 
 
 class SyntaxHighlighterPluginConfiguration(GajimPluginConfigDialog):
@@ -584,18 +597,21 @@ class SyntaxHighlighterConfig:
     def get_styles_list(self):
         return self.style_list
 
-    def __init__(self, config, default_lexer_name):
+    def init_pygments(self):
+        """
+        Initialize all config variables that depend directly on pygments being
+        available.
+        """
         self.lexer_list     = self._create_lexer_list()
         self.style_list     = [s for s in get_all_styles()]
-        self.default_lexer  = None
-        self.config         = config
-
         self.style_list.sort()
+        self.set_default_lexer(self.config['default_lexer'])
 
-        self.set_default_lexer(default_lexer_name \
-                if not 'default_lexer' in self.config \
-                    or self.config['default_lexer'] is None \
-                else self.config['default_lexer'])
+    def __init__(self, config):
+        self.lexer_list     = []
+        self.style_list     = []
+        self.config         = config
+        self.default_lexer  = None
 
 class SyntaxHighlighterPlugin(GajimPlugin):
 
@@ -625,24 +641,25 @@ class SyntaxHighlighterPlugin(GajimPlugin):
                 real_text, other_tags, graphics, iterator, additional)
             return
 
+    def try_init(self):
+        """
+        Separating this part of the initialization from the init() method
+        allows repeating this step again, without reloading the plugin,
+        i.e. restarting Gajim for instance.
+        Doing so allows resolving the dependency issues without restart :)
+        """
+        pygments_loaded = try_loading_pygments()
+        if not pygments_loaded:
+            return False
 
-    @log_calls('SyntaxHighlighterPlugin')
-    def init(self):
-        if ERROR_MSG:
-            self.activatable = False
-            self.available_text = ERROR_MSG
-            self.config_dialog = None
-            return
+        self.activatable = True
+        self.available_text = None
+        self.config_dialog = SyntaxHighlighterPluginConfiguration(self)
 
+        # The following initialization requires pygments to be available.
+        self.conf.init_pygments()
 
-        self.conf   = SyntaxHighlighterConfig(self.config, DEFAULT_LEXER)
-
-        self.ccontrol       = {}
         self.config_dialog  = SyntaxHighlighterPluginConfiguration(self)
-        self.config_default_values = {
-                'default_lexer': (DEFAULT_LEXER, "Default Lexer"),
-                'line_break': (DEFAULT_LINE_BREAK, "Add line break")
-            }
         self.config_dialog.set_config(self.conf)
 
         self.gui_extension_points = {
@@ -652,3 +669,27 @@ class SyntaxHighlighterPlugin(GajimPlugin):
                    ),
                 'print_real_text': (self.on_print_real_text, None),
         }
+        return True
+
+    @log_calls('SyntaxHighlighterPlugin')
+    def init(self):
+        self.ccontrol       = {}
+
+        self.config_default_values = {
+                'default_lexer'     : ('python', ''),
+                'line_break'        : (LineBreakOptions.MULTILINE, ''),
+                'style'             : ('default', ''),
+                'font'              : ('Monospace 10', ''),
+                'bgcolor'           : ('#ccc', ''),
+                'bgcolor_override'  : (True, ''),
+                'code_marker'       : (CodeMarkerOptions.AS_COMMENT, ''),
+                'pygments_path'     : (None, ''),
+                }
+        self.conf   = SyntaxHighlighterConfig(self.config)
+
+        is_initialized = self.try_init()
+
+        if not is_initialized:
+            self.activatable = False
+            self.available_text = PYGMENTS_MISSING
+            self.config_dialog = None
