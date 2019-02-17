@@ -98,13 +98,13 @@ class OmemoPlugin(GajimPlugin):
             'hyperlink_handler': (self._file_decryption, None),
             'encrypt' + self.encryption_name: (self._encrypt_message, None),
             'gc_encrypt' + self.encryption_name: (
-                self._gc_encrypt_message, None),
+                self._muc_encrypt_message, None),
             'send_message' + self.encryption_name: (
-                self.before_sendmessage, None),
+                self._before_sendmessage, None),
             'encryption_dialog' + self.encryption_name: (
                 self._on_encryption_button_clicked, None),
             'encryption_state' + self.encryption_name: (
-                self.encryption_state, None),
+                self._encryption_state, None),
             'update_caps': (self._update_caps, None)}
 
         self.disabled_accounts = []
@@ -122,6 +122,17 @@ class OmemoPlugin(GajimPlugin):
             app.config.set('uri_schemes', schemes)
 
         self._load_css()
+
+    def _is_enabled_account(self, account):
+        if account in self.disabled_accounts:
+            return False
+        if account == 'Local':
+            return False
+        return True
+
+    @staticmethod
+    def get_omemo(account):
+        return app.connections[account].get_module('OMEMO')
 
     @staticmethod
     def _load_css():
@@ -141,40 +152,39 @@ class OmemoPlugin(GajimPlugin):
         except Exception:
             log.exception('Error loading application css')
 
+    def activate(self):
+        """
+        Method called when the Plugin is activated in the PluginManager
+        """
+        for account in app.connections:
+            if not self._is_enabled_account(account):
+                continue
+            self.get_omemo(account).activate()
+
+    def deactivate(self):
+        """
+        Method called when the Plugin is deactivated in the PluginManager
+        """
+        for account in app.connections:
+            if not self._is_enabled_account(account):
+                continue
+            self.get_omemo(account).deactivate()
+
     def _on_signed_in(self, event):
-        if event.conn.name in self.disabled_accounts:
+        account = event.conn.name
+        if not self._is_enabled_account(account):
             return
-        app.connections[event.conn.name].get_module('OMEMO').on_signed_in()
+        self.get_omemo(account).on_signed_in()
 
     def _on_muc_config_changed(self, event):
-        if event.account in self.disabled_accounts:
+        if not self._is_enabled_account(event.account):
             return
-        app.connections[event.account].get_module('OMEMO').on_muc_config_changed(event)
+        self.get_omemo(event.account).on_muc_config_changed(event)
 
-    def activate(self):
-        """ Method called when the Plugin is activated in the PluginManager
-        """
-        for account in app.connections:
-            if account == 'Local':
-                continue
-            if account in self.disabled_accounts:
-                continue
-            app.connections[account].get_module('OMEMO').activate()
-
-    @staticmethod
-    def deactivate():
-        """ Method called when the Plugin is deactivated in the PluginManager
-        """
-        for account in app.connections:
-            if account == 'Local':
-                continue
-            app.connections[account].get_module('OMEMO').deactivate()
-
-    @staticmethod
-    def _update_caps(account):
-        if account == 'Local':
+    def _update_caps(self, account):
+        if not self._is_enabled_account(account):
             return
-        app.connections[account].get_module('OMEMO').update_caps(account)
+        self.get_omemo(account).update_caps(account)
 
     @staticmethod
     def activate_encryption(chat_control):
@@ -188,19 +198,17 @@ class OmemoPlugin(GajimPlugin):
                 return False
         return True
 
-    @staticmethod
-    def _gc_encrypt_message(conn, obj, callback):
-        if conn.name == 'Local':
+    def _muc_encrypt_message(self, conn, obj, callback):
+        account = conn.name
+        if not self._is_enabled_account(account):
             return
-        app.connections[conn.name].get_module('OMEMO').encrypt_message(
-            conn, obj, callback, True)
+        self.get_omemo(account).encrypt_message(conn, obj, callback, True)
 
-    @staticmethod
-    def _encrypt_message(conn, obj, callback):
-        if conn.name == 'Local':
+    def _encrypt_message(self, conn, obj, callback):
+        account = conn.name
+        if not self._is_enabled_account(account):
             return
-        app.connections[conn.name].get_module('OMEMO').encrypt_message(
-            conn, obj, callback, False)
+        self.get_omemo(account).encrypt_message(conn, obj, callback, False)
 
     def _file_decryption(self, url, kind, instance, window):
         file_crypto.FileDecryption(self).hyperlink_handler(
@@ -224,20 +232,16 @@ class OmemoPlugin(GajimPlugin):
         GLib.idle_add(callback, file)
 
     @staticmethod
-    def encryption_state(_chat_control, state):
+    def _encryption_state(_chat_control, state):
         state['visible'] = True
         state['authenticated'] = True
 
     def _on_encryption_button_clicked(self, chat_control):
-        self.show_fingerprint_window(chat_control)
+        self._show_fingerprint_window(chat_control)
 
-    @staticmethod
-    def get_omemo(account):
-        return app.connections[account].get_module('OMEMO')
-
-    def before_sendmessage(self, chat_control):
+    def _before_sendmessage(self, chat_control):
         account = chat_control.account
-        if account == 'Local':
+        if not self._is_enabled_account(account):
             return
         contact = chat_control.contact
         omemo = self.get_omemo(account)
@@ -281,16 +285,16 @@ class OmemoPlugin(GajimPlugin):
                                                       without_self=False):
                 fingerprints = omemo.backend.storage.getNewFingerprints(jid_)
                 if fingerprints:
-                    self.show_fingerprint_window(
+                    self._show_fingerprint_window(
                         chat_control, fingerprints)
                     break
         elif not isinstance(chat_control, GroupchatControl):
             fingerprints = omemo.backend.storage.getNewFingerprints(jid)
             if fingerprints:
-                self.show_fingerprint_window(
+                self._show_fingerprint_window(
                     chat_control, fingerprints)
 
-    def show_fingerprint_window(self, chat_control, fingerprints=None):
+    def _show_fingerprint_window(self, chat_control, fingerprints=None):
         contact = chat_control.contact
         account = chat_control.account
         omemo = self.get_omemo(account)

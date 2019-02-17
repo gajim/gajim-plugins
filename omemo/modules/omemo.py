@@ -38,6 +38,8 @@ from gajim.common.const import EncryptionData
 from gajim.common.modules.base import BaseModule
 from gajim.common.modules.util import event_node
 
+from gajim.plugins.plugins_i18n import _
+
 from omemo.backend.state import OmemoState
 from omemo.backend.state import KeyExchangeMessage
 from omemo.backend.state import SelfMessage
