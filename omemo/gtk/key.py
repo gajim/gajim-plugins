@@ -15,8 +15,6 @@
 # along with OMEMO Gajim Plugin. If not, see <http://www.gnu.org/licenses/>.
 
 import logging
-import binascii
-import textwrap
 
 from gi.repository import Gtk
 from gi.repository import GdkPixbuf
@@ -27,6 +25,7 @@ from gajim.plugins.plugins_i18n import _
 from omemo.gtk.util import DialogButton, ButtonAction
 from omemo.gtk.util import NewConfirmationDialog
 from omemo.gtk.util import Trust
+from omemo.backend.util import get_fingerprint
 
 log = logging.getLogger('gajim.plugin_system.omemo')
 
@@ -44,23 +43,23 @@ TRUST_DATA = {
 
 
 class KeyDialog(Gtk.Dialog):
-    def __init__(self, plugin, contact, transient, windowinstances,
+    def __init__(self, plugin, contact, transient, windows,
                  groupchat=False):
-        super().__init__(title=_('OMEMO Fingerprints'), destroy_with_parent=True)
+        super().__init__(title=_('OMEMO Fingerprints'),
+                         destroy_with_parent=True)
 
         self.set_transient_for(transient)
         self.set_resizable(True)
-        self.set_default_size(-1, 400)
+        self.set_default_size(500, 450)
 
         self.get_style_context().add_class('omemo-key-dialog')
 
         self._groupchat = groupchat
         self._contact = contact
-        self._windowinstances = windowinstances
+        self._windows = windows
         self._account = self._contact.account.name
         self._plugin = plugin
-        self._con = app.connections[self._account].get_module('OMEMO')
-        self.omemostate = self._plugin.get_omemo(self._account)
+        self._omemo = self._plugin.get_omemo(self._account)
         self._own_jid = app.get_jid_from_account(self._account)
 
         # Header
@@ -88,9 +87,8 @@ class KeyDialog(Gtk.Dialog):
         omemo_pixbuf = GdkPixbuf.Pixbuf.new_from_file(omemo_img_path)
         self._omemo_logo.set_from_pixbuf(omemo_pixbuf)
 
-        ownfpr = binascii.hexlify(self.omemostate.store.getIdentityKeyPair()
-                                  .getPublicKey().serialize()).decode('utf-8')
-        ownfpr_format = KeyRow._format_fingerprint(ownfpr[2:])
+        identity_key = self._omemo.backend.storage.getIdentityKeyPair()
+        ownfpr_format = get_fingerprint(identity_key, formatted=True)
         self._ownfpr = Gtk.Label(label=ownfpr_format)
         self._ownfpr.get_style_context().add_class('omemo-mono')
         self._ownfpr.set_selectable(True)
@@ -113,52 +111,43 @@ class KeyDialog(Gtk.Dialog):
         self.show_all()
 
     def update(self):
-        self._listbox.foreach(lambda row: self._listbox.remove(row))
+        self._listbox.foreach(self._listbox.remove)
         self._load_fingerprints(self._own_jid)
         self._load_fingerprints(self._contact.jid, self._groupchat is True)
 
     def _load_fingerprints(self, contact_jid, groupchat=False):
         from axolotl.state.sessionrecord import SessionRecord
-        state = self.omemostate
 
         if groupchat:
-            contact_jids = []
-            for nick in self._con.groupchat[contact_jid]:
-                real_jid = self._con.groupchat[contact_jid][nick]
-                if real_jid == self._own_jid:
-                    continue
-                contact_jids.append(real_jid)
-            session_db = state.store.getSessionsFromJids(contact_jids)
+            members = list(self._omemo.backend.get_muc_members(contact_jid))
+            sessions = self._omemo.backend.storage.getSessionsFromJids(members)
         else:
-            session_db = state.store.getSessionsFromJid(contact_jid)
+            sessions = self._omemo.backend.storage.getSessionsFromJid(contact_jid)
 
-        for item in session_db:
-            _id, jid, deviceid, record, active = item
-
-            active = bool(active)
-
-            identity_key = SessionRecord(serialized=record). \
-                getSessionState().getRemoteIdentityKey()
-            fpr = binascii.hexlify(identity_key.getPublicKey().serialize()).decode('utf-8')
-            fpr = fpr[2:]
-            trust = state.store.isTrustedIdentity(jid, identity_key)
-
-            log.info('Load: %s %s', fpr, trust)
-            self._listbox.add(KeyRow(jid, deviceid, fpr, trust, active))
+        for item in sessions:
+            active = bool(item.active)
+            session_record = SessionRecord(serialized=item.record)
+            identity_key = session_record.getSessionState().getRemoteIdentityKey()
+            trust = self._omemo.backend.storage.getTrustForIdentity(
+                item.recipient_id, identity_key)
+            self._listbox.add(KeyRow(item.recipient_id,
+                                     item.device_id,
+                                     identity_key,
+                                     trust, active))
 
     def _on_destroy(self, *args):
-        del self._windowinstances['dialog']
+        del self._windows['dialog']
 
 
 class KeyRow(Gtk.ListBoxRow):
-    def __init__(self, jid, deviceid, fpr, trust, active):
+    def __init__(self, jid, device_id, identity_key, trust, active):
         Gtk.ListBoxRow.__init__(self)
         self.set_activatable(False)
 
         self.active = active
         self.trust = trust
         self.jid = jid
-        self.deviceid = deviceid
+        self.device_id = device_id
 
         box = Gtk.Box()
         box.set_spacing(12)
@@ -175,7 +164,8 @@ class KeyRow(Gtk.ListBoxRow):
         jid_label.set_hexpand(True)
         label_box.add(jid_label)
 
-        fingerprint = Gtk.Label(label=self._format_fingerprint(fpr))
+        fingerprint = Gtk.Label(label=get_fingerprint(identity_key,
+                                                      formatted=True))
         fingerprint.get_style_context().add_class('omemo-mono')
         if not active:
             fingerprint.get_style_context().add_class('omemo-inactive-color')
@@ -192,12 +182,12 @@ class KeyRow(Gtk.ListBoxRow):
 
     def delete_fingerprint(self, *args):
         def _remove():
-            state = self.get_toplevel().omemostate
-            record = state.store.loadSession(self.jid, self.deviceid)
+            backend = self.get_toplevel()._omemo.backend
+            record = backend.storage.loadSession(self.jid, self.device_id)
             identity_key = record.getSessionState().getRemoteIdentityKey()
 
-            state.store.deleteSession(self.jid, self.deviceid)
-            state.store.deleteIdentity(self.jid, identity_key)
+            backend.storage.deleteSession(self.jid, self.device_id)
+            backend.storage.deleteIdentity(self.jid, identity_key)
             self.get_parent().remove(self)
             self.destroy()
 
@@ -221,20 +211,10 @@ class KeyRow(Gtk.ListBoxRow):
         image.get_style_context().add_class(css_class)
         image.set_tooltip_text(tooltip)
 
-        state = self.get_toplevel().omemostate
-        record = state.store.loadSession(self.jid, self.deviceid)
+        backend = self.get_toplevel()._omemo.backend
+        record = backend.storage.loadSession(self.jid, self.device_id)
         identity_key = record.getSessionState().getRemoteIdentityKey()
-        state.store.setTrust(identity_key, self.trust)
-
-    @staticmethod
-    def _format_fingerprint(fingerprint):
-        fplen = len(fingerprint)
-        wordsize = fplen // 8
-        buf = ''
-        for w in range(0, fplen, wordsize):
-            buf += '{0} '.format(fingerprint[w:w + wordsize])
-        buf = textwrap.fill(buf, width=36)
-        return buf.rstrip().upper()
+        backend.storage.setTrust(identity_key, self.trust)
 
 
 class TrustButton(Gtk.MenuButton):
@@ -278,7 +258,7 @@ class TrustPopver(Gtk.Popover):
         self._listbox.connect('row-activated', self._activated)
         self.get_style_context().add_class('omemo-trust-popover')
 
-    def _activated(self, listbox, row):
+    def _activated(self, _listbox, row):
         self.popdown()
         if row.type_ is None:
             self._row.delete_fingerprint()
@@ -289,7 +269,7 @@ class TrustPopver(Gtk.Popover):
             self.update()
 
     def update(self):
-        self._listbox.foreach(lambda row: self._listbox.remove(row))
+        self._listbox.foreach(self._listbox.remove)
         if self._row.trust != Trust.VERIFIED:
             self._listbox.add(VerifiedOption())
         if self._row.trust != Trust.NOT_TRUSTED:

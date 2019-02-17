@@ -32,17 +32,11 @@ from axolotl.identitykeypair import IdentityKeyPair
 from axolotl.util.medium import Medium
 from axolotl.util.keyhelper import KeyHelper
 
+from omemo.backend.util import Trust
+from omemo.backend.util import DEFAULT_PREKEY_AMOUNT
+
 
 log = logging.getLogger('gajim.plugin_system.omemo')
-
-DEFAULT_PREKEY_AMOUNT = 100
-MIN_PREKEY_AMOUNT = 80
-SPK_ARCHIVE_TIME = 86400 * 15  # 15 Days
-SPK_CYCLE_TIME = 86400         # 24 Hours
-
-UNDECIDED = 2
-TRUSTED = 1
-UNTRUSTED = 0
 
 
 class LiteAxolotlStore(AxolotlStore):
@@ -323,7 +317,7 @@ class LiteAxolotlStore(AxolotlStore):
                        ', '.join(['?'] * len(recipientIds)))
         return self._con.execute(query, recipientIds).fetchall()
 
-    def setActiveState(self, deviceList, jid):
+    def setActiveState(self, jid, deviceList):
         query = '''UPDATE sessions SET active = 1
                    WHERE recipient_id = ? AND device_id IN ({})'''.format(
                        ', '.join(['?'] * len(deviceList)))
@@ -421,7 +415,7 @@ class LiteAxolotlStore(AxolotlStore):
         if not self.containsIdentity(recipientId, identityKey):
             self._con.execute(query, (recipientId,
                                       identityKey.getPublicKey().serialize(),
-                                      UNDECIDED))
+                                      Trust.UNDECIDED))
             self._con.commit()
 
     def containsIdentity(self, recipientId, identityKey):
@@ -442,17 +436,14 @@ class LiteAxolotlStore(AxolotlStore):
         self._con.commit()
 
     def isTrustedIdentity(self, recipientId, identityKey):
+        return True
+
+    def getTrustForIdentity(self, recipientId, identityKey):
         query = '''SELECT trust FROM identities WHERE recipient_id = ?
                    AND public_key = ?'''
         public_key = identityKey.getPublicKey().serialize()
         result = self._con.execute(query, (recipientId, public_key)).fetchone()
-        if result is None:
-            return True
-
-        states = [UNTRUSTED, TRUSTED, UNDECIDED]
-        if result.trust in states:
-            return result.trust
-        return False
+        return result.trust if result is not None else None
 
     def getAllFingerprints(self):
         query = '''SELECT _id, recipient_id, public_key, trust FROM identities
@@ -467,13 +458,8 @@ class LiteAxolotlStore(AxolotlStore):
     def getTrustedFingerprints(self, jid):
         query = '''SELECT public_key FROM identities
                    WHERE recipient_id = ? AND trust = ?'''
-        result = self._con.execute(query, (jid, TRUSTED)).fetchall()
+        result = self._con.execute(query, (jid, Trust.TRUSTED)).fetchall()
         return [row.public_key for row in result]
-
-    def getUndecidedFingerprints(self, jid):
-        query = '''SELECT trust FROM identities
-                   WHERE recipient_id = ? AND trust = ?'''
-        return self._con.execute(query, (jid, UNDECIDED)).fetchall()
 
     def getNewFingerprints(self, jid):
         query = '''SELECT _id FROM identities WHERE shown = 0
@@ -493,6 +479,18 @@ class LiteAxolotlStore(AxolotlStore):
         public_key = identityKey.getPublicKey().serialize()
         self._con.execute(query, (trust, public_key))
         self._con.commit()
+
+    def isTrusted(self, recipient_id, device_id):
+        record = self.loadSession(recipient_id, device_id)
+        identity_key = record.getSessionState().getRemoteIdentityKey()
+        return self.getTrustForIdentity(
+            recipient_id, identity_key) == Trust.TRUSTED
+
+    def isUntrusted(self, recipient_id, device_id):
+        record = self.loadSession(recipient_id, device_id)
+        identity_key = record.getSessionState().getRemoteIdentityKey()
+        return self.getTrustForIdentity(
+            recipient_id, identity_key) not in (Trust.TRUSTED, Trust.UNDECIDED)
 
     def activate(self, jid):
         query = '''INSERT OR REPLACE INTO encryption_state (jid, encryption)

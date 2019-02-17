@@ -79,6 +79,7 @@ class UserMessages(IntEnum):
 
 class OmemoPlugin(GajimPlugin):
     def init(self):
+        # pylint: disable=attribute-defined-outside-init
         if ERROR_MSG:
             self.activatable = False
             self.available_text = ERROR_MSG
@@ -101,13 +102,13 @@ class OmemoPlugin(GajimPlugin):
             'send_message' + self.encryption_name: (
                 self.before_sendmessage, None),
             'encryption_dialog' + self.encryption_name: (
-                self.on_encryption_button_clicked, None),
+                self._on_encryption_button_clicked, None),
             'encryption_state' + self.encryption_name: (
                 self.encryption_state, None),
             'update_caps': (self._update_caps, None)}
 
         self.disabled_accounts = []
-        self.windowinstances = {}
+        self._windows = {}
 
         self.config_default_values = {'DISABLED_ACCOUNTS': ([], ''), }
 
@@ -122,11 +123,12 @@ class OmemoPlugin(GajimPlugin):
 
         self._load_css()
 
-    def _load_css(self):
+    @staticmethod
+    def _load_css():
         path = Path(__file__).parent / 'gtk' / 'style.css'
         try:
-            with open(path, "r") as f:
-                css = f.read()
+            with open(path, "r") as file:
+                css = file.read()
         except Exception as exc:
             log.error('Error loading css: %s', exc)
             return
@@ -159,7 +161,8 @@ class OmemoPlugin(GajimPlugin):
                 continue
             app.connections[account].get_module('OMEMO').activate()
 
-    def deactivate(self):
+    @staticmethod
+    def deactivate():
         """ Method called when the Plugin is deactivated in the PluginManager
         """
         for account in app.connections:
@@ -167,15 +170,17 @@ class OmemoPlugin(GajimPlugin):
                 continue
             app.connections[account].get_module('OMEMO').deactivate()
 
-    def _update_caps(self, account):
+    @staticmethod
+    def _update_caps(account):
         if account == 'Local':
             return
         app.connections[account].get_module('OMEMO').update_caps(account)
 
-    def activate_encryption(self, chat_control):
+    @staticmethod
+    def activate_encryption(chat_control):
         if isinstance(chat_control, GroupchatControl):
             omemo_con = app.connections[chat_control.account].get_module('OMEMO')
-            if chat_control.room_jid not in omemo_con.groupchat:
+            if not omemo_con.is_omemo_groupchat(chat_control.room_jid):
                 dialogs.ErrorDialog(
                     _('Bad Configuration'),
                     _('To use OMEMO in a Groupchat, the Groupchat should be'
@@ -183,21 +188,25 @@ class OmemoPlugin(GajimPlugin):
                 return False
         return True
 
-    def _gc_encrypt_message(self, conn, obj, callback):
+    @staticmethod
+    def _gc_encrypt_message(conn, obj, callback):
         if conn.name == 'Local':
             return
-        app.connections[conn.name].get_module('OMEMO').gc_encrypt_message(conn, obj, callback)
+        app.connections[conn.name].get_module('OMEMO').encrypt_message(
+            conn, obj, callback, True)
 
-    def _encrypt_message(self, conn, obj, callback):
+    @staticmethod
+    def _encrypt_message(conn, obj, callback):
         if conn.name == 'Local':
             return
-        app.connections[conn.name].get_module('OMEMO').encrypt_message(conn, obj, callback)
+        app.connections[conn.name].get_module('OMEMO').encrypt_message(
+            conn, obj, callback, False)
 
     def _file_decryption(self, url, kind, instance, window):
         file_crypto.FileDecryption(self).hyperlink_handler(
             url, kind, instance, window)
 
-    def encrypt_file(self, file, account, callback):
+    def encrypt_file(self, file, _account, callback):
         thread = threading.Thread(target=self._encrypt_file_thread,
                                   args=(file, callback))
         thread.daemon = True
@@ -215,29 +224,29 @@ class OmemoPlugin(GajimPlugin):
         GLib.idle_add(callback, file)
 
     @staticmethod
-    def encryption_state(chat_control, state):
+    def encryption_state(_chat_control, state):
         state['visible'] = True
         state['authenticated'] = True
 
-    def on_encryption_button_clicked(self, chat_control):
+    def _on_encryption_button_clicked(self, chat_control):
         self.show_fingerprint_window(chat_control)
 
-    def get_omemo(self, account):
-        return app.connections[account].get_module('OMEMO').omemo
+    @staticmethod
+    def get_omemo(account):
+        return app.connections[account].get_module('OMEMO')
 
     def before_sendmessage(self, chat_control):
         account = chat_control.account
         if account == 'Local':
             return
         contact = chat_control.contact
-        con = app.connections[account].get_module('OMEMO')
+        omemo = self.get_omemo(account)
         self.new_fingerprints_available(chat_control)
         if isinstance(chat_control, GroupchatControl):
             room = chat_control.room_jid
             missing = True
-            for nick in con.groupchat[room]:
-                real_jid = con.groupchat[room][nick]
-                if not con.are_keys_missing(real_jid):
+            for jid in omemo.backend.get_muc_members(room):
+                if not omemo.are_keys_missing(jid):
                     missing = False
             if missing:
                 log.info('%s => No Trusted Fingerprints for %s',
@@ -245,13 +254,13 @@ class OmemoPlugin(GajimPlugin):
                 self.print_message(chat_control, UserMessages.NO_FINGERPRINTS)
         else:
             # check if we have devices for the contact
-            if not self.get_omemo(account).device_list_for(contact.jid):
-                con.request_devicelist(contact.jid, True)
+            if not omemo.backend.get_devices(contact.jid):
+                omemo.request_devicelist(contact.jid, True)
                 self.print_message(chat_control, UserMessages.QUERY_DEVICES)
                 chat_control.sendmessage = False
                 return
             # check if bundles are missing for some devices
-            if con.are_keys_missing(contact.jid):
+            if omemo.are_keys_missing(contact.jid):
                 log.info('%s => No Trusted Fingerprints for %s',
                          account, contact.jid)
                 self.print_message(chat_control, UserMessages.NO_FINGERPRINTS)
@@ -266,20 +275,17 @@ class OmemoPlugin(GajimPlugin):
     def new_fingerprints_available(self, chat_control):
         jid = chat_control.contact.jid
         account = chat_control.account
-        con = app.connections[account].get_module('OMEMO')
         omemo = self.get_omemo(account)
         if isinstance(chat_control, GroupchatControl):
-            room_jid = chat_control.room_jid
-            if room_jid in con.groupchat:
-                for nick in con.groupchat[room_jid]:
-                    real_jid = con.groupchat[room_jid][nick]
-                    fingerprints = omemo.store. \
-                        getNewFingerprints(real_jid)
-                    if fingerprints:
-                        self.show_fingerprint_window(
-                            chat_control, fingerprints)
+            for jid_ in omemo.backend.get_muc_members(chat_control.room_jid,
+                                                      without_self=False):
+                fingerprints = omemo.backend.storage.getNewFingerprints(jid_)
+                if fingerprints:
+                    self.show_fingerprint_window(
+                        chat_control, fingerprints)
+                    break
         elif not isinstance(chat_control, GroupchatControl):
-            fingerprints = omemo.store.getNewFingerprints(jid)
+            fingerprints = omemo.backend.storage.getNewFingerprints(jid)
             if fingerprints:
                 self.show_fingerprint_window(
                     chat_control, fingerprints)
@@ -289,20 +295,21 @@ class OmemoPlugin(GajimPlugin):
         account = chat_control.account
         omemo = self.get_omemo(account)
         transient = chat_control.parent_win.window
-        if 'dialog' not in self.windowinstances:
+
+        if 'dialog' not in self._windows:
             is_groupchat = isinstance(chat_control, GroupchatControl)
-            self.windowinstances['dialog'] = \
+            self._windows['dialog'] = \
                 KeyDialog(self, contact, transient,
-                          self.windowinstances, groupchat=is_groupchat)
+                          self._windows, groupchat=is_groupchat)
             if fingerprints:
                 log.debug('%s => Showing Fingerprint Prompt for %s',
                           account, contact.jid)
-                omemo.store.setShownFingerprints(fingerprints)
+                omemo.backend.storage.setShownFingerprints(fingerprints)
         else:
-            self.windowinstances['dialog'].present()
-            self.windowinstances['dialog'].update()
+            self._windows['dialog'].present()
+            self._windows['dialog'].update()
             if fingerprints:
-                omemo.store.setShownFingerprints(fingerprints)
+                omemo.backend.storage.setShownFingerprints(fingerprints)
 
     @staticmethod
     def print_message(chat_control, kind):
