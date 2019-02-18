@@ -1,4 +1,4 @@
-import logging
+import re
 import pygments
 
 from gi.repository import Gtk, Gdk
@@ -6,13 +6,11 @@ from gi.repository.Pango import FontDescription
 
 
 from gajim.plugins.gui import GajimPluginConfigDialog
-from gajim.plugins.helpers import log_calls, log
+from gajim.plugins.helpers import log_calls
 
 
 from .gtkformatter import GTKFormatter
-from .types import MatchType, LineBreakOptions, CodeMarkerOptions
-
-log = logging.getLogger('gajim.plugin_system.syntax_highlight')
+from .types import LineBreakOptions, CodeMarkerOptions
 
 class SyntaxHighlighterPluginConfiguration(GajimPluginConfigDialog):
     @log_calls('SyntaxHighlighterPluginConfiguration')

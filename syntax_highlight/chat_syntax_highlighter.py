@@ -4,7 +4,7 @@ import pygments
 
 from gi.repository import Gtk
 
-from gajim.plugins.helpers import log_calls, log
+from gajim.plugins.helpers import log
 
 
 from .gtkformatter import GTKFormatter
@@ -183,7 +183,6 @@ class ChatSyntaxHighlighter:
         buf.begin_user_action()
 
         for num, (text_to_insert, match_type) in enumerate(split_text):
-            marker          = [("", 0), ("", 0)]
             language        = None
             end_of_message  = num == (len(split_text) - 1)
 
@@ -269,5 +268,3 @@ class ChatSyntaxHighlighter:
         self.last_end_mark  = None
         self.config         = config
         self.textview       = textview
-
-

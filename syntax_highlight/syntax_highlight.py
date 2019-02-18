@@ -1,7 +1,11 @@
 import logging
-import re
 import sys
-import importlib
+
+if sys.version_info >= (3, 4):
+    from importlib.util import find_spec as find_module
+else:
+    from importlib import find_loader as find_module
+
 
 from gajim.plugins.helpers import log_calls, log
 from gajim.plugins import GajimPlugin
@@ -12,13 +16,14 @@ from .types import MatchType, LineBreakOptions, CodeMarkerOptions, \
 log = logging.getLogger('gajim.plugin_system.syntax_highlight')
 
 def try_loading_pygments():
-    success = importlib.find_loader('pygments') is not None
+    success = find_module('pygments') is not None
     if success:
         try:
             from .chat_syntax_highlighter import ChatSyntaxHighlighter
             from .plugin_config_dialog import SyntaxHighlighterPluginConfiguration
             from .plugin_config import SyntaxHighlighterConfig
-            global SyntaxHighlighterPluginConfiguration, ChatSyntaxHighlighter, SyntaxHighlighterConfig
+            global SyntaxHighlighterPluginConfiguration, ChatSyntaxHighlighter, \
+                SyntaxHighlighterConfig
             success = True
             log.debug("pygments loaded.")
         except Exception as exception:

@@ -1,9 +1,11 @@
-from gajim.plugins.helpers import log_calls, log
+from gajim.plugins.helpers import log
+
+from gi.repository import Gdk
 
 from pygments.lexers import get_lexer_by_name, get_all_lexers
 from pygments.styles import get_all_styles
 
-from .types import MatchType, LineBreakOptions, CodeMarkerOptions, \
+from .types import LineBreakOptions, CodeMarkerOptions, \
                     PLUGIN_INTERNAL_NONE_LEXER_ID
 
 class SyntaxHighlighterConfig:
@@ -27,9 +29,9 @@ class SyntaxHighlighterConfig:
         return lexers
 
     def is_internal_none_lexer(self, lexer):
-        return (lexer == PLUGIN_INTERNAL_NONE_LEXER_ID)
+        return lexer == PLUGIN_INTERNAL_NONE_LEXER_ID
 
-    def get_internal_none_lexer(self, lexer):
+    def get_internal_none_lexer(self):
         return self.PLUGIN_INTERNAL_NONE_LEXER
 
     def get_lexer_by_name(self, name):
@@ -154,5 +156,3 @@ class SyntaxHighlighterConfig:
         self.style_list     = []
         self.config         = config
         self.default_lexer  = None
-
-
