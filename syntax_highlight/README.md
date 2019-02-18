@@ -50,6 +50,31 @@ def test():
 (**Note:** your contact will not receive highlighted text unless she is also
 using the plugin.)
 
+
+## Relation to XEP-0393 - 'Message Styling'
+
+
+https://xmpp.org/extensions/xep-0393.html#pre-block
+
+In [XEP-0393](https://xmpp.org/extensions/xep-0393.html),
+the back-tick based syntax is defined as markup for preformatted
+text blocks, respectively inline performatted text.
+Formatting of such text blocks with monospaced fonts is recommended by the XEP.
+
+By using the same syntax as defined in XEP-0393 XMPP clients with only XEP-0393
+support but without syntax highlighting can at least present their users blocks
+of pre-formatted text.
+
+Since text in between the back-tick markers is not further formatted by this
+plugin, it can be considered "pre-formatted".
+Hence, this plugin is compatible to the formatting options defined by XEP-0393,
+[section 5.1.2, "Preformatted Text"](https://xmpp.org/extensions/xep-0393.html#pre-block)
+and [section 5.2.5, "Preformatted Span"](https://xmpp.org/extensions/xep-0393.html#mono).
+
+Nevertheless, syntax highlighting for source code is not part of XEP but
+rather a non-standard extension introduced with this plugin.
+
+
 ## Configuration
 
 The configuration can be found via 'Gajim' > 'Plugins', then select the
