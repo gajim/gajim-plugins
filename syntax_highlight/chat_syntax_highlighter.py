@@ -209,7 +209,7 @@ class ChatSyntaxHighlighter:
 
                 # insertion invalidates iterator, let's use our start mark...
                 self.insert_and_format_code(buf, text_to_insert, language,
-                        marker_widths, start_mark, other_tags)
+                        marker_widths, start_mark, end_mark, other_tags)
 
             iterator = buf.get_iter_at_mark(end_mark)
             # the current end of the buffer's contents is the start for the
@@ -226,7 +226,9 @@ class ChatSyntaxHighlighter:
         # print_special_text method is resetting the plugin_modified variable...
         self.textview.plugin_modified = True
 
-    def insert_and_format_code(self, buf, insert_text, language, marker, start_mark, other_tags=None):
+    def insert_and_format_code(self, buf, insert_text, language, marker,
+            start_mark, end_mark, other_tags=None):
+
         start_iter  = buf.get_iter_at_mark(start_mark)
 
         if other_tags:
@@ -237,7 +239,7 @@ class ChatSyntaxHighlighter:
 
         start_iter  = buf.get_iter_at_mark(start_mark)
         tag_start   = start_iter
-        tag_end     = buf.get_end_iter()
+        tag_end     = buf.get_iter_at_mark(end_mark)
         s_code      = start_iter.copy()
         e_code      = tag_end.copy()
         s_code.forward_chars(marker[0])
@@ -256,7 +258,7 @@ class ChatSyntaxHighlighter:
             tag.set_property('paragraph-background', self.config.get_bgcolor())
         tag.set_property('font', self.config.get_font())
         buf.get_tag_table().add(tag)
-        buf.apply_tag(tag, start_iter, buf.get_end_iter())
+        buf.apply_tag(tag, start_iter, tag_end)
 
     def __init__(self, config, textview):
         self.last_end_mark  = None
