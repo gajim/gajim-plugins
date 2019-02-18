@@ -237,10 +237,9 @@ class ChatSyntaxHighlighter:
         else:
             buf.insert(start_iter, insert_text)
 
-        start_iter  = buf.get_iter_at_mark(start_mark)
-        tag_start   = start_iter
+        tag_start   = buf.get_iter_at_mark(start_mark)
         tag_end     = buf.get_iter_at_mark(end_mark)
-        s_code      = start_iter.copy()
+        s_code      = tag_start.copy()
         e_code      = tag_end.copy()
         s_code.forward_chars(marker[0])
         e_code.backward_chars(marker[1])
@@ -258,7 +257,7 @@ class ChatSyntaxHighlighter:
             tag.set_property('paragraph-background', self.config.get_bgcolor())
         tag.set_property('font', self.config.get_font())
         buf.get_tag_table().add(tag)
-        buf.apply_tag(tag, start_iter, tag_end)
+        buf.apply_tag(tag, tag_start, tag_end)
 
     def __init__(self, config, textview):
         self.last_end_mark  = None
