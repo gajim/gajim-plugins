@@ -84,8 +84,14 @@ class ChatSyntaxHighlighter:
         return matches
 
     def find_inline_matches(self, text):
-        return [(i.start(), i.end(), i.group(0)) for i in \
-                re.finditer(r'(?<!`)`(?!`|\n).+(?<!`)`', text)]
+        """
+        Inline code is highlighted if the start marker is precedded by a start
+        of line, a whitespace character or either of the other span markers
+        defined in XEP-0393.
+        The same applies mirrored to the end marker.
+        """
+        return [(i.start(1), i.end(1), i.group(1)) for i in \
+                re.finditer(r'(?:^|\s|\*|~|_)(`((?!`).+?)`)(?:\s|\*|~|_|$)', text)]
 
     def merge_match_groups(self, real_text, inline_matches, multiline_matches):
         it_inline = iter(inline_matches)
