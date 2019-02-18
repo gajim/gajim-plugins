@@ -136,9 +136,10 @@ class SyntaxHighlighterPluginConfiguration(GajimPluginConfigDialog):
 
         code    = start_iter.get_text(buf.get_end_iter())
         lexer   = self.config.get_default_lexer()
-        tokens  = pygments.lex(code, lexer)
+        if not self.config.is_internal_none_lexer(lexer):
+            tokens  = pygments.lex(code, lexer)
 
-        pygments.format(tokens, formatter, buf)
+            pygments.format(tokens, formatter, buf)
 
         buf.delete_mark(start_mark)
 

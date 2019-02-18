@@ -6,7 +6,8 @@ import importlib
 from gajim.plugins.helpers import log_calls, log
 from gajim.plugins import GajimPlugin
 
-from .types import MatchType, LineBreakOptions, CodeMarkerOptions
+from .types import MatchType, LineBreakOptions, CodeMarkerOptions, \
+                    PLUGIN_INTERNAL_NONE_LEXER_ID
 
 log = logging.getLogger('gajim.plugin_system.syntax_highlight')
 
@@ -93,7 +94,7 @@ class SyntaxHighlighterPlugin(GajimPlugin):
         self.ccontrol       = {}
 
         self.config_default_values = {
-                'default_lexer'     : ('python', ''),
+                'default_lexer'     : (PLUGIN_INTERNAL_NONE_LEXER_ID, ''),
                 'line_break'        : (LineBreakOptions.MULTILINE, ''),
                 'style'             : ('default', ''),
                 'font'              : ('Monospace 10', ''),

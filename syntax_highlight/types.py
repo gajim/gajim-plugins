@@ -1,5 +1,7 @@
 from enum import Enum, IntEnum, unique
 
+PLUGIN_INTERNAL_NONE_LEXER_ID='_syntax_highlight_internal_none_type'
+
 class MatchType(Enum):
     INLINE      = 0
     MULTILINE   = 1

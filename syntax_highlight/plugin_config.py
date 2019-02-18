@@ -3,10 +3,15 @@ from gajim.plugins.helpers import log_calls, log
 from pygments.lexers import get_lexer_by_name, get_all_lexers
 from pygments.styles import get_all_styles
 
-from .types import MatchType, LineBreakOptions, CodeMarkerOptions
+from .types import MatchType, LineBreakOptions, CodeMarkerOptions, \
+                    PLUGIN_INTERNAL_NONE_LEXER_ID
 
 class SyntaxHighlighterConfig:
+    PLUGIN_INTERNAL_NONE_LEXER=('None (monospace only)', PLUGIN_INTERNAL_NONE_LEXER_ID)
+
     def _create_lexer_list(self):
+        # The list we create here contains the plain text name and the lexer's
+        # id string
         lexers = []
 
         # Iteration over get_all_lexers() seems to be broken somehow. Workarround
@@ -16,7 +21,16 @@ class SyntaxHighlighterConfig:
             if lexer[1] is not None and lexer[1]:
                 lexers.append((lexer[0], lexer[1][0]))
         lexers.sort()
+
+        # Insert our internal "none" type at top of the list.
+        lexers.insert(0, self.PLUGIN_INTERNAL_NONE_LEXER)
         return lexers
+
+    def is_internal_none_lexer(self, lexer):
+        return (lexer == PLUGIN_INTERNAL_NONE_LEXER_ID)
+
+    def get_internal_none_lexer(self, lexer):
+        return self.PLUGIN_INTERNAL_NONE_LEXER
 
     def get_lexer_by_name(self, name):
         lexer = None
@@ -48,20 +62,23 @@ class SyntaxHighlighterConfig:
         self.config['line_break'] = option
 
     def set_default_lexer(self, name):
-        lexer = get_lexer_by_name(name)
+        if not self.is_internal_none_lexer(name):
+            lexer = get_lexer_by_name(name)
 
-        if lexer is None and self.default_lexer is None:
-            log.error("Failed to get default lexer by name."\
-                    "Falling back to simply using the first in the list.")
-            lexer = self.lexer_list[0]
-            name  = lexer[0]
-            self.default_lexer = (name, lexer)
-        if lexer is None and self.default_lexer is not None:
-            log.info("Failed to get default lexer by name, keeping previous"\
-                    "setting (lexer = %s).", self.default_lexer[0])
-            name = self.default_lexer[0]
+            if lexer is None and self.default_lexer is None:
+                log.error("Failed to get default lexer by name."\
+                        "Falling back to simply using the first in the list.")
+                lexer = self.lexer_list[0]
+                name  = lexer[0]
+                self.default_lexer = (name, lexer)
+            if lexer is None and self.default_lexer is not None:
+                log.info("Failed to get default lexer by name, keeping previous"\
+                        "setting (lexer = %s).", self.default_lexer[0])
+                name = self.default_lexer[0]
+            else:
+                self.default_lexer = (name, lexer)
         else:
-            self.default_lexer = (name, lexer)
+            self.default_lexer = self.PLUGIN_INTERNAL_NONE_LEXER
 
         self.config['default_lexer'] = name
 

@@ -62,7 +62,7 @@ class ChatSyntaxHighlighter:
         if lexer is None:
             iterator = buf.get_iter_at_mark(start_mark)
             buf.insert(iterator, '\n')
-        else:
+        elif not self.config.is_internal_none_lexer(lexer):
             tokens = pygments.lex(code, lexer)
 
             formatter = GTKFormatter(style=style, start_mark=start_mark)
