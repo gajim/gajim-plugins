@@ -39,9 +39,18 @@ from omemo.backend.util import DEFAULT_PREKEY_AMOUNT
 log = logging.getLogger('gajim.plugin_system.omemo')
 
 
+def _convert_to_string(text):
+    return text.decode()
+
+
+sqlite3.register_converter('TEXT', _convert_to_string)
+
+
 class LiteAxolotlStore(AxolotlStore):
     def __init__(self, db_path):
-        self._con = sqlite3.connect(db_path, check_same_thread=False)
+        self._con = sqlite3.connect(db_path,
+                                    detect_types=sqlite3.PARSE_DECLTYPES)
+        self._con.text_factory = bytes
         self._con.row_factory = self._namedtuple_factory
         self.createDb()
         self.migrateDb()
