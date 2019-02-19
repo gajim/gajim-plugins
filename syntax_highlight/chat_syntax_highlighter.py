@@ -71,7 +71,8 @@ class ChatSyntaxHighlighter:
     def find_multiline_matches(self, text):
         start = None
         matches = []
-        for i in re.finditer(r'\n?```(?:\S*\n)?', text, re.DOTALL):
+        #Less strict, allow prefixed whitespaces: for i in re.finditer(r'(?:^|\n)[ |\t]*(```)\S*[ |\t]*(?:\n|$)', text, re.DOTALL):
+        for i in re.finditer(r'(?:^|\n)(```)\S*(?:\n|$)', text, re.DOTALL):
             if start is None:
                 start = i
             elif re.match(r'^\n```', i.group(0)) is not None:
