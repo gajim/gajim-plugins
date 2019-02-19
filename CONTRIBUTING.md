@@ -1,7 +1,9 @@
 ### Branches
 
-- master   		(Python3/Gtk3 for Gajim master branch
-- gajim_0.16 	(Python2/Gtk2 for Gajim 0.16.x)
+- master
+- gajim_1.1
+- gajim_1.0
+- gajim_0.16
 
 ### Git
 
