@@ -491,13 +491,17 @@ class LiteAxolotlStore(AxolotlStore):
 
     def isTrusted(self, recipient_id, device_id):
         record = self.loadSession(recipient_id, device_id)
-        identity_key = record.getSessionState().getRemoteIdentityKey()
+
+        try:
+            identity_key = record.getSessionState().getRemoteIdentityKey()
+        except Exception:
+            log.exception('Unable to determine trust for %s %s',
+                          recipient_id, device_id)
+            return False
         return self.getTrustForIdentity(
             recipient_id, identity_key) == Trust.TRUSTED
 
-    def isUntrusted(self, recipient_id, device_id):
-        record = self.loadSession(recipient_id, device_id)
-        identity_key = record.getSessionState().getRemoteIdentityKey()
+    def isUntrustedIdentity(self, recipient_id, identity_key):
         return self.getTrustForIdentity(
             recipient_id, identity_key) not in (Trust.TRUSTED, Trust.UNDECIDED)
 

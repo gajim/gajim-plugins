@@ -224,7 +224,8 @@ class OmemoState(DeviceManager):
             raise Exception('Received Pre Key Message '
                             'without PreKey => %s' % jid)
 
-        if self._storage.isUntrusted(jid, device):
+        identity_key = pre_key_message.getIdentityKey()
+        if self._storage.isUntrustedIdentity(jid, identity_key):
             raise SenderNotTrusted
 
         session_cipher = self._get_session_cipher(jid, device)
@@ -232,7 +233,7 @@ class OmemoState(DeviceManager):
         log.info('%s => Process pre key message from %s',
                  self._account, jid)
         key = session_cipher.decryptPkmsg(pre_key_message)
-        fingerprint = get_fingerprint(pre_key_message.getIdentityKey())
+        fingerprint = get_fingerprint(identity_key)
 
         self.xmpp_con.set_bundle()
         self.add_device(jid, device)
@@ -242,16 +243,16 @@ class OmemoState(DeviceManager):
         message = WhisperMessage(serialized=key)
         log.info('%s => Process message from %s', self._account, jid)
 
-        session_record = self._storage.loadSession(jid, device)
-        identity_key = session_record.getSessionState().getRemoteIdentityKey()
-        fingerprint = get_fingerprint(identity_key)
-
         session_cipher = self._get_session_cipher(jid, device)
         key = session_cipher.decryptMsg(message, textMsg=False)
 
-        if self._storage.isUntrusted(jid, device):
+        session_record = self._storage.loadSession(jid, device)
+        identity_key = session_record.getSessionState().getRemoteIdentityKey()
+
+        if self._storage.isUntrustedIdentity(jid, identity_key):
             raise SenderNotTrusted
 
+        fingerprint = get_fingerprint(identity_key)
         self.add_device(jid, device)
 
         return key, fingerprint
