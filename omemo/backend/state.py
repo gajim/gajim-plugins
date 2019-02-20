@@ -42,6 +42,7 @@ from omemo.backend.util import DEFAULT_PREKEY_AMOUNT
 from omemo.backend.util import MIN_PREKEY_AMOUNT
 from omemo.backend.util import SPK_CYCLE_TIME
 from omemo.backend.util import SPK_ARCHIVE_TIME
+from omemo.backend.util import UNACKNOWLEDGED_COUNT
 
 
 log = logging.getLogger('gajim.plugin_system.omemo')
@@ -172,6 +173,12 @@ class OmemoState(DeviceManager):
         whisper_messages = defaultdict(dict)
 
         for jid_, device in devices_for_encryption:
+            count = self._storage.getUnacknowledgedCount(jid_, device)
+            if count >= UNACKNOWLEDGED_COUNT:
+                log.warning('Set device inactive %s because of %s '
+                            'unacknowledged messages', device, count)
+                self.remove_device(jid_, device)
+
             try:
                 whisper_messages[jid_][device] = self._get_whisper_message(
                     jid_, device, result.key)

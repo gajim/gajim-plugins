@@ -19,6 +19,8 @@ from collections import defaultdict
 
 from gajim.common import app
 
+from omemo.backend.util import UNACKNOWLEDGED_COUNT
+
 log = logging.getLogger('gajim.plugin_system.omemo')
 
 
@@ -39,6 +41,15 @@ class DeviceManager:
             self.add_device(jid, device)
 
     def update_devicelist(self, jid, devicelist):
+        for device in list(devicelist):
+            if device == self.own_device:
+                continue
+            count = self._storage.getUnacknowledgedCount(jid, device)
+            if count > UNACKNOWLEDGED_COUNT:
+                log.warning('Ignore device because of %s unacknowledged'
+                            ' messages: %s %s', count, jid, device)
+                devicelist.remove(device)
+
         self.__device_store[jid] = set(devicelist)
         log.info('Saved devices for %s', jid)
         self._storage.setActiveState(jid, devicelist)
@@ -59,6 +70,10 @@ class DeviceManager:
 
     def add_device(self, jid, device):
         self.__device_store[jid].add(device)
+
+    def remove_device(self, jid, device):
+        self.__device_store[jid].discard(device)
+        self._storage.setInactive(jid, device)
 
     def get_devices(self, jid, without_self=False):
         devices = set(self.__device_store[jid])

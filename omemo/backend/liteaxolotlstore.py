@@ -320,16 +320,22 @@ class LiteAxolotlStore(AxolotlStore):
                        ', '.join(['?'] * len(recipientIds)))
         return self._con.execute(query, recipientIds).fetchall()
 
-    def setActiveState(self, jid, deviceList):
+    def setActiveState(self, jid, devicelist):
         query = '''UPDATE sessions SET active = 1
                    WHERE recipient_id = ? AND device_id IN ({})'''.format(
-                       ', '.join(['?'] * len(deviceList)))
-        self._con.execute(query, (jid,) + tuple(deviceList))
+                       ', '.join(['?'] * len(devicelist)))
+        self._con.execute(query, (jid,) + tuple(devicelist))
 
         query = '''UPDATE sessions SET active = 0
                    WHERE recipient_id = ? AND device_id NOT IN ({})'''.format(
-                       ', '.join(['?'] * len(deviceList)))
-        self._con.execute(query, (jid,) + tuple(deviceList))
+                       ', '.join(['?'] * len(devicelist)))
+        self._con.execute(query, (jid,) + tuple(devicelist))
+        self._con.commit()
+
+    def setInactive(self, jid, device_id):
+        query = '''UPDATE sessions SET active = 0
+                   WHERE recipient_id = ? AND device_id = ?'''
+        self._con.execute(query, (jid, device_id))
         self._con.commit()
 
     def getInactiveSessionsKeys(self, recipientId):
@@ -515,3 +521,8 @@ class LiteAxolotlStore(AxolotlStore):
                    WHERE recipient_id = ? AND public_key = ?'''
         self._con.execute(query, (timestamp, recipient_id, identity_key))
         self._con.commit()
+
+    def getUnacknowledgedCount(self, recipient_id, device_id):
+        record = self.loadSession(recipient_id, device_id)
+        state = record.getSessionState()
+        return state.getSenderChainKey().getIndex()
