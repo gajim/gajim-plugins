@@ -155,7 +155,7 @@ class OmemoState(DeviceManager):
         log.debug("Decrypted Message => %s", result)
         return result, fingerprint
 
-    def _get_whipser_message(self, jid, device, key):
+    def _get_whisper_message(self, jid, device, key):
         cipher = self._get_session_cipher(jid, device)
         cipher_key = cipher.encrypt(key)
         prekey = isinstance(cipher_key, PreKeyWhisperMessage)
@@ -173,7 +173,7 @@ class OmemoState(DeviceManager):
 
         for jid_, device in devices_for_encryption:
             try:
-                whisper_messages[jid_][device] = self._get_whipser_message(
+                whisper_messages[jid_][device] = self._get_whisper_message(
                     jid_, device, result.key)
             except Exception:
                 log.exception('Failed to encrypt')
