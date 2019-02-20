@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with OMEMO Gajim Plugin. If not, see <http://www.gnu.org/licenses/>.
 
-
+import time
 import logging
 import sqlite3
 from collections import namedtuple
@@ -208,7 +208,6 @@ class LiteAxolotlStore(AxolotlStore):
                     PRAGMA user_version=5;
                     END TRANSACTION;
                 """ % (add_timestamp))
-
 
     def loadSignedPreKey(self, signedPreKeyId):
         query = 'SELECT record FROM signed_prekeys WHERE prekey_id = ?'
@@ -499,3 +498,20 @@ class LiteAxolotlStore(AxolotlStore):
     def isUntrustedIdentity(self, recipient_id, identity_key):
         return self.getTrustForIdentity(
             recipient_id, identity_key) not in (Trust.TRUSTED, Trust.UNDECIDED)
+
+    def getIdentityLastSeen(self, recipient_id, identity_key):
+        identity_key = identity_key.getPublicKey().serialize()
+        query = '''SELECT timestamp FROM identities
+                   WHERE recipient_id = ? AND public_key = ?'''
+        result = self._con.execute(query, (recipient_id,
+                                           identity_key)).fetchone()
+        return result.timestamp if result is not None else None
+
+    def setIdentityLastSeen(self, recipient_id, identity_key):
+        timestamp = int(time.time())
+        identity_key = identity_key.getPublicKey().serialize()
+        log.info('Set last seen for %s %s', recipient_id, timestamp)
+        query = '''UPDATE identities SET timestamp = ?
+                   WHERE recipient_id = ? AND public_key = ?'''
+        self._con.execute(query, (timestamp, recipient_id, identity_key))
+        self._con.commit()

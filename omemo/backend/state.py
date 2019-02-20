@@ -235,6 +235,8 @@ class OmemoState(DeviceManager):
         key = session_cipher.decryptPkmsg(pre_key_message)
         fingerprint = get_fingerprint(identity_key)
 
+        self._storage.setIdentityLastSeen(jid, identity_key)
+
         self.xmpp_con.set_bundle()
         self.add_device(jid, device)
         return key, fingerprint
@@ -253,6 +255,8 @@ class OmemoState(DeviceManager):
             raise SenderNotTrusted
 
         fingerprint = get_fingerprint(identity_key)
+        self._storage.setIdentityLastSeen(jid, identity_key)
+
         self.add_device(jid, device)
 
         return key, fingerprint
