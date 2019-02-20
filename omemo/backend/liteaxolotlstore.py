@@ -131,11 +131,6 @@ class LiteAxolotlStore(AxolotlStore):
                     record BLOB, timestamp INTEGER, active INTEGER DEFAULT 1,
                     UNIQUE(recipient_id, device_id));
 
-                CREATE TABLE IF NOT EXISTS encryption_state (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    jid TEXT UNIQUE,
-                    encryption INTEGER
-                    );
                 '''
 
             create_db_sql = """
@@ -504,27 +499,3 @@ class LiteAxolotlStore(AxolotlStore):
     def isUntrustedIdentity(self, recipient_id, identity_key):
         return self.getTrustForIdentity(
             recipient_id, identity_key) not in (Trust.TRUSTED, Trust.UNDECIDED)
-
-    def activate(self, jid):
-        query = '''INSERT OR REPLACE INTO encryption_state (jid, encryption)
-                   VALUES (?, 1)'''
-
-        self._con.execute(query, (jid,))
-        self._con.commit()
-
-    def deactivate(self, jid):
-        query = '''INSERT OR REPLACE INTO encryption_state (jid, encryption)
-                   VALUES (?, 0)'''
-
-        self._con.execute(query, (jid, ))
-        self._con.commit()
-
-    def is_active(self, jid):
-        query = 'SELECT encryption FROM encryption_state where jid = ?'
-        result = self._con.execute(query, (jid,)).fetchone()
-        return result.encryption if result is not None else False
-
-    def exist(self, jid):
-        query = 'SELECT encryption FROM encryption_state where jid = ?'
-        result = self._con.execute(query, (jid,)).fetchone()
-        return result is not None
