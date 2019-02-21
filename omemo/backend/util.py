@@ -18,6 +18,8 @@ import binascii
 import textwrap
 from enum import IntEnum
 
+from axolotl.identitykey import IdentityKey
+
 DEFAULT_PREKEY_AMOUNT = 100
 MIN_PREKEY_AMOUNT = 80
 SPK_ARCHIVE_TIME = 86400 * 15  # 15 Days
@@ -43,3 +45,12 @@ def get_fingerprint(identity_key, formatted=False):
         buf += '{0} '.format(fingerprint[w:w + wordsize])
     buf = textwrap.fill(buf, width=36)
     return buf.rstrip().upper()
+
+
+class IdentityKeyExtended(IdentityKey):
+    def __hash__(self):
+        return hash(self.publicKey.serialize())
+
+    def get_fingerprint(self, formatted=False):
+        return get_fingerprint(self, formatted=formatted)
+    

@@ -33,6 +33,7 @@ from axolotl.util.medium import Medium
 from axolotl.util.keyhelper import KeyHelper
 
 from omemo.backend.util import Trust
+from omemo.backend.util import IdentityKeyExtended
 from omemo.backend.util import DEFAULT_PREKEY_AMOUNT
 
 
@@ -42,8 +43,14 @@ log = logging.getLogger('gajim.plugin_system.omemo')
 def _convert_to_string(text):
     return text.decode()
 
+def _convert_identity_key(key):
+    if not key:
+        return
+    return IdentityKeyExtended(DjbECPublicKey(key[1:]))
+
 
 sqlite3.register_converter('jid', _convert_to_string)
+sqlite3.register_converter('pk', _convert_identity_key)
 
 
 class LiteAxolotlStore(AxolotlStore):
@@ -399,13 +406,12 @@ class LiteAxolotlStore(AxolotlStore):
             self.storePreKey(pre_key.getId(), pre_key)
 
     def getIdentityKeyPair(self):
-        query = '''SELECT public_key, private_key FROM identities
-                   WHERE recipient_id = -1'''
+        query = '''SELECT public_key as "public_key [pk]", private_key
+                   FROM identities WHERE recipient_id = -1'''
         result = self._con.execute(query).fetchone()
 
-        return IdentityKeyPair(
-            IdentityKey(DjbECPublicKey(result.public_key[1:])),
-            DjbECPrivateKey(result.private_key))
+        return IdentityKeyPair(result.public_key,
+                               DjbECPrivateKey(result.private_key))
 
     def getLocalRegistrationId(self):
         query = 'SELECT registration_id FROM identities WHERE recipient_id = -1'
@@ -460,12 +466,12 @@ class LiteAxolotlStore(AxolotlStore):
 
     def getFingerprints(self, jid):
         query = '''SELECT _id, recipient_id as "recipient_id [jid]",
-                   public_key, trust FROM identities
+                   public_key as "public_key [pk]", trust FROM identities
                    WHERE recipient_id =? ORDER BY trust ASC'''
         return self._con.execute(query, (jid,)).fetchall()
 
     def getTrustedFingerprints(self, jid):
-        query = '''SELECT public_key FROM identities
+        query = '''SELECT public_key as "public_key [pk]" FROM identities
                    WHERE recipient_id = ? AND trust = ?'''
         result = self._con.execute(query, (jid, Trust.TRUSTED)).fetchall()
         return [row.public_key for row in result]
