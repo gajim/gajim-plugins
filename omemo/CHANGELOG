@@ -1,3 +1,8 @@
+2.6.45 / 2019-02-21
+- Set device inactive after 300 unacknowledged messages
+- Small refactoring
+- Fix a bug where the KeyDialog could not be opened
+
 2.6.44 / 2019-02-18
 - Fix error while loading keys from database
 
