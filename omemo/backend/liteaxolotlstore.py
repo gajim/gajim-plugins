@@ -109,7 +109,7 @@ class LiteAxolotlStore(AxolotlStore):
                 CREATE TABLE IF NOT EXISTS identities (
                     _id INTEGER PRIMARY KEY AUTOINCREMENT, recipient_id TEXT,
                     registration_id INTEGER, public_key BLOB, private_key BLOB,
-                    next_prekey_id INTEGER, timestamp INTEGER, trust INTEGER,
+                    timestamp INTEGER, trust INTEGER,
                     shown INTEGER DEFAULT 0);
 
                 CREATE UNIQUE INDEX IF NOT EXISTS
