@@ -27,7 +27,6 @@ from axolotl.state.prekeyrecord import PreKeyRecord
 from axolotl.invalidkeyidexception import InvalidKeyIdException
 from axolotl.ecc.djbec import DjbECPrivateKey
 from axolotl.ecc.djbec import DjbECPublicKey
-from axolotl.identitykey import IdentityKey
 from axolotl.identitykeypair import IdentityKeyPair
 from axolotl.util.medium import Medium
 from axolotl.util.keyhelper import KeyHelper
