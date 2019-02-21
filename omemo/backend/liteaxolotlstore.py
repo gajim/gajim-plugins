@@ -309,6 +309,7 @@ class LiteAxolotlStore(AxolotlStore):
         return result is not None
 
     def deleteSession(self, recipientId, deviceId):
+        log.info('Delete session for %s %s', recipientId, deviceId)
         query = "DELETE FROM sessions WHERE recipient_id = ? AND device_id = ?"
         self._con.execute(query, (recipientId, deviceId))
         self._con.commit()

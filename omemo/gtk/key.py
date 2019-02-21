@@ -25,6 +25,7 @@ from gajim.plugins.plugins_i18n import _
 from omemo.gtk.util import DialogButton, ButtonAction
 from omemo.gtk.util import NewConfirmationDialog
 from omemo.gtk.util import Trust
+from omemo.backend.util import IdentityKeyExtended
 from omemo.backend.util import get_fingerprint
 
 log = logging.getLogger('gajim.plugin_system.omemo')
@@ -124,30 +125,47 @@ class KeyDialog(Gtk.Dialog):
         else:
             sessions = self._omemo.backend.storage.getSessionsFromJid(contact_jid)
 
+        rows = {}
+        results = self._omemo.backend.storage.getFingerprints(contact_jid)
+        for result in results:
+            rows[result.public_key] = KeyRow(result.recipient_id,
+                                             result.public_key,
+                                             result.trust)
+
         for item in sessions:
-            active = bool(item.active)
             session_record = SessionRecord(serialized=item.record)
             identity_key = session_record.getSessionState().getRemoteIdentityKey()
-            trust = self._omemo.backend.storage.getTrustForIdentity(
-                item.recipient_id, identity_key)
-            self._listbox.add(KeyRow(item.recipient_id,
-                                     item.device_id,
-                                     identity_key,
-                                     trust, active))
+            if identity_key is None:
+                continue
+            identity_key = IdentityKeyExtended(identity_key.getPublicKey())
+            try:
+                key_row = rows[identity_key]
+            except KeyError:
+                log.warning('Could not find session identitykey %s',
+                            item.device_id)
+                continue
+
+            key_row.active = item.active
+            key_row.device_id = item.device_id
+
+        for row in rows.values():
+            self._listbox.add(row)
 
     def _on_destroy(self, *args):
         del self._windows['dialog']
 
 
 class KeyRow(Gtk.ListBoxRow):
-    def __init__(self, jid, device_id, identity_key, trust, active):
+    def __init__(self, jid, identity_key, trust):
         Gtk.ListBoxRow.__init__(self)
         self.set_activatable(False)
 
-        self.active = active
+        self._active = False
+        self._device_id = None
+        self._identity_key = identity_key
         self.trust = trust
         self.jid = jid
-        self.device_id = device_id
+
 
         box = Gtk.Box()
         box.set_spacing(12)
@@ -164,16 +182,14 @@ class KeyRow(Gtk.ListBoxRow):
         jid_label.set_hexpand(True)
         label_box.add(jid_label)
 
-        fingerprint = Gtk.Label(label=get_fingerprint(identity_key,
-                                                      formatted=True))
-        fingerprint.get_style_context().add_class('omemo-mono')
-        if not active:
-            fingerprint.get_style_context().add_class('omemo-inactive-color')
-        fingerprint.set_selectable(True)
-        fingerprint.set_halign(Gtk.Align.START)
-        fingerprint.set_valign(Gtk.Align.START)
-        fingerprint.set_hexpand(True)
-        label_box.add(fingerprint)
+        self.fingerprint = Gtk.Label(
+            label=self._identity_key.get_fingerprint(formatted=True))
+        self.fingerprint.get_style_context().add_class('omemo-inactive-color')
+        self.fingerprint.set_selectable(True)
+        self.fingerprint.set_halign(Gtk.Align.START)
+        self.fingerprint.set_valign(Gtk.Align.START)
+        self.fingerprint.set_hexpand(True)
+        label_box.add(self.fingerprint)
 
         box.add(label_box)
 
@@ -183,11 +199,11 @@ class KeyRow(Gtk.ListBoxRow):
     def delete_fingerprint(self, *args):
         def _remove():
             backend = self.get_toplevel()._omemo.backend
-            record = backend.storage.loadSession(self.jid, self.device_id)
-            identity_key = record.getSessionState().getRemoteIdentityKey()
 
+            backend.remove_device(self.jid, self.device_id)
             backend.storage.deleteSession(self.jid, self.device_id)
-            backend.storage.deleteIdentity(self.jid, identity_key)
+            backend.storage.deleteIdentity(self.jid, self._identity_key)
+
             self.get_parent().remove(self)
             self.destroy()
 
@@ -212,9 +228,26 @@ class KeyRow(Gtk.ListBoxRow):
         image.set_tooltip_text(tooltip)
 
         backend = self.get_toplevel()._omemo.backend
-        record = backend.storage.loadSession(self.jid, self.device_id)
-        identity_key = record.getSessionState().getRemoteIdentityKey()
-        backend.storage.setTrust(identity_key, self.trust)
+        backend.storage.setTrust(self._identity_key, self.trust)
+
+    @property
+    def active(self):
+        return self._active
+
+    @active.setter
+    def active(self, active):
+        self._active = bool(active)
+        css_class = 'omemo-mono' if self._active else 'omemo-inactive-color'
+        self.fingerprint.get_style_context().add_class(css_class)
+        self._trust_button.update()
+
+    @property
+    def device_id(self):
+        return self._device_id
+
+    @device_id.setter
+    def device_id(self, device_id):
+        self._device_id = device_id
 
 
 class TrustButton(Gtk.MenuButton):
