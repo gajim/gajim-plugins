@@ -1,3 +1,6 @@
+2.6.46 / 2019-02-22
+- Bug Fixes
+
 2.6.45 / 2019-02-21
 - Set device inactive after 300 unacknowledged messages
 - Small refactoring
