@@ -143,6 +143,8 @@ class KeyDialog(Gtk.Dialog):
             except KeyError:
                 log.warning('Could not find session identitykey %s',
                             item.device_id)
+                self._omemo.backend.storage.deleteSession(item.recipient_id,
+                                                          item.device_id)
                 continue
 
             key_row.active = item.active
