@@ -190,7 +190,7 @@ class OMEMOConfigDialog(GajimPluginConfigDialog):
 
         own_jid = app.get_jid_from_account(account)
         # Set Device ID List
-        for item in omemo.backend.get_devices(own_jid, without_self=True):
+        for item in omemo.backend.get_devices(own_jid):
             self._ui.deviceid_store.append([item])
 
         # Set QR Verification Code
