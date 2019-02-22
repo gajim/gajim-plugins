@@ -42,14 +42,20 @@ log = logging.getLogger('gajim.plugin_system.omemo')
 def _convert_to_string(text):
     return text.decode()
 
+
 def _convert_identity_key(key):
     if not key:
         return
     return IdentityKeyExtended(DjbECPublicKey(key[1:]))
 
 
+def _convert_record(record):
+    return SessionRecord(serialized=record)
+
+
 sqlite3.register_converter('jid', _convert_to_string)
 sqlite3.register_converter('pk', _convert_identity_key)
+sqlite3.register_converter('session_record', _convert_record)
 
 
 class LiteAxolotlStore(AxolotlStore):
@@ -273,12 +279,10 @@ class LiteAxolotlStore(AxolotlStore):
         self._con.commit()
 
     def loadSession(self, recipientId, deviceId):
-        query = '''SELECT record FROM sessions WHERE
-                   recipient_id = ? AND device_id = ?'''
+        query = '''SELECT record as "record [session_record]"
+                   FROM sessions WHERE recipient_id = ? AND device_id = ?'''
         result = self._con.execute(query, (recipientId, deviceId)).fetchone()
-        if result is None:
-            return SessionRecord()
-        return SessionRecord(serialized=result.record)
+        return result.record if result is not None else SessionRecord()
 
     def getJidFromDevice(self, device_id):
         query = '''SELECT recipient_id as "recipient_id [jid]"
@@ -350,17 +354,10 @@ class LiteAxolotlStore(AxolotlStore):
         self._con.commit()
 
     def getInactiveSessionsKeys(self, recipientId):
-        query = '''SELECT record FROM sessions
+        query = '''SELECT record as "record [session_record]" FROM sessions
                    WHERE active = 0 AND recipient_id = ?'''
         result = self._con.execute(query, (recipientId,)).fetchall()
-
-        results = []
-        for row in result:
-            public_key = (SessionRecord(serialized=row.record).
-                          getSessionState().getRemoteIdentityKey().
-                          getPublicKey())
-            results.append(public_key.serialize())
-        return results
+        return [row.record.getSessionState().getRemoteIdentityKey() for row in result]
 
     def loadPreKey(self, preKeyId):
         query = '''SELECT record FROM prekeys WHERE prekey_id = ?'''
@@ -465,9 +462,9 @@ class LiteAxolotlStore(AxolotlStore):
         return result.trust if result is not None else None
 
     def getFingerprints(self, jid):
-        query = '''SELECT _id, recipient_id as "recipient_id [jid]",
+        query = '''SELECT recipient_id as "recipient_id [jid]",
                    public_key as "public_key [pk]", trust FROM identities
-                   WHERE recipient_id =? ORDER BY trust ASC'''
+                   WHERE recipient_id = ? ORDER BY trust ASC'''
         return self._con.execute(query, (jid,)).fetchall()
 
     def getTrustedFingerprints(self, jid):
@@ -530,5 +527,7 @@ class LiteAxolotlStore(AxolotlStore):
 
     def getUnacknowledgedCount(self, recipient_id, device_id):
         record = self.loadSession(recipient_id, device_id)
+        if record.isFresh():
+            return 0
         state = record.getSessionState()
         return state.getSenderChainKey().getIndex()
