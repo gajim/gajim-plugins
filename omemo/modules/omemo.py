@@ -168,6 +168,7 @@ class OMEMO(BaseModule):
 
         omemo_message = self.backend.encrypt(to_jid, event.message)
         if omemo_message is None:
+            session = event.session if hasattr(event, 'session') else None
             app.nec.push_incoming_event(
                 NetworkEvent('message-not-sent',
                              conn=conn,
@@ -175,7 +176,7 @@ class OMEMO(BaseModule):
                              message=event.message,
                              error=_('Encryption error'),
                              time_=time.time(),
-                             session=event.session))
+                             session=session))
             return
 
         create_omemo_message(event.msg_iq, omemo_message,
