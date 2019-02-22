@@ -494,13 +494,9 @@ class LiteAxolotlStore(AxolotlStore):
 
     def isTrusted(self, recipient_id, device_id):
         record = self.loadSession(recipient_id, device_id)
-
-        try:
-            identity_key = record.getSessionState().getRemoteIdentityKey()
-        except Exception:
-            log.exception('Unable to determine trust for %s %s',
-                          recipient_id, device_id)
+        if record.isFresh():
             return False
+        identity_key = record.getSessionState().getRemoteIdentityKey()
         return self.getTrustForIdentity(
             recipient_id, identity_key) == Trust.TRUSTED
 
