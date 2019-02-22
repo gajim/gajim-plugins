@@ -78,7 +78,7 @@ class DeviceManager:
     def get_devices(self, jid, without_self=False):
         devices = set(self.__device_store[jid])
         if without_self:
-            devices.discard(self._own_jid)
+            devices.discard(self.own_device)
         return devices
 
     def get_devices_for_encryption(self, jid):
