@@ -329,14 +329,19 @@ class LiteAxolotlStore(AxolotlStore):
         self._con.commit()
 
     def getSessionsFromJid(self, recipientId):
-        query = '''SELECT _id, recipient_id as "recipient_id [jid]",
-                   device_id, record, active
-                   from sessions WHERE recipient_id = ?'''
+        query = '''SELECT recipient_id as "recipient_id [jid]",
+                          device_id,
+                          record as "record [session_record]",
+                          active
+                   FROM sessions WHERE recipient_id = ?'''
         return self._con.execute(query, (recipientId,)).fetchall()
 
     def getSessionsFromJids(self, recipientIds):
-        query = '''SELECT _id, recipient_id as "recipient_id [jid]",
-                   device_id, record, active from sessions
+        query = '''SELECT recipient_id as "recipient_id [jid]",
+                          device_id,
+                          record as "record [session_record]",
+                          active
+                   FROM sessions
                    WHERE recipient_id IN ({})'''.format(
                        ', '.join(['?'] * len(recipientIds)))
         return self._con.execute(query, recipientIds).fetchall()
@@ -477,6 +482,15 @@ class LiteAxolotlStore(AxolotlStore):
                    public_key as "public_key [pk]", trust FROM identities
                    WHERE recipient_id = ? ORDER BY trust ASC'''
         return self._con.execute(query, (jid,)).fetchall()
+
+    def getMucFingerprints(self, jids):
+        query = '''
+            SELECT recipient_id as "recipient_id [jid]",
+            public_key as "public_key [pk]", trust FROM identities
+            WHERE recipient_id IN ({}) ORDER BY trust ASC
+            '''.format(', '.join(['?'] * len(jids)))
+
+        return self._con.execute(query, jids).fetchall()
 
     def getTrustedFingerprints(self, jid):
         query = '''SELECT public_key as "public_key [pk]" FROM identities

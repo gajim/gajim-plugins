@@ -117,8 +117,6 @@ class KeyDialog(Gtk.Dialog):
         self._load_fingerprints(self._contact.jid, self._groupchat is True)
 
     def _load_fingerprints(self, contact_jid, groupchat=False):
-        from axolotl.state.sessionrecord import SessionRecord
-
         if groupchat:
             members = list(self._omemo.backend.get_muc_members(contact_jid))
             sessions = self._omemo.backend.storage.getSessionsFromJids(members)
@@ -126,17 +124,19 @@ class KeyDialog(Gtk.Dialog):
             sessions = self._omemo.backend.storage.getSessionsFromJid(contact_jid)
 
         rows = {}
-        results = self._omemo.backend.storage.getFingerprints(contact_jid)
+        if groupchat:
+            results = self._omemo.backend.storage.getMucFingerprints(members)
+        else:
+            results = self._omemo.backend.storage.getFingerprints(contact_jid)
         for result in results:
             rows[result.public_key] = KeyRow(result.recipient_id,
                                              result.public_key,
                                              result.trust)
 
         for item in sessions:
-            session_record = SessionRecord(serialized=item.record)
-            identity_key = session_record.getSessionState().getRemoteIdentityKey()
-            if identity_key is None:
-                continue
+            if item.record.isFresh():
+                return
+            identity_key = item.record.getSessionState().getRemoteIdentityKey()
             identity_key = IdentityKeyExtended(identity_key.getPublicKey())
             try:
                 key_row = rows[identity_key]
