@@ -14,6 +14,7 @@
 # You should have received a copy of the GNU General Public License
 # along with OMEMO Gajim Plugin. If not, see <http://www.gnu.org/licenses/>.
 
+import time
 import logging
 
 from gi.repository import Gtk
@@ -131,7 +132,8 @@ class KeyDialog(Gtk.Dialog):
         for result in results:
             rows[result.public_key] = KeyRow(result.recipient_id,
                                              result.public_key,
-                                             result.trust)
+                                             result.trust,
+                                             result.timestamp)
 
         for item in sessions:
             if item.record.isFresh():
@@ -158,7 +160,7 @@ class KeyDialog(Gtk.Dialog):
 
 
 class KeyRow(Gtk.ListBoxRow):
-    def __init__(self, jid, identity_key, trust):
+    def __init__(self, jid, identity_key, trust, last_seen):
         Gtk.ListBoxRow.__init__(self)
         self.set_activatable(False)
 
@@ -168,21 +170,19 @@ class KeyRow(Gtk.ListBoxRow):
         self.trust = trust
         self.jid = jid
 
-
-        box = Gtk.Box()
-        box.set_spacing(12)
+        grid = Gtk.Grid()
+        grid.set_column_spacing(12)
 
         self._trust_button = TrustButton(self)
-        box.add(self._trust_button)
+        grid.attach(self._trust_button, 1, 1, 1, 3)
 
-        label_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         jid_label = Gtk.Label(label=jid)
         jid_label.get_style_context().add_class('dim-label')
         jid_label.set_selectable(False)
         jid_label.set_halign(Gtk.Align.START)
         jid_label.set_valign(Gtk.Align.START)
         jid_label.set_hexpand(True)
-        label_box.add(jid_label)
+        grid.attach(jid_label, 2, 1, 1, 1)
 
         self.fingerprint = Gtk.Label(
             label=self._identity_key.get_fingerprint(formatted=True))
@@ -192,11 +192,22 @@ class KeyRow(Gtk.ListBoxRow):
         self.fingerprint.set_halign(Gtk.Align.START)
         self.fingerprint.set_valign(Gtk.Align.START)
         self.fingerprint.set_hexpand(True)
-        label_box.add(self.fingerprint)
+        grid.attach(self.fingerprint, 2, 2, 1, 1)
 
-        box.add(label_box)
+        if last_seen is not None:
+            last_seen = time.strftime('%d-%m-%Y %H:%M:%S',
+                                      time.localtime(last_seen))
+        else:
+            last_seen = _('Never')
+        last_seen_label = Gtk.Label(label=_('Last seen: %s') % last_seen)
+        last_seen_label.set_halign(Gtk.Align.START)
+        last_seen_label.set_valign(Gtk.Align.START)
+        last_seen_label.set_hexpand(True)
+        last_seen_label.get_style_context().add_class('omemo-last-seen')
+        last_seen_label.get_style_context().add_class('dim-label')
+        grid.attach(last_seen_label, 2, 3, 1, 1)
 
-        self.add(box)
+        self.add(grid)
         self.show_all()
 
     def delete_fingerprint(self, *args):

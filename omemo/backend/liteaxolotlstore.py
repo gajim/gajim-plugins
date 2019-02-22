@@ -479,14 +479,20 @@ class LiteAxolotlStore(AxolotlStore):
 
     def getFingerprints(self, jid):
         query = '''SELECT recipient_id as "recipient_id [jid]",
-                   public_key as "public_key [pk]", trust FROM identities
+                          public_key as "public_key [pk]",
+                          trust,
+                          timestamp
+                   FROM identities
                    WHERE recipient_id = ? ORDER BY trust ASC'''
         return self._con.execute(query, (jid,)).fetchall()
 
     def getMucFingerprints(self, jids):
         query = '''
             SELECT recipient_id as "recipient_id [jid]",
-            public_key as "public_key [pk]", trust FROM identities
+                   public_key as "public_key [pk]",
+                   trust,
+                   timestamp
+            FROM identities
             WHERE recipient_id IN ({}) ORDER BY trust ASC
             '''.format(', '.join(['?'] * len(jids)))
 

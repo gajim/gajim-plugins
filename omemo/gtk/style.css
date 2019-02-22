@@ -3,6 +3,8 @@
 
 .omemo-mono { font-size: 12px; font-family: monospace; }
 
+.omemo-last-seen { font-size: 11px; }
+
 .omemo-key-dialog > box { margin: 18px; }
 
 .omemo-key-dialog scrolledwindow row {
