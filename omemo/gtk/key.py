@@ -186,6 +186,7 @@ class KeyRow(Gtk.ListBoxRow):
 
         self.fingerprint = Gtk.Label(
             label=self._identity_key.get_fingerprint(formatted=True))
+        self.fingerprint.get_style_context().add_class('omemo-mono')
         self.fingerprint.get_style_context().add_class('omemo-inactive-color')
         self.fingerprint.set_selectable(True)
         self.fingerprint.set_halign(Gtk.Align.START)
@@ -238,9 +239,12 @@ class KeyRow(Gtk.ListBoxRow):
 
     @active.setter
     def active(self, active):
+        context = self.fingerprint.get_style_context()
         self._active = bool(active)
-        css_class = 'omemo-mono' if self._active else 'omemo-inactive-color'
-        self.fingerprint.get_style_context().add_class(css_class)
+        if self._active:
+            context.remove_class('omemo-inactive-color')
+        else:
+            context.add_class('omemo-inactive-color')
         self._trust_button.update()
 
     @property
