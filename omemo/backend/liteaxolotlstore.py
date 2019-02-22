@@ -356,8 +356,13 @@ class LiteAxolotlStore(AxolotlStore):
     def getInactiveSessionsKeys(self, recipientId):
         query = '''SELECT record as "record [session_record]" FROM sessions
                    WHERE active = 0 AND recipient_id = ?'''
-        result = self._con.execute(query, (recipientId,)).fetchall()
-        return [row.record.getSessionState().getRemoteIdentityKey() for row in result]
+        results = self._con.execute(query, (recipientId,)).fetchall()
+
+        keys = []
+        for result in results:
+            key = result.record.getSessionState().getRemoteIdentityKey()
+            keys.append(IdentityKeyExtended(key.getPublicKey()))
+        return keys
 
     def loadPreKey(self, preKeyId):
         query = '''SELECT record FROM prekeys WHERE prekey_id = ?'''
