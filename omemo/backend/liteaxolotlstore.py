@@ -296,13 +296,19 @@ class LiteAxolotlStore(AxolotlStore):
         return self._con.execute(query).fetchall()
 
     def storeSession(self, recipientId, deviceId, sessionRecord):
-        self.deleteSession(recipientId, deviceId)
-
         query = '''INSERT INTO sessions(recipient_id, device_id, record)
                    VALUES(?,?,?)'''
-        self._con.execute(query, (recipientId,
-                                  deviceId,
-                                  sessionRecord.serialize()))
+        try:
+            self._con.execute(query, (recipientId,
+                                      deviceId,
+                                      sessionRecord.serialize()))
+        except sqlite3.IntegrityError:
+            query = '''UPDATE sessions SET record = ?
+                       WHERE recipient_id = ? AND device_id = ?'''
+            self._con.execute(query, (sessionRecord.serialize(),
+                                      recipientId,
+                                      deviceId))
+
         self._con.commit()
 
     def containsSession(self, recipientId, deviceId):
