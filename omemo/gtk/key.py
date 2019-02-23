@@ -94,6 +94,9 @@ class KeyDialog(Gtk.Dialog):
         self.show_all()
 
     def _filter_func(self, row, _user_data):
+        search_text = self._ui.search.get_text()
+        if search_text and search_text.lower() not in str(row.jid):
+            return False
         if self._show_inactive:
             return True
         return row.active
@@ -110,6 +113,9 @@ class KeyDialog(Gtk.Dialog):
         if row1.trust != row2.trust:
             return -1 if row1.trust > row2.trust else 1
         return 0
+
+    def _on_search_changed(self, _entry):
+        self._ui.list.invalidate_filter()
 
     def update(self):
         self._ui.list.foreach(self._ui.list.remove)

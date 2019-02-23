@@ -61,6 +61,20 @@ you have to install python-qrcode</property>
       </object>
     </child>
   </object>
+  <object class="GtkPopover" id="search_popover">
+    <property name="can_focus">False</property>
+    <child>
+      <object class="GtkSearchEntry" id="search">
+        <property name="visible">True</property>
+        <property name="can_focus">True</property>
+        <property name="caps_lock_warning">False</property>
+        <property name="primary_icon_name">edit-find-symbolic</property>
+        <property name="primary_icon_activatable">False</property>
+        <property name="primary_icon_sensitive">False</property>
+        <signal name="search-changed" handler="_on_search_changed" swapped="no"/>
+      </object>
+    </child>
+  </object>
   <object class="GtkGrid" id="grid">
     <property name="visible">True</property>
     <property name="can_focus">False</property>
@@ -193,7 +207,25 @@ you have to install python-qrcode</property>
       </packing>
     </child>
     <child>
-      <placeholder/>
+      <object class="GtkMenuButton">
+        <property name="visible">True</property>
+        <property name="can_focus">True</property>
+        <property name="receives_default">True</property>
+        <property name="halign">end</property>
+        <property name="valign">center</property>
+        <property name="popover">search_popover</property>
+        <child>
+          <object class="GtkImage">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="icon_name">edit-find-symbolic</property>
+          </object>
+        </child>
+      </object>
+      <packing>
+        <property name="left_attach">1</property>
+        <property name="top_attach">0</property>
+      </packing>
     </child>
   </object>
 </interface>
