@@ -112,7 +112,7 @@ you have to install python-qrcode</property>
       <object class="GtkBox">
         <property name="visible">True</property>
         <property name="can_focus">False</property>
-        <property name="halign">center</property>
+        <property name="halign">start</property>
         <property name="spacing">11</property>
         <child>
           <object class="GtkImage" id="omemo_image">
