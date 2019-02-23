@@ -80,8 +80,10 @@ class LitePreKeyStore(PreKeyStore):
         return cursor.fetchone()[0]
 
     def generateNewPreKeys(self, count):
-        startId = self.getCurrentPreKeyId() + 1
-        preKeys = KeyHelper.generatePreKeys(startId, count)
+        prekey_id = self.getCurrentPreKeyId()
+        if prekey_id is None:
+            prekey_id = 0
 
+        preKeys = KeyHelper.generatePreKeys(prekey_id + 1, count)
         for preKey in preKeys:
             self.storePreKey(preKey.getId(), preKey)
