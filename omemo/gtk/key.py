@@ -16,6 +16,7 @@
 
 import os
 import time
+import locale
 import logging
 import tempfile
 
@@ -67,6 +68,7 @@ class KeyDialog(Gtk.Dialog):
         self._plugin = plugin
         self._omemo = self._plugin.get_omemo(self._account)
         self._own_jid = app.get_jid_from_account(self._account)
+        self._show_inactive = False
 
         path = self._plugin.local_file_path('gtk/key.ui')
         self._ui = get_builder(path)
@@ -76,6 +78,9 @@ class KeyDialog(Gtk.Dialog):
         omemo_img_path = self._plugin.local_file_path('omemo.png')
         self._ui.omemo_image.set_from_file(omemo_img_path)
 
+        self._ui.list.set_filter_func(self._filter_func, None)
+        self._ui.list.set_sort_func(self._sort_func, None)
+
         self._identity_key = self._omemo.backend.storage.getIdentityKeyPair()
         ownfpr_format = get_fingerprint(self._identity_key, formatted=True)
         self._ui.own_fingerprint.set_text(ownfpr_format)
@@ -84,8 +89,27 @@ class KeyDialog(Gtk.Dialog):
 
         self.update()
         self._load_qrcode()
+        self._ui.connect_signals(self)
         self.connect('destroy', self._on_destroy)
         self.show_all()
+
+    def _filter_func(self, row, _user_data):
+        if self._show_inactive:
+            return True
+        return row.active
+
+    @staticmethod
+    def _sort_func(row1, row2, _user_data):
+        result = locale.strcoll(str(row1.jid), str(row2.jid))
+        if result != 0:
+            return result
+
+        if row1.active != row2.active:
+            return -1 if row1.active else 1
+
+        if row1.trust != row2.trust:
+            return -1 if row1.trust > row2.trust else 1
+        return 0
 
     def update(self):
         self._ui.list.foreach(self._ui.list.remove)
@@ -167,6 +191,10 @@ class KeyDialog(Gtk.Dialog):
             self._ui.qrcode.set_from_pixbuf(pixbuf)
             self._ui.qrcode.show()
             self._ui.qrinfo.hide()
+
+    def _on_show_inactive(self, switch, param):
+        self._show_inactive = switch.get_active()
+        self._ui.list.invalidate_filter()
 
     def _on_destroy(self, *args):
         del self._windows['dialog']
