@@ -17,26 +17,14 @@
 # along with OMEMO Gajim Plugin. If not, see <http://www.gnu.org/licenses/>.
 
 import logging
-import os
-
-from gi.repository import GdkPixbuf
 
 from gajim.common import app
-from gajim.common import configpaths
 from gajim.plugins.gui import GajimPluginConfigDialog
 from gajim.plugins.helpers import get_builder
 
 from omemo.backend.util import get_fingerprint
 
 log = logging.getLogger('gajim.plugin_system.omemo')
-
-PILLOW = False
-try:
-    import qrcode
-    PILLOW = True
-except ImportError as error:
-    log.debug(error)
-    log.error('python-qrcode or dependencies of it are not available')
 
 
 class OMEMOConfigDialog(GajimPluginConfigDialog):
@@ -97,27 +85,6 @@ class OMEMOConfigDialog(GajimPluginConfigDialog):
     def account_combobox_changed_cb(self, box, *args):
         self.update_context_list()
 
-    @staticmethod
-    def _get_qrcode(jid, sid, identity_key):
-        fingerprint = get_fingerprint(identity_key)
-        file_name = 'omemo_{}.png'.format(jid)
-        path = os.path.join(
-            configpaths.get('MY_DATA'), file_name)
-
-        ver_string = 'xmpp:{}?omemo-sid-{}={}'.format(jid, sid, fingerprint)
-        log.debug('Verification String: %s', ver_string)
-
-        if os.path.exists(path):
-            return path
-
-        qr = qrcode.QRCode(version=None, error_correction=2,
-                           box_size=4, border=1)
-        qr.add_data(ver_string)
-        qr.make(fit=True)
-        img = qr.make_image()
-        img.save(path)
-        return path
-
     def update_disabled_account_view(self):
         self._ui.disabled_account_store.clear()
         for account in self.disabled_accounts:
@@ -168,7 +135,6 @@ class OMEMOConfigDialog(GajimPluginConfigDialog):
             self._ui.fingerprint_label.set_markup('')
             self._ui.refresh.set_sensitive(False)
             self._ui.cleardevice_button.set_sensitive(False)
-            self._ui.qrcode.clear()
             return
         active = self._ui.account_combobox.get_active()
         account = self._ui.account_store[active][0]
@@ -192,16 +158,3 @@ class OMEMOConfigDialog(GajimPluginConfigDialog):
         # Set Device ID List
         for item in omemo.backend.get_devices(own_jid):
             self._ui.deviceid_store.append([item])
-
-        # Set QR Verification Code
-        if PILLOW:
-            path = self._get_qrcode(own_jid,
-                                    omemo.backend.own_device,
-                                    identity_key)
-            pixbuf = GdkPixbuf.Pixbuf.new_from_file(path)
-            self._ui.qrcode.set_from_pixbuf(pixbuf)
-            self._ui.qrcode.show()
-            self._ui.qrinfo.hide()
-        else:
-            self._ui.qrcode.hide()
-            self._ui.qrinfo.show()

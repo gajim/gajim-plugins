@@ -14,14 +14,17 @@
 # You should have received a copy of the GNU General Public License
 # along with OMEMO Gajim Plugin. If not, see <http://www.gnu.org/licenses/>.
 
+import os
 import time
 import logging
+import tempfile
 
 from gi.repository import Gtk
 from gi.repository import GdkPixbuf
 
 from gajim.common import app
 from gajim.plugins.plugins_i18n import _
+from gajim.plugins.helpers import get_builder
 
 from omemo.gtk.util import DialogButton, ButtonAction
 from omemo.gtk.util import NewConfirmationDialog
@@ -30,6 +33,7 @@ from omemo.backend.util import IdentityKeyExtended
 from omemo.backend.util import get_fingerprint
 
 log = logging.getLogger('gajim.plugin_system.omemo')
+
 
 TRUST_DATA = {
     Trust.NOT_TRUSTED: ('dialog-error-symbolic',
@@ -64,56 +68,27 @@ class KeyDialog(Gtk.Dialog):
         self._omemo = self._plugin.get_omemo(self._account)
         self._own_jid = app.get_jid_from_account(self._account)
 
-        # Header
-        jid = self._contact.jid
-        self._header = Gtk.Label(label=_('Fingerprints for %s') % jid)
-        self._header.get_style_context().add_class('bold')
-        self._header.get_style_context().add_class('dim-label')
+        path = self._plugin.local_file_path('gtk/key.ui')
+        self._ui = get_builder(path)
 
-        # Fingerprints list
-        self._listbox = Gtk.ListBox()
-        self._listbox.set_selection_mode(Gtk.SelectionMode.NONE)
+        self._ui.header.set_text(_('Fingerprints for %s') % self._contact.jid)
 
-        self._scrolled = Gtk.ScrolledWindow()
-        self._scrolled.set_policy(Gtk.PolicyType.NEVER,
-                                  Gtk.PolicyType.AUTOMATIC)
-        self._scrolled.add(self._listbox)
-
-        # Own fingerprint
-        self._label = Gtk.Label(label=_('Own Fingerprint'))
-        self._label.get_style_context().add_class('bold')
-        self._label.get_style_context().add_class('dim-label')
-
-        self._omemo_logo = Gtk.Image()
         omemo_img_path = self._plugin.local_file_path('omemo.png')
-        omemo_pixbuf = GdkPixbuf.Pixbuf.new_from_file(omemo_img_path)
-        self._omemo_logo.set_from_pixbuf(omemo_pixbuf)
+        self._ui.omemo_image.set_from_file(omemo_img_path)
 
-        identity_key = self._omemo.backend.storage.getIdentityKeyPair()
-        ownfpr_format = get_fingerprint(identity_key, formatted=True)
-        self._ownfpr = Gtk.Label(label=ownfpr_format)
-        self._ownfpr.get_style_context().add_class('omemo-mono')
-        self._ownfpr.set_selectable(True)
+        self._identity_key = self._omemo.backend.storage.getIdentityKeyPair()
+        ownfpr_format = get_fingerprint(self._identity_key, formatted=True)
+        self._ui.own_fingerprint.set_text(ownfpr_format)
 
-        self._ownfpr_box = Gtk.Box(spacing=12)
-        self._ownfpr_box.set_halign(Gtk.Align.CENTER)
-        self._ownfpr_box.pack_start(self._omemo_logo, True, True, 0)
-        self._ownfpr_box.pack_start(self._ownfpr, True, True, 0)
-
-        box = self.get_content_area()
-        box.set_orientation(Gtk.Orientation.VERTICAL)
-        box.set_spacing(12)
-        box.pack_start(self._header, False, True, 0)
-        box.pack_start(self._scrolled, True, True, 0)
-        box.pack_start(self._label, False, True, 0)
-        box.pack_start(self._ownfpr_box, False, True, 0)
+        self.get_content_area().add(self._ui.grid)
 
         self.update()
+        self._load_qrcode()
         self.connect('destroy', self._on_destroy)
         self.show_all()
 
     def update(self):
-        self._listbox.foreach(self._listbox.remove)
+        self._ui.list.foreach(self._ui.list.remove)
         self._load_fingerprints(self._own_jid)
         self._load_fingerprints(self._contact.jid, self._groupchat is True)
 
@@ -153,7 +128,45 @@ class KeyDialog(Gtk.Dialog):
             key_row.device_id = item.device_id
 
         for row in rows.values():
-            self._listbox.add(row)
+            self._ui.list.add(row)
+
+    @staticmethod
+    def _get_qrcode(jid, sid, identity_key):
+        fingerprint = get_fingerprint(identity_key)
+        path = os.path.join(tempfile.gettempdir(),
+                            'omemo_{}.png'.format(jid))
+
+        ver_string = 'xmpp:{}?omemo-sid-{}={}'.format(jid, sid, fingerprint)
+        log.debug('Verification String: %s', ver_string)
+
+        import qrcode
+        qr = qrcode.QRCode(version=None, error_correction=2,
+                           box_size=4, border=1)
+        qr.add_data(ver_string)
+        qr.make(fit=True)
+        qr.make()
+
+        back_color = 'transparent'
+        if app.css_config.prefer_dark:
+            back_color = 'white'
+        img = qr.make_image(fill_color='black', back_color=back_color)
+        img.save(path)
+        return path
+
+    def _load_qrcode(self):
+        try:
+            path = self._get_qrcode(self._own_jid,
+                                    self._omemo.backend.own_device,
+                                    self._identity_key)
+        except ImportError:
+            log.exception('Failed to generate QR code')
+            self._ui.qrcode.hide()
+            self._ui.qrinfo.show()
+        else:
+            pixbuf = GdkPixbuf.Pixbuf.new_from_file(path)
+            self._ui.qrcode.set_from_pixbuf(pixbuf)
+            self._ui.qrcode.show()
+            self._ui.qrinfo.hide()
 
     def _on_destroy(self, *args):
         del self._windows['dialog']

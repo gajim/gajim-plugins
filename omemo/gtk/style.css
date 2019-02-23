@@ -1,6 +1,8 @@
 .omemo-dark-success-color { color: darker(@success_color); }
 .omemo-inactive-color { color: @insensitive_fg_color; }
 
+.omemo-qr-not-available {color: red;}
+
 .omemo-mono { font-size: 12px; font-family: monospace; }
 
 .omemo-last-seen { font-size: 11px; }
