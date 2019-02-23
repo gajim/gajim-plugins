@@ -412,9 +412,8 @@ class LiteAxolotlStore(AxolotlStore):
         return self._con.execute(query).fetchone().count_prekey_id
 
     def generateNewPreKeys(self, count):
-        start_id = self.getCurrentPreKeyId() + 1
-        pre_keys = KeyHelper.generatePreKeys(start_id, count)
-
+        prekey_id = self.getCurrentPreKeyId() or 0
+        pre_keys = KeyHelper.generatePreKeys(prekey_id + 1, count)
         for pre_key in pre_keys:
             self.storePreKey(pre_key.getId(), pre_key)
 
