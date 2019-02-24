@@ -93,7 +93,7 @@ class DeviceManager:
             raise NoDevicesFound
 
         devices_for_encryption += self._get_own_devices_for_encryption()
-        return devices_for_encryption
+        return set(devices_for_encryption)
 
     def _get_devices_for_muc_encryption(self, jid):
         devices_for_encryption = []
@@ -103,8 +103,7 @@ class DeviceManager:
 
     def _get_own_devices_for_encryption(self):
         devices_for_encryption = []
-        own_devices = self.get_devices(self._own_jid)
-        own_devices.discard(self.own_device)
+        own_devices = self.get_devices(self._own_jid, without_self=True)
         for device in own_devices:
             if self._storage.isTrusted(self._own_jid, device):
                 devices_for_encryption.append((self._own_jid, device))

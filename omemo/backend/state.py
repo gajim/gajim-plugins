@@ -189,7 +189,9 @@ class OmemoState(DeviceManager):
                 log.exception('Failed to encrypt')
                 continue
 
-        recipients = set(whisper_messages.keys()) - set([self._own_jid])
+        recipients = set(whisper_messages.keys())
+        if jid != self._own_jid:
+            recipients -= set([self._own_jid])
         if not recipients:
             log.error('Encrypted keys empty')
             return
