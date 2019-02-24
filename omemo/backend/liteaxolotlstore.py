@@ -532,7 +532,7 @@ class LiteAxolotlStore(AxolotlStore):
 
     def isUntrustedIdentity(self, recipient_id, identity_key):
         return self.getTrustForIdentity(
-            recipient_id, identity_key) not in (Trust.TRUSTED, Trust.UNDECIDED)
+            recipient_id, identity_key) == Trust.UNTRUSTED
 
     def getIdentityLastSeen(self, recipient_id, identity_key):
         identity_key = identity_key.getPublicKey().serialize()
