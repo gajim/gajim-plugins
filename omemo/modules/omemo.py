@@ -29,6 +29,7 @@ from nbxmpp.const import PresenceType
 from nbxmpp.const import Affiliation
 from nbxmpp.structs import StanzaHandler
 from nbxmpp.modules.omemo import create_omemo_message
+from nbxmpp.modules.omemo import get_key_transport_message
 
 from gajim.common import app
 from gajim.common import helpers
@@ -191,6 +192,16 @@ class OMEMO(BaseModule):
 
         self._debug_print_stanza(event.msg_iq)
         callback(event)
+
+    def _send_key_transport_message(self, typ, jid, devices):
+        omemo_message = self.backend.encrypt_key_transport(jid, devices)
+        if omemo_message is None:
+            log.warning('Key transport message to %s (%s) failed', jid, devices)
+            return
+
+        transport_message = get_key_transport_message(typ, jid, omemo_message)
+        log.info('Send key transport message %s (%s)', jid, devices)
+        self._con.connection.send(transport_message)
 
     def _message_received(self, _con, stanza, properties):
         if not properties.is_omemo:

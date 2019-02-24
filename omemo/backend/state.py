@@ -33,7 +33,10 @@ from axolotl.state.prekeybundle import PreKeyBundle
 from axolotl.util.keyhelper import KeyHelper
 from axolotl.duplicatemessagexception import DuplicateMessageException
 
-from omemo.backend.aes import aes_decrypt, aes_encrypt
+from omemo.backend.aes import aes_decrypt
+from omemo.backend.aes import aes_encrypt
+from omemo.backend.aes import get_new_key
+from omemo.backend.aes import get_new_iv
 from omemo.backend.devices import DeviceManager
 from omemo.backend.devices import NoDevicesFound
 from omemo.backend.liteaxolotlstore import LiteAxolotlStore
@@ -200,6 +203,26 @@ class OmemoState(DeviceManager):
                             keys=encrypted_keys,
                             iv=result.iv,
                             payload=result.payload)
+
+    def encrypt_key_transport(self, jid, devices):
+        whisper_messages = defaultdict(dict)
+        for device in devices:
+            try:
+                whisper_messages[jid][device] = self._get_whisper_message(
+                    jid, device, get_new_key())
+            except Exception:
+                log.exception('Failed to encrypt')
+                continue
+
+        if not whisper_messages[jid]:
+            log.error('Encrypted keys empty')
+            return
+
+        log.debug('Finished Key Transport message')
+        return OMEMOMessage(sid=self.own_device,
+                            keys=whisper_messages[jid],
+                            iv=get_new_iv(),
+                            payload=None)
 
     def has_trusted_keys(self, jid):
         inactive = self._storage.getInactiveSessionsKeys(jid)

@@ -84,3 +84,11 @@ def aes_encrypt_file(data):
     key, iv, tag, payload, = _encrypt(data, 32, 16)
     payload += tag
     return EncryptionResult(payload=payload, key=key, iv=iv)
+
+
+def get_new_key():
+    return os.urandom(16)
+
+
+def get_new_iv():
+    return os.urandom(16)
