@@ -443,10 +443,13 @@ class OMEMO(BaseModule):
             app.nec.push_incoming_event(
                 NetworkEvent('omemo-new-fingerprint', chat_control=ctrl))
 
-    def set_devicelist(self):
+    def set_devicelist(self, devicelist=None):
+        devicelist_ = set([self.backend.own_device])
+        if devicelist is not None:
+            devicelist_.add(devicelist)
         log.info('%s => Publishing own devicelist: %s',
-                 self._account, self.backend.devices_for_publish)
-        self._nbxmpp('OMEMO').set_devicelist(self.backend.devices_for_publish)
+                 self._account, devicelist_)
+        self._nbxmpp('OMEMO').set_devicelist(devicelist_)
 
     def clear_devicelist(self):
         self.backend.update_devicelist(self._own_jid, [self.backend.own_device])
@@ -488,7 +491,8 @@ class OMEMO(BaseModule):
 
         log.info('%s => Received device list for %s: %s',
                  self._account, jid, devicelist)
-        self.backend.update_devicelist(jid, devicelist)
+        # Pass a copy, we need the full list for potential set_devicelist()
+        self.backend.update_devicelist(jid, list(devicelist))
 
         if jid in self._query_for_bundles:
             self._query_for_bundles.remove(jid)
@@ -497,7 +501,7 @@ class OMEMO(BaseModule):
             if not self.backend.is_own_device_published:
                 # Our own device_id is not in the list, it could be
                 # overwritten by some other client
-                self.set_devicelist()
+                self.set_devicelist(devicelist)
 
         self._check_for_missing_sessions(jid)
 
