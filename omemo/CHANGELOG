@@ -1,3 +1,9 @@
+2.6.51 / 2019-03-08
+- Fix endless devicelist update loop
+- Build sessions immediately
+- Dont allow sending message while having undecided fingerprints
+- Improve logging
+
 2.6.50 / 2019-02-24
 - Add support for key transport messages
 - Bug Fixes
