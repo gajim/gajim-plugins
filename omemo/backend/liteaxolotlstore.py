@@ -497,6 +497,12 @@ class LiteAxolotlStore(AxolotlStore):
 
         return self._con.execute(query, jids).fetchall()
 
+    def hasUndecidedFingerprints(self, jid):
+        query = '''SELECT public_key as "public_key [pk]" FROM identities
+                   WHERE recipient_id = ? AND trust = ?'''
+        result = self._con.execute(query, (jid, Trust.UNDECIDED)).fetchall()
+        return True if result else False
+
     def getTrustedFingerprints(self, jid):
         query = '''SELECT public_key as "public_key [pk]" FROM identities
                    WHERE recipient_id = ? AND trust = ?'''

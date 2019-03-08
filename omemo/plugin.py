@@ -75,6 +75,7 @@ if not ERROR_MSG:
 class UserMessages(IntEnum):
     QUERY_DEVICES = 0
     NO_FINGERPRINTS = 1
+    UNDECIDED_FINGERPRINTS = 2
 
 
 class OmemoPlugin(GajimPlugin):
@@ -258,16 +259,16 @@ class OmemoPlugin(GajimPlugin):
                 self.print_message(chat_control, UserMessages.NO_FINGERPRINTS)
         else:
             # check if we have devices for the contact
-            if not omemo.backend.get_devices(contact.jid):
+            if not omemo.backend.get_devices(contact.jid, without_self=True):
                 omemo.request_devicelist(contact.jid, True)
                 self.print_message(chat_control, UserMessages.QUERY_DEVICES)
                 chat_control.sendmessage = False
                 return
             # check if bundles are missing for some devices
-            if omemo.are_keys_missing(contact.jid):
-                log.info('%s => No Trusted Fingerprints for %s',
+            if omemo.backend.storage.hasUndecidedFingerprints(contact.jid):
+                log.info('%s => Undecided Fingerprints for %s',
                          account, contact.jid)
-                self.print_message(chat_control, UserMessages.NO_FINGERPRINTS)
+                self.print_message(chat_control, UserMessages.UNDECIDED_FINGERPRINTS)
                 chat_control.sendmessage = False
             else:
                 log.debug('%s => Sending Message to %s',
@@ -323,6 +324,8 @@ class OmemoPlugin(GajimPlugin):
         elif kind == UserMessages.NO_FINGERPRINTS:
             msg = _('To send an encrypted message, you have to '
                     'first trust the fingerprint of your contact!')
+        elif kind == UserMessages.UNDECIDED_FINGERPRINTS:
+            msg = _('You have undecided fingerprints')
         if msg is None:
             return
         chat_control.print_conversation_line(msg, 'status', '', None)

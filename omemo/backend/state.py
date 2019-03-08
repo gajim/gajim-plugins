@@ -88,7 +88,7 @@ class OmemoState(DeviceManager):
                                      ik)
 
         session.processPreKeyBundle(prekey_bundle)
-        return self._get_session_cipher(jid, device_id)
+        self._get_session_cipher(jid, device_id)
 
     @property
     def storage(self):

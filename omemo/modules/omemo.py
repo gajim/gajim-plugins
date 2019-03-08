@@ -110,6 +110,7 @@ class OMEMO(BaseModule):
         self._omemo_groupchats = set()
         self._muc_temp_store = {}
         self._query_for_bundles = []
+        self._device_bundle_querys = []
         self._query_for_devicelists = []
 
     def get_own_jid(self, stripped=False):
@@ -356,6 +357,14 @@ class OMEMO(BaseModule):
             self._omemo_groupchats.add(room)
             log.info('Room config change: non-anonymous')
 
+    def _check_for_missing_sessions(self, jid):
+        devices_without_session = self.backend.devices_without_sessions(jid)
+        for device_id in devices_without_session:
+            if device_id in self._device_bundle_querys:
+                continue
+            self._device_bundle_querys.append(device_id)
+            self.request_bundle(jid, device_id)
+
     def are_keys_missing(self, contact_jid):
         """ Checks if devicekeys are missing and queries the
             bundles
@@ -420,16 +429,19 @@ class OMEMO(BaseModule):
                      self._account, jid, device_id, bundle)
             return
 
-        if self.backend.build_session(jid, device_id, bundle):
-            log.info('%s => session created for: %s',
-                     self._account, jid)
-            # Trigger dialog to trust new Fingerprints if
-            # the Chat Window is Open
-            ctrl = app.interface.msg_win_mgr.get_control(
-                jid, self._account)
-            if ctrl:
-                app.nec.push_incoming_event(
-                    NetworkEvent('omemo-new-fingerprint', chat_control=ctrl))
+        self.backend.build_session(jid, device_id, bundle)
+        log.info('%s => session created for: %s',
+                 self._account, jid)
+        # TODO: In MUC we should send a groupchat message
+        self._send_key_transport_message('chat', jid, [device_id])
+
+        # Trigger dialog to trust new Fingerprints if
+        # the Chat Window is Open
+        ctrl = app.interface.msg_win_mgr.get_control(
+            jid, self._account)
+        if ctrl:
+            app.nec.push_incoming_event(
+                NetworkEvent('omemo-new-fingerprint', chat_control=ctrl))
 
     def set_devicelist(self):
         log.info('%s => Publishing own devicelist: %s',
@@ -440,24 +452,26 @@ class OMEMO(BaseModule):
         self.backend.update_devicelist(self._own_jid, [self.backend.own_device])
         self.set_devicelist()
 
-    def request_devicelist(self, jid=None, fetch_bundle=False):
+    def request_devicelist(self, jid=None):
+        if jid is None:
+            jid = self._own_jid
+
         if jid in self._query_for_devicelists:
             return
 
         self._nbxmpp('OMEMO').request_devicelist(
             jid,
             callback=self._devicelist_received,
-            user_data=(jid, fetch_bundle))
+            user_data=jid)
         self._query_for_devicelists.append(jid)
 
-    def _devicelist_received(self, devicelist, user_data):
-        jid, fetch_bundle = user_data
+    def _devicelist_received(self, devicelist, jid):
         if is_error_result(devicelist):
             log.info('%s => Devicelist request failed: %s %s',
                      self._account, jid, devicelist)
             devicelist = []
 
-        self._process_devicelist_update(jid, devicelist, fetch_bundle)
+        self._process_devicelist_update(jid, devicelist)
 
     @event_node(nbxmpp.NS_OMEMO_TEMP_DL)
     def _devicelist_notification_received(self, _con, _stanza, properties):
@@ -465,9 +479,9 @@ class OMEMO(BaseModule):
         if not properties.pubsub_event.empty:
             devicelist = properties.pubsub_event.data
 
-        self._process_devicelist_update(str(properties.jid), devicelist, False)
+        self._process_devicelist_update(str(properties.jid), devicelist)
 
-    def _process_devicelist_update(self, jid, devicelist, fetch_bundle):
+    def _process_devicelist_update(self, jid, devicelist):
         own_devices = jid is None or self._con.get_own_jid().bareMatch(jid)
         if own_devices:
             jid = self._own_jid
@@ -485,8 +499,7 @@ class OMEMO(BaseModule):
                 # overwritten by some other client
                 self.set_devicelist()
 
-        elif fetch_bundle:
-            self.are_keys_missing(jid)
+        self._check_for_missing_sessions(jid)
 
     @staticmethod
     def _debug_print_stanza(stanza):
