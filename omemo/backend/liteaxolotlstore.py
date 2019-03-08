@@ -16,7 +16,6 @@
 # along with OMEMO Gajim Plugin. If not, see <http://www.gnu.org/licenses/>.
 
 import time
-import logging
 import sqlite3
 from collections import namedtuple
 
@@ -34,9 +33,6 @@ from axolotl.util.keyhelper import KeyHelper
 from omemo.backend.util import Trust
 from omemo.backend.util import IdentityKeyExtended
 from omemo.backend.util import DEFAULT_PREKEY_AMOUNT
-
-
-log = logging.getLogger('gajim.plugin_system.omemo')
 
 
 def _convert_to_string(text):
@@ -59,7 +55,8 @@ sqlite3.register_converter('session_record', _convert_record)
 
 
 class LiteAxolotlStore(AxolotlStore):
-    def __init__(self, db_path):
+    def __init__(self, db_path, log):
+        self._log = log
         self._con = sqlite3.connect(db_path,
                                     detect_types=sqlite3.PARSE_COLNAMES)
         self._con.text_factory = bytes
@@ -77,7 +74,7 @@ class LiteAxolotlStore(AxolotlStore):
         self._con.commit()
 
         if not self.getLocalRegistrationId():
-            log.info("Generating OMEMO keys")
+            self._log.info("Generating OMEMO keys")
             self._generate_axolotl_keys()
 
     @staticmethod
@@ -318,7 +315,7 @@ class LiteAxolotlStore(AxolotlStore):
         return result is not None
 
     def deleteSession(self, recipientId, deviceId):
-        log.info('Delete session for %s %s', recipientId, deviceId)
+        self._log.info('Delete session for %s %s', recipientId, deviceId)
         query = "DELETE FROM sessions WHERE recipient_id = ? AND device_id = ?"
         self._con.execute(query, (recipientId, deviceId))
         self._con.commit()
@@ -551,7 +548,7 @@ class LiteAxolotlStore(AxolotlStore):
     def setIdentityLastSeen(self, recipient_id, identity_key):
         timestamp = int(time.time())
         identity_key = identity_key.getPublicKey().serialize()
-        log.info('Set last seen for %s %s', recipient_id, timestamp)
+        self._log.info('Set last seen for %s %s', recipient_id, timestamp)
         query = '''UPDATE identities SET timestamp = ?
                    WHERE recipient_id = ? AND public_key = ?'''
         self._con.execute(query, (timestamp, recipient_id, identity_key))

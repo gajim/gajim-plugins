@@ -16,6 +16,7 @@
 
 import binascii
 import textwrap
+from logging import LoggerAdapter
 from enum import IntEnum
 
 from axolotl.identitykey import IdentityKey
@@ -53,4 +54,3 @@ class IdentityKeyExtended(IdentityKey):
 
     def get_fingerprint(self, formatted=False):
         return get_fingerprint(self, formatted=formatted)
-    

@@ -15,7 +15,6 @@
 # You should have received a copy of the GNU General Public License
 # along with OMEMO Gajim Plugin. If not, see <http://www.gnu.org/licenses/>.
 
-import logging
 import time
 from collections import defaultdict
 
@@ -48,23 +47,20 @@ from omemo.backend.util import SPK_ARCHIVE_TIME
 from omemo.backend.util import UNACKNOWLEDGED_COUNT
 
 
-log = logging.getLogger('gajim.plugin_system.omemo')
-
-
 class OmemoState(DeviceManager):
     def __init__(self, own_jid, db_path, account, xmpp_con):
         self._account = account
         self._own_jid = own_jid
+        self._log = xmpp_con._log
         self._session_ciphers = defaultdict(dict)
-        self._storage = LiteAxolotlStore(db_path)
+        self._storage = LiteAxolotlStore(db_path, self._log)
 
         DeviceManager.__init__(self)
 
         self.xmpp_con = xmpp_con
 
-        log.info('%s => %s PreKeys available',
-                 self._account,
-                 self._storage.getPreKeyCount())
+        self._log.info('%s PreKeys available',
+                       self._storage.getPreKeyCount())
 
     def build_session(self, jid, device_id, bundle):
         session = SessionBuilder(self._storage, self._storage, self._storage,
@@ -122,13 +118,13 @@ class OmemoState(DeviceManager):
 
     def decrypt_message(self, omemo_message, jid):
         if omemo_message.sid == self.own_device:
-            log.info('Received previously sent message by us')
+            self._log.info('Received previously sent message by us')
             raise SelfMessage
 
         try:
             encrypted_key, prekey = omemo_message.keys[self.own_device]
         except KeyError:
-            log.info('Received message not for our device')
+            self._log.info('Received message not for our device')
             raise MessageNotForDevice
 
         try:
@@ -140,23 +136,23 @@ class OmemoState(DeviceManager):
                     jid, omemo_message.sid, encrypted_key)
 
         except SenderNotTrusted:
-            log.info('Sender not trusted, ignore message')
+            self._log.info('Sender not trusted, ignore message')
             raise
 
         except DuplicateMessageException:
-            log.info('Received duplicated message')
+            self._log.info('Received duplicated message')
             raise DuplicateMessage
 
         except Exception as error:
-            log.warning(error)
+            self._log.warning(error)
             raise DecryptionFailed
 
         if omemo_message.payload is None:
-            log.debug("Decrypted Key Exchange Message")
+            self._log.debug("Decrypted Key Exchange Message")
             raise KeyExchangeMessage
 
         result = aes_decrypt(key, omemo_message.iv, omemo_message.payload)
-        log.debug("Decrypted Message => %s", result)
+        self._log.debug("Decrypted Message => %s", result)
         return result, fingerprint
 
     def _get_whisper_message(self, jid, device, key):
@@ -169,7 +165,7 @@ class OmemoState(DeviceManager):
         try:
             devices_for_encryption = self.get_devices_for_encryption(jid)
         except NoDevicesFound:
-            log.warning('No devices for encryption found for: %s', jid)
+            self._log.warning('No devices for encryption found for: %s', jid)
             return
 
         result = aes_encrypt(plaintext)
@@ -178,29 +174,29 @@ class OmemoState(DeviceManager):
         for jid_, device in devices_for_encryption:
             count = self._storage.getUnacknowledgedCount(jid_, device)
             if count >= UNACKNOWLEDGED_COUNT:
-                log.warning('Set device inactive %s because of %s '
-                            'unacknowledged messages', device, count)
+                self._log.warning('Set device inactive %s because of %s '
+                                  'unacknowledged messages', device, count)
                 self.remove_device(jid_, device)
 
             try:
                 whisper_messages[jid_][device] = self._get_whisper_message(
                     jid_, device, result.key)
             except Exception:
-                log.exception('Failed to encrypt')
+                self._log.exception('Failed to encrypt')
                 continue
 
         recipients = set(whisper_messages.keys())
         if jid != self._own_jid:
             recipients -= set([self._own_jid])
         if not recipients:
-            log.error('Encrypted keys empty')
+            self._log.error('Encrypted keys empty')
             return
 
         encrypted_keys = {}
         for jid_ in whisper_messages:
             encrypted_keys.update(whisper_messages[jid_])
 
-        log.debug('Finished encrypting message')
+        self._log.debug('Finished encrypting message')
         return OMEMOMessage(sid=self.own_device,
                             keys=encrypted_keys,
                             iv=result.iv,
@@ -213,14 +209,14 @@ class OmemoState(DeviceManager):
                 whisper_messages[jid][device] = self._get_whisper_message(
                     jid, device, get_new_key())
             except Exception:
-                log.exception('Failed to encrypt')
+                self._log.exception('Failed to encrypt')
                 continue
 
         if not whisper_messages[jid]:
-            log.error('Encrypted keys empty')
+            self._log.error('Encrypted keys empty')
             return
 
-        log.debug('Finished Key Transport message')
+        self._log.debug('Finished Key Transport message')
         return OMEMOMessage(sid=self.own_device,
                             keys=whisper_messages[jid],
                             iv=get_new_iv(),
@@ -237,8 +233,8 @@ class OmemoState(DeviceManager):
                            for dev in known_devices
                            if not self._storage.containsSession(jid, dev)]
         if missing_devices:
-            log.info('%s => Missing device sessions for %s: %s',
-                     self._account, jid, missing_devices)
+            self._log.info('Missing device sessions for %s: %s',
+                           jid, missing_devices)
         return missing_devices
 
     def _get_session_cipher(self, jid, device_id):
@@ -262,8 +258,7 @@ class OmemoState(DeviceManager):
 
         session_cipher = self._get_session_cipher(jid, device)
 
-        log.info('%s => Process pre key message from %s',
-                 self._account, jid)
+        self._log.info('Process pre key message from %s', jid)
         key = session_cipher.decryptPkmsg(pre_key_message)
         fingerprint = get_fingerprint(identity_key)
 
@@ -275,7 +270,7 @@ class OmemoState(DeviceManager):
 
     def _process_message(self, jid, device, key):
         message = WhisperMessage(serialized=key)
-        log.info('%s => Process message from %s', self._account, jid)
+        self._log.info('Process message from %s', jid)
 
         session_cipher = self._get_session_cipher(jid, device)
         key = session_cipher.decryptMsg(message, textMsg=False)
@@ -299,7 +294,7 @@ class OmemoState(DeviceManager):
         if pre_key_count < MIN_PREKEY_AMOUNT:
             missing_count = DEFAULT_PREKEY_AMOUNT - pre_key_count
             self._storage.generateNewPreKeys(missing_count)
-            log.info('%s => %s PreKeys created', self._account, missing_count)
+            self._log.info('%s PreKeys created', missing_count)
 
     def _cycle_signed_pre_key(self, ik_pair):
         # Publish every SPK_CYCLE_TIME a new SignedPreKey
@@ -311,8 +306,7 @@ class OmemoState(DeviceManager):
             spk = KeyHelper.generateSignedPreKey(
                 ik_pair, self._storage.getNextSignedPreKeyId())
             self._storage.storeSignedPreKey(spk.getId(), spk)
-            log.debug('%s => New SignedPreKey created, because none existed',
-                      self._account)
+            self._log.debug('New SignedPreKey created, because none existed')
 
         # if SPK_CYCLE_TIME is reached, generate a new SignedPreKey
         now = int(time.time())
@@ -323,7 +317,7 @@ class OmemoState(DeviceManager):
             spk = KeyHelper.generateSignedPreKey(
                 ik_pair, self._storage.getNextSignedPreKeyId())
             self._storage.storeSignedPreKey(spk.getId(), spk)
-            log.debug('%s => Cycled SignedPreKey', self._account)
+            self._log.debug('Cycled SignedPreKey')
 
         # Delete all SignedPreKeys that are older than SPK_ARCHIVE_TIME
         timestamp = now - SPK_ARCHIVE_TIME

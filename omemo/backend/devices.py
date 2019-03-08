@@ -14,14 +14,11 @@
 # You should have received a copy of the GNU General Public License
 # along with OMEMO Gajim Plugin. If not, see <http://www.gnu.org/licenses/>.
 
-import logging
 from collections import defaultdict
 
 from gajim.common import app
 
 from omemo.backend.util import UNACKNOWLEDGED_COUNT
-
-log = logging.getLogger('gajim.plugin_system.omemo')
 
 
 class DeviceManager:
@@ -34,10 +31,10 @@ class DeviceManager:
             raise ValueError('No own device found')
         self.__own_device = (reg_id % 2147483646) + 1
         self.add_device(self._own_jid, self.__own_device)
-        log.info('Our device id: %s', self.__own_device)
+        self._log.info('Our device id: %s', self.__own_device)
 
         for jid, device in self._storage.getActiveDeviceTuples():
-            log.info('Load device from storage: %s - %s', jid, device)
+            self._log.info('Load device from storage: %s - %s', jid, device)
             self.add_device(jid, device)
 
     def update_devicelist(self, jid, devicelist):
@@ -46,20 +43,20 @@ class DeviceManager:
                 continue
             count = self._storage.getUnacknowledgedCount(jid, device)
             if count > UNACKNOWLEDGED_COUNT:
-                log.warning('Ignore device because of %s unacknowledged'
-                            ' messages: %s %s', count, jid, device)
+                self._log.warning('Ignore device because of %s unacknowledged'
+                                  ' messages: %s %s', count, jid, device)
                 devicelist.remove(device)
 
         self.__device_store[jid] = set(devicelist)
-        log.info('Saved devices for %s', jid)
+        self._log.info('Saved devices for %s', jid)
         self._storage.setActiveState(jid, devicelist)
 
     def add_muc_member(self, room_jid, jid):
-        log.info('Saved MUC member %s %s', room_jid, jid)
+        self._log.info('Saved MUC member %s %s', room_jid, jid)
         self.__muc_member_store[room_jid].add(jid)
 
     def remove_muc_member(self, room_jid, jid):
-        log.info('Removed MUC member %s %s', room_jid, jid)
+        self._log.info('Removed MUC member %s %s', room_jid, jid)
         self.__muc_member_store[room_jid].discard(jid)
 
     def get_muc_members(self, room_jid, without_self=True):
