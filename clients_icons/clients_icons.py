@@ -20,7 +20,7 @@ from gajim.common import caps_cache
 from gajim.gtk.util import load_icon
 
 
-log = logging.getLogger('gajim.plugin_system.client_icons')
+log = logging.getLogger('gajim.p.client_icons')
 
 
 class ClientsIconsPlugin(GajimPlugin):

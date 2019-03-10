@@ -31,7 +31,7 @@ from gajim.plugins.plugins_i18n import _
 from acronyms_expander.acronyms import DEFAULT_DATA
 from acronyms_expander.gtk.config import ConfigDialog
 
-log = logging.getLogger('gajim.plugin_system.acronyms')
+log = logging.getLogger('gajim.p.acronyms')
 
 
 class AcronymsExpanderPlugin(GajimPlugin):

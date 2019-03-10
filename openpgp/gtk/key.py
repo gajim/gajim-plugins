@@ -27,7 +27,7 @@ from gajim.plugins.plugins_i18n import _
 
 from openpgp.modules.util import Trust
 
-log = logging.getLogger('gajim.plugin_system.openpgp.keydialog')
+log = logging.getLogger('gajim.p.openpgp.keydialog')
 
 TRUST_DATA = {
     Trust.NOT_TRUSTED: ('dialog-error-symbolic',

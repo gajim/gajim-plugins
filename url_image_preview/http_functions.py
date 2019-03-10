@@ -28,7 +28,7 @@ from gajim.plugins.plugins_i18n import _
 if os.name == 'nt':
     import certifi
 
-log = logging.getLogger('gajim.plugin_system.preview.http_functions')
+log = logging.getLogger('gajim.p.preview.http_functions')
 
 def get_http_head(account, url, verify):
     return _get_http_head_direct(url, verify)

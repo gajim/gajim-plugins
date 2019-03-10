@@ -27,7 +27,7 @@ from gajim.plugins.plugins_i18n import _
 from form_handler.gtk.util import get_button
 from form_handler.gtk.form import FormDialog
 
-log = logging.getLogger('gajim.plugin_system.form_handler')
+log = logging.getLogger('gajim.p.form_handler')
 
 
 class FormHandlerPlugin(GajimPlugin):

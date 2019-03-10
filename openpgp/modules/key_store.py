@@ -18,7 +18,7 @@ import logging
 
 from openpgp.modules.util import Trust
 
-log = logging.getLogger('gajim.plugin_system.openpgp.store')
+log = logging.getLogger('gajim.p.openpgp.store')
 
 
 class KeyData:

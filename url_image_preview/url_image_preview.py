@@ -46,7 +46,7 @@ from gajim.gtk.filechoosers import FileSaveDialog
 from gajim.gtk.util import get_cursor
 
 
-log = logging.getLogger('gajim.plugin_system.preview')
+log = logging.getLogger('gajim.p.preview')
 
 ERROR_MSG = None
 try:

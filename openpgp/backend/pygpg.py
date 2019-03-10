@@ -24,7 +24,7 @@ from gajim.common import app
 
 from openpgp.modules.util import DecryptionFailed
 
-log = logging.getLogger('gajim.plugin_system.openpgp.pygnupg')
+log = logging.getLogger('gajim.p.openpgp.pygnupg')
 
 KeyringItem = namedtuple('KeyringItem', 'jid keyid fingerprint')
 

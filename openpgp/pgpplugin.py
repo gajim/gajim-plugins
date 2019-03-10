@@ -42,7 +42,7 @@ except ImportError as e:
 else:
     ERROR_MSG = None
 
-log = logging.getLogger('gajim.plugin_system.openpgp')
+log = logging.getLogger('gajim.p.openpgp')
 
 
 class OpenPGPPlugin(GajimPlugin):

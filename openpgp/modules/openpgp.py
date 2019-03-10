@@ -46,7 +46,7 @@ from openpgp.backend.sql import Storage
 from openpgp.backend.pygpg import PGPContext
 
 
-log = logging.getLogger('gajim.plugin_system.openpgp')
+log = logging.getLogger('gajim.p.openpgp')
 
 
 # Module name

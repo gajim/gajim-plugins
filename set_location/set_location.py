@@ -19,7 +19,7 @@ from gajim import gtkgui_helpers
 from gajim.gtk.dialogs import InputDialog, WarningDialog
 
 
-log = logging.getLogger('gajim.plugin_system.set_location')
+log = logging.getLogger('gajim.p.set_location')
 
 CHAMPLAIN_AVAILABLE = True
 

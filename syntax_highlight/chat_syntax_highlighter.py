@@ -11,7 +11,7 @@ from .gtkformatter import GTKFormatter
 from .types import MatchType, LineBreakOptions, CodeMarkerOptions
 
 
-log = logging.getLogger('gajim.plugin_system.syntax_highlight')
+log = logging.getLogger('gajim.p.syntax_highlight')
 
 class ChatSyntaxHighlighter:
     def hide_code_markup(self, buf, start, end):

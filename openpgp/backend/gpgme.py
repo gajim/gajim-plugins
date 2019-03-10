@@ -26,7 +26,7 @@ from gajim.common import app
 KeyringItem = namedtuple('KeyringItem',
                          'type keyid userid fingerprint')
 
-log = logging.getLogger('gajim.plugin_system.openpgp.pgpme')
+log = logging.getLogger('gajim.p.openpgp.pgpme')
 
 
 class PGPContext():

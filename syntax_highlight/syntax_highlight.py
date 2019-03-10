@@ -13,7 +13,7 @@ from gajim.plugins import GajimPlugin
 from .types import MatchType, LineBreakOptions, CodeMarkerOptions, \
                     PLUGIN_INTERNAL_NONE_LEXER_ID
 
-log = logging.getLogger('gajim.plugin_system.syntax_highlight')
+log = logging.getLogger('gajim.p.syntax_highlight')
 
 def try_loading_pygments():
     success = find_module('pygments') is not None

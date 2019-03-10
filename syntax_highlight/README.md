@@ -103,7 +103,7 @@ for this plugin and/or filter log messages.
 
 Run
 ```
-gajim --loglevel gajim.plugin_system.syntax_highlight=DEBUG
+gajim --loglevel gajim.p.syntax_highlight=DEBUG
 ```
 in a terminal to display the debug messages.
 

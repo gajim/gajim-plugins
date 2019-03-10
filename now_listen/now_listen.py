@@ -12,7 +12,7 @@ from gajim.plugins.plugins_i18n import _
 from gajim.common.dbus.music_track import MusicTrackListener
 
 
-log = logging.getLogger('gajim.plugin_system.now_listen')
+log = logging.getLogger('gajim.p.now_listen')
 
 
 class NowListenPlugin(GajimPlugin):

@@ -20,7 +20,7 @@ from collections import namedtuple
 
 from nbxmpp import JID
 
-log = logging.getLogger('gajim.plugin_system.openpgp.sql')
+log = logging.getLogger('gajim.p.openpgp.sql')
 
 TABLE_LAYOUT = '''
     CREATE TABLE contacts (

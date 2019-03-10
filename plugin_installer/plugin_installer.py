@@ -50,7 +50,7 @@ from gajim.gtk.dialogs import YesNoDialog
 from gajim.gtk.dialogs import ConfirmationDialogCheck
 from gajim.gtkgui_helpers import get_action
 
-log = logging.getLogger('gajim.plugin_system.plugin_installer')
+log = logging.getLogger('gajim.p.plugin_installer')
 
 PLUGINS_URL = 'https://ftp.gajim.org/plugins_master_zip/'
 MANIFEST_URL = 'https://ftp.gajim.org/plugins_master_zip/manifests.zip'

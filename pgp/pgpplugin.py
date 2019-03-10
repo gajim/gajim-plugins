@@ -36,7 +36,7 @@ from gajim.gtk.dialogs import ErrorDialog
 from gajim.gtk.dialogs import InformationDialog
 from gajim.gtk.dialogs import YesNoDialog
 
-log = logging.getLogger('gajim.plugin_system.oldpgp')
+log = logging.getLogger('gajim.p.oldpgp')
 
 ERROR_MSG = ''
 if not app.is_installed('GPG'):

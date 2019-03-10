@@ -5,7 +5,7 @@ from gi.repository import Pango
 
 from pygments.formatter import Formatter
 from gajim.plugins.helpers import log
-log = logging.getLogger('gajim.plugin_system.syntax_highlight')
+log = logging.getLogger('gajim.p.syntax_highlight')
 
 class GTKFormatter(Formatter):
     name = 'GTK Formatter'

@@ -27,7 +27,7 @@ from gajim.plugins import GajimPlugin
 from gajim.plugins.plugins_i18n import _
 
 
-log = logging.getLogger('gajim.plugin_system.birthday')
+log = logging.getLogger('gajim.p.birthday')
 
 TITLE = _('%s has birthday today')
 TEXT = _('Send him a message')

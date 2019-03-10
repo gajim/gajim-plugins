@@ -42,7 +42,7 @@ from omemo.backend.aes import aes_decrypt_file
 if sys.platform in ('win32', 'darwin'):
     import certifi
 
-log = logging.getLogger('gajim.plugin_system.omemo.filedecryption')
+log = logging.getLogger('gajim.p.omemo.filedecryption')
 
 DIRECTORY = os.path.join(configpaths.get('MY_DATA'), 'downloads')
 
