@@ -44,7 +44,7 @@ PROTOBUF_MISSING = "OMEMO can't import Google Protobuf, you can find help in " \
 ERROR_MSG = ''
 
 
-log = logging.getLogger('gajim.plugin_system.omemo')
+log = logging.getLogger('gajim.p.omemo')
 if log.getEffectiveLevel() == logging.DEBUG:
     log_axolotl = logging.getLogger('axolotl')
     log_axolotl.setLevel(logging.DEBUG)

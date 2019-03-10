@@ -24,7 +24,7 @@ from gajim.plugins.helpers import get_builder
 
 from omemo.backend.util import get_fingerprint
 
-log = logging.getLogger('gajim.plugin_system.omemo')
+log = logging.getLogger('gajim.p.omemo')
 
 
 class OMEMOConfigDialog(GajimPluginConfigDialog):

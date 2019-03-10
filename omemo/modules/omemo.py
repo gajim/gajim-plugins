@@ -18,7 +18,6 @@
 
 import os
 import time
-import logging
 
 import nbxmpp
 from nbxmpp.protocol import NodeProcessed
@@ -67,8 +66,6 @@ ALLOWED_TAGS = [
     ('origin-id', nbxmpp.NS_SID),
 ]
 
-log = logging.getLogger('gajim.plugin_system.omemo')
-
 ENCRYPTION_NAME = 'OMEMO'
 
 # Module name
@@ -87,7 +84,7 @@ class OMEMO(BaseModule):
     ]
 
     def __init__(self, con):
-        BaseModule.__init__(self, con, log)
+        BaseModule.__init__(self, con, plugin=True)
 
         self.handlers = [
             StanzaHandler(name='message',

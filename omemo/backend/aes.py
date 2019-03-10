@@ -24,7 +24,7 @@ from cryptography.hazmat.primitives.ciphers import algorithms
 from cryptography.hazmat.primitives.ciphers.modes import GCM
 from cryptography.hazmat.backends import default_backend
 
-log = logging.getLogger('gajim.plugin_system.omemo')
+log = logging.getLogger('gajim.p.omemo')
 
 EncryptionResult = namedtuple('EncryptionResult', 'payload key iv')
 

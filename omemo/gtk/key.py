@@ -33,7 +33,7 @@ from omemo.gtk.util import Trust
 from omemo.backend.util import IdentityKeyExtended
 from omemo.backend.util import get_fingerprint
 
-log = logging.getLogger('gajim.plugin_system.omemo')
+log = logging.getLogger('gajim.p.omemo')
 
 
 TRUST_DATA = {
