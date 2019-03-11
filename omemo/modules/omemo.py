@@ -437,7 +437,7 @@ class OMEMO(BaseModule):
     def set_devicelist(self, devicelist=None):
         devicelist_ = set([self.backend.own_device])
         if devicelist is not None:
-            devicelist_.add(devicelist)
+            devicelist_.update(devicelist)
         self._log.info('Publishing own devicelist: %s', devicelist_)
         self._nbxmpp('OMEMO').set_devicelist(devicelist_)
 
