@@ -29,7 +29,8 @@ class DeviceManager:
         reg_id = self._storage.getLocalRegistrationId()
         if reg_id is None:
             raise ValueError('No own device found')
-        self.__own_device = (reg_id % 2147483646) + 1
+
+        self.__own_device = reg_id
         self.add_device(self._own_jid, self.__own_device)
         self._log.info('Our device id: %s', self.__own_device)
 

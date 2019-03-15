@@ -95,7 +95,7 @@ class LiteAxolotlStore(AxolotlStore):
 
     def _generate_axolotl_keys(self):
         identity_key_pair = KeyHelper.generateIdentityKeyPair()
-        registration_id = KeyHelper.generateRegistrationId()
+        registration_id = KeyHelper.getRandomSequence(max=2147483647)
         pre_keys = KeyHelper.generatePreKeys(KeyHelper.getRandomSequence(),
                                              DEFAULT_PREKEY_AMOUNT)
         self.storeLocalData(registration_id, identity_key_pair)
@@ -115,9 +115,12 @@ class LiteAxolotlStore(AxolotlStore):
         if self.user_version() == 0:
 
             create_tables = '''
+                CREATE TABLE IF NOT EXISTS secret (
+                    device_id INTEGER, public_key BLOB, private_key BLOB);
+
                 CREATE TABLE IF NOT EXISTS identities (
                     _id INTEGER PRIMARY KEY AUTOINCREMENT, recipient_id TEXT,
-                    registration_id INTEGER, public_key BLOB, private_key BLOB,
+                    registration_id INTEGER, public_key BLOB,
                     timestamp INTEGER, trust INTEGER,
                     shown INTEGER DEFAULT 0);
 
@@ -145,7 +148,7 @@ class LiteAxolotlStore(AxolotlStore):
             create_db_sql = """
                 BEGIN TRANSACTION;
                 %s
-                PRAGMA user_version=5;
+                PRAGMA user_version=6;
                 END TRANSACTION;
                 """ % (create_tables)
             self._con.executescript(create_db_sql)
@@ -217,6 +220,26 @@ class LiteAxolotlStore(AxolotlStore):
                     PRAGMA user_version=5;
                     END TRANSACTION;
                 """ % (add_timestamp))
+
+        if self.user_version() < 6:
+            # Move secret data into own table
+            # We add +1 to registration id because we did that in other code in
+            # earlier versions. On this migration we correct this mistake now.
+            move = """
+                CREATE TABLE IF NOT EXISTS secret (
+                    device_id INTEGER, public_key BLOB, private_key BLOB);
+                INSERT INTO secret (device_id, public_key, private_key)
+                SELECT registration_id + 1, public_key, private_key 
+                FROM identities
+                WHERE recipient_id = -1;
+            """
+
+            self._con.executescript(
+                """ BEGIN TRANSACTION;
+                    %s
+                    PRAGMA user_version=6;
+                    END TRANSACTION;
+                """ % move)
 
     def loadSignedPreKey(self, signedPreKeyId):
         query = 'SELECT record FROM signed_prekeys WHERE prekey_id = ?'
@@ -416,25 +439,31 @@ class LiteAxolotlStore(AxolotlStore):
 
     def getIdentityKeyPair(self):
         query = '''SELECT public_key as "public_key [pk]", private_key
-                   FROM identities WHERE recipient_id = -1'''
+                   FROM secret LIMIT 1'''
         result = self._con.execute(query).fetchone()
 
         return IdentityKeyPair(result.public_key,
                                DjbECPrivateKey(result.private_key))
 
     def getLocalRegistrationId(self):
-        query = 'SELECT registration_id FROM identities WHERE recipient_id = -1'
+        query = 'SELECT device_id FROM secret LIMIT 1'
         result = self._con.execute(query).fetchone()
-        return result.registration_id if result is not None else None
+        return result.device_id if result is not None else None
 
-    def storeLocalData(self, registrationId, identityKeyPair):
-        query = '''INSERT INTO identities(
-                   recipient_id, registration_id, public_key, private_key) 
-                   VALUES(-1, ?, ?, ?)'''
+    def storeLocalData(self, device_id, identityKeyPair):
+        query = 'SELECT * FROM secret'
+        result = self._con.execute(query).fetchone()
+        if result is not None:
+            self._log.error('Trying to save secret key into '
+                            'non-empty secret table')
+            return
+
+        query = '''INSERT INTO secret(device_id, public_key, private_key)
+                   VALUES(?, ?, ?)'''
 
         public_key = identityKeyPair.getPublicKey().getPublicKey().serialize()
         private_key = identityKeyPair.getPrivateKey().serialize()
-        self._con.execute(query, (registrationId, public_key, private_key))
+        self._con.execute(query, (device_id, public_key, private_key))
         self._con.commit()
 
     def saveIdentity(self, recipientId, identityKey):
