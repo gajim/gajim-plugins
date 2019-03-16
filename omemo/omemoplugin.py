@@ -135,8 +135,8 @@ class OmemoPlugin(GajimPlugin):
     def _load_css(self):
         path = Path(__file__).parent / 'gtk' / 'style.css'
         try:
-            with open(path, "r") as f:
-                css = f.read()
+            with path.open("r") as file:
+                css = file.read()
         except Exception as exc:
             log.error('Error loading css: %s', exc)
             return
