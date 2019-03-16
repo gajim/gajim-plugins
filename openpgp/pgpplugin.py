@@ -84,7 +84,7 @@ class OpenPGPPlugin(GajimPlugin):
     def _load_css(self):
         path = Path(__file__).parent / 'gtk' / 'style.css'
         try:
-            with open(path, "r") as f:
+            with path.open('r') as f:
                 css = f.read()
         except Exception as exc:
             log.error('Error loading css: %s', exc)
