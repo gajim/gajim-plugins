@@ -23,6 +23,9 @@ import tempfile
 from gi.repository import Gtk
 from gi.repository import GdkPixbuf
 
+from pkg_resources import get_distribution
+from distutils.version import LooseVersion as V
+
 from gajim.common import app
 from gajim.plugins.plugins_i18n import _
 from gajim.plugins.helpers import get_builder
@@ -176,10 +179,18 @@ class KeyDialog(Gtk.Dialog):
         qr.make(fit=True)
         qr.make()
 
+        fill_color = 'black'
         back_color = 'transparent'
         if app.css_config.prefer_dark:
             back_color = 'white'
-        img = qr.make_image(fill_color='black', back_color=back_color)
+        if V(get_distribution('qrcode').version) < V('6.0'):
+            # meaning of fill_color and back_color were switched
+            # before this commit in qrcode between versions 5.3
+            # and 6.0: https://github.com/lincolnloop/python-qrcode/
+            # commit/01f440d64b7d1f61bb75161ce118b86eca85b15c
+            back_color, fill_color = fill_color, back_color
+
+        img = qr.make_image(fill_color=fill_color, back_color=back_color)
         img.save(path)
         return path
 
