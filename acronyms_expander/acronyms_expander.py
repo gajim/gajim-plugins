@@ -60,7 +60,7 @@ class AcronymsExpanderPlugin(GajimPlugin):
         if not path.exists():
             return DEFAULT_DATA
 
-        with open(path, 'r') as file:
+        with path.open('r') as file:
             acronyms = json.load(file)
         return acronyms
 
@@ -76,7 +76,8 @@ class AcronymsExpanderPlugin(GajimPlugin):
         if not path.exists():
             path.mkdir(parents=True)
 
-        with open(path / 'acronyms', 'w') as file:
+        filepath = path / 'acronyms'
+        with filepath.open('w') as file:
             json.dump(acronyms, file)
 
     def set_acronyms(self, acronyms):
