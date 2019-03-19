@@ -31,7 +31,7 @@ class HamsterIntegrationPlugin(GajimPlugin):
     @log_calls('HamsterIntegrationPlugin')
     def init(self):
         self.description = _('Integration with project hamster, see '
-        'http://projecthamster.wordpress.com/about/')
+                             'http://projecthamster.org/')
         self.config_dialog = None
         self.events_handlers = {}
         if os.name == 'nt':
