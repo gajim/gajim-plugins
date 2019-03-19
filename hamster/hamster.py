@@ -1,6 +1,7 @@
 import os
 import dbus
 import datetime as dt
+import logging
 
 from gi.repository import GObject
 
@@ -12,6 +13,8 @@ from gajim.plugins import GajimPlugin
 from gajim.plugins.helpers import log_calls
 from gajim.plugins.plugins_i18n import _
 from gajim.common.const import ACTIVITIES
+
+log = logging.getLogger('gajim.p.hamster')
 
 
 HAMSTAER_INTERFACE = 'org.gnome.Hamster'
@@ -45,7 +48,7 @@ class HamsterIntegrationPlugin(GajimPlugin):
             self.session_presence = self.bus.get_object(HAMSTAER_INTERFACE,
                 '/org/gnome/Hamster')
         except:
-            app.log.debug('Hamster D-Bus service not found')
+            log.debug('Hamster D-Bus service not found')
             return
 
         self.bus.add_signal_receiver(self.hamster_facts_changed, 'FactsChanged',
