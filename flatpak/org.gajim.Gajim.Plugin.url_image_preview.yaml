@@ -1,6 +1,6 @@
 id: org.gajim.Gajim.Plugin.url_image_preview
 runtime: org.gajim.Gajim
-sdk: org.gnome.Sdk//3.30
+sdk: org.gnome.Sdk//3.32
 build-extension: true
 separate-locales: false
 appstream-compose: false
@@ -21,8 +21,8 @@ modules:
       - appstream-compose --basename=org.gajim.Gajim.Plugin.url_image_preview --prefix=${FLATPAK_DEST} --origin=flatpak org.gajim.Gajim.Plugin.url_image_preview
     sources:
       - type: archive
-        url: https://ftp.gajim.org/plugins_releases/url_image_preview_2.3.1.zip
-        sha256: b90d50f5e7aaa46f8eff8bf531a98f208e48e771ac81b3d36a23d44ae13a0500
+        url: https://ftp.gajim.org/plugins_releases/url_image_preview_2.3.33.zip
+        sha256: 1fc35508a0a63199a45e524181ee497986a357908e9591814a30248f6c583e03
       - type: file
         path: org.gajim.Gajim.Plugin.url_image_preview.metainfo.xml
         sha256: 3b11c6bcb9c349bb6b831031da6740f5da6fc1e925ab98c5c06a62d787ca26fc
