@@ -30,7 +30,7 @@ UNACKNOWLEDGED_COUNT = 300
 
 class Trust(IntEnum):
     UNTRUSTED = 0
-    TRUSTED = 1
+    VERIFIED = 1
     UNDECIDED = 2
 
 

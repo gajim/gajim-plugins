@@ -35,6 +35,7 @@ from gajim.common import helpers
 from gajim.common import configpaths
 from gajim.common.nec import NetworkEvent
 from gajim.common.const import EncryptionData
+from gajim.common.const import Trust as GajimTrust
 from gajim.common.modules.base import BaseModule
 from gajim.common.modules.util import event_node
 
@@ -46,7 +47,6 @@ from omemo.backend.state import SelfMessage
 from omemo.backend.state import MessageNotForDevice
 from omemo.backend.state import DecryptionFailed
 from omemo.backend.state import DuplicateMessage
-from omemo.backend.state import SenderNotTrusted
 from omemo.modules.util import prepare_stanza
 
 
@@ -218,9 +218,9 @@ class OMEMO(BaseModule):
         self._log.info('Message received from: %s', from_jid)
 
         try:
-            plaintext, fingerprint = self.backend.decrypt_message(
+            plaintext, fingerprint, trust = self.backend.decrypt_message(
                 properties.omemo, from_jid)
-        except (KeyExchangeMessage, DuplicateMessage, SenderNotTrusted):
+        except (KeyExchangeMessage, DuplicateMessage):
             raise NodeProcessed
 
         except SelfMessage:
@@ -241,7 +241,8 @@ class OMEMO(BaseModule):
         prepare_stanza(stanza, plaintext)
         self._debug_print_stanza(stanza)
         properties.encrypted = EncryptionData({'name': ENCRYPTION_NAME,
-                                               'fingerprint': fingerprint})
+                                               'fingerprint': fingerprint,
+                                               'trust': GajimTrust[trust.name]})
 
     def _process_muc_message(self, properties):
         room_jid = properties.jid.getBare()

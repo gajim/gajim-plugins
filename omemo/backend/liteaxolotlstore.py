@@ -532,7 +532,7 @@ class LiteAxolotlStore(AxolotlStore):
     def getTrustedFingerprints(self, jid):
         query = '''SELECT public_key as "public_key [pk]" FROM identities
                    WHERE recipient_id = ? AND trust = ?'''
-        result = self._con.execute(query, (jid, Trust.TRUSTED)).fetchall()
+        result = self._con.execute(query, (jid, Trust.VERIFIED)).fetchall()
         return [row.public_key for row in result]
 
     def getNewFingerprints(self, jid):
@@ -560,7 +560,7 @@ class LiteAxolotlStore(AxolotlStore):
             return False
         identity_key = record.getSessionState().getRemoteIdentityKey()
         return self.getTrustForIdentity(
-            recipient_id, identity_key) == Trust.TRUSTED
+            recipient_id, identity_key) == Trust.VERIFIED
 
     def isUntrustedIdentity(self, recipient_id, identity_key):
         return self.getTrustForIdentity(

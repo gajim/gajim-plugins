@@ -19,12 +19,11 @@ import time
 import locale
 import logging
 import tempfile
-
-from gi.repository import Gtk
-from gi.repository import GdkPixbuf
+from distutils.version import LooseVersion as V
 
 from pkg_resources import get_distribution
-from distutils.version import LooseVersion as V
+from gi.repository import Gtk
+from gi.repository import GdkPixbuf
 
 from gajim.common import app
 from gajim.plugins.plugins_i18n import _
@@ -32,7 +31,7 @@ from gajim.plugins.helpers import get_builder
 
 from omemo.gtk.util import DialogButton, ButtonAction
 from omemo.gtk.util import NewConfirmationDialog
-from omemo.gtk.util import Trust
+from omemo.backend.util import Trust
 from omemo.backend.util import IdentityKeyExtended
 from omemo.backend.util import get_fingerprint
 
@@ -40,15 +39,15 @@ log = logging.getLogger('gajim.p.omemo')
 
 
 TRUST_DATA = {
-    Trust.NOT_TRUSTED: ('dialog-error-symbolic',
-                        _('Not Trusted'),
-                        'error-color'),
-    Trust.UNKNOWN: ('security-low-symbolic',
-                    _('Not Decided'),
-                    'warning-color'),
+    Trust.UNTRUSTED: ('dialog-error-symbolic',
+                      _('Untrusted'),
+                      'error-color'),
+    Trust.UNDECIDED: ('security-low-symbolic',
+                      _('Not Decided'),
+                      'warning-color'),
     Trust.VERIFIED: ('security-high-symbolic',
-                     _('Trusted'),
-                     'success-color')
+                     _('Verified'),
+                     'encrypted-color')
 }
 
 
@@ -358,7 +357,7 @@ class TrustPopver(Gtk.Popover):
         self._listbox.set_selection_mode(Gtk.SelectionMode.NONE)
         if row.trust != Trust.VERIFIED:
             self._listbox.add(VerifiedOption())
-        if row.trust != Trust.NOT_TRUSTED:
+        if row.trust != Trust.UNTRUSTED:
             self._listbox.add(NotTrustedOption())
         self._listbox.add(DeleteOption())
         self.add(self._listbox)
@@ -380,7 +379,7 @@ class TrustPopver(Gtk.Popover):
         self._listbox.foreach(self._listbox.remove)
         if self._row.trust != Trust.VERIFIED:
             self._listbox.add(VerifiedOption())
-        if self._row.trust != Trust.NOT_TRUSTED:
+        if self._row.trust != Trust.UNTRUSTED:
             self._listbox.add(NotTrustedOption())
         self._listbox.add(DeleteOption())
 
@@ -406,8 +405,8 @@ class VerifiedOption(MenuOption):
 
     type_ = Trust.VERIFIED
     icon = 'security-high-symbolic'
-    label = _('Trusted')
-    color = 'success-color'
+    label = _('Verified')
+    color = 'encrypted-color'
 
     def __init__(self):
         MenuOption.__init__(self)
@@ -415,9 +414,9 @@ class VerifiedOption(MenuOption):
 
 class NotTrustedOption(MenuOption):
 
-    type_ = Trust.NOT_TRUSTED
+    type_ = Trust.UNTRUSTED
     icon = 'dialog-error-symbolic'
-    label = _('Not Trusted')
+    label = _('Untrusted')
     color = 'error-color'
 
     def __init__(self):

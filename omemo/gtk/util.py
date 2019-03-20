@@ -30,12 +30,6 @@ class ButtonAction(Enum):
     SUGGESTED = 'suggested-action'
 
 
-class Trust(IntEnum):
-    NOT_TRUSTED = 0
-    VERIFIED = 1
-    UNKNOWN = 2
-
-
 class NewConfirmationDialog(Gtk.MessageDialog):
     def __init__(self, text, sec_text, buttons, transient_for=None):
         Gtk.MessageDialog.__init__(self,

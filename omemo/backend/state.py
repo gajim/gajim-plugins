@@ -40,6 +40,7 @@ from omemo.backend.devices import DeviceManager
 from omemo.backend.devices import NoDevicesFound
 from omemo.backend.liteaxolotlstore import LiteAxolotlStore
 from omemo.backend.util import get_fingerprint
+from omemo.backend.util import Trust
 from omemo.backend.util import DEFAULT_PREKEY_AMOUNT
 from omemo.backend.util import MIN_PREKEY_AMOUNT
 from omemo.backend.util import SPK_CYCLE_TIME
@@ -129,15 +130,11 @@ class OmemoState(DeviceManager):
 
         try:
             if prekey:
-                key, fingerprint = self._process_pre_key_message(
+                key, fingerprint, trust = self._process_pre_key_message(
                     jid, omemo_message.sid, encrypted_key)
             else:
-                key, fingerprint = self._process_message(
+                key, fingerprint, trust = self._process_message(
                     jid, omemo_message.sid, encrypted_key)
-
-        except SenderNotTrusted:
-            self._log.info('Sender not trusted, ignore message')
-            raise
 
         except DuplicateMessageException:
             self._log.info('Received duplicated message')
@@ -153,7 +150,7 @@ class OmemoState(DeviceManager):
 
         result = aes_decrypt(key, omemo_message.iv, omemo_message.payload)
         self._log.debug("Decrypted Message => %s", result)
-        return result, fingerprint
+        return result, fingerprint, trust
 
     def _get_whisper_message(self, jid, device, key):
         cipher = self._get_session_cipher(jid, device)
@@ -253,8 +250,8 @@ class OmemoState(DeviceManager):
                             'without PreKey => %s' % jid)
 
         identity_key = pre_key_message.getIdentityKey()
-        if self._storage.isUntrustedIdentity(jid, identity_key):
-            raise SenderNotTrusted
+        trust = self._storage.getTrustForIdentity(jid, identity_key)
+        trust = Trust(trust) if trust is not None else Trust.UNDECIDED
 
         session_cipher = self._get_session_cipher(jid, device)
 
@@ -266,7 +263,7 @@ class OmemoState(DeviceManager):
 
         self.xmpp_con.set_bundle()
         self.add_device(jid, device)
-        return key, fingerprint
+        return key, fingerprint, trust
 
     def _process_message(self, jid, device, key):
         message = WhisperMessage(serialized=key)
@@ -278,15 +275,15 @@ class OmemoState(DeviceManager):
         session_record = self._storage.loadSession(jid, device)
         identity_key = session_record.getSessionState().getRemoteIdentityKey()
 
-        if self._storage.isUntrustedIdentity(jid, identity_key):
-            raise SenderNotTrusted
+        trust = self._storage.getTrustForIdentity(jid, identity_key)
+        trust = Trust(trust) if trust is not None else Trust.UNDECIDED
 
         fingerprint = get_fingerprint(identity_key)
         self._storage.setIdentityLastSeen(jid, identity_key)
 
         self.add_device(jid, device)
 
-        return key, fingerprint
+        return key, fingerprint, trust
 
     def _check_pre_key_count(self):
         # Check if enough PreKeys are available
@@ -349,8 +346,4 @@ class InvalidMessage(Exception):
 
 
 class DuplicateMessage(Exception):
-    pass
-
-
-class SenderNotTrusted(Exception):
     pass
