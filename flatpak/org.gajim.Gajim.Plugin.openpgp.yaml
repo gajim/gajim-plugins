@@ -1,0 +1,27 @@
+id: org.gajim.Gajim.Plugin.openpgp
+runtime: org.gajim.Gajim
+sdk: org.gnome.Sdk//3.32
+build-extension: true
+separate-locales: false
+appstream-compose: false
+build-options:
+  env:
+    PYTHONPATH: /app/plugins/openpgp/lib/python3.7/site-packages/
+
+modules:
+  - modules/python3-python-gnupg.yaml
+
+  - name: gajim-openpgp
+    buildsystem: simple
+    build-commands:
+      - 'cp -R -t ${FLATPAK_DEST} *'
+    post-install:
+      - install -Dm644 --target-directory=${FLATPAK_DEST}/share/metainfo org.gajim.Gajim.Plugin.openpgp.metainfo.xml
+      - appstream-compose --basename=org.gajim.Gajim.Plugin.openpgp --prefix=${FLATPAK_DEST} --origin=flatpak org.gajim.Gajim.Plugin.openpgp
+    sources:
+      - type: archive
+        url: https://ftp.gajim.org/plugins_releases/openpgp_1.2.5.zip
+        sha256: 53b6b066047ec3d978a76756cb198e04dfe52489d9b1d6cecd11fea3129cde9b
+      - type: file
+        path: org.gajim.Gajim.Plugin.openpgp.metainfo.xml
+        sha256: bfe2a4b508b7682dba37d3187f7b111cb07163dad141c52dbb4b6d264ac66c8a
