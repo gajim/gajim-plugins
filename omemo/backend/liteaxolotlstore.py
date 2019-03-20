@@ -241,6 +241,19 @@ class LiteAxolotlStore(AxolotlStore):
                     END TRANSACTION;
                 """ % move)
 
+        if self.user_version() < 7:
+            # Convert old device ids to integer
+            convert = """
+                UPDATE secret SET device_id = device_id % 2147483646;
+            """
+
+            self._con.executescript(
+                """ BEGIN TRANSACTION;
+                    %s
+                    PRAGMA user_version=7;
+                    END TRANSACTION;
+                """ % convert)
+
     def loadSignedPreKey(self, signedPreKeyId):
         query = 'SELECT record FROM signed_prekeys WHERE prekey_id = ?'
         result = self._con.execute(query, (signedPreKeyId, )).fetchone()
