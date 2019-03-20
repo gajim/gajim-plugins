@@ -1,0 +1,9 @@
+name: python3-python-gnupg
+buildsystem: simple
+build-commands:
+  - install -d ${FLATPAK_DEST}/lib/python3.7/site-packages/
+  - pip3 install --prefix=${FLATPAK_DEST} python_gnupg-0.4.4-py2.py3-none-any.whl
+sources:
+  - type: file
+    url: https://files.pythonhosted.org/packages/8b/26/14248358136cbd2b24652de2934078d66ed13ae4542c8b0cef0a8fade67d/python_gnupg-0.4.4-py2.py3-none-any.whl
+    sha256: 85c231850a0275c9722f06e34b45a22510b83a6a6e88f93b5ae32ba04c95056c

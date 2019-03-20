@@ -1,0 +1,28 @@
+id: org.gajim.Gajim.Plugin.pgp
+runtime: org.gajim.Gajim
+sdk: org.gnome.Sdk//3.32
+build-extension: true
+separate-locales: false
+appstream-compose: false
+
+build-options:
+  env:
+    PYTHONPATH: /app/plugins/pgp/lib/python3.7/site-packages/
+
+modules:
+  - modules/python3-python-gnupg.yaml
+
+  - name: gajim-pgp
+    buildsystem: simple
+    build-commands:
+      - 'cp -R -t ${FLATPAK_DEST} *'
+    post-install:
+      - install -Dm644 --target-directory=${FLATPAK_DEST}/share/metainfo org.gajim.Gajim.Plugin.pgp.metainfo.xml
+      - appstream-compose --basename=org.gajim.Gajim.Plugin.pgp --prefix=${FLATPAK_DEST} --origin=flatpak org.gajim.Gajim.Plugin.pgp
+    sources:
+      - type: archive
+        url: https://ftp.gajim.org/plugins_releases/pgp_1.2.35.zip
+        sha256: 8227545afdc22102e568fe68fe9837f1b2302030984871f5b57539369b1380cc
+      - type: file
+        path: org.gajim.Gajim.Plugin.pgp.metainfo.xml
+        sha256: cda6e41cdff3f7ff98136721a522305046714343236f9eb54b3e4cba5ccb34ad
