@@ -260,7 +260,7 @@ class OmemoPlugin(GajimPlugin):
         else:
             # check if we have devices for the contact
             if not omemo.backend.get_devices(contact.jid, without_self=True):
-                omemo.request_devicelist(contact.jid, True)
+                omemo.request_devicelist(contact.jid)
                 self.print_message(chat_control, UserMessages.QUERY_DEVICES)
                 chat_control.sendmessage = False
                 return
