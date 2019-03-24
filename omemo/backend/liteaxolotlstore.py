@@ -254,6 +254,30 @@ class LiteAxolotlStore(AxolotlStore):
                     END TRANSACTION;
                 """ % convert)
 
+        if self.user_version() < 8:
+            # Sanitize invalid BLOBs from the python2 days
+            query_keys = '''SELECT recipient_id, registration_id,
+                            CAST(public_key as BLOB) as public_key,
+                            CAST(private_key as BLOB) as private_key,
+                            timestamp, trust, shown
+                            FROM identities'''
+            rows = self._con.execute(query_keys).fetchall()
+
+            delete = 'DELETE FROM identities'
+            self._con.execute(delete)
+
+            insert = '''INSERT INTO identities (
+                        recipient_id, registration_id, public_key, private_key,
+                        timestamp, trust, shown)
+                        VALUES (?, ?, ?, ?, ?, ?, ?)'''
+            for row in rows:
+                try:
+                    self._con.execute(insert, row)
+                except Exception as error:
+                    self._log.warning(error)
+            self._con.execute('PRAGMA user_version=8')
+            self._con.commit()
+
     def loadSignedPreKey(self, signedPreKeyId):
         query = 'SELECT record FROM signed_prekeys WHERE prekey_id = ?'
         result = self._con.execute(query, (signedPreKeyId, )).fetchone()
