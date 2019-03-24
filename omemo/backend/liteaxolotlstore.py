@@ -256,7 +256,8 @@ class LiteAxolotlStore(AxolotlStore):
 
         if self.user_version() < 8:
             # Sanitize invalid BLOBs from the python2 days
-            query_keys = '''SELECT recipient_id, registration_id,
+            query_keys = '''SELECT recipient_id as "recipient_id [jid]",
+                            registration_id,
                             CAST(public_key as BLOB) as public_key,
                             CAST(private_key as BLOB) as private_key,
                             timestamp, trust, shown
