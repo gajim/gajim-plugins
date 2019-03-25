@@ -148,7 +148,7 @@ class LiteAxolotlStore(AxolotlStore):
             create_db_sql = """
                 BEGIN TRANSACTION;
                 %s
-                PRAGMA user_version=6;
+                PRAGMA user_version=8;
                 END TRANSACTION;
                 """ % (create_tables)
             self._con.executescript(create_db_sql)
