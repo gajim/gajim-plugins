@@ -26,11 +26,12 @@ from gi.repository import Gtk
 from gi.repository import GdkPixbuf
 
 from gajim.common import app
+from gajim.common.const import ButtonAction
 from gajim.plugins.plugins_i18n import _
 from gajim.plugins.helpers import get_builder
+from gajim.gtk.dialogs import NewConfirmationDialog
+from gajim.gtk.dialogs import DialogButton
 
-from omemo.gtk.util import DialogButton, ButtonAction
-from omemo.gtk.util import NewConfirmationDialog
 from omemo.backend.util import Trust
 from omemo.backend.util import IdentityKeyExtended
 from omemo.backend.util import get_fingerprint
@@ -278,17 +279,15 @@ class KeyRow(Gtk.ListBoxRow):
             self.get_parent().remove(self)
             self.destroy()
 
-        buttons = {
-            Gtk.ResponseType.CANCEL: DialogButton(_('Cancel')),
-            Gtk.ResponseType.OK: DialogButton(_('Delete'),
-                                              _remove,
-                                              ButtonAction.DESTRUCTIVE),
-        }
-
         NewConfirmationDialog(
+            _('Delete'),
             _('Delete Fingerprint'),
             _('Doing so will permanently delete this Fingerprint'),
-            buttons,
+            [DialogButton.make('Cancel'),
+             DialogButton.make('OK',
+                               text=_('Delete'),
+                               callback=_remove,
+                               action=ButtonAction.DESTRUCTIVE)],
             transient_for=self.get_toplevel())
 
     def set_trust(self):
