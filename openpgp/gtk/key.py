@@ -20,9 +20,10 @@ import time
 from gi.repository import Gtk
 
 from gajim.common import app
-from gajim.common.const import DialogButton, ButtonAction
+from gajim.common.const import ButtonAction
 
 from gajim.gtk.dialogs import NewConfirmationDialog
+from gajim.gtk.dialogs import DialogButton
 from gajim.plugins.plugins_i18n import _
 
 from openpgp.modules.util import Trust
@@ -120,17 +121,15 @@ class KeyRow(Gtk.ListBoxRow):
             self.key.delete()
             self.destroy()
 
-        buttons = {
-            Gtk.ResponseType.CANCEL: DialogButton('Cancel'),
-            Gtk.ResponseType.OK: DialogButton('Delete',
-                                              _remove,
-                                              ButtonAction.DESTRUCTIVE),
-        }
-
         NewConfirmationDialog(
+            _('Delete'),
             _('Delete Public Key'),
             _('This will permanently delete this public key'),
-            buttons,
+            [DialogButton.make('Cancel'),
+             DialogButton.make('OK',
+                               text=_('Delete'),
+                               callback=_remove,
+                               action=ButtonAction.DESTRUCTIVE)],
             transient_for=self.get_toplevel())
 
     def set_trust(self, trust):
