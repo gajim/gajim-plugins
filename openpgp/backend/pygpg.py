@@ -14,8 +14,10 @@
 # You should have received a copy of the GNU General Public License
 # along with OpenPGP Gajim Plugin. If not, see <http://www.gnu.org/licenses/>.
 
+import io
 import os
 import logging
+import tempfile
 from collections import namedtuple
 
 import gnupg
@@ -26,6 +28,10 @@ from openpgp.modules.util import DecryptionFailed
 
 log = logging.getLogger('gajim.p.openpgp.pygnupg')
 
+gnupg_logger = logging.getLogger('gnupg')
+gnupg_logger.addHandler(logging.StreamHandler())
+gnupg_logger.setLevel(logging.WARNING)
+
 KeyringItem = namedtuple('KeyringItem', 'jid keyid fingerprint')
 
 
@@ -34,11 +40,10 @@ class PGPContext(gnupg.GPG):
         gnupg.GPG.__init__(
             self, gpgbinary=app.get_gpg_binary(), gnupghome=str(gnupghome))
 
-        self._passphrase = 'gajimopenpgppassphrase'
         self._jid = jid.getBare()
         self._own_fingerprint = None
 
-    def _get_key_params(self, jid, passphrase):
+    def _get_key_params(self, jid):
         '''
         Generate --gen-key input
         '''
@@ -47,17 +52,17 @@ class PGPContext(gnupg.GPG):
             'Key-Type': 'RSA',
             'Key-Length': 2048,
             'Name-Real': 'xmpp:%s' % jid,
-            'Passphrase': passphrase,
         }
 
         out = "Key-Type: %s\n" % params.pop('Key-Type')
         for key, val in list(params.items()):
             out += "%s: %s\n" % (key, val)
+        out += "%no-protection\n"
         out += "%commit\n"
         return out
 
     def generate_key(self):
-        super().gen_key(self._get_key_params(self._jid, self._passphrase))
+        super().gen_key(self._get_key_params(self._jid))
 
     def encrypt(self, payload, keys):
         recipients = [key.fingerprint for key in keys]
@@ -119,41 +124,36 @@ class PGPContext(gnupg.GPG):
             log.error(result.results[0])
             return
 
+        fingerprint = result.results[0]['fingerprint']
         if not self.validate_key(data, str(jid)):
-            return None
-        key = self.get_key(result.results[0]['fingerprint'])
+            self.delete_key(fingerprint)
+            return
+
+        key = self.get_key(fingerprint)
         return self._make_keyring_item(key[0])
 
     def validate_key(self, public_key, jid):
-        import tempfile
         temppath = os.path.join(tempfile.gettempdir(), 'temp_pubkey')
-        with open(temppath, 'wb') as tempfile:
-            tempfile.write(public_key)
+        with open(temppath, 'wb') as file:
+            file.write(public_key)
 
         result = self.scan_keys(temppath)
-        if result:
-            for uid in result.uids:
-                if uid.startswith('xmpp:'):
-                    if uid[5:] == jid:
-                        key_found = True
-                    else:
-                        log.warning('Found wrong userid in key: %s != %s',
-                                    uid[5:], jid)
-                        log.debug(result)
-                        os.remove(temppath)
-                        return False
-
-            if not key_found:
-                log.warning('No valid userid found in key')
-                log.debug(result)
-                os.remove(temppath)
-                return False
-
-            log.info('Key validation succesful')
+        if not result:
+            log.warning('No key found while validating')
+            log.warning(result)
             os.remove(temppath)
-            return True
+            return False
 
-        log.warning('Invalid key data: %s')
+        for uid in result.uids:
+            if not uid.startswith('xmpp:'):
+                continue
+
+            if uid[5:] == jid:
+                log.info('Key validation succesful')
+                os.remove(temppath)
+                return True
+
+        log.warning('No valid userid found in key')
         log.debug(result)
         os.remove(temppath)
         return False
@@ -172,10 +172,18 @@ class PGPContext(gnupg.GPG):
 
     def export_key(self, fingerprint):
         key = super().export_keys(
-            fingerprint, secret=False, armor=False, minimal=False,
-            passphrase=self._passphrase)
+            fingerprint, secret=False, armor=False, minimal=False)
         return key
 
+    def export_secret_key(self, passphrase):
+        key = super().export_keys(
+            self._own_fingerprint, secret=True, armor=False, minimal=False, passphrase='')
+
+        key_file = io.BytesIO(key)
+        result = super().encrypt_file(key_file, None, armor=False,
+                                      symmetric=True, passphrase=passphrase)
+        return result.data
+
     def delete_key(self, fingerprint):
-        log.info('Delete Key: %s', fingerprint)
-        super().delete_keys(fingerprint, passphrase=self._passphrase)
+        result = super().delete_keys(fingerprint, passphrase='')
+        log.info('Delete Key: %s, status: %s', fingerprint, result.status)
