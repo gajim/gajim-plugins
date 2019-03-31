@@ -47,6 +47,7 @@ from omemo.backend.state import SelfMessage
 from omemo.backend.state import MessageNotForDevice
 from omemo.backend.state import DecryptionFailed
 from omemo.backend.state import DuplicateMessage
+from omemo.backend.util import Trust
 from omemo.modules.util import prepare_stanza
 
 
@@ -224,16 +225,17 @@ class OMEMO(BaseModule):
             raise NodeProcessed
 
         except SelfMessage:
-            if properties.from_muc:
-                if properties.omemo.payload in self._muc_temp_store:
-                    plaintext = self._muc_temp_store[properties.omemo.payload]
-                    fingerprint = self.backend.own_fingerprint
-                    del self._muc_temp_store[properties.omemo.payload]
-                else:
-                    self._log.warning("Can't decrypt own GroupChat Message")
-                    return
-            else:
+            if not properties.from_muc:
                 raise NodeProcessed
+
+            if properties.omemo.payload not in self._muc_temp_store:
+                self._log.warning("Can't decrypt own GroupChat Message")
+                return
+
+            plaintext = self._muc_temp_store[properties.omemo.payload]
+            fingerprint = self.backend.own_fingerprint
+            trust = Trust.VERIFIED
+            del self._muc_temp_store[properties.omemo.payload]
 
         except (DecryptionFailed, MessageNotForDevice):
             return
