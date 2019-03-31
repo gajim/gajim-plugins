@@ -44,7 +44,6 @@ from openpgp.modules.util import prepare_stanza
 from openpgp.modules.key_store import PGPContacts
 from openpgp.backend.sql import Storage
 from openpgp.backend.pygpg import PGPContext
-from openpgp.backend.aes import aes_encrypt
 
 
 log = logging.getLogger('gajim.p.openpgp')
@@ -84,7 +83,7 @@ class OpenPGP(BaseModule):
         own_bare_jid = self.own_jid.getBare()
         path = Path(configpaths.get('MY_DATA')) / 'openpgp' / own_bare_jid
         if not path.exists():
-            path.mkdir(mode=0o700, parents=True)
+            path.mkdir(parents=True)
 
         self._pgp = PGPContext(self.own_jid, path)
         self._storage = Storage(path)
@@ -108,11 +107,6 @@ class OpenPGP(BaseModule):
         key = self._pgp.export_key(self._fingerprint)
         self._nbxmpp('OpenPGP').set_public_key(
             key, self._fingerprint, self._date)
-
-    def set_secret_key(self, passphrase):
-        log.info('%s => Publish secret key', self._account)
-        secret_key = self._pgp.export_secret_key(passphrase)
-        self._nbxmpp('OpenPGP').set_secret_key(secret_key)
 
     def request_public_key(self, jid, fingerprint):
         log.info('%s => Request public key %s - %s',

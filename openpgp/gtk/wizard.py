@@ -16,9 +16,6 @@
 
 import logging
 import threading
-import string
-import random
-from textwrap import wrap
 from enum import IntEnum
 
 from gi.repository import Gtk
@@ -32,11 +29,9 @@ log = logging.getLogger('gajim.p.openpgp.wizard')
 
 class Page(IntEnum):
     WELCOME = 0
-    FOUND_KEY = 1
-    NEWKEY = 2
-    SAVE_KEY = 3
-    SUCCESS = 4
-    ERROR = 5
+    NEWKEY = 1
+    SUCCESS = 2
+    ERROR = 3
 
 
 class KeyWizard(Gtk.Assistant):
@@ -49,7 +44,6 @@ class KeyWizard(Gtk.Assistant):
         self._data_form_widget = None
         self._is_form = None
         self._chat_control = chat_control
-        self.backup_code = None
 
         self.set_application(app.app)
         self.set_transient_for(chat_control.parent_win.window)
@@ -60,9 +54,9 @@ class KeyWizard(Gtk.Assistant):
         self.get_style_context().add_class('dialog-margin')
 
         self._add_page(WelcomePage())
-        self._add_page(FoundKeyPage())
+        # self._add_page(BackupKeyPage())
         self._add_page(NewKeyPage(self, self._con))
-        self._add_page(SaveBackupCodePage())
+        # self._add_page(SaveBackupCodePage())
         self._add_page(SuccessfulPage())
         self._add_page(ErrorPage())
 
@@ -78,10 +72,6 @@ class KeyWizard(Gtk.Assistant):
         self.set_page_type(page, page.type_)
         self.set_page_title(page, page.title)
         self.set_page_complete(page, page.complete)
-
-    def set_backup_code(self, backup_code):
-        save_key_page = self.get_nth_page(Page.SAVE_KEY)
-        save_key_page.set_backup_code(backup_code)
 
     def _remove_sidebar(self):
         main_box = self.get_children()[0]
@@ -143,22 +133,22 @@ class RequestPage(Gtk.Box):
         spinner.start()
 
 
-class FoundKeyPage(Gtk.Box):
+# class BackupKeyPage(Gtk.Box):
 
-    type_ = Gtk.AssistantPageType.INTRO
-    title = _('Supply Backup Code')
-    complete = True
+#     type_ = Gtk.AssistantPageType.INTRO
+#     title = _('Supply Backup Code')
+#     complete = True
 
-    def __init__(self):
-        super().__init__(orientation=Gtk.Orientation.VERTICAL)
-        self.set_spacing(18)
-        title_label = Gtk.Label(label=_('Backup Code'))
-        text_label = Gtk.Label(
-            label=_('We found a backup Code, please supply your password'))
-        self.add(title_label)
-        self.add(text_label)
-        entry = Gtk.Entry()
-        self.add(entry)
+#     def __init__(self):
+#         super().__init__(orientation=Gtk.Orientation.VERTICAL)
+#         self.set_spacing(18)
+#         title_label = Gtk.Label(label=_('Backup Code'))
+#         text_label = Gtk.Label(
+#             label=_('We found a backup Code, please supply your password'))
+#         self.add(title_label)
+#         self.add(text_label)
+#         entry = Gtk.Entry()
+#         self.add(entry)
 
 
 class NewKeyPage(RequestPage):
@@ -183,62 +173,34 @@ class NewKeyPage(RequestPage):
             self._con.get_module('OpenPGP').generate_key()
         except Exception as e:
             error = e
-
+        else:
+            self._con.get_module('OpenPGP').get_own_key_details()
+            self._con.get_module('OpenPGP').set_public_key()
+            self._con.get_module('OpenPGP').request_keylist()
         GLib.idle_add(self.finished, error)
 
-    @staticmethod
-    def generate_backup_code():
-        range_ = '123456789ABCDEFGHIJKLMNPQRSTUVWXYZ'
-        code = ''.join(random.choice(range_) for x in range(24))
-        return '-'.join(wrap(code.upper(), 4))
-
     def finished(self, error):
-        if error is not None:
+        if error is None:
+            self._assistant.set_current_page(Page.SUCCESS)
+        else:
             log.error(error)
             self._assistant.set_current_page(Page.ERROR)
-            return
-
-        self._con.get_module('OpenPGP').get_own_key_details()
-        if not self._con.get_module('OpenPGP').secret_key_available:
-            log.error('PGP Error')
-            self._assistant.set_current_page(Page.ERROR)
-            return
-
-        backup_code = self.generate_backup_code()
-        self._assistant.set_backup_code(backup_code)
-        self._con.get_module('OpenPGP').set_public_key()
-        self._con.get_module('OpenPGP').request_keylist()
-        self._con.get_module('OpenPGP').set_secret_key(backup_code)
-        self._assistant.set_current_page(Page.SAVE_KEY)
 
 
-class SaveBackupCodePage(Gtk.Box):
+# class SaveBackupCodePage(RequestPage):
 
-    type_ = Gtk.AssistantPageType.SUMMARY
-    title = _('Save this code')
-    complete = True
+#     type_ = Gtk.AssistantPageType.PROGRESS
+#     title = _('Save this code')
+#     complete = False
 
-    def __init__(self):
-        super().__init__(orientation=Gtk.Orientation.VERTICAL)
-        self.set_spacing(18)
-        title_label = Gtk.Label(label=_('Backup Code'))
-        text_label = Gtk.Label(
-            label=_('This is your backup code, you need it if you reinstall Gajim'))
-        self._code_label = Gtk.Label()
-        self._code_label.set_selectable(True)
-
-        icon = Gtk.Image.new_from_icon_name('object-select-symbolic',
-                                            Gtk.IconSize.DIALOG)
-        icon.get_style_context().add_class('success-color')
-        icon.set_valign(Gtk.Align.END)
-
-        self.add(icon)
-        self.add(title_label)
-        self.add(text_label)
-        self.add(self._code_label)
-
-    def set_backup_code(self, backup_code):
-        self._code_label.set_label(backup_code)
+#     def __init__(self):
+#         super().__init__(orientation=Gtk.Orientation.VERTICAL)
+#         self.set_spacing(18)
+#         title_label = Gtk.Label(label=_('Backup Code'))
+#         text_label = Gtk.Label(
+#             label=_('This is your backup code, you need it if you reinstall Gajim'))
+#         self.add(title_label)
+#         self.add(text_label)
 
 
 class SuccessfulPage(Gtk.Box):
