@@ -1,1 +1,1 @@
-from .pgpplugin import OldPGPPlugin
+from .plugin import PGPPlugin
