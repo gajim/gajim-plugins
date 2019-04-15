@@ -17,6 +17,7 @@
 from pathlib import Path
 
 from gi.repository import Gtk
+from gi.repository import GLib
 
 from gajim.common import app
 from gajim.plugins.plugins_i18n import _
@@ -30,7 +31,7 @@ class KeyDialog(Gtk.Dialog):
 
         self.set_transient_for(transient)
         self.set_resizable(True)
-        self.set_default_size(500, 300)
+        self.set_default_size(450, -1)
 
         self._plugin = plugin
         self._jid = jid
@@ -38,10 +39,14 @@ class KeyDialog(Gtk.Dialog):
 
         self._label = Gtk.Label()
 
-        self._assign_button = Gtk.Button(label='assign')
+        self._assign_button = Gtk.Button(label=_('Assign Key'))
+        self._assign_button.get_style_context().add_class('suggested-action')
+        self._assign_button.set_halign(Gtk.Align.CENTER)
+        self._assign_button.set_margin_top(18)
         self._assign_button.connect('clicked', self._choose_key)
 
         box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        box.set_border_width(18)
         box.add(self._label)
         box.add(self._assign_button)
 
@@ -82,7 +87,8 @@ class KeyDialog(Gtk.Dialog):
             self._label.set_text(_('No key assigned'))
         else:
             key_id, key_user = key_data
-            self._label.set_text('%s %s' % (key_id, key_user))
+            self._label.set_markup('<b><tt>%s</tt> %s</b>' % \
+                (key_id, GLib.markup_escape_text(key_user)))
 
 
 class ChooseGPGKeyDialog(Gtk.Dialog):
@@ -97,8 +103,8 @@ class ChooseGPGKeyDialog(Gtk.Dialog):
         self.set_resizable(True)
         self.set_default_size(500, 300)
 
-        self.add_button(_('OK'), Gtk.ResponseType.OK)
         self.add_button(_('Cancel'), Gtk.ResponseType.CANCEL)
+        self.add_button(_('OK'), Gtk.ResponseType.OK)
 
         self._selected_key = None
 

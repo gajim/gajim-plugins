@@ -3,8 +3,6 @@
 <interface>
   <requires lib="gtk+" version="3.20"/>
   <object class="GtkBox" id="config_box">
-    <property name="width_request">500</property>
-    <property name="height_request">400</property>
     <property name="visible">True</property>
     <property name="can_focus">False</property>
     <property name="spacing">12</property>
@@ -22,8 +20,12 @@
     </child>
     <child>
       <object class="GtkStack" id="stack">
+        <property name="width_request">400</property>
+        <property name="height_request">350</property>
         <property name="visible">True</property>
         <property name="can_focus">False</property>
+        <property name="hexpand">True</property>
+        <property name="border_width">18</property>
         <property name="transition_type">crossfade</property>
         <child>
           <placeholder/>

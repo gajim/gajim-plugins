@@ -18,6 +18,7 @@ from pathlib import Path
 
 from gi.repository import Gtk
 from gi.repository import Gdk
+from gi.repository import GLib
 
 from gajim.common import app
 
@@ -64,6 +65,9 @@ class Page(Gtk.Box):
         self._plugin = plugin
         self._label = Gtk.Label()
         self._button = Gtk.Button(label=_('Assign Key'))
+        self._button.get_style_context().add_class('suggested-action')
+        self._button.set_halign(Gtk.Align.CENTER)
+        self._button.set_margin_top(18)
         self._button.connect('clicked', self._on_assign)
 
         self._load_key()
@@ -101,4 +105,5 @@ class Page(Gtk.Box):
             self._label.set_text(_('No key assigned'))
         else:
             key_id, key_user = key_data
-            self._label.set_text('%s %s' % (key_id, key_user))
+            self._label.set_markup('<b><tt>%s</tt> %s</b>' % \
+                (key_id, GLib.markup_escape_text(key_user)))
