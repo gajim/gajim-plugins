@@ -50,9 +50,10 @@ class KeyStore:
     def _migrate(self):
         keys = {}
         attached_keys = app.config.get_per(
-            'accounts', self._account, 'attached_gpg_keys').split()
-        if attached_keys is None:
+            'accounts', self._account, 'attached_gpg_keys')
+        if not attached_keys:
             return
+        attached_keys = attached_keys.split()
 
         for i in range(len(attached_keys) // 2):
             keys[attached_keys[2 * i]] = attached_keys[2 * i + 1]
@@ -64,6 +65,9 @@ class KeyStore:
         own_key_user = app.config.get_per('accounts', self._account, 'keyname')
         if own_key_id:
             self.set_own_key_data((own_key_id, own_key_user))
+
+        attached_keys = app.config.set_per(
+            'accounts', self._account, 'attached_gpg_keys', '')
         self._log.info('Migration successful')
 
     @delay_execution(500)
