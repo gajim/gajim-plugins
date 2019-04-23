@@ -20,115 +20,89 @@
 from gi.repository import GObject
 from gi.repository import Gtk
 
-from gajim.options_dialog import OptionsDialog, GenericOption, SpinOption
-from gajim.common.const import Option, OptionType, OptionKind
+from gajim.gtk.settings import SettingsDialog
+from gajim.gtk.settings import GenericSetting
+from gajim.gtk.settings import SpinSetting
+from gajim.gtk.const import Setting
+from gajim.gtk.const import SettingKind
+from gajim.gtk.const import SettingType
+
 from gajim.plugins.plugins_i18n import _
 
 
-class UrlImagePreviewConfigDialog(OptionsDialog):
+class UrlImagePreviewConfigDialog(SettingsDialog):
     def __init__(self, plugin, parent):
 
-        sizes = [('256 KiB', '262144'),
-                 ('512 KiB', '524288'),
-                 ('1 MiB', '1048576'),
-                 ('5 MiB', '5242880'),
-                 ('10 MiB', '10485760')]
+        sizes = [('262144', '256 KiB'),
+                 ('524288', '512 KiB'),
+                 ('1048576', '1 MiB'),
+                 ('5242880', '5 MiB'),
+                 ('10485760', '10 MiB')]
+
         actions = [
-            (_('Open'), 'open_menuitem'),
-            (_('Save as'), 'save_as_menuitem'),
-            (_('Copy Link Location'), 'copy_link_location_menuitem'),
-            (_('Open Link in Browser'), 'open_link_in_browser_menuitem'),
-            (_('Open File in Browser'), 'open_file_in_browser_menuitem')]
+            ('open_menuitem', _('Open')),
+            ('save_as_menuitem', _('Save as')),
+            ('copy_link_location_menuitem', _('Copy Link Location')),
+            ('open_link_in_browser_menuitem', _('Open Link in Browser')),
+            ('open_file_in_browser_menuitem', _('Open File in Browser'))]
 
         geo_providers = [
-            (_('No map preview'), 'no_preview'),
-            ('Google Maps', 'Google'),
-            ('OpenStreetMap', 'OSM')]
+            ('no_preview', _('No map preview')),
+            ('Google', _('Google Maps')),
+            ('OSM', _('OpenStreetMap'))]
 
         self.plugin = plugin
-        options = [
-            Option('PreviewSizeSpinOption', _('Preview size'),
-                   OptionType.VALUE, self.plugin.config['PREVIEW_SIZE'],
-                   callback=self.on_option, data='PREVIEW_SIZE',
-                   props={'range_': (100, 1000)}),
+        settings = [
+            Setting('PreviewSizeSpinSetting', _('Preview Size'),
+                    SettingType.VALUE, self.plugin.config['PREVIEW_SIZE'],
+                    callback=self.on_setting, data='PREVIEW_SIZE',
+                    desc=_('Size of preview image'),
+                    props={'range_': (100, 1000)}),
 
-            Option('PreviewComboOption', _('Accepted filesize'),
-                   OptionType.VALUE, self.plugin.config['MAX_FILE_SIZE'],
-                   callback=self.on_option, data='MAX_FILE_SIZE',
-                   props={'items': sizes,
-                          'plugin': self.plugin}),
+            Setting(SettingKind.COMBO, _('File Size'),
+                    SettingType.VALUE, self.plugin.config['MAX_FILE_SIZE'],
+                    callback=self.on_setting, data='MAX_FILE_SIZE',
+                    desc=_('Maximum file size for preview generation'),
+                    props={'combo_items': sizes}),
 
-            Option(OptionKind.SWITCH, _('Preview all Image URLs'),
-                   OptionType.VALUE, self.plugin.config['ALLOW_ALL_IMAGES'],
-                   callback=self.on_option, data='ALLOW_ALL_IMAGES'),
+            Setting(SettingKind.SWITCH, _('Preview all Image URLs'),
+                    SettingType.VALUE, self.plugin.config['ALLOW_ALL_IMAGES'],
+                    callback=self.on_setting, data='ALLOW_ALL_IMAGES',
+                    desc=_('Generate preview for any URL containing images '
+                           '(may be unsafe)')),
 
-            Option('PreviewComboOption', _('Left click action'),
-                   OptionType.VALUE, self.plugin.config['LEFTCLICK_ACTION'],
-                   callback=self.on_option, data='LEFTCLICK_ACTION',
-                   props={'items': actions,
-                          'plugin': self.plugin}),
+            Setting(SettingKind.COMBO, _('Left Click'),
+                    SettingType.VALUE, self.plugin.config['LEFTCLICK_ACTION'],
+                    callback=self.on_setting, data='LEFTCLICK_ACTION',
+                    desc=_('Action when left clicking a preview'),
+                    props={'combo_items': actions}),
 
-            Option('PreviewComboOption', _('Map service for preview'),
-                   OptionType.VALUE, self.plugin.config['GEO_PREVIEW_PROVIDER'],
-                   callback=self.on_option, data='GEO_PREVIEW_PROVIDER',
-                   props={'items': geo_providers,
-                          'plugin': self.plugin}),
+            Setting(SettingKind.COMBO, _('Map Service'),
+                    SettingType.VALUE, self.plugin.config['GEO_PREVIEW_PROVIDER'],
+                    callback=self.on_setting, data='GEO_PREVIEW_PROVIDER',
+                    desc=_('Service used for map previews'),
+                    props={'combo_items': geo_providers}),
 
-            Option(OptionKind.SWITCH, _('Enable HTTPS Verification'),
-                   OptionType.VALUE, self.plugin.config['VERIFY'],
-                   callback=self.on_option, data='VERIFY'),
+            Setting(SettingKind.SWITCH, _('HTTPS Verification'),
+                    SettingType.VALUE, self.plugin.config['VERIFY'],
+                    desc=_('Whether to check for a valid certificate'),
+                    callback=self.on_setting, data='VERIFY'),
             ]
 
-        OptionsDialog.__init__(self, parent, _('UrlImagePreview Options'),
-                               Gtk.DialogFlags.MODAL, options, None,
+        SettingsDialog.__init__(self, parent, _('UrlImagePreview Configuration'),
+                               Gtk.DialogFlags.MODAL, settings, None,
                                extend=[
-                                   ('PreviewComboOption', ComboOption),
-                                   ('PreviewSizeSpinOption', SizeSpinOption)])
+                                   ('PreviewSizeSpinSetting', SizeSpinSetting)])
 
-    def on_option(self, value, data):
+    def on_setting(self, value, data):
         self.plugin.config[data] = value
 
 
-class SizeSpinOption(SpinOption):
+class SizeSpinSetting(SpinSetting):
 
     __gproperties__ = {
-        "option-value": (int, 'Size', '', 100, 1000, 300,
-                         GObject.ParamFlags.READWRITE), }
+        "setting-value": (int, 'Size', '', 100, 1000, 300,
+                          GObject.ParamFlags.READWRITE), }
 
     def __init__(self, *args, **kwargs):
-        SpinOption.__init__(self, *args, **kwargs)
-
-
-class ComboOption(GenericOption):
-
-    __gproperties__ = {
-        "option-value": (str, 'Value', '', '',
-                         GObject.ParamFlags.READWRITE), }
-
-    def __init__(self, *args, items, plugin):
-        GenericOption.__init__(self, *args)
-        self.plugin = plugin
-        self.combo = Gtk.ComboBox()
-        text_renderer = Gtk.CellRendererText()
-        self.combo.pack_start(text_renderer, True)
-        self.combo.add_attribute(text_renderer, 'text', 0)
-
-        self.store = Gtk.ListStore(str, str)
-        for item in items:
-            self.store.append(item)
-
-        self.combo.set_model(self.store)
-        self.combo.set_id_column(1)
-        self.combo.set_active_id(str(self.option_value))
-
-        self.combo.connect('changed', self.on_value_change)
-        self.combo.set_valign(Gtk.Align.CENTER)
-
-        self.option_box.pack_start(self.combo, True, True, 0)
-        self.show_all()
-
-    def on_value_change(self, combo):
-        self.set_value(combo.get_active_id())
-
-    def on_row_activated(self):
-        pass
+        SpinSetting.__init__(self, *args, **kwargs)
