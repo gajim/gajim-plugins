@@ -26,7 +26,10 @@ from io import BytesIO
 import shutil
 from functools import partial
 
-from gi.repository import Gtk, Gdk, GLib, GdkPixbuf
+from gi.repository import Gtk
+from gi.repository import Gdk
+from gi.repository import GLib
+from gi.repository import GdkPixbuf
 
 from gajim.common import app
 from gajim.common import helpers
@@ -39,7 +42,8 @@ from gajim.plugins import GajimPlugin
 from gajim.plugins.helpers import log_calls
 from gajim.plugins.plugins_i18n import _
 
-from url_image_preview.http_functions import get_http_head, get_http_file
+from url_image_preview.http_functions import get_http_head
+from url_image_preview.http_functions import get_http_file
 from url_image_preview.config_dialog import UrlImagePreviewConfigDialog
 
 from gajim.gtk.filechoosers import FileSaveDialog
@@ -95,7 +99,7 @@ class UrlImagePreviewPlugin(GajimPlugin):
                 (self.connect_with_history, self.disconnect_from_history),
             'print_real_text': (self.print_real_text, None), }
         self.config_default_values = {
-            'PREVIEW_SIZE': (150, 'Preview size(10-512)'),
+            'PREVIEW_SIZE': (150, 'Preview size (100-1000)'),
             'MAX_FILE_SIZE': (5242880, 'Max file size for image preview'),
             'ALLOW_ALL_IMAGES': (False, ''),
             'LEFTCLICK_ACTION': ('open_menuitem', 'Open'),
@@ -599,6 +603,7 @@ class Base(object):
 
         open_menuitem = xml.get_object('open_menuitem')
         save_as_menuitem = xml.get_object('save_as_menuitem')
+        open_folder_menuitem = xml.get_object('open_folder_menuitem')
         copy_link_location_menuitem = \
             xml.get_object('copy_link_location_menuitem')
         open_link_in_browser_menuitem = \
@@ -620,6 +625,9 @@ class Base(object):
         self.handlers[id_] = open_menuitem
         id_ = save_as_menuitem.connect(
             'activate', self.on_save_as_menuitem_activate_new, data)
+        self.handlers[id_] = save_as_menuitem
+        id_ = open_folder_menuitem.connect(
+            'activate', self._on_open_folder_menuitem_activate, data)
         self.handlers[id_] = save_as_menuitem
         id_ = copy_link_location_menuitem.connect(
             'activate', self.on_copy_link_location_menuitem_activate, data)
@@ -660,6 +668,9 @@ class Base(object):
                        path=app.config.get('last_save_dir'),
                        file_name=original_filename,
                        transient_for=app.app.get_active_window())
+
+    def _on_open_folder_menuitem_activate(self, menu, data):
+        helpers.launch_file_manager(self.directory)
 
     def on_copy_link_location_menuitem_activate(self, menu, data):
         url = data["url"]
