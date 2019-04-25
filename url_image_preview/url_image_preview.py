@@ -484,7 +484,7 @@ class Base(object):
                                buffer_.get_iter_at_mark(repl_end))
 
                 image.connect(
-                    'button-press-event', self.on_button_press_event,
+                    'button-press-event', self._on_button_press_event,
                     filepath, filename, url, encrypted)
                 image.get_window().set_cursor(get_cursor('HAND2'))
 
@@ -604,14 +604,13 @@ class Base(object):
         open_menuitem = xml.get_object('open_menuitem')
         save_as_menuitem = xml.get_object('save_as_menuitem')
         open_folder_menuitem = xml.get_object('open_folder_menuitem')
-        copy_link_location_menuitem = \
-            xml.get_object('copy_link_location_menuitem')
-        open_link_in_browser_menuitem = \
-            xml.get_object('open_link_in_browser_menuitem')
-        open_file_in_browser_menuitem = \
-            xml.get_object('open_file_in_browser_menuitem')
-        extras_separator = \
-            xml.get_object('extras_separator')
+        copy_link_location_menuitem = xml.get_object(
+            'copy_link_location_menuitem')
+        open_link_in_browser_menuitem = xml.get_object(
+            'open_link_in_browser_menuitem')
+        open_file_in_browser_menuitem = xml.get_object(
+            'open_file_in_browser_menuitem')
+        extras_separator = xml.get_object('extras_separator')
 
         if data["encrypted"]:
             open_link_in_browser_menuitem.hide()
@@ -621,27 +620,27 @@ class Base(object):
             open_file_in_browser_menuitem.hide()
 
         id_ = open_menuitem.connect(
-            'activate', self.on_open_menuitem_activate, data)
+            'activate', self._on_open_menuitem_activate, data)
         self.handlers[id_] = open_menuitem
         id_ = save_as_menuitem.connect(
-            'activate', self.on_save_as_menuitem_activate_new, data)
+            'activate', self._on_save_as_menuitem_activate, data)
         self.handlers[id_] = save_as_menuitem
         id_ = open_folder_menuitem.connect(
             'activate', self._on_open_folder_menuitem_activate, data)
         self.handlers[id_] = save_as_menuitem
         id_ = copy_link_location_menuitem.connect(
-            'activate', self.on_copy_link_location_menuitem_activate, data)
+            'activate', self._on_copy_link_location_menuitem_activate, data)
         self.handlers[id_] = copy_link_location_menuitem
         id_ = open_link_in_browser_menuitem.connect(
-            'activate', self.on_open_link_in_browser_menuitem_activate, data)
+            'activate', self._on_open_link_in_browser_menuitem_activate, data)
         self.handlers[id_] = open_link_in_browser_menuitem
         id_ = open_file_in_browser_menuitem.connect(
-            'activate', self.on_open_file_in_browser_menuitem_activate, data)
+            'activate', self._on_open_file_in_browser_menuitem_activate, data)
         self.handlers[id_] = open_file_in_browser_menuitem
 
         return menu
 
-    def on_open_menuitem_activate(self, menu, data):
+    def _on_open_menuitem_activate(self, menu, data):
         filepath = data["filepath"]
         original_filename = data["original_filename"]
         url = data["url"]
@@ -650,7 +649,7 @@ class Base(object):
             return
         helpers.launch_file_manager(filepath)
 
-    def on_save_as_menuitem_activate_new(self, menu, data):
+    def _on_save_as_menuitem_activate(self, menu, data):
         filepath = data["filepath"]
         original_filename = data["original_filename"]
 
@@ -672,13 +671,13 @@ class Base(object):
     def _on_open_folder_menuitem_activate(self, menu, data):
         helpers.launch_file_manager(self.directory)
 
-    def on_copy_link_location_menuitem_activate(self, menu, data):
+    def _on_copy_link_location_menuitem_activate(self, menu, data):
         url = data["url"]
         clipboard = Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD)
         clipboard.set_text(url, -1)
         clipboard.store()
 
-    def on_open_link_in_browser_menuitem_activate(self, menu, data):
+    def _on_open_link_in_browser_menuitem_activate(self, menu, data):
         url = data["url"]
         if data["encrypted"]:
             dialogs.ErrorDialog(
@@ -690,7 +689,7 @@ class Base(object):
         else:
             helpers.open_uri(url)
 
-    def on_open_file_in_browser_menuitem_activate(self, menu, data):
+    def _on_open_file_in_browser_menuitem_activate(self, menu, data):
         if os.name == "nt":
             filepath = "file://" + os.path.abspath(data["filepath"])
         else:
@@ -710,15 +709,15 @@ class Base(object):
         except Exception:
             pass
 
-    def on_button_press_event(self, eb, event, filepath,
-                              original_filename, url, encrypted):
+    def _on_button_press_event(self, eb, event, filepath, original_filename,
+                               url, encrypted):
         data = {"filepath": filepath,
                 "original_filename": original_filename,
                 "url": url,
                 "encrypted": encrypted}
         # left click
         if event.type == Gdk.EventType.BUTTON_PRESS and event.button == 1:
-            method = getattr(self, "on_"
+            method = getattr(self, "_on_"
                              + self.plugin.config['LEFTCLICK_ACTION']
                              + "_activate")
             method(event, data)
