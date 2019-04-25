@@ -680,12 +680,7 @@ class Base(object):
     def _on_open_link_in_browser_menuitem_activate(self, menu, data):
         url = data["url"]
         if data["encrypted"]:
-            dialogs.ErrorDialog(
-                _('Encrypted file'),
-                _('You cannot open encrypted files in your '
-                  'browser directly. Try "Open Downloaded File '
-                  'in Browser" instead.'),
-                transient_for=app.app.get_active_window())
+            self._on_open_menuitem_activate(self, data)
         else:
             helpers.open_uri(url)
 
