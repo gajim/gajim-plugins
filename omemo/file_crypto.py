@@ -33,6 +33,7 @@ from gi.repository import GLib
 
 from gajim.common import app
 from gajim.common import configpaths
+from gajim.common.const import URIType
 from gajim.plugins.plugins_i18n import _
 from gajim.gtk.dialogs import ErrorDialog, YesNoDialog
 
@@ -70,11 +71,11 @@ class FileDecryption:
         self.plugin = plugin
         self.window = None
 
-    def hyperlink_handler(self, url, kind, instance, window):
-        if ERROR or kind != 'url':
+    def hyperlink_handler(self, uri, instance, window):
+        if ERROR or uri.type != URIType.WEB:
             return
         self.window = window
-        urlparts = urlparse(url)
+        urlparts = urlparse(uri.data)
         file = File(urlparts.geturl(), instance.account)
 
         if urlparts.scheme not in ['https', 'aesgcm'] or not urlparts.netloc:

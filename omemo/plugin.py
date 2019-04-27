@@ -211,9 +211,9 @@ class OmemoPlugin(GajimPlugin):
             return
         self.get_omemo(account).encrypt_message(conn, obj, callback, False)
 
-    def _file_decryption(self, url, kind, instance, window):
+    def _file_decryption(self, uri, instance, window):
         file_crypto.FileDecryption(self).hyperlink_handler(
-            url, kind, instance, window)
+            uri, instance, window)
 
     def encrypt_file(self, file, _account, callback):
         thread = threading.Thread(target=self._encrypt_file_thread,
