@@ -638,7 +638,7 @@ class Base(object):
         original_filename = data["original_filename"]
         url = data["url"]
         if original_filename.startswith('location_'):
-            helpers.launch_browser_mailer('url', url)
+            helpers.open_uri(url)
             return
         helpers.launch_file_manager(filepath)
 
@@ -677,7 +677,7 @@ class Base(object):
                   'in Browser" instead.'),
                 transient_for=app.app.get_active_window())
         else:
-            helpers.launch_browser_mailer('url', url)
+            helpers.open_uri(url)
 
     def on_open_file_in_browser_menuitem_activate(self, menu, data):
         if os.name == "nt":
