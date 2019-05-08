@@ -1,22 +1,30 @@
-from gajim.plugins.helpers import log
+import logging
 
 from gi.repository import Gdk
 
-from pygments.lexers import get_lexer_by_name, get_all_lexers
+from pygments.lexers import get_lexer_by_name
+from pygments.lexers import get_all_lexers
 from pygments.styles import get_all_styles
+from pygments.util import ClassNotFound
 
-from .types import LineBreakOptions, CodeMarkerOptions, \
-                    PLUGIN_INTERNAL_NONE_LEXER_ID
+from syntax_highlight.types import LineBreakOptions
+from syntax_highlight.types import CodeMarkerOptions
+from syntax_highlight.types import PLUGIN_INTERNAL_NONE_LEXER_ID
+
+log = logging.getLogger('gajim.p.syntax_highlight')
+
 
 class SyntaxHighlighterConfig:
-    PLUGIN_INTERNAL_NONE_LEXER=('None (monospace only)', PLUGIN_INTERNAL_NONE_LEXER_ID)
+    PLUGIN_INTERNAL_NONE_LEXER = ('None (monospace only)',
+                                  PLUGIN_INTERNAL_NONE_LEXER_ID)
 
     def _create_lexer_list(self):
         # The list we create here contains the plain text name and the lexer's
         # id string
         lexers = []
 
-        # Iteration over get_all_lexers() seems to be broken somehow. Workarround
+        # Iteration over get_all_lexers() seems to be broken somehow
+        # Workaround
         all_lexers = get_all_lexers()
         for lexer in all_lexers:
             # We don't want to add lexers that we cant identify by name later
@@ -24,7 +32,7 @@ class SyntaxHighlighterConfig:
                 lexers.append((lexer[0], lexer[1][0]))
         lexers.sort()
 
-        # Insert our internal "none" type at top of the list.
+        # Insert our internal 'none' type at top of the list
         lexers.insert(0, self.PLUGIN_INTERNAL_NONE_LEXER)
         return lexers
 
@@ -38,24 +46,24 @@ class SyntaxHighlighterConfig:
         lexer = None
         try:
             lexer = get_lexer_by_name(name)
-        except:
+        except ClassNotFound:
             pass
         return lexer
 
     def get_lexer_with_fallback(self, language):
         lexer = self.get_lexer_by_name(language)
         if lexer is None:
-            log.info("Falling back to default lexer for %s.",
-                    self.get_default_lexer_name())
+            log.info('Falling back to default lexer for %s.',
+                     self.get_default_lexer_name())
             lexer = self.default_lexer[1]
         return lexer
 
     def set_font(self, font):
-        if font is not None and font != "":
+        if font is not None and font != '':
             self.config['font'] = font
 
     def set_style(self, style):
-        if style is not None and style != "":
+        if style is not None and style != '':
             self.config['style'] = style
 
     def set_line_break_action(self, option):
@@ -68,14 +76,16 @@ class SyntaxHighlighterConfig:
             lexer = get_lexer_by_name(name)
 
             if lexer is None and self.default_lexer is None:
-                log.error("Failed to get default lexer by name."\
-                        "Falling back to simply using the first in the list.")
+                log.error('Failed to get default lexer by name.'
+                          'Falling back to simply using the first lexer '
+                          'in the list.')
                 lexer = self.lexer_list[0]
-                name  = lexer[0]
+                name = lexer[0]
                 self.default_lexer = (name, lexer)
             if lexer is None and self.default_lexer is not None:
-                log.info("Failed to get default lexer by name, keeping previous"\
-                        "setting (lexer = %s).", self.default_lexer[0])
+                log.info('Failed to get default lexer by name, keeping '
+                         'previous setting (lexer = %s).',
+                         self.default_lexer[0])
                 name = self.default_lexer[0]
             else:
                 self.default_lexer = (name, lexer)
@@ -88,7 +98,7 @@ class SyntaxHighlighterConfig:
         self.config['bgcolor_override'] = state
 
     def set_bgcolor(self, color):
-        if isinstance(color, Gdk.Color):
+        if isinstance(color, Gdk.RGBA):
             color = color.to_string()
         self.config['bgcolor'] = color
 
@@ -110,9 +120,9 @@ class SyntaxHighlighterConfig:
         return self.lexer_list
 
     def get_line_break_action(self):
-        # return int only
+        # Return int only
         if isinstance(self.config['line_break'], int):
-            # in case of legacy settings, convert.
+            # In case of legacy settings, convert.
             action = self.config['line_break']
             self.set_line_break_action(action)
         else:
@@ -146,13 +156,13 @@ class SyntaxHighlighterConfig:
         Initialize all config variables that depend directly on pygments being
         available.
         """
-        self.lexer_list     = self._create_lexer_list()
-        self.style_list     = [s for s in get_all_styles()]
+        self.lexer_list = self._create_lexer_list()
+        self.style_list = [s for s in get_all_styles()]
         self.style_list.sort()
         self.set_default_lexer(self.config['default_lexer'])
 
     def __init__(self, config):
-        self.lexer_list     = []
-        self.style_list     = []
-        self.config         = config
-        self.default_lexer  = None
+        self.lexer_list = []
+        self.style_list = []
+        self.config = config
+        self.default_lexer = None

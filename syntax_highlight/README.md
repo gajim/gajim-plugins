@@ -1,23 +1,22 @@
 # Syntax Highlighting Plugin for Gajim
 
-[Gajim](https://gajim.org) Plugin that highlights source code blocks in chatbox.
+[Gajim](https://gajim.org) Plugin that highlights source code blocks in the chat window.
 
 ## Installation
 
-The recommended way of installing this plugin is to use
-Gajim's Plugin Installer.
+The recommended way of installing this plugin is to use Gajim's Plugin Installer.
 
 For more information and instruction on how to install plugins manually, please
-refer to the [Gajim Plugin Wiki seite](https://dev.gajim.org/gajim/gajim-plugins/wikis/home#how-to-install-plugins).
+refer to the [Gajim Plugin Wiki site](https://dev.gajim.org/gajim/gajim-plugins/wikis/home#how-to-install-plugins).
 
 
 ## Usage
 
 This plugin uses markdown-style syntax to identify which parts of a message
-should be formatted as code in the chatbox.
+should be formatted as code in the chat window.
 
 ```
-Inline source code  will be highlighted when placed in between `two single
+Inline source code will be highlighted when placed in between `two single
 back-ticks`.
 ```
 
@@ -35,8 +34,8 @@ i.e. there must be a newline here.
 ```
 ````
 
-In case no languge is specified with the opening tag or the specified language
-could not be identified, the default languge configured in the settings is
+In case no language is specified with the opening tag or the specified language
+could not be identified, the default language configured in the settings is
 used.
 
 You can test it by copying and sending the following text to one of your
@@ -53,20 +52,19 @@ using the plugin.)
 
 ## Relation to XEP-0393 - 'Message Styling'
 
-
 https://xmpp.org/extensions/xep-0393.html#pre-block
 
 In [XEP-0393](https://xmpp.org/extensions/xep-0393.html),
 the back-tick based syntax is defined as markup for preformatted
-text blocks, respectively inline performatted text.
-Formatting of such text blocks with monospaced fonts is recommended by the XEP.
+text blocks, respectively inline preformatted text.
+Formatting of such text blocks with mono-spaced fonts is recommended by the XEP.
 
 By using the same syntax as defined in XEP-0393 XMPP clients with only XEP-0393
 support but without syntax highlighting can at least present their users blocks
-of pre-formatted text.
+of preformatted text.
 
 Since text in between the back-tick markers is not further formatted by this
-plugin, it can be considered "pre-formatted".
+plugin, it can be considered "preformatted".
 Hence, this plugin is compatible to the formatting options defined by XEP-0393,
 [section 5.1.2, "Preformatted Text"](https://xmpp.org/extensions/xep-0393.html#pre-block)
 and [section 5.2.5, "Preformatted Span"](https://xmpp.org/extensions/xep-0393.html#mono).
@@ -84,7 +82,7 @@ including default language, style, font settings, background color and formattin
 of the code markers.
 
 In the configuration window, the current settings are displayed in an
-interactive preview pannel. This allows you to directly check how code would
+interactive preview panel. This allows you to directly check how code would
 look like in the message
 window.
 
@@ -117,7 +115,7 @@ in a terminal to display the debug messages.
 ## Credits
 
 Since I had no experience in writing Plugins for Gajim, I used the
-[Latex Plugin](https://trac-plugins.gajim.org/wiki/LatexPlugin)
+[Latex Plugin](https://dev.gajim.org/gajim/gajim-plugins/wikis/LatexPlugin)
 written by Yves Fischer and Yann Leboulanger as an example and copied a big
 portion of initial code. Therefore, credits go to the authors of the Latex
 Plugin for providing an example.
