@@ -79,7 +79,7 @@ class FileDecryption:
         file = File(urlparts.geturl(), instance.account)
 
         if urlparts.scheme not in ['https', 'aesgcm'] or not urlparts.netloc:
-            log.info("Not accepting URL for decryption: %s", url)
+            log.info("Not accepting URL for decryption: %s", uri.data)
             return
 
         if urlparts.scheme == 'aesgcm':
@@ -87,7 +87,7 @@ class FileDecryption:
             file.url = 'https://' + file.url[9:]
 
         if not self.is_encrypted(file):
-            log.info('Url not encrypted: %s', url)
+            log.info('URL not encrypted: %s', uri.data)
             return
 
         self.create_paths(file)
