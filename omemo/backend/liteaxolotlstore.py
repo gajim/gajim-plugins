@@ -95,9 +95,10 @@ class LiteAxolotlStore(AxolotlStore):
 
     def _generate_axolotl_keys(self):
         identity_key_pair = KeyHelper.generateIdentityKeyPair()
-        registration_id = KeyHelper.getRandomSequence(max=2147483647)
-        pre_keys = KeyHelper.generatePreKeys(KeyHelper.getRandomSequence(),
-                                             DEFAULT_PREKEY_AMOUNT)
+        registration_id = KeyHelper.getRandomSequence(2147483647)
+        pre_keys = KeyHelper.generatePreKeys(
+            KeyHelper.getRandomSequence(4294967296),
+            DEFAULT_PREKEY_AMOUNT)
         self.storeLocalData(registration_id, identity_key_pair)
 
         signed_pre_key = KeyHelper.generateSignedPreKey(
