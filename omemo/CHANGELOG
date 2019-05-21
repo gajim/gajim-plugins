@@ -1,3 +1,9 @@
+2.6.3 / 2019-05-21
+- Keep compatibility with python-axolotl
+
+2.6.2 / 2019-10-13
+- Raise Version
+
 2.6.1 / 2018-08-08
 - Save encryption details to the database
 - Bugfixes
