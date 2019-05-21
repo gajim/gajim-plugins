@@ -1,3 +1,6 @@
+2.6.29 / 2019-05-21
+- Keep compatibility with python-axolotl
+
 2.6.28 / 2019-03-16
 - Fix loading style with python 3.5
 
