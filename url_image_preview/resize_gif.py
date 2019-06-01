@@ -17,11 +17,11 @@ def resize_gif(mem, path, resize_to):
 
 
 def analyse_image(mem):
-    """
+    '''
     Pre-process pass over the image to determine the mode (full or additive).
     Necessary as assessing single frames isn't reliable. Need to know the mode
     before processing all frames.
-    """
+    '''
     image = Image.open(BytesIO(mem))
     results = {
         'size': image.size,

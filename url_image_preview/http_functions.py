@@ -47,17 +47,17 @@ def _get_http_head_direct(url, verify):
             context.check_hostname = False
             context.verify_mode = ssl.CERT_NONE
             log.warning('CERT Verification disabled')
-            f = urllib2.urlopen(req, timeout=30, context=context)
+            file_ = urllib2.urlopen(req, timeout=30, context=context)
         else:
             if os.name == 'nt':
-                f = urllib2.urlopen(req, cafile=certifi.where())
+                file_ = urllib2.urlopen(req, cafile=certifi.where())
             else:
-                f = urllib2.urlopen(req)
+                file_ = urllib2.urlopen(req)
     except Exception as ex:
         log.debug('Error', exc_info=True)
         return ('', 0)
-    ctype = f.headers['Content-Type']
-    clen = f.headers['Content-Length']
+    ctype = file_.headers['Content-Type']
+    clen = file_.headers['Content-Length']
     try:
         clen = int(clen)
     except (TypeError, ValueError):
@@ -65,10 +65,10 @@ def _get_http_head_direct(url, verify):
     return (ctype, clen)
 
 def _get_http_direct(attrs):
-    """
+    '''
     Download a file. This function should
     be launched in a separated thread.
-    """
+    '''
     log.info('Get request direct for URL: %s', attrs['src'])
     mem, alt, max_size = b'', '', 2 * 1024 * 1024
     if 'max_size' in attrs:
@@ -81,12 +81,12 @@ def _get_http_direct(attrs):
             context.check_hostname = False
             context.verify_mode = ssl.CERT_NONE
             log.warning('CERT Verification disabled')
-            f = urllib2.urlopen(req, timeout=30, context=context)
+            file_ = urllib2.urlopen(req, timeout=30, context=context)
         else:
             if os.name == 'nt':
-                f = urllib2.urlopen(req, cafile=certifi.where())
+                file_ = urllib2.urlopen(req, cafile=certifi.where())
             else:
-                f = urllib2.urlopen(req)
+                file_ = urllib2.urlopen(req)
     except Exception as ex:
         log.debug('Error', exc_info=True)
         pixbuf = None
@@ -94,7 +94,7 @@ def _get_http_direct(attrs):
     else:
         while True:
             try:
-                temp = f.read(100)
+                temp = file_.read(100)
             except socket.timeout as ex:
                 log.debug('Timeout loading image %s', attrs['src'] + str(ex))
                 alt = attrs.get('alt', '')

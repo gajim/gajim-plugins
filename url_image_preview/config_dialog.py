@@ -91,8 +91,8 @@ class UrlImagePreviewConfigDialog(SettingsDialog):
             ]
 
         SettingsDialog.__init__(self, parent, _('UrlImagePreview Configuration'),
-                               Gtk.DialogFlags.MODAL, settings, None,
-                               extend=[
+                                Gtk.DialogFlags.MODAL, settings, None,
+                                extend=[
                                    ('PreviewSizeSpinSetting', SizeSpinSetting)])
 
     def on_setting(self, value, data):
