@@ -40,14 +40,17 @@ from gi.repository import GLib
 
 from gajim.common import app
 from gajim.common import configpaths
+
 from gajim.plugins import GajimPlugin
 from gajim.plugins.gui import GajimPluginConfigDialog
 from gajim.plugins.plugins_i18n import _
 from gajim.plugins.helpers import get_builder
+
+from gajim.gtk.dialogs import DialogButton
+from gajim.gtk.dialogs import NewConfirmationCheckDialog
+from gajim.gtk.dialogs import InformationDialog
 from gajim.gtk.dialogs import WarningDialog
-from gajim.gtk.dialogs import HigDialog
 from gajim.gtk.dialogs import YesNoDialog
-from gajim.gtk.dialogs import ConfirmationDialogCheck
 from gajim.gtkgui_helpers import get_action
 
 log = logging.getLogger('gajim.p.plugin_installer')
@@ -126,20 +129,24 @@ class PluginInstaller(GajimPlugin):
             self.on_activate(app.interface.instances['plugins'])
 
     def warn_update(self, plugins):
-        def open_update(checked):
-            if checked:
+        def _open_update(is_checked):
+            if is_checked:
                 self.config['auto_update'] = True
             get_action('plugins').activate()
             page = self.notebook.page_num(self.available_plugins_box)
             self.notebook.set_current_page(page)
         if plugins:
             plugins_str = '\n' + '\n'.join(plugins)
-            YesNoDialog(
-                _('Plugin updates'),
+            NewConfirmationCheckDialog(
+                _('Plugin Updates'),
+                _('Plugin Updates Available'),
                 _('There are updates available for plugins you have installed.\n'
                   'Do you want to update those plugins:\n%s') % plugins_str,
-                checktext=_('Update plugins automatically next time'),
-                on_response_yes=open_update)
+                _('Update plugins automatically next time'),
+                [DialogButton.make('Cancel'),
+                 DialogButton.make('OK',
+                                   text=_('_Update'),
+                                   callback=_open_update)]).show()
         else:
             log.info('No updates found')
             if hasattr(self, 'thread'):
@@ -303,30 +310,28 @@ class PluginInstaller(GajimPlugin):
             else:
                 need_restart = True
 
-        if need_restart:
-            txt = _('All plugins downloaded.\nThe updates will '
-                    'be installed the next time Gajim is started.')
-        else:
-            txt = _('All selected plugins downloaded and activated')
         if not auto_update:
-            dialog = HigDialog(
-                self.window, Gtk.MessageType.INFO, Gtk.ButtonsType.OK, '', txt)
-            dialog.set_modal(False)
-            dialog.popup()
+            if need_restart:
+                sectext = _('Updates will be installed next time Gajim is started.')
+            else:
+                sectext = _('All selected plugins downloaded and activated')
+            InformationDialog(_('Plugin Updates Downloaded'), sectext)
+
         if auto_update and self.config['auto_update_feedback']:
-            def on_ok(checked):
-                if checked:
+            def _on_ok(is_checked):
+                if is_checked:
                     self.config['auto_update_feedback'] = False
-            # Hide cancel button to mimic InfoDialogCheck
-            ConfirmationDialogCheck(_('Plugins updated'),
-                                    _('Plugin updates have successfully been downloaded.'
-                                      'Updates will be installed on next Gajim restart.'),
-                                    _('Do not show this message again'),
-                                    on_response_ok=on_ok).get_widget_for_response(
-                                        Gtk.ResponseType.CANCEL).hide()
+            NewConfirmationCheckDialog(
+                _('Plugins Updated'),
+                _('Plugins Updated'),
+                _('Plugin updates have successfully been downloaded.\n'
+                  'Updates will be installed next time Gajim is started.'),
+                _('Do not show this message again'),
+                [DialogButton.make('OK',
+                                   callback=_on_ok)]).show()
+
         if auto_update and not self.config['auto_update_feedback']:
             log.info('Updates downloaded, will install on next restart')
-
 
     def available_plugins_treeview_selection_changed(self, treeview_selection):
         model, iter_ = treeview_selection.get_selected()
