@@ -42,7 +42,7 @@ class ConfigDialog(Gtk.ApplicationWindow):
 
         self._plugin = plugin
 
-        self.add(self._ui.grid)
+        self.add(self._ui.box)
 
         self._fill_list()
         self.show_all()
