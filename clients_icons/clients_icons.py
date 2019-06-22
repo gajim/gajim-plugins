@@ -1,24 +1,22 @@
 import logging
 from pathlib import Path
+from functools import partial
 
 from gi.repository import Gtk
-from nbxmpp import JID
-
-from clients_icons import clients
 
 from gajim.roster_window import Column
-
-from gajim.plugins import GajimPlugin
-from gajim.plugins.gui import GajimPluginConfigDialog
-from gajim.plugins.plugins_i18n import _
-
 from gajim.common import ged
 from gajim.common import app
 from gajim.common import caps_cache
-
-
 from gajim.gtk.util import load_icon
 
+from gajim.plugins import GajimPlugin
+from gajim.plugins.plugins_i18n import _
+
+from clients_icons import clients
+from clients_icons.config_dialog import ClientsIconsConfigDialog
+
+from nbxmpp import JID
 
 log = logging.getLogger('gajim.p.client_icons')
 
@@ -27,7 +25,8 @@ class ClientsIconsPlugin(GajimPlugin):
     def init(self):
         self.description = _('Shows client icons in roster'
                              ' and in groupchats.')
-        self.pos_list = [_('after statusicon'), _('before avatar')]
+        self.config_dialog = partial(ClientsIconsConfigDialog, self)
+
         self.events_handlers = {
             'caps-update': (ged.POSTGUI, self._on_caps_update),
         }
@@ -43,7 +42,7 @@ class ClientsIconsPlugin(GajimPlugin):
             'show_in_groupchats': (True, ''),
             'show_in_tooltip': (True, ''),
             'show_unknown_icon': (True, ''),
-            'pos_in_list': (0, ''),
+            'pos_in_list': ('0', ''),
             'show_facebook': (True, ''),
         }
 
@@ -51,7 +50,6 @@ class ClientsIconsPlugin(GajimPlugin):
         if _icon_theme is not None:
             _icon_theme.append_search_path(str(Path(__file__).parent))
 
-        self.config_dialog = ClientsIconsPluginConfigDialog(self)
 
     @staticmethod
     def get_client_identity_name(contact):
@@ -217,7 +215,7 @@ class ClientsIconsPlugin(GajimPlugin):
             chat_control.list_treeview.get_column(0))
         # add new renderer in renderers list
         position_list = ['name', 'avatar']
-        position = position_list[self.config['pos_in_list']]
+        position = position_list[int(self.config['pos_in_list'])]
         for renderer in chat_control.renderers_list:
             if renderer[0] == position:
                 break
@@ -282,7 +280,7 @@ class ClientsIconsPlugin(GajimPlugin):
         roster.tree.remove_column(roster.tree.get_column(0))
         # add new renderer in renderers list
         position_list = ['name', 'avatar']
-        position = position_list[self.config['pos_in_list']]
+        position = position_list[int(self.config['pos_in_list'])]
         for renderer in roster.renderers_list:
             if renderer[0] == position:
                 break
@@ -430,72 +428,3 @@ class ClientsIconsPlugin(GajimPlugin):
         else:
             renderer.set_property('cell-background', None)
         renderer.set_property('width', 16)
-
-
-class ClientsIconsPluginConfigDialog(GajimPluginConfigDialog):
-    def init(self):
-        self.Gtk_BUILDER_FILE_PATH = self.plugin.local_file_path(
-                'config_dialog.ui')
-        self.xml = Gtk.Builder()
-        self.xml.set_translation_domain('gajim_plugins')
-        self.xml.add_objects_from_file(self.Gtk_BUILDER_FILE_PATH, ['vbox1'])
-        vbox = self.xml.get_object('vbox1')
-        self.get_child().pack_start(vbox, True, True, 0)
-        self.combo = self.xml.get_object('combobox1')
-        self.liststore = Gtk.ListStore(str)
-        self.combo.set_model(self.liststore)
-        cellrenderer = Gtk.CellRendererText()
-        self.combo.pack_start(cellrenderer, True)
-        self.combo.add_attribute(cellrenderer, 'text', 0)
-
-        for item in self.plugin.pos_list:
-            self.liststore.append((item,))
-        self.combo.set_active(self.plugin.config['pos_in_list'])
-
-        self.xml.get_object('show_in_roster').set_active(
-            self.plugin.config['show_in_roster'])
-        self.xml.get_object('show_in_groupchats').set_active(
-            self.plugin.config['show_in_groupchats'])
-        self.xml.get_object('show_unknown_icon').set_active(
-            self.plugin.config['show_unknown_icon'])
-        self.xml.get_object('show_facebook').set_active(
-            self.plugin.config['show_facebook'])
-        self.xml.get_object('show_in_tooltip').set_active(
-            self.plugin.config['show_in_tooltip'])
-
-        self.xml.connect_signals(self)
-
-    def redraw_all(self):
-        self.plugin.deactivate()
-        self.plugin.activate()
-        for gc_control in app.interface.msg_win_mgr.get_controls('gc'):
-            self.plugin.disconnect_from_groupchat_control(gc_control)
-        for gc_control in app.interface.msg_win_mgr.get_controls('gc'):
-            self.plugin.connect_with_groupchat_control(gc_control)
-
-    def on_show_in_roster_toggled(self, widget):
-        self.plugin.config['show_in_roster'] = widget.get_active()
-        self.plugin.deactivate()
-        self.plugin.activate()
-
-    def on_show_in_tooltip_toggled(self, widget):
-        self.plugin.config['show_in_tooltip'] = widget.get_active()
-
-    def on_show_in_groupchats_toggled(self, widget):
-        self.plugin.config['show_in_groupchats'] = widget.get_active()
-        for gc_control in app.interface.msg_win_mgr.get_controls('gc'):
-            self.plugin.disconnect_from_groupchat_control(gc_control)
-        for gc_control in app.interface.msg_win_mgr.get_controls('gc'):
-            self.plugin.connect_with_groupchat_control(gc_control)
-
-    def on_show_unknown_icon_toggled(self, widget):
-        self.plugin.config['show_unknown_icon'] = widget.get_active()
-        self.redraw_all()
-
-    def on_show_facebook_toggled(self, widget):
-        self.plugin.config['show_facebook'] = widget.get_active()
-        self.redraw_all()
-
-    def on_combobox1_changed(self, widget):
-        self.plugin.config['pos_in_list'] = widget.get_active()
-        self.redraw_all()
