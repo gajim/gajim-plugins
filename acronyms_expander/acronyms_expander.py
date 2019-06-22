@@ -110,7 +110,7 @@ class AcronymsExpanderPlugin(GajimPlugin):
         # Get last word and cut invoker
         last_word = word_start_iter.get_slice(insert_iter).strip()
 
-        if contact.is_groupchat():
+        if contact.is_groupchat:
             nick_list = app.contacts.get_nick_list(account, contact.jid)
             if last_word in nick_list:
                 log.info('Groupchat participant has same nick as acronym')
