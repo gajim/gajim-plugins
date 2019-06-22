@@ -347,10 +347,9 @@ class OMEMO(BaseModule):
         return contact.sub == 'both'
 
     def on_muc_config_changed(self, event):
-        room = event.jid.getBare()
         status_codes = event.status_codes or []
         if StatusCode.CONFIG_NON_ANONYMOUS in status_codes:
-            self._omemo_groupchats.add(room)
+            self._omemo_groupchats.add(event.room_jid)
             self._log.info('Room config change: non-anonymous')
 
     def _check_for_missing_sessions(self, jid):
