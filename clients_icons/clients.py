@@ -61,6 +61,7 @@ CLIENTS = ClientsDict({
     'http://mcabber.com/caps': ClientData(('MCabber', 'mcabber')),
     'http://psi-plus.com': ClientData(('Psi+', 'psiplus')),
     'https://dino.im': ClientData(('Dino', 'dino')),
+    'http://monal.im/': ClientData(('Monal', 'monal')),
     'http://slixmpp.com/ver/1.2.4': ClientData(('Bot', 'bot')),
     'http://slixmpp.com/ver/1.3.0': ClientData(('Bot', 'bot')),
     'https://www.xabber.com/': ClientData(('Xabber', 'xabber')),
