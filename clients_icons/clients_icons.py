@@ -65,7 +65,7 @@ class ClientsIconsPlugin(GajimPlugin):
     @staticmethod
     def is_groupchat(contact):
         if hasattr(contact, 'is_groupchat'):
-            return contact.is_groupchat()
+            return contact.is_groupchat
         return False
 
     def add_tooltip_row(self, tooltip, contact, tooltip_grid):
@@ -354,7 +354,7 @@ class ClientsIconsPlugin(GajimPlugin):
         if not self.config['show_in_roster']:
             return
 
-        if contact.is_groupchat():
+        if contact.is_groupchat:
             return
         roster = app.interface.roster
         iters = roster._get_contact_iter(event.jid, event.conn.name, contact,
