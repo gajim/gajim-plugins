@@ -28,15 +28,25 @@ class ClientsIconsPlugin(GajimPlugin):
         self.config_dialog = partial(ClientsIconsConfigDialog, self)
 
         self.events_handlers = {
-            'caps-update': (ged.POSTGUI, self._on_caps_update),
+            'caps-update': (
+                ged.POSTGUI, self._on_caps_update),
         }
+
         self.gui_extension_points = {
-            'groupchat_control': (self.connect_with_groupchat_control,
-                                  self.disconnect_from_groupchat_control),
-            'roster_draw_contact': (self.connect_with_roster_draw_contact, None),
-            'roster_tooltip_populate': (self.connect_with_roster_tooltip_populate, None),
-            'gc_tooltip_populate': (self.connect_with_gc_tooltip_populate, None),
+            'groupchat_control': (
+                self.connect_with_groupchat_control,
+                self.disconnect_from_groupchat_control),
+            'roster_draw_contact': (
+                self.connect_with_roster_draw_contact,
+                None),
+            'roster_tooltip_populate': (
+                self.connect_with_roster_tooltip_populate,
+                None),
+            'gc_tooltip_populate': (
+                self.connect_with_gc_tooltip_populate,
+                None),
             }
+
         self.config_default_values = {
             'show_in_roster': (True, ''),
             'show_in_groupchats': (True, ''),
@@ -49,7 +59,6 @@ class ClientsIconsPlugin(GajimPlugin):
         _icon_theme = Gtk.IconTheme.get_default()
         if _icon_theme is not None:
             _icon_theme.append_search_path(str(Path(__file__).parent))
-
 
     @staticmethod
     def get_client_identity_name(contact):
@@ -69,39 +78,41 @@ class ClientsIconsPlugin(GajimPlugin):
     def add_tooltip_row(self, tooltip, contact, tooltip_grid):
         caps = contact.client_caps._node
         caps_image, client_name = self.get_icon(caps, contact, tooltip_grid)
-        caps_image.set_halign(Gtk.PositionType.RIGHT)
+        caps_image.set_halign(Gtk.Align.END)
 
-        # fill clients table
-        self.table = Gtk.Grid()
-        self.table.set_name('client_icons_grid')
-        self.table.set_property('column-spacing', 5)
-        self.table.attach(caps_image, 1, 1, 1, 1)
+        # Fill clients grid
+        self.grid = Gtk.Grid()
+        self.grid.set_name('client_icons_grid')
+        self.grid.set_property('column-spacing', 5)
+        self.grid.attach(caps_image, 1, 1, 1, 1)
         label_name = Gtk.Label()
-        label_name.set_halign(Gtk.PositionType.RIGHT)
+        label_name.set_halign(Gtk.Align.END)
+        label_name.set_valign(Gtk.Align.CENTER)
         label_name.set_markup(client_name)
-        self.table.attach(label_name, 2, 1, 1, 1)
-        self.table.show_all()
+        self.grid.attach(label_name, 2, 1, 1, 1)
+        self.grid.show_all()
 
-        # set label
+        # Set label
         label = Gtk.Label()
         label.set_name('client_icons_label')
-        label.set_halign(Gtk.PositionType.RIGHT)
+        label.set_halign(Gtk.Align.END)
+        label.set_valign(Gtk.Align.CENTER)
         label.set_markup(_('Client:'))
         label.show()
 
-        # set client table to tooltip
+        # Set client grid to tooltip
         tooltip_grid.insert_next_to(tooltip.resource_label,
                                     Gtk.PositionType.BOTTOM)
         tooltip_grid.attach_next_to(label, tooltip.resource_label,
                                     Gtk.PositionType.BOTTOM, 1, 1)
-        tooltip_grid.attach_next_to(self.table, label,
+        tooltip_grid.attach_next_to(self.grid, label,
                                     Gtk.PositionType.RIGHT, 1, 1)
 
     def connect_with_gc_tooltip_populate(self, tooltip, contact, tooltip_grid):
         if not self.config['show_in_tooltip']:
             return
-        # Check if clients info already attached to tooltip
 
+        # Check if clients info already attached to tooltip
         node = contact.client_caps._node
         image, client_name = self.get_icon(node, contact, tooltip_grid)
         label = Gtk.Label(label=client_name)
@@ -116,7 +127,8 @@ class ClientsIconsPlugin(GajimPlugin):
         tooltip_grid.attach_next_to(box, tooltip._ui.affiliation,
                                     Gtk.PositionType.BOTTOM, 1, 1)
 
-    def connect_with_roster_tooltip_populate(self, tooltip, contacts, tooltip_grid):
+    def connect_with_roster_tooltip_populate(self, tooltip, contacts,
+                                             tooltip_grid):
         if not self.config['show_in_tooltip']:
             return
         if len(contacts) == 1 and contacts[0].jid in app.get_our_jids():
@@ -124,7 +136,7 @@ class ClientsIconsPlugin(GajimPlugin):
         if self.is_groupchat(contacts[0]):
             return
 
-        # put contacts in dict, where key is priority
+        # Put contacts in dict, where key is priority
         num_resources = 0
         contacts_dict = {}
         for contact in contacts:
@@ -139,29 +151,31 @@ class ClientsIconsPlugin(GajimPlugin):
         contact_keys = sorted(contacts_dict.keys())
         contact_keys.reverse()
 
-        # fill clients table
-        table = Gtk.Grid()
-        table.insert_row(0)
-        table.insert_row(0)
-        table.insert_column(0)
-        table.set_property('column-spacing', 2)
+        # Fill clients grid
+        grid = Gtk.Grid()
+        grid.insert_row(0)
+        grid.insert_row(0)
+        grid.insert_column(0)
+        grid.set_property('column-spacing', 2)
 
         vcard_current_row = 0
         for priority in contact_keys:
             for acontact in contacts_dict[priority]:
                 caps = acontact.client_caps._node
-                caps_image, client_name = self.get_icon(caps, acontact, tooltip_grid)
+                caps_image, client_name = self.get_icon(
+                    caps, acontact, tooltip_grid)
                 caps_image.set_valign(Gtk.Align.START)
-                table.attach(caps_image, 1, vcard_current_row, 1, 1)
+                grid.attach(caps_image, 1, vcard_current_row, 1, 1)
                 label = Gtk.Label(label=client_name)
                 label.set_valign(Gtk.Align.START)
+                label.set_halign(Gtk.Align.START)
                 label.set_xalign(0)
-                table.attach(label, 2, vcard_current_row, 1, 1)
+                grid.attach(label, 2, vcard_current_row, 1, 1)
                 vcard_current_row += 1
-        table.show_all()
-        table.set_valign(Gtk.Align.START)
+        grid.show_all()
+        grid.set_valign(Gtk.Align.START)
 
-        # set label
+        # Set label
         label = Gtk.Label()
         label.set_halign(Gtk.Align.END)
         label.set_valign(Gtk.Align.START)
@@ -170,12 +184,13 @@ class ClientsIconsPlugin(GajimPlugin):
         else:
             label.set_text(_('Client:'))
         label.show()
-        # set clients table to tooltip
+
+        # Set clients grid to tooltip
         tooltip_grid.insert_next_to(tooltip._ui.resource_label,
                                     Gtk.PositionType.BOTTOM)
         tooltip_grid.attach_next_to(label, tooltip._ui.resource_label,
                                     Gtk.PositionType.BOTTOM, 1, 1)
-        tooltip_grid.attach_next_to(table, label,
+        tooltip_grid.attach_next_to(grid, label,
                                     Gtk.PositionType.RIGHT, 1, 1)
 
     def get_icon(self, node, contact, widget):
@@ -191,13 +206,15 @@ class ClientsIconsPlugin(GajimPlugin):
             return
         if self.is_groupchat(contact):
             return
-        child_iters = roster._get_contact_iter(jid, account, contact, roster.model)
+        child_iters = roster._get_contact_iter(
+            jid, account, contact, roster.model)
         if not child_iters:
             return
         for iter_ in child_iters:
             if roster.model[iter_][self.renderer_num] is None:
                 node = contact.client_caps._node
-                self.set_icon(roster.model, iter_, self.renderer_num, node, contact)
+                self.set_icon(
+                    roster.model, iter_, self.renderer_num, node, contact)
 
     def connect_with_groupchat_control(self, chat_control):
         chat_control.nb_ext_renderers += 1
@@ -210,10 +227,12 @@ class ClientsIconsPlugin(GajimPlugin):
             'client_icon', Gtk.CellRendererPixbuf(), False,
             'icon_name', self.muc_renderer_num,
             self.tree_cell_data_func, chat_control)
-        # remove old column
+
+        # Remove old column
         chat_control.list_treeview.remove_column(
             chat_control.list_treeview.get_column(0))
-        # add new renderer in renderers list
+
+        # Add new renderer in renderers list
         position_list = ['name', 'avatar']
         position = position_list[int(self.config['pos_in_list'])]
         for renderer in chat_control.renderers_list:
@@ -221,7 +240,8 @@ class ClientsIconsPlugin(GajimPlugin):
                 break
         num = chat_control.renderers_list.index(renderer)
         chat_control.renderers_list.insert(num, client_icon_rend)
-        # fill and append column
+
+        # Fill and append column
         chat_control.fill_column(col)
         chat_control.list_treeview.insert_column(col, 0)
 
@@ -230,7 +250,7 @@ class ClientsIconsPlugin(GajimPlugin):
         chat_control.model.set_sort_column_id(1, Gtk.SortType.ASCENDING)
         chat_control.list_treeview.set_model(chat_control.model)
 
-        # draw roster
+        # Draw roster
         for nick in app.contacts.get_nick_list(
                 chat_control.account, chat_control.room_jid):
             gc_contact = app.contacts.get_gc_contact(
@@ -243,7 +263,8 @@ class ClientsIconsPlugin(GajimPlugin):
                 chat_control.model, iter_,
                 self.muc_renderer_num, caps, gc_contact)
         chat_control.draw_all_roles()
-        # Recalculate column width for ellipsizin
+
+        # Recalculate column width for ellipsizing
         chat_control.list_treeview.columns_autosize()
 
     def disconnect_from_groupchat_control(self, gc_control):
@@ -276,9 +297,11 @@ class ClientsIconsPlugin(GajimPlugin):
             'client_icon', self.renderer, False,
             'icon_name', self.renderer_num,
             self._roster_icon_renderer, self.renderer_num)
-        # remove old column
+
+        # Remove old column
         roster.tree.remove_column(roster.tree.get_column(0))
-        # add new renderer in renderers list
+
+        # Add new renderer in renderers list
         position_list = ['name', 'avatar']
         position = position_list[int(self.config['pos_in_list'])]
         for renderer in roster.renderers_list:
@@ -286,10 +309,12 @@ class ClientsIconsPlugin(GajimPlugin):
                 break
         num = roster.renderers_list.index(renderer)
         roster.renderers_list.insert(num, client_icon_rend)
-        # fill and append column
+
+        # Fill and append column
         roster.fill_column(col)
         roster.tree.insert_column(col, 0)
-        # redraw roster
+
+        # Redraw roster
         roster.columns += [str]
         self.active = True
         roster.setup_and_draw_roster()
@@ -300,7 +325,7 @@ class ClientsIconsPlugin(GajimPlugin):
         except TypeError:
             return
 
-        # allocate space for the icon only if needed
+        # Allocate space for the icon only if needed
         if model[titer][data] is None:
             renderer.set_property('visible', False)
         else:
@@ -310,12 +335,14 @@ class ClientsIconsPlugin(GajimPlugin):
                 app.interface.roster._set_account_row_background_color(renderer)
                 renderer.set_property('xalign', 1)
             elif type_:
-                if not model[titer][Column.JID] or not model[titer][Column.ACCOUNT]:
+                if (not model[titer][Column.JID] or
+                        not model[titer][Column.ACCOUNT]):
                     # This can append at the moment we add the row
                     return
                 jid = model[titer][Column.JID]
                 account = model[titer][Column.ACCOUNT]
-                app.interface.roster._set_contact_row_background_color(renderer, jid, account)
+                app.interface.roster._set_contact_row_background_color(
+                    renderer, jid, account)
 
     def deactivate(self):
         self.active = None
@@ -335,11 +362,12 @@ class ClientsIconsPlugin(GajimPlugin):
         roster.setup_and_draw_roster()
 
     def _on_caps_update(self, event):
+        # Zeroconf
         if event.conn.name == 'Local':
-            # zeroconf
             return
 
-        contact = self._get_contact_or_gc_contact_for_jid(event.conn.name, event.fjid)
+        contact = self._get_contact_or_gc_contact_for_jid(
+            event.conn.name, event.fjid)
         if contact is None:
             return
 
@@ -355,28 +383,30 @@ class ClientsIconsPlugin(GajimPlugin):
         if contact.is_groupchat:
             return
         roster = app.interface.roster
-        iters = roster._get_contact_iter(event.jid, event.conn.name, contact,
-                                         roster.model)
+        iters = roster._get_contact_iter(
+            event.jid, event.conn.name, contact, roster.model)
         iter_ = iters[0]
 
-        # highest contact changed
+        # Highest contact changed
         caps = contact.client_caps._node
         if not caps:
             return
 
         if roster.model[iter_][self.renderer_num] is not None:
-            self.set_icon(roster.model, iter_, self.renderer_num, caps, contact)
+            self.set_icon(
+                roster.model, iter_, self.renderer_num, caps, contact)
             return
 
         for iter_ in iters:
-            self.set_icon(roster.model, iter_, self.renderer_num, caps, contact)
+            self.set_icon(
+                roster.model, iter_, self.renderer_num, caps, contact)
 
     def _draw_gc_contact(self, event, contact):
         if not self.config['show_in_groupchats']:
             return
 
-        control = app.interface.msg_win_mgr.get_gc_control(contact.room_jid,
-                                                           event.conn.name)
+        control = app.interface.msg_win_mgr.get_gc_control(
+            contact.room_jid, event.conn.name)
         if control is None:
             return
         iter_ = control.get_contact_iter(contact.name)
@@ -385,7 +415,8 @@ class ClientsIconsPlugin(GajimPlugin):
         caps = contact.client_caps._node
         if not caps:
             return
-        self.set_icon(control.model, iter_, self.muc_renderer_num, caps, contact)
+        self.set_icon(
+            control.model, iter_, self.muc_renderer_num, caps, contact)
 
     def _get_contact_or_gc_contact_for_jid(self, account, fjid):
         contact = app.contacts.get_contact_from_full_jid(account, fjid)
@@ -421,8 +452,8 @@ class ClientsIconsPlugin(GajimPlugin):
         if not contact:
             return
 
-        bgcolor = app.config.get_per('themes', app.config.get(
-            'roster_theme'), 'contactbgcolor')
+        bgcolor = app.config.get_per(
+            'themes', app.config.get('roster_theme'), 'contactbgcolor')
         if bgcolor:
             renderer.set_property('cell-background', bgcolor)
         else:
