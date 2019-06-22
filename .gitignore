@@ -3,3 +3,6 @@ syntax: glob
 *.pyo
 __pycache__/
 *.*~
+*~
+*#
+.vscode
