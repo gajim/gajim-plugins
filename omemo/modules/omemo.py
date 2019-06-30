@@ -325,12 +325,7 @@ class OMEMO(BaseModule):
             return
 
         for user_jid in result.users:
-            try:
-                jid = helpers.parse_jid(user_jid)
-            except helpers.InvalidFormat:
-                self._log.warning('Invalid JID: %s, ignoring it', user_jid)
-                continue
-
+            jid = str(user_jid)
             self.backend.add_muc_member(room_jid, jid)
 
             if not self.is_contact_in_roster(jid):
