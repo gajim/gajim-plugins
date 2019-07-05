@@ -15,10 +15,11 @@
 # along with Form Handler. If not, see <http://www.gnu.org/licenses/>.
 
 import nbxmpp
+from nbxmpp.modules.dataforms import extend_form
+
 from gi.repository import Gtk
 
 from gajim.common import app
-from gajim.common.modules.dataforms import extend_form
 from gajim.common.connection_handlers_events import MessageOutgoingEvent
 
 from gajim.gtk.dataform import DataFormWidget

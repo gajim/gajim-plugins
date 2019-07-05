@@ -17,9 +17,9 @@
 import logging
 
 import nbxmpp
+from nbxmpp.modules.dataforms import extend_form
 
 from gajim.common import ged
-from gajim.common.modules.dataforms import extend_form
 
 from gajim.plugins import GajimPlugin
 from gajim.plugins.plugins_i18n import _
