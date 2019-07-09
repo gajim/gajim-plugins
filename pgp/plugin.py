@@ -27,7 +27,8 @@ from gajim.plugins import GajimPlugin
 from gajim.plugins.plugins_i18n import _
 
 from gajim.gtk.dialogs import ErrorDialog
-from gajim.gtk.dialogs import YesNoDialog
+from gajim.gtk.dialogs import DialogButton
+from gajim.gtk.dialogs import NewConfirmationCheckDialog
 
 from pgp.gtk.key import KeyDialog
 from pgp.gtk.config import PGPConfigDialog
@@ -134,14 +135,19 @@ class PGPPlugin(GajimPlugin):
 
     @staticmethod
     def _on_not_trusted(event):
-        YesNoDialog(
+        NewConfirmationCheckDialog(
+            _('Untrusted PGP key'),
             _('Untrusted PGP key'),
             _('The PGP key used to encrypt this chat is not '
               'trusted. Do you really want to encrypt this '
               'message?'),
-            checktext=_('_Do not ask me again'),
-            on_response_yes=event.on_yes,
-            on_response_no=event.on_no)
+            _('_Do not ask me again'),
+            [DialogButton.make('Cancel',
+                               text=_('_No'),
+                               callback=event.on_no),
+             DialogButton.make('OK',
+                               text=_('_Encrypt Anyway'),
+                               callback=event.on_yes)]).show()
 
     @staticmethod
     def _before_sendmessage(chat_control):
