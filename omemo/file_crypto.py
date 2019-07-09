@@ -35,7 +35,9 @@ from gajim.common import app
 from gajim.common import configpaths
 from gajim.common.const import URIType
 from gajim.plugins.plugins_i18n import _
-from gajim.gtk.dialogs import ErrorDialog, YesNoDialog
+from gajim.gtk.dialogs import ErrorDialog
+from gajim.gtk.dialogs import DialogButton
+from gajim.gtk.dialogs import NewConfirmationDialog
 
 from omemo.gtk.progress import ProgressWindow
 from omemo.backend.aes import aes_decrypt_file
@@ -132,13 +134,20 @@ class FileDecryption:
         file.filepath = os.path.join(DIRECTORY, newfilename)
 
     def finished(self, file):
-        question = _('Do you want to open %s') % file.filename
-        YesNoDialog(_('Open File'), question,
-                    transient_for=self.window,
-                    on_response_yes=(self.open_file, file.filepath))
+        NewConfirmationDialog(
+            _('Open File'),
+            _('Open File?'),
+            _('Do you want to open %s?') % file.filename,
+            [DialogButton.make('Cancel',
+                               text=_('_No')),
+             DialogButton.make('OK',
+                               text=_('_Open'),
+                               callback=self.open_file(file.filepath))],
+            transient_for=self.window).show()
+
         return False
 
-    def open_file(self, checked, path):
+    def open_file(self, path):
         if platform.system() == "Windows":
             os.startfile(path)
         elif platform.system() == "Darwin":
