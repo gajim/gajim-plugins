@@ -47,10 +47,10 @@ from gajim.plugins.plugins_i18n import _
 from gajim.plugins.helpers import get_builder
 
 from gajim.gtk.dialogs import DialogButton
+from gajim.gtk.dialogs import NewConfirmationDialog
 from gajim.gtk.dialogs import NewConfirmationCheckDialog
 from gajim.gtk.dialogs import InformationDialog
 from gajim.gtk.dialogs import WarningDialog
-from gajim.gtk.dialogs import YesNoDialog
 from gajim.gtkgui_helpers import get_action
 
 log = logging.getLogger('gajim.p.plugin_installer')
@@ -243,17 +243,19 @@ class PluginInstaller(GajimPlugin):
 
     def on_error(self, reason):
         if reason == 'CERTIFICATE_VERIFY_FAILED':
-            YesNoDialog(
-                _('Security error during download'),
-                _('A security error occurred while '
-                  'downloading. The certificate of the '
-                  'plugin archive could not be verified. '
-                  'This might be a security attack. '
-                  '\n\nYou can continue at your own risk (not recommended). '
-                  'Do you want to continue?'
-                  ),
-                on_response_yes=lambda dlg:
-                self.start_download(secure=False, upgrading=True))
+            NewConfirmationDialog(
+                _('Security Error'),
+                _('Security error while trying to download'),
+                _('A security error occurred while trying to download. The '
+                  'certificate of the plugin archive could not be verified. '
+                  'This might be a security attack. \n\nYou can continue at '
+                  'your own risk (not recommended).'),
+                [DialogButton.make('Cancel'),
+                 DialogButton.make('Remove',
+                                   text=_('_Continue'),
+                                   callback=lambda dlg:
+                                   self.start_download(
+                                       secure=False, upgrading=True))]).show()
         else:
             if self.available_plugins_model:
                 for i in range(len(self.available_plugins_model)):
