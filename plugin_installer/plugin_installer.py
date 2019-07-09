@@ -118,7 +118,7 @@ class PluginInstaller(GajimPlugin):
                                       'auto_update_feedback': (True, '')}
         self.gui_extension_points = {'plugin_window': (self.on_activate, None)}
         self.window = None
-        self.progressbar = None
+        self.spinner = None
         self.available_plugins_model = None
         self.timeout_id = 0
         self.connected_ids = {}
@@ -134,7 +134,7 @@ class PluginInstaller(GajimPlugin):
             if is_checked:
                 self.config['auto_update'] = True
             get_action('plugins').activate()
-            page = self.notebook.page_num(self.available_plugins_box)
+            page = self.notebook.page_num(self._ui.available_plugins_box)
             self.notebook.set_current_page(page)
         if plugins:
             plugins_str = '\n' + '\n'.join(plugins)
@@ -163,7 +163,7 @@ class PluginInstaller(GajimPlugin):
     def deactivate(self):
         if hasattr(self, 'available_page'):
             self.notebook.remove_page(
-                self.notebook.page_num(self.available_plugins_box))
+                self.notebook.page_num(self._ui.available_plugins_box))
             self.notebook.set_current_page(0)
             for id_, widget in list(self.connected_ids.items()):
                 widget.disconnect(id_)
@@ -183,52 +183,41 @@ class PluginInstaller(GajimPlugin):
         self.installed_plugins_model = plugin_win.installed_plugins_model
         self.notebook = plugin_win.plugins_notebook
         id_ = self.notebook.connect(
-            'switch-page', self.on_notebook_switch_page)
+            'switch-page', self._on_notebook_switch_page)
         self.connected_ids[id_] = self.notebook
         self.window = plugin_win.window
-        id_ = self.window.connect('destroy', self.on_win_destroy)
+        id_ = self.window.connect('destroy', self._on_destroy)
         self.connected_ids[id_] = self.window
-        path = self.local_file_path('installer.ui')
-        self._ui = get_builder(
-            path, widgets=['refresh', 'available_plugins_box', 'plugin_store'])
 
-        widgets_to_extract = (
-            'available_plugins_box', 'install_plugin_button',
-            'plugin_name_label', 'plugin_version_label',
-            'plugin_authors_label', 'plugin_description',
-            'plugin_homepage_linkbutton', 'progressbar',
-            'available_plugins_treeview', 'available_text',
-            'available_text_label')
+        self._ui = get_builder(self.local_file_path('installer.ui'))
 
-        for widget_name in widgets_to_extract:
-            setattr(self, widget_name, self._ui.get_object(widget_name))
-
-        self.available_page = self.notebook.append_page(
-            self.available_plugins_box, Gtk.Label.new(_('Available')))
-
+        self.spinner = self._ui.spinner
         self.available_plugins_model = self._ui.plugin_store
         self.available_plugins_model.set_sort_column_id(
             2, Gtk.SortType.ASCENDING)
+        self.available_page = self.notebook.append_page(
+            self._ui.available_plugins_box, Gtk.Label.new(_('Available')))
 
         self._ui.connect_signals(self)
         self.window.show_all()
 
-    def on_win_destroy(self, widget):
+    def _on_destroy(self, widget):
         if hasattr(self, 'thread'):
             del self.thread
         if hasattr(self, 'available_page'):
             del self.available_page
 
-    def available_plugins_toggled_cb(self, cell, path):
+    def _available_plugin_toggled(self, cell, path):
         is_active = self.available_plugins_model[path][Column.UPGRADE]
         self.available_plugins_model[path][Column.UPGRADE] = not is_active
         dir_list = []
         for i in range(len(self.available_plugins_model)):
             if self.available_plugins_model[i][Column.UPGRADE]:
                 dir_list.append(self.available_plugins_model[i][Column.DIR])
-        self.install_plugin_button.set_property('sensitive', bool(dir_list))
+        self._ui.install_plugin_button.set_property(
+            'sensitive', bool(dir_list))
 
-    def on_notebook_switch_page(self, widget, page, page_num):
+    def _on_notebook_switch_page(self, widget, page, page_num):
         tab_label_text = self.notebook.get_tab_label_text(page)
         if tab_label_text != (_('Available')):
             return
@@ -236,8 +225,8 @@ class PluginInstaller(GajimPlugin):
             self.available_plugins_model.clear()
             self.start_download(upgrading=True)
 
-    def on_install_upgrade_clicked(self, widget):
-        self.install_plugin_button.set_property('sensitive', False)
+    def _on_install_upgrade_clicked(self, widget):
+        self._ui.install_plugin_button.set_property('sensitive', False)
         dir_list = []
         for i in range(len(self.available_plugins_model)):
             if self.available_plugins_model[i][Column.UPGRADE]:
@@ -264,11 +253,11 @@ class PluginInstaller(GajimPlugin):
             if self.available_plugins_model:
                 for i in range(len(self.available_plugins_model)):
                     self.available_plugins_model[i][Column.UPGRADE] = False
-                self.progressbar.hide()
+                self._ui.spinner.hide()
             text = GLib.markup_escape_text(reason)
-            WarningDialog(_('Error in download'),
-                          _('An error occurred when downloading\n\n'
-                          '<tt>[%s]</tt>' % (str(text))), self.window)
+            WarningDialog(_('Error While Downloading'),
+                          _('An error occurred while downloading\n\n'
+                            '<tt>[%s]</tt>' % (str(text))), self.window)
 
     def start_download(self, secure=True, remote_dirs=False, upgrading=False,
                        check_update=False, auto_update=False):
@@ -343,36 +332,38 @@ class PluginInstaller(GajimPlugin):
         if auto_update and not self.config['auto_update_feedback']:
             log.info('Updates downloaded, will install on next restart')
 
-    def available_plugins_treeview_selection_changed(self, treeview_selection):
+    def _available_plugins_treeview_selection_changed(self, treeview_selection):
         model, iter_ = treeview_selection.get_selected()
         if not iter_:
-            self.plugin_name_label.set_text('')
-            self.plugin_version_label.set_text('')
-            self.plugin_authors_label.set_text('')
-            self.plugin_homepage_linkbutton.set_text('')
-            self.install_plugin_button.set_sensitive(False)
+            self._ui.plugin_name_label.set_text('')
+            self._ui.plugin_description_label.set_text('')
+            self._ui.plugin_version_label.set_text('')
+            self._ui.plugin_authors_label.set_text('')
+            self._ui.plugin_homepage_linkbutton.set_text('')
+            self._ui.install_plugin_button.set_sensitive(False)
             return
-        self.plugin_name_label.set_text(model.get_value(iter_, Column.NAME))
-        self.plugin_version_label.set_text(
+        self._ui.plugin_name_label.set_text(
+            model.get_value(iter_, Column.NAME))
+        self._ui.plugin_version_label.set_text(
             model.get_value(iter_, Column.VERSION))
-        self.plugin_authors_label.set_text(
+        self._ui.plugin_authors_label.set_text(
             model.get_value(iter_, Column.AUTHORS))
         homepage = model.get_value(iter_, Column.HOMEPAGE)
         markup = '<a href="%s">%s</a>' % (homepage, homepage)
-        self.plugin_homepage_linkbutton.set_markup(markup)
-        self.plugin_description.set_text(
+        self._ui.plugin_homepage_linkbutton.set_markup(markup)
+        self._ui.plugin_description_label.set_text(
             model.get_value(iter_, Column.DESCRIPTION))
 
     def select_root_iter(self):
-        selection = self.available_plugins_treeview.get_selection()
+        selection = self._ui.available_plugins_treeview.get_selection()
         model, iter_ = selection.get_selected()
         if not iter_:
             iter_ = self.available_plugins_model.get_iter_first()
             selection.select_iter(iter_)
-        self.plugin_name_label.show()
-        self.plugin_homepage_linkbutton.show()
+        self._ui.plugin_name_label.show()
+        self._ui.plugin_homepage_linkbutton.show()
         path = self.available_plugins_model.get_path(iter_)
-        self.available_plugins_treeview.scroll_to_cell(path)
+        self._ui.available_plugins_treeview.scroll_to_cell(path)
 
 
 class DownloadAsync(threading.Thread):
@@ -381,7 +372,7 @@ class DownloadAsync(threading.Thread):
         threading.Thread.__init__(self)
         self.plugin = plugin
         self.window = plugin.window
-        self.progressbar = plugin.progressbar
+        self.spinner = plugin.spinner
         self.model = plugin.available_plugins_model
         self.remote_dirs = remote_dirs
         self.upgrading = upgrading
@@ -399,18 +390,15 @@ class DownloadAsync(threading.Thread):
         self.model.append(row_data)
         return False
 
-    def progressbar_pulse(self):
-        self.progressbar.pulse()
-        return True
-
     def run(self):
         try:
             if self.check_update:
                 self.run_check_update()
             else:
                 if not self.auto_update:
-                    GLib.idle_add(self.progressbar.show)
-                    self.pulse = GLib.timeout_add(150, self.progressbar_pulse)
+                    GLib.idle_add(self._show_spinner, True)
+                    self.pulse = GLib.timeout_add(
+                        150, self._show_spinner, False)
                     self.run_download_plugin_list()
         except urllib.error.URLError as exc:
             if isinstance(exc.reason, ssl.SSLError):
@@ -424,8 +412,14 @@ class DownloadAsync(threading.Thread):
         finally:
             if self.pulse:
                 GLib.source_remove(self.pulse)
-                GLib.idle_add(self.progressbar.hide)
-                self.pulse = None
+                GLib.idle_add(self._show_spinner, False)
+
+    def _show_spinner(self, show):
+        if show:
+            self.spinner.show()
+        else:
+            self.spinner.hide()
+            self.pulse = None
 
     def parse_manifest(self, buf):
         '''
@@ -547,7 +541,7 @@ class DownloadAsync(threading.Thread):
                     if V(plugin['version']) > V(plugin['local_version']):
                         plugin['upgrade'] = True
                         GLib.idle_add(
-                            self.plugin.install_plugin_button.set_property,
+                            self.plugin._ui.install_plugin_button.set_property,
                             'sensitive', True)
                 GLib.idle_add(self.model_append, plugin)
             if nb_plugins:
@@ -581,10 +575,8 @@ class DownloadAsync(threading.Thread):
 
 class PluginInstallerPluginConfigDialog(GajimPluginConfigDialog):
     def init(self):
-        glade_file_path = self.plugin.local_file_path('config.ui')
-        self._ui = get_builder(glade_file_path)
-        self.get_child().pack_start(self._ui.config_grid, True, True, 0)
-
+        self._ui = get_builder(self.plugin.local_file_path('config.ui'))
+        self.get_child().add(self._ui.config_grid)
         self._ui.connect_signals(self)
 
     def on_run(self):
@@ -596,7 +588,7 @@ class PluginInstallerPluginConfigDialog(GajimPluginConfigDialog):
         self._ui.auto_update_feedback.set_active(
             self.plugin.config['auto_update_feedback'])
 
-    def on_check_update_toggled(self, widget):
+    def _on_check_update_toggled(self, widget):
         self.plugin.config['check_update'] = widget.get_active()
         if not self.plugin.config['check_update']:
             self.plugin.config['auto_update'] = False
@@ -607,10 +599,10 @@ class PluginInstallerPluginConfigDialog(GajimPluginConfigDialog):
         self._ui.auto_update_feedback.set_active(
             self.plugin.config['auto_update_feedback'])
 
-    def on_auto_update_toggled(self, widget):
+    def _on_auto_update_toggled(self, widget):
         self.plugin.config['auto_update'] = widget.get_active()
         self._ui.auto_update_feedback.set_sensitive(
             self.plugin.config['auto_update'])
 
-    def on_auto_update_feedback_toggled(self, widget):
+    def _on_auto_update_feedback_toggled(self, widget):
         self.plugin.config['auto_update_feedback'] = widget.get_active()

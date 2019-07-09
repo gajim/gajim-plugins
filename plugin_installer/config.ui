@@ -16,7 +16,7 @@
         <property name="halign">start</property>
         <property name="use_underline">True</property>
         <property name="draw_indicator">True</property>
-        <signal name="toggled" handler="on_auto_update_feedback_toggled" swapped="no"/>
+        <signal name="toggled" handler="_on_auto_update_feedback_toggled" swapped="no"/>
       </object>
       <packing>
         <property name="left_attach">0</property>
@@ -32,7 +32,7 @@
         <property name="halign">start</property>
         <property name="use_underline">True</property>
         <property name="draw_indicator">True</property>
-        <signal name="toggled" handler="on_auto_update_toggled" swapped="no"/>
+        <signal name="toggled" handler="_on_auto_update_toggled" swapped="no"/>
       </object>
       <packing>
         <property name="left_attach">0</property>
@@ -48,7 +48,7 @@
         <property name="halign">start</property>
         <property name="use_underline">True</property>
         <property name="draw_indicator">True</property>
-        <signal name="toggled" handler="on_check_update_toggled" swapped="no"/>
+        <signal name="toggled" handler="_on_check_update_toggled" swapped="no"/>
       </object>
       <packing>
         <property name="left_attach">0</property>
