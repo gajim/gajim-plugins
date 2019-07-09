@@ -5,8 +5,6 @@
   <object class="GtkGrid" id="config_grid">
     <property name="visible">True</property>
     <property name="can_focus">False</property>
-    <property name="margin_top">12</property>
-    <property name="margin_bottom">12</property>
     <property name="border_width">18</property>
     <property name="row_spacing">6</property>
     <child>
@@ -61,11 +59,10 @@
       <object class="GtkLabel">
         <property name="visible">True</property>
         <property name="can_focus">False</property>
-        <property name="halign">start</property>
+        <property name="margin_bottom">6</property>
         <property name="label" translatable="yes">Plugin updates</property>
         <style>
-          <class name="bold"/>
-          <class name="dim-label"/>
+          <class name="bold16"/>
         </style>
       </object>
       <packing>

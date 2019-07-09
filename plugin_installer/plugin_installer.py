@@ -1,25 +1,25 @@
 # -*- coding: utf-8 -*-
 #
-## plugins/plugin_installer/plugin_installer.py
-##
-## Copyright (C) 2010-2012 Denis Fomin <fominde AT gmail.com>
-## Copyright (C) 2011-2012 Yann Leboulanger <asterix AT lagaule.org>
-## Copyright (C) 2017      Philipp Hörist <philipp AT hoerist.com>
-##
-## This file is part of Gajim.
-##
-## Gajim is free software; you can redistribute it and/or modify
-## it under the terms of the GNU General Public License as published
-## by the Free Software Foundation; version 3 only.
-##
-## Gajim is distributed in the hope that it will be useful,
-## but WITHOUT ANY WARRANTY; without even the implied warranty of
-## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-## GNU General Public License for more details.
-##
-## You should have received a copy of the GNU General Public License
-## along with Gajim. If not, see <http://www.gnu.org/licenses/>.
-##
+# plugins/plugin_installer/plugin_installer.py
+#
+# Copyright (C) 2010-2012 Denis Fomin <fominde AT gmail.com>
+# Copyright (C) 2011-2012 Yann Leboulanger <asterix AT lagaule.org>
+# Copyright (C) 2017      Philipp Hörist <philipp AT hoerist.com>
+#
+# This file is part of Gajim.
+#
+# Gajim is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published
+# by the Free Software Foundation; version 3 only.
+#
+# Gajim is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with Gajim. If not, see <http://www.gnu.org/licenses/>.
+#
 
 import io
 import threading
@@ -57,7 +57,8 @@ log = logging.getLogger('gajim.p.plugin_installer')
 
 PLUGINS_URL = 'https://ftp.gajim.org/plugins_master_zip/'
 MANIFEST_URL = 'https://ftp.gajim.org/plugins_master_zip/manifests.zip'
-MANIFEST_IMAGE_URL = 'https://ftp.gajim.org/plugins_master_zip/manifests_images.zip'
+MANIFEST_IMAGE_URL = \
+    'https://ftp.gajim.org/plugins_master_zip/manifests_images.zip'
 MANDATORY_FIELDS = ['name', 'version', 'description', 'authors', 'homepage']
 FALLBACK_ICON = Gtk.IconTheme.get_default().load_icon(
     'preferences-system', Gtk.IconSize.MENU, 0)
@@ -140,8 +141,7 @@ class PluginInstaller(GajimPlugin):
             NewConfirmationCheckDialog(
                 _('Plugin Updates'),
                 _('Plugin Updates Available'),
-                _('There are updates available for plugins you have installed.\n'
-                  'Do you want to update those plugins:\n%s') % plugins_str,
+                _('There are updates for your plugins:\n%s') % plugins_str,
                 _('Update plugins automatically next time'),
                 [DialogButton.make('Cancel'),
                  DialogButton.make('OK',
@@ -162,7 +162,8 @@ class PluginInstaller(GajimPlugin):
 
     def deactivate(self):
         if hasattr(self, 'available_page'):
-            self.notebook.remove_page(self.notebook.page_num(self.available_plugins_box))
+            self.notebook.remove_page(
+                self.notebook.page_num(self.available_plugins_box))
             self.notebook.set_current_page(0)
             for id_, widget in list(self.connected_ids.items()):
                 widget.disconnect(id_)
@@ -181,7 +182,8 @@ class PluginInstaller(GajimPlugin):
             del self.thread
         self.installed_plugins_model = plugin_win.installed_plugins_model
         self.notebook = plugin_win.plugins_notebook
-        id_ = self.notebook.connect('switch-page', self.on_notebook_switch_page)
+        id_ = self.notebook.connect(
+            'switch-page', self.on_notebook_switch_page)
         self.connected_ids[id_] = self.notebook
         self.window = plugin_win.window
         id_ = self.window.connect('destroy', self.on_win_destroy)
@@ -191,10 +193,12 @@ class PluginInstaller(GajimPlugin):
             path, widgets=['refresh', 'available_plugins_box', 'plugin_store'])
 
         widgets_to_extract = (
-            'available_plugins_box', 'install_plugin_button', 'plugin_name_label',
-            'plugin_version_label', 'plugin_authors_label', 'plugin_description',
-            'plugin_homepage_linkbutton', 'progressbar', 'available_plugins_treeview',
-            'available_text', 'available_text_label')
+            'available_plugins_box', 'install_plugin_button',
+            'plugin_name_label', 'plugin_version_label',
+            'plugin_authors_label', 'plugin_description',
+            'plugin_homepage_linkbutton', 'progressbar',
+            'available_plugins_treeview', 'available_text',
+            'available_text_label')
 
         for widget_name in widgets_to_extract:
             setattr(self, widget_name, self._ui.get_object(widget_name))
@@ -270,8 +274,9 @@ class PluginInstaller(GajimPlugin):
                        check_update=False, auto_update=False):
         log.info('Start Download...')
         log.debug(
-            'secure: %s, remote_dirs: %s, upgrading: %s, check_update: %s, auto_update: %s',
-            secure, remote_dirs, upgrading, check_update, auto_update)
+            'secure: %s, remote_dirs: %s, upgrading: %s, check_update: %s, '
+            'auto_update: %s', secure, remote_dirs, upgrading, check_update,
+            auto_update)
         self.thread = DownloadAsync(
             self, secure=secure, remote_dirs=remote_dirs, upgrading=upgrading,
             check_update=check_update, auto_update=auto_update)
@@ -306,15 +311,18 @@ class PluginInstaller(GajimPlugin):
                         plugin.__path__)[1]) + '.png'
                     icon = FALLBACK_ICON
                     if os.path.isfile(icon_file):
-                        icon = GdkPixbuf.Pixbuf.new_from_file_at_size(icon_file, 16, 16)
-                    row = [plugin, plugin.name, plugin.active, plugin.activatable, icon]
+                        icon = GdkPixbuf.Pixbuf.new_from_file_at_size(
+                            icon_file, 16, 16)
+                    row = [plugin, plugin.name, plugin.active,
+                           plugin.activatable, icon]
                     self.installed_plugins_model.append(row)
             else:
                 need_restart = True
 
         if not auto_update:
             if need_restart:
-                sectext = _('Updates will be installed next time Gajim is started.')
+                sectext = _('Updates will be installed next time Gajim is '
+                            'started.')
             else:
                 sectext = _('All selected plugins downloaded and activated')
             InformationDialog(_('Plugin Updates Downloaded'), sectext)
@@ -345,12 +353,15 @@ class PluginInstaller(GajimPlugin):
             self.install_plugin_button.set_sensitive(False)
             return
         self.plugin_name_label.set_text(model.get_value(iter_, Column.NAME))
-        self.plugin_version_label.set_text(model.get_value(iter_, Column.VERSION))
-        self.plugin_authors_label.set_text(model.get_value(iter_, Column.AUTHORS))
+        self.plugin_version_label.set_text(
+            model.get_value(iter_, Column.VERSION))
+        self.plugin_authors_label.set_text(
+            model.get_value(iter_, Column.AUTHORS))
         homepage = model.get_value(iter_, Column.HOMEPAGE)
         markup = '<a href="%s">%s</a>' % (homepage, homepage)
         self.plugin_homepage_linkbutton.set_markup(markup)
-        self.plugin_description.set_text(model.get_value(iter_, Column.DESCRIPTION))
+        self.plugin_description.set_text(
+            model.get_value(iter_, Column.DESCRIPTION))
 
     def select_root_iter(self):
         selection = self.available_plugins_treeview.get_selection()
@@ -433,7 +444,7 @@ class DownloadAsync(threading.Thread):
             conf_file.close()
             if not config.has_section('info'):
                 log.warning('Plugin is missing INFO section in manifest.ini. '
-                         'Plugin not loaded.')
+                            'Plugin not loaded.')
                 continue
             opts = config.options('info')
             if not set(MANDATORY_FIELDS).issubset(opts):
@@ -506,8 +517,8 @@ class DownloadAsync(threading.Thread):
         for plugin in plugin_list:
             local_version = get_local_version(plugin)
             if local_version:
-                if (V(plugin['version']) > V(local_version)) and \
-                self.plugin_is_valid(plugin):
+                if ((V(plugin['version']) > V(local_version)) and
+                        self.plugin_is_valid(plugin)):
                     to_update.append(plugin['name'])
                     auto_update_list.append(plugin['remote_dir'])
         if not self.auto_update:
@@ -523,7 +534,7 @@ class DownloadAsync(threading.Thread):
 
     def run_download_plugin_list(self):
         if not self.remote_dirs:
-            log.info('Downloading Pluginlist...')
+            log.info('Downloading Plugin list...')
             zipbuf = self.download_url(MANIFEST_IMAGE_URL)
             plugin_list = self.parse_manifest(zipbuf)
             nb_plugins = 0
@@ -559,8 +570,8 @@ class DownloadAsync(threading.Thread):
             try:
                 plugin = posixpath.join(PLUGINS_URL, filename)
                 buf = self.download_url(plugin)
-            except:
-                log.exception("Error downloading plugin %s" % filename)
+            except Exception:
+                log.exception('Error downloading plugin %s' % filename)
                 continue
             with ZipFile(buf) as zip_file:
                 zip_file.extractall(local_dir)
@@ -580,8 +591,10 @@ class PluginInstallerPluginConfigDialog(GajimPluginConfigDialog):
         self._ui.check_update.set_active(self.plugin.config['check_update'])
         self._ui.auto_update.set_sensitive(self.plugin.config['check_update'])
         self._ui.auto_update.set_active(self.plugin.config['auto_update'])
-        self._ui.auto_update_feedback.set_sensitive(self.plugin.config['auto_update'])
-        self._ui.auto_update_feedback.set_active(self.plugin.config['auto_update_feedback'])
+        self._ui.auto_update_feedback.set_sensitive(
+            self.plugin.config['auto_update'])
+        self._ui.auto_update_feedback.set_active(
+            self.plugin.config['auto_update_feedback'])
 
     def on_check_update_toggled(self, widget):
         self.plugin.config['check_update'] = widget.get_active()
@@ -589,12 +602,15 @@ class PluginInstallerPluginConfigDialog(GajimPluginConfigDialog):
             self.plugin.config['auto_update'] = False
         self._ui.auto_update.set_sensitive(self.plugin.config['check_update'])
         self._ui.auto_update.set_active(self.plugin.config['auto_update'])
-        self._ui.auto_update_feedback.set_sensitive(self.plugin.config['auto_update'])
-        self._ui.auto_update_feedback.set_active(self.plugin.config['auto_update_feedback'])
+        self._ui.auto_update_feedback.set_sensitive(
+            self.plugin.config['auto_update'])
+        self._ui.auto_update_feedback.set_active(
+            self.plugin.config['auto_update_feedback'])
 
     def on_auto_update_toggled(self, widget):
         self.plugin.config['auto_update'] = widget.get_active()
-        self._ui.auto_update_feedback.set_sensitive(self.plugin.config['auto_update'])
+        self._ui.auto_update_feedback.set_sensitive(
+            self.plugin.config['auto_update'])
 
     def on_auto_update_feedback_toggled(self, widget):
         self.plugin.config['auto_update_feedback'] = widget.get_active()
