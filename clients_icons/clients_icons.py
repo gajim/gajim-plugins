@@ -66,8 +66,8 @@ class ClientsIconsPlugin(GajimPlugin):
             caps_cache.capscache).identities
         if identities:
             for entry in identities:
-                if entry['category'] == 'client':
-                    return entry.get('name')
+                if entry.category == 'client':
+                    return entry.name
 
     @staticmethod
     def is_groupchat(contact):
