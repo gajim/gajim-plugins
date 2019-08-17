@@ -180,7 +180,7 @@ class WhiteboardPlugin(GajimPlugin):
             or app.interface.msg_win_mgr.get_control(obj.jid, account))
         if not ctrl:
             return
-        session = app.connections[obj.conn.name].get_jingle_session(obj.fjid,
+        session = app.connections[obj.conn.name].get_module('Jingle').get_jingle_session(obj.fjid,
             obj.sid)
 
         if ('initiator', 'xhtml') not in session.contents:
