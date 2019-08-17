@@ -70,6 +70,7 @@ class WhiteboardPlugin(GajimPlugin):
                 self.disconnect_from_chat_control),
             'chat_control_base_update_toolbar': (self.update_button_state,
                 None),
+            'update_caps': (self._update_caps, None),
         }
         self.controls = []
         self.sid = None
