@@ -99,6 +99,10 @@ class WhiteboardPlugin(GajimPlugin):
 
     @log_calls('WhiteboardPlugin')
     def connect_with_chat_control(self, control):
+        for base in self.controls:
+            if base.chat_control == control:
+                self.controls.remove(base)
+
         if isinstance(control, chat_control.ChatControl):
             base = Base(self, control)
             self.controls.append(base)
