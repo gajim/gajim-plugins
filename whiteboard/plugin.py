@@ -102,6 +102,7 @@ class WhiteboardPlugin(GajimPlugin):
         if isinstance(control, chat_control.ChatControl):
             base = Base(self, control)
             self.controls.append(base)
+            self.update_button_state(control)
 
     @log_calls('WhiteboardPlugin')
     def disconnect_from_chat_control(self, chat_control):
