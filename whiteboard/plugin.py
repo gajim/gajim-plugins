@@ -128,7 +128,7 @@ class WhiteboardPlugin(GajimPlugin):
     @log_calls('WhiteboardPlugin')
     def show_request_dialog(self, account, fjid, jid, sid, content_types):
         def on_ok():
-            session = app.connections[account].get_jingle_session(fjid, sid)
+            session = app.connections[account].get_module('Jingle').get_jingle_session(fjid, sid)
             self.sid = session.sid
             if not session.accepted:
                 session.approve_session()
@@ -146,7 +146,7 @@ class WhiteboardPlugin(GajimPlugin):
             ctrl.draw_whiteboard(session)
 
         def on_cancel():
-            session = app.connections[account].get_jingle_session(fjid, sid)
+            session = app.connections[account].get_module('Jingle').get_jingle_session(fjid, sid)
             session.decline_session()
 
         contact = app.contacts.get_first_contact_from_jid(account, jid)
@@ -218,13 +218,13 @@ class WhiteboardPlugin(GajimPlugin):
             if not sxe:
                 return
             sid = sxe.getAttr('session')
-            if (jid, sid) not in obj.conn._sessions:
+            if (jid, sid) not in obj.conn.get_module('Jingle')._sessions:
                 pass
 #                newjingle = JingleSession(con=self, weinitiate=False, jid=jid, sid=sid)
 #                self.addJingle(newjingle)
 
             # we already have such session in dispatcher...
-            session = obj.conn.get_jingle_session(fjid, sid)
+            session = obj.conn.get_module('Jingle').get_jingle_session(fjid, sid)
             cn = session.contents[('initiator', 'xhtml')]
             error = obj.stanza.getTag('error')
             if error:
@@ -312,7 +312,7 @@ class Base(object):
         conn = app.connections[self.chat_control.account]
         jingle = JingleSession(conn, weinitiate=True, jid=self.jid)
         self.sid = jingle.sid
-        conn._sessions[jingle.sid] = jingle
+        conn.get_module('Jingle')._sessions[jingle.sid] = jingle
         content = JingleWhiteboard(jingle)
         content.control = self
         jingle.add_content('xhtml', content)
@@ -321,7 +321,7 @@ class Base(object):
     def stop_whiteboard(self, reason=None):
         conn = app.connections[self.chat_control.account]
         self.sid = None
-        session = conn.get_jingle_session(self.jid, media='xhtml')
+        session = conn.get_module('Jingle').get_jingle_session(self.jid, media='xhtml')
         if session:
             session.end_session()
         self.enable_action(False)
