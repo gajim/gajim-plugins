@@ -1,22 +1,20 @@
-## plugins/whiteboard/plugin.py
-##
-## Copyright (C) 2009 Jeff Ling <jeff.ummu AT gmail.com>
-## Copyright (C) 2010 Yann Leboulanger <asterix AT lagaule.org>
-##
-## This file is part of Gajim.
-##
-## Gajim is free software; you can redistribute it and/or modify
-## it under the terms of the GNU General Public License as published
-## by the Free Software Foundation; version 3 only.
-##
-## Gajim is distributed in the hope that it will be useful,
-## but WITHOUT ANY WARRANTY; without even the implied warranty of
-## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-## GNU General Public License for more details.
-##
-## You should have received a copy of the GNU General Public License
-## along with Gajim. If not, see <http://www.gnu.org/licenses/>.
-##
+# Copyright (C) 2009 Jeff Ling <jeff.ummu AT gmail.com>
+# Copyright (C) 2010 Yann Leboulanger <asterix AT lagaule.org>
+#
+# This file is part of the Whiteboard Plugin.
+#
+# Gajim is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published
+# by the Free Software Foundation; version 3 only.
+#
+# Gajim is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with Gajim. If not, see <http://www.gnu.org/licenses/>.
+#
 
 '''
 Whiteboard plugin.
@@ -27,31 +25,38 @@ Whiteboard plugin.
 :license: GPL
 '''
 
+from urllib.parse import quote
 from gi.repository import Gio
 from gi.repository import GLib
 from nbxmpp import Message
 
 from gajim import common
-from gajim.common import helpers
+from gajim import chat_control
+
 from gajim.common import app
+from gajim.common import ged
+from gajim.common import helpers
+from gajim.common.jingle_session import JingleSession
+from gajim.common.jingle_content import JingleContent
+from gajim.common.jingle_transport import JingleTransport
+from gajim.common.jingle_transport import TransportType
+
+from gajim.gtk.dialogs import DialogButton
+from gajim.gtk.dialogs import NewConfirmationDialog
 
 from gajim.plugins import GajimPlugin
 from gajim.plugins.gajimplugin import GajimPluginException
-from gajim.plugins.helpers import log_calls, log
+from gajim.plugins.helpers import log_calls
+from gajim.plugins.helpers import log
 from gajim.plugins.plugins_i18n import _
 
-from gajim import chat_control
-from gajim.common import ged
-from gajim.common.jingle_session import JingleSession
-from gajim.common.jingle_content import JingleContent
-from gajim.common.jingle_transport import JingleTransport, TransportType
-from gajim.gtk.dialogs import NonModalConfirmationDialog
-from .whiteboard_widget import Whiteboard, HAS_GOOCANVAS
-
+from whiteboard.whiteboard_widget import Whiteboard
+from whiteboard.whiteboard_widget import HAS_GOOCANVAS
 
 NS_JINGLE_XHTML = 'urn:xmpp:tmp:jingle:apps:xhtml'
 NS_JINGLE_SXE = 'urn:xmpp:tmp:jingle:transports:sxe'
 NS_SXE = 'urn:xmpp:sxe:0'
+
 
 class WhiteboardPlugin(GajimPlugin):
     @log_calls('WhiteboardPlugin')
@@ -59,16 +64,17 @@ class WhiteboardPlugin(GajimPlugin):
         self.config_dialog = None
         self.events_handlers = {
             'jingle-request-received': (ged.GUI1, self._nec_jingle_received),
-            'jingle-connected-received': (ged.GUI1, self._nec_jingle_connected),
+            'jingle-connected-received': (ged.GUI1,
+                                          self._nec_jingle_connected),
             'jingle-disconnected-received': (ged.GUI1,
-                self._nec_jingle_disconnected),
+                                             self._nec_jingle_disconnected),
             'raw-message-received': (ged.GUI1, self._nec_raw_message),
         }
         self.gui_extension_points = {
-            'chat_control' : (self.connect_with_chat_control,
-                self.disconnect_from_chat_control),
+            'chat_control': (self.connect_with_chat_control,
+                             self.disconnect_from_chat_control),
             'chat_control_base_update_toolbar': (self.update_button_state,
-                None),
+                                                 None),
             'update_caps': (self._update_caps, None),
         }
         self.controls = []
@@ -119,16 +125,17 @@ class WhiteboardPlugin(GajimPlugin):
     def update_button_state(self, control):
         for base in self.controls:
             if base.chat_control == control:
-                if control.contact.supports(NS_JINGLE_SXE) and \
-                control.contact.supports(NS_SXE):
+                if (control.contact.supports(NS_JINGLE_SXE) and
+                        control.contact.supports(NS_SXE)):
                     base.enable_action(True)
                 else:
                     base.enable_action(False)
 
     @log_calls('WhiteboardPlugin')
     def show_request_dialog(self, account, fjid, jid, sid, content_types):
-        def on_ok():
-            session = app.connections[account].get_module('Jingle').get_jingle_session(fjid, sid)
+        def _on_accept():
+            session = app.connections[account].get_module(
+                'Jingle').get_jingle_session(fjid, sid)
             self.sid = session.sid
             if not session.accepted:
                 session.approve_session()
@@ -139,14 +146,15 @@ class WhiteboardPlugin(GajimPlugin):
                 if ctrl:
                     break
             if not ctrl:
-                # create it
+                # Create it
                 app.interface.new_chat_from_jid(account, jid)
                 ctrl = app.interface.msg_win_mgr.get_control(jid, account)
             session = session.contents[('initiator', 'xhtml')]
             ctrl.draw_whiteboard(session)
 
-        def on_cancel():
-            session = app.connections[account].get_module('Jingle').get_jingle_session(fjid, sid)
+        def _on_decline():
+            session = app.connections[account].get_module(
+                'Jingle').get_jingle_session(fjid, sid)
             session.decline_session()
 
         contact = app.contacts.get_first_contact_from_jid(account, jid)
@@ -154,12 +162,19 @@ class WhiteboardPlugin(GajimPlugin):
             name = contact.get_shown_name()
         else:
             name = jid
-        pritext = _('Incoming Whiteboard')
-        sectext = _('%(name)s (%(jid)s) wants to start a whiteboard with '
-            'you. Do you want to accept?') % {'name': name, 'jid': jid}
-        dialog = NonModalConfirmationDialog(pritext, sectext=sectext,
-            on_response_ok=on_ok, on_response_cancel=on_cancel)
-        dialog.popup()
+
+        NewConfirmationDialog(
+            _('Incoming Whiteboard'),
+            _('Incoming Whiteboard Request'),
+            _('%(name)s (%(jid)s) wants to start a whiteboard with '
+              'you.') % {'name': name, 'jid': jid},
+            [DialogButton.make('Cancel',
+                               text=_('_Decline'),
+                               callback=_on_decline),
+             DialogButton.make('OK',
+                               text=_('_Accept'),
+                               callback=_on_accept)],
+            transient_for=app.app.get_active_window()).show()
 
     @log_calls('WhiteboardPlugin')
     def _nec_jingle_received(self, obj):
@@ -168,7 +183,11 @@ class WhiteboardPlugin(GajimPlugin):
         content_types = obj.contents.media
         if content_types != 'xhtml':
             return
-        self.show_request_dialog(obj.conn.name, obj.fjid, obj.jid, obj.sid,
+        self.show_request_dialog(
+            obj.conn.name,
+            obj.fjid,
+            obj.jid,
+            obj.sid,
             content_types)
 
     @log_calls('WhiteboardPlugin')
@@ -176,12 +195,12 @@ class WhiteboardPlugin(GajimPlugin):
         if not HAS_GOOCANVAS:
             return
         account = obj.conn.name
-        ctrl = (app.interface.msg_win_mgr.get_control(obj.fjid, account)
-            or app.interface.msg_win_mgr.get_control(obj.jid, account))
+        ctrl = (app.interface.msg_win_mgr.get_control(obj.fjid, account) or
+                app.interface.msg_win_mgr.get_control(obj.jid, account))
         if not ctrl:
             return
-        session = app.connections[obj.conn.name].get_module('Jingle').get_jingle_session(obj.fjid,
-            obj.sid)
+        session = app.connections[obj.conn.name].get_module(
+            'Jingle').get_jingle_session(obj.fjid, obj.sid)
 
         if ('initiator', 'xhtml') not in session.contents:
             return
@@ -193,7 +212,7 @@ class WhiteboardPlugin(GajimPlugin):
     def _nec_jingle_disconnected(self, obj):
         for base in self.controls:
             if base.sid == obj.sid:
-                base.stop_whiteboard(reason = obj.reason)
+                base.stop_whiteboard(reason=obj.reason)
 
     @log_calls('WhiteboardPlugin')
     def _nec_raw_message(self, obj):
@@ -205,13 +224,13 @@ class WhiteboardPlugin(GajimPlugin):
             try:
                 fjid = helpers.get_full_jid_from_iq(obj.stanza)
             except helpers.InvalidFormat:
-                obj.conn.dispatch('ERROR', (_('Invalid Jabber ID'),
-                    _('A message from a non-valid JID arrived, it has been '
-                      'ignored.')))
+                obj.conn.dispatch('ERROR', (_('Invalid XMPP Address'),
+                                  _('A message from a non-valid XMPP address '
+                                    'arrived. It has been ignored.')))
 
             jid = app.get_jid_without_resource(fjid)
-            ctrl = (app.interface.msg_win_mgr.get_control(fjid, account)
-                or app.interface.msg_win_mgr.get_control(jid, account))
+            ctrl = (app.interface.msg_win_mgr.get_control(fjid, account) or
+                    app.interface.msg_win_mgr.get_control(jid, account))
             if not ctrl:
                 return
             sxe = obj.stanza.getTag('sxe')
@@ -220,11 +239,13 @@ class WhiteboardPlugin(GajimPlugin):
             sid = sxe.getAttr('session')
             if (jid, sid) not in obj.conn.get_module('Jingle')._sessions:
                 pass
-#                newjingle = JingleSession(con=self, weinitiate=False, jid=jid, sid=sid)
+#                newjingle = JingleSession(con=self, weinitiate=False, jid=jid,
+#                                          sid=sid)
 #                self.addJingle(newjingle)
 
-            # we already have such session in dispatcher...
-            session = obj.conn.get_module('Jingle').get_jingle_session(fjid, sid)
+            # We already have such session in dispatcher
+            session = obj.conn.get_module('Jingle').get_jingle_session(fjid,
+                                                                       sid)
             cn = session.contents[('initiator', 'xhtml')]
             error = obj.stanza.getTag('error')
             if error:
@@ -234,23 +255,23 @@ class WhiteboardPlugin(GajimPlugin):
 
             cn.on_stanza(obj.stanza, sxe, error, action)
 #        def __editCB(self, stanza, content, error, action):
-            #new_tags = sxe.getTags('new')
-            #remove_tags = sxe.getTags('remove')
+#            new_tags = sxe.getTags('new')
+#            remove_tags = sxe.getTags('remove')
 
-            #if new_tags is not None:
-                ## Process new elements
-                #for tag in new_tags:
-                    #if tag.getAttr('type') == 'element':
-                        #ctrl.whiteboard.recieve_element(tag)
-                    #elif tag.getAttr('type') == 'attr':
-                        #ctrl.whiteboard.recieve_attr(tag)
-                #ctrl.whiteboard.apply_new()
+#            if new_tags is not None:
+#                # Process new elements
+#                for tag in new_tags:
+#                    if tag.getAttr('type') == 'element':
+#                        ctrl.whiteboard.recieve_element(tag)
+#                    elif tag.getAttr('type') == 'attr':
+#                        ctrl.whiteboard.recieve_attr(tag)
+#                ctrl.whiteboard.apply_new()
 
-            #if remove_tags is not None:
-                ## Delete rids
-                #for tag in remove_tags:
-                    #target = tag.getAttr('target')
-                    #ctrl.whiteboard.image.del_rid(target)
+#            if remove_tags is not None:
+#                # Delete rids
+#                for tag in remove_tags:
+#                    target = tag.getAttr('target')
+#                    ctrl.whiteboard.image.del_rid(target)
 
             # Stop propagating this event, it's handled
             return True
@@ -287,8 +308,8 @@ class Base(object):
         hbox = self.chat_control.xml.get_object('chat_control_hbox')
         if len(hbox.get_children()) == 1:
             self.whiteboard = Whiteboard(self.account, self.contact, content,
-                self.plugin)
-            # set minimum size
+                                         self.plugin)
+            # Set minimum size
             self.whiteboard.hbox.set_size_request(300, 0)
             hbox.pack_start(self.whiteboard.hbox, False, False, 0)
             self.whiteboard.hbox.show_all()
@@ -321,7 +342,8 @@ class Base(object):
     def stop_whiteboard(self, reason=None):
         conn = app.connections[self.chat_control.account]
         self.sid = None
-        session = conn.get_module('Jingle').get_jingle_session(self.jid, media='xhtml')
+        session = conn.get_module('Jingle').get_jingle_session(self.jid,
+                                                               media='xhtml')
         if session:
             session.end_session()
         self.enable_action(False)
@@ -344,6 +366,7 @@ class Base(object):
                 menu.remove(i)
                 break
 
+
 class JingleWhiteboard(JingleContent):
     ''' Jingle Whiteboard sessions consist of xhtml content'''
     def __init__(self, session, transport=None, senders=None):
@@ -351,7 +374,7 @@ class JingleWhiteboard(JingleContent):
             transport = JingleTransportSXE()
         JingleContent.__init__(self, session, transport, senders)
         self.media = 'xhtml'
-        self.negotiated = True # there is nothing to negotiate
+        self.negotiated = True  # There is nothing to negotiate
         self.last_rid = 0
         self.callbacks['session-accept'] += [self._sessionAcceptCB]
         self.callbacks['session-terminate'] += [self._stop]
@@ -383,11 +406,11 @@ class JingleWhiteboard(JingleContent):
     @log_calls('WhiteboardPlugin')
     def _sessionAcceptCB(self, stanza, content, error, action):
         log.debug('session accepted')
-        self.session.connection.dispatch('WHITEBOARD_ACCEPTED',
-            (self.session.peerjid, self.session.sid))
+        self.session.connection.dispatch(
+            'WHITEBOARD_ACCEPTED', (self.session.peerjid, self.session.sid))
 
     def generate_rids(self, x):
-        # generates x number of rids and returns in list
+        # Generates x number of rids and returns in list
         rids = []
         for x in range(x):
             rids.append(str(self.last_rid))
@@ -396,29 +419,29 @@ class JingleWhiteboard(JingleContent):
 
     @log_calls('WhiteboardPlugin')
     def send_whiteboard_node(self, items, rids):
-        # takes int rid and dict items and sends it as a node
+        # Takes int rid and dict items and sends it as a node
         # sends new item
         jid = self.session.peerjid
         sid = self.session.sid
         message = Message(to=jid)
         sxe = message.addChild(name='sxe', attrs={'session': sid},
-            namespace=NS_SXE)
+                               namespace=NS_SXE)
 
         for x in rids:
             if items[x]['type'] == 'element':
                 parent = x
                 attrs = {'rid': x,
-                     'name': items[x]['data'][0].getName(),
-                     'type': items[x]['type']}
+                         'name': items[x]['data'][0].getName(),
+                         'type': items[x]['type']}
                 sxe.addChild(name='new', attrs=attrs)
             if items[x]['type'] == 'attr':
                 attr_name = items[x]['data']
                 chdata = items[parent]['data'][0].getAttr(attr_name)
                 attrs = {'rid': x,
-                     'name': attr_name,
-                     'type': items[x]['type'],
-                     'chdata': chdata,
-                     'parent': parent}
+                         'name': attr_name,
+                         'type': items[x]['type'],
+                         'chdata': chdata,
+                         'parent': parent}
                 sxe.addChild(name='new', attrs=attrs)
         self.session.connection.connection.send(message)
 
@@ -426,24 +449,24 @@ class JingleWhiteboard(JingleContent):
     def delete_whiteboard_node(self, rids):
         message = Message(to=self.session.peerjid)
         sxe = message.addChild(name='sxe', attrs={'session': self.session.sid},
-            namespace=NS_SXE)
+                               namespace=NS_SXE)
 
         for x in rids:
-            sxe.addChild(name='remove', attrs = {'target': x})
+            sxe.addChild(name='remove', attrs={'target': x})
         self.session.connection.connection.send(message)
 
     def send_items(self, items, rids):
-        # receives dict items and a list of rids of items to send
-        # TODO: is there a less clumsy way that doesn't involve passing
-        # whole list
+        # Receives dict items and a list of rids of items to send
+        # TODO: Is there a less clumsy way that doesn't involve passing
+        # whole list?
         self.send_whiteboard_node(items, rids)
 
     def del_item(self, rids):
         self.delete_whiteboard_node(rids)
 
     def encode(self, xml):
-        # encodes it sendable string
-        return 'data:text/xml,' + urllib.quote(xml)
+        # Encodes it sendable string
+        return 'data:text/xml,' + quote(xml)
 
     def _fill_content(self, content):
         content.addChild(NS_JINGLE_XHTML + ' description')
@@ -454,10 +477,13 @@ class JingleWhiteboard(JingleContent):
     def __del__(self):
         pass
 
+
 def get_content(desc):
     return JingleWhiteboard
 
+
 common.jingle_content.contents[NS_JINGLE_XHTML] = get_content
+
 
 class JingleTransportSXE(JingleTransport):
     def __init__(self, node=None):
@@ -468,5 +494,6 @@ class JingleTransportSXE(JingleTransport):
         transport.setNamespace(NS_JINGLE_SXE)
         transport.setTagData('host', 'TODO')
         return transport
+
 
 common.jingle_transport.transports[NS_JINGLE_SXE] = JingleTransportSXE

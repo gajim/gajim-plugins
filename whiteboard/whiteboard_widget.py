@@ -1,39 +1,38 @@
-## plugins/whiteboard/whiteboard_widget.py
-##
-## Copyright (C) 2009 Jeff Ling <jeff.ummu AT gmail.com>
-## Copyright (C) 2010-2017 Yann Leboulanger <asterix AT lagaule.org>
-##
-## This file is part of Gajim.
-##
-## Gajim is free software; you can redistribute it and/or modify
-## it under the terms of the GNU General Public License as published
-## by the Free Software Foundation; version 3 only.
-##
-## Gajim is distributed in the hope that it will be useful,
-## but WITHOUT ANY WARRANTY; without even the implied warranty of
-## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-## GNU General Public License for more details.
-##
-## You should have received a copy of the GNU General Public License
-## along with Gajim. If not, see <http://www.gnu.org/licenses/>.
-##
+# Copyright (C) 2009 Jeff Ling <jeff.ummu AT gmail.com>
+# Copyright (C) 2010-2017 Yann Leboulanger <asterix AT lagaule.org>
+#
+# This file is part of the Whiteboard Plugin.
+#
+# Gajim is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published
+# by the Free Software Foundation; version 3 only.
+#
+# Gajim is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with Gajim. If not, see <http://www.gnu.org/licenses/>.
+#
 
 from nbxmpp import Node
 from gi.repository import Gtk
 
 from gajim.common import app
 
-from gajim.gtk.filechoosers import NativeFileChooserDialog, Filter
+from gajim.gtk.filechoosers import NativeFileChooserDialog
+from gajim.gtk.filechoosers import Filter
 
+from gajim.plugins.helpers import get_builder
 from gajim.plugins.plugins_i18n import _
-
 
 try:
     import gi
     gi.require_version('GooCanvas', '2.0')
     from gi.repository import GooCanvas
     HAS_GOOCANVAS = True
-except:
+except ValueError:
     HAS_GOOCANVAS = False
 
 
@@ -42,93 +41,107 @@ class SvgSaveDialog(NativeFileChooserDialog):
     _title = _('Save File as…')
     _filters = [Filter(_('All files'), '*', False),
                 Filter(_('SVG files'), '*.svg', True)]
+    _action = Gtk.FileChooserAction.SAVE
+
 
 '''
 A whiteboard widget made for Gajim.
 - Ummu
 '''
 
+
 class Whiteboard(object):
     def __init__(self, account, contact, session, plugin):
         self.plugin = plugin
-        file_path = plugin.local_file_path('whiteboard_widget.ui')
-        xml = Gtk.Builder()
-        xml.set_translation_domain('gajim_plugins')
-        xml.add_from_file(file_path)
-        self.hbox = xml.get_object('whiteboard_hbox')
-        self.canevas = GooCanvas.Canvas()
-        self.hbox.pack_start(self.canevas, True, True, 0)
-        self.hbox.reorder_child(self.canevas, 0)
-        self.fg_color_select_button = xml.get_object('fg_color_button')
-        self.root = self.canevas.get_root_item()
-        self.tool_buttons = []
-        for tool in ('brush', 'oval', 'line', 'delete'):
-            self.tool_buttons.append(xml.get_object(tool + '_button'))
-        xml.get_object('brush_button').set_active(True)
+        path = plugin.local_file_path('whiteboard_widget.ui')
+        self._ui = get_builder(path)
+
+        self.canvas = GooCanvas.Canvas()
+        self.hbox = self._ui.whiteboard_hbox
+        self._ui.whiteboard_hbox.pack_start(self.canvas, True, True, 0)
+        self._ui.whiteboard_hbox.reorder_child(self.canvas, 0)
+        self.root = self.canvas.get_root_item()
+        self.tool_buttons = [
+            self._ui.brush_button,
+            self._ui.oval_button,
+            self._ui.line_button,
+            self._ui.delete_button
+        ]
+        self._ui.brush_button.set_active(True)
 
         # Events
-        self.canevas.connect('button-press-event', self.button_press_event)
-        self.canevas.connect('button-release-event', self.button_release_event)
-        self.canevas.connect('motion-notify-event', self.motion_notify_event)
-        self.canevas.connect('item-created', self.item_created)
+        self.canvas.connect('button-press-event', self.button_press_event)
+        self.canvas.connect('button-release-event', self.button_release_event)
+        self.canvas.connect('motion-notify-event', self.motion_notify_event)
+        self.canvas.connect('item-created', self.item_created)
 
         # Config
         self.line_width = 2
-        xml.get_object('size_scale').set_value(2)
-        c = self.fg_color_select_button.get_rgba()
-        self.color = int(c.red*255*256*256*256 + c.green*255*256*256 + \
-            c.blue*255*256 + 255)
+        self._ui.size_scale.set_value(2)
+        c = self._ui.fg_color_button.get_rgba()
+        self.color = int(c.red*255*256*256*256 +
+                         c.green*255*256*256 +
+                         c.blue*255*256 + 255)
 
         # SVG Storage
         self.image = SVGObject(self.root, session)
 
-        xml.connect_signals(self)
+        self._ui.connect_signals(self)
 
         # Temporary Variables for items
         self.item_temp = None
         self.item_temp_coords = (0, 0)
         self.item_data = None
 
-        # Will be {ID: {type:'element', data:[node, goocanvas]}, ID2: {}} instance
+        # Will be instance of {ID: {type:'element'
+        #                           data:[node, goocanvas]},
+        #                      ID2: {}}
         self.receiving = {}
 
-    def on_tool_button_toggled(self, widget):
+    def _on_tool_button_toggled(self, widget):
         for btn in self.tool_buttons:
             if btn == widget:
                 continue
             btn.set_active(False)
 
-    def on_brush_button_toggled(self, widget):
+    def _on_brush_button_toggled(self, widget):
         if widget.get_active():
             self.image.draw_tool = 'brush'
-            self.on_tool_button_toggled(widget)
+            self._on_tool_button_toggled(widget)
 
-    def on_oval_button_toggled(self, widget):
+    def _on_oval_button_toggled(self, widget):
         if widget.get_active():
             self.image.draw_tool = 'oval'
-            self.on_tool_button_toggled(widget)
+            self._on_tool_button_toggled(widget)
 
-    def on_line_button_toggled(self, widget):
+    def _on_line_button_toggled(self, widget):
         if widget.get_active():
             self.image.draw_tool = 'line'
-            self.on_tool_button_toggled(widget)
+            self._on_tool_button_toggled(widget)
 
-    def on_delete_button_toggled(self, widget):
+    def _on_delete_button_toggled(self, widget):
         if widget.get_active():
             self.image.draw_tool = 'delete'
-            self.on_tool_button_toggled(widget)
+            self._on_tool_button_toggled(widget)
 
-    def on_clear_button_clicked(self, widget):
+    def _on_clear_button_clicked(self, widget):
         self.image.clear_canvas()
 
-    def on_export_button_clicked(self, widget):
-        SvgSaveDialog(self.image.export_svg,
-                      transient_for=app.app.get_active_window())
-
-    def on_fg_color_button_color_set(self, widget):
-        c = self.fg_color_select_button.get_rgba()
-        self.color = int(c.red*255*256*256*256 + c.green*255*256*256 + \
+    def _on_fg_color_button_color_set(self, widget):
+        c = self._ui.fg_color_button.get_rgba()
+        self.color = int(
+            c.red*255*256*256*256 +
+            c.green*255*256*256 +
             c.blue*255*256 + 255)
+
+    def _on_size_scale_format_value(self, widget):
+        self.line_width = int(widget.get_value())
+
+    def _on_export_button_clicked(self, widget):
+        SvgSaveDialog(self.image.export_svg,
+                      file_name=_('whiteboard.svg'),
+                      path=app.config.get('last_save_dir'),
+                      transient_for=app.app.get_active_window())
 
     def item_created(self, canvas, item, model):
         item.connect('button-press-event', self.item_button_press_events)
@@ -137,24 +150,21 @@ class Whiteboard(object):
         if self.image.draw_tool == 'delete':
             self.image.del_item(item)
 
-    def on_size_scale_format_value(self, widget):
-        self.line_width = int(widget.get_value())
-
     def button_press_event(self, widget, event):
         x = event.x
         y = event.y
-        state = event.state
         self.item_temp_coords = (x, y)
 
         if self.image.draw_tool == 'brush':
-            self.item_temp = GooCanvas.CanvasEllipse(parent=self.root,
-                    center_x=x,
-                    center_y=y,
-                    radius_x=1,
-                    radius_y=1,
-                    stroke_color_rgba=self.color,
-                    fill_color=self.color,
-                    line_width=self.line_width)
+            self.item_temp = GooCanvas.CanvasEllipse(
+                parent=self.root,
+                center_x=x,
+                center_y=y,
+                radius_x=1,
+                radius_y=1,
+                stroke_color_rgba=self.color,
+                fill_color=self.color,
+                line_width=self.line_width)
             self.item_data = 'M %s,%s L ' % (x, y)
 
         elif self.image.draw_tool == 'oval':
@@ -166,47 +176,53 @@ class Whiteboard(object):
     def motion_notify_event(self, widget, event):
         x = event.x
         y = event.y
-        state = event.state
         if self.item_temp is not None:
             self.item_temp.remove()
 
         if self.item_data is not None:
             if self.image.draw_tool == 'brush':
                 self.item_data = self.item_data + '%s,%s ' % (x, y)
-                self.item_temp = GooCanvas.CanvasPath(parent=self.root,
-                        data=self.item_data, line_width=self.line_width,
-                        stroke_color_rgba=self.color)
+                self.item_temp = GooCanvas.CanvasPath(
+                    parent=self.root,
+                    data=self.item_data,
+                    line_width=self.line_width,
+                    stroke_color_rgba=self.color)
             elif self.image.draw_tool == 'oval':
-                self.item_temp = GooCanvas.CanvasEllipse(parent=self.root,
-                        center_x=self.item_temp_coords[0] + (x - self.item_temp_coords[0]) / 2,
-                        center_y=self.item_temp_coords[1] + (y - self.item_temp_coords[1]) / 2,
-                        radius_x=abs(x - self.item_temp_coords[0]) / 2,
-                        radius_y=abs(y - self.item_temp_coords[1]) / 2,
-                        stroke_color_rgba=self.color,
-                        line_width=self.line_width)
+                self.item_temp = GooCanvas.CanvasEllipse(
+                    parent=self.root,
+                    center_x=self.item_temp_coords[0] +
+                    (x - self.item_temp_coords[0]) / 2,
+                    center_y=self.item_temp_coords[1] +
+                    (y - self.item_temp_coords[1]) / 2,
+                    radius_x=abs(x - self.item_temp_coords[0]) / 2,
+                    radius_y=abs(y - self.item_temp_coords[1]) / 2,
+                    stroke_color_rgba=self.color,
+                    line_width=self.line_width)
             elif self.image.draw_tool == 'line':
                 self.item_data = 'M %s,%s L' % self.item_temp_coords
                 self.item_data = self.item_data + ' %s,%s' % (x, y)
-                self.item_temp = GooCanvas.CanvasPath(parent=self.root,
-                        data=self.item_data, line_width=self.line_width,
-                        stroke_color_rgba=self.color)
+                self.item_temp = GooCanvas.CanvasPath(
+                    parent=self.root,
+                    data=self.item_data,
+                    line_width=self.line_width,
+                    stroke_color_rgba=self.color)
 
     def button_release_event(self, widget, event):
         x = event.x
         y = event.y
-        state = event.state
 
         if self.image.draw_tool == 'brush':
             self.item_data = self.item_data + '%s,%s' % (x, y)
             if x == self.item_temp_coords[0] and y == self.item_temp_coords[1]:
-                GooCanvas.CanvasEllipse(parent=self.root,
-                        center_x=x,
-                        center_y=y,
-                        radius_x=1,
-                        radius_y=1,
-                        stroke_color_rgba=self.color,
-                        fill_color=self.color,
-                        line_width=self.line_width)
+                GooCanvas.CanvasEllipse(
+                    parent=self.root,
+                    center_x=x,
+                    center_y=y,
+                    radius_x=1,
+                    radius_y=1,
+                    stroke_color_rgba=self.color,
+                    fill_color=self.color,
+                    line_width=self.line_width)
             self.image.add_path(self.item_data, self.line_width, self.color)
 
         if self.image.draw_tool == 'oval':
@@ -220,14 +236,15 @@ class Whiteboard(object):
             self.item_data = 'M %s,%s L' % self.item_temp_coords
             self.item_data = self.item_data + ' %s,%s' % (x, y)
             if x == self.item_temp_coords[0] and y == self.item_temp_coords[1]:
-                GooCanvas.CanvasEllipse(parent=self.root,
-                        center_x=x,
-                        center_y=y,
-                        radius_x=1,
-                        radius_y=1,
-                        stroke_color_rgba=self.color,
-                        fill_color_rgba=self.color,
-                        line_width=self.line_width)
+                GooCanvas.CanvasEllipse(
+                    parent=self.root,
+                    center_x=x,
+                    center_y=y,
+                    radius_x=1,
+                    radius_y=1,
+                    stroke_color_rgba=self.color,
+                    fill_color_rgba=self.color,
+                    line_width=self.line_width)
             self.image.add_path(self.item_data, self.line_width, self.color)
 
         if self.image.draw_tool == 'delete':
@@ -241,18 +258,20 @@ class Whiteboard(object):
     def recieve_element(self, element):
         node = self.image.g.addChild(name=element.getAttr('name'))
         self.image.g.addChild(node=node)
-        self.receiving[element.getAttr('rid')] = {'type':'element',
-                                                  'data':[node],
-                                                  'children':[]}
+        self.receiving[element.getAttr('rid')] = {'type': 'element',
+                                                  'data': [node],
+                                                  'children': []}
 
     def recieve_attr(self, element):
         node = self.receiving[element.getAttr('parent')]['data'][0]
         node.setAttr(element.getAttr('name'), element.getAttr('chdata'))
 
-        self.receiving[element.getAttr('rid')] = {'type':'attr',
-                                                  'data':element.getAttr('name'),
-                                                  'parent':node}
-        self.receiving[element.getAttr('parent')]['children'].append(element.getAttr('rid'))
+        self.receiving[element.getAttr('rid')] = {'type': 'attr',
+                                                  'data': element.getAttr(
+                                                      'name'),
+                                                  'parent': node}
+        self.receiving[element.getAttr('parent')]['children'].append(
+            element.getAttr('rid'))
 
     def apply_new(self):
         for x in self.receiving.keys():
@@ -264,34 +283,40 @@ class Whiteboard(object):
 
 class SVGObject():
     ''' A class to store the svg document and make changes to it.'''
-
     def __init__(self, root, session, height=300, width=300):
-        # Will be {ID: {type:'element', data:[node, goocanvas]}, ID2: {}} instance
+        # Will be instance of {ID: {type:'element',
+        #                           data:[node, goocanvas]},
+        #                      ID2: {}}
         self.items = {}
         self.root = root
         self.draw_tool = 'brush'
 
-        # sxe session
+        # SXE session
         self.session = session
 
-        # initialize svg document
+        # Initialize svg document
         self.svg = Node(node='<svg/>')
         self.svg.setAttr('version', '1.1')
         self.svg.setAttr('height', str(height))
         self.svg.setAttr('width', str(width))
         self.svg.setAttr('xmlns', 'http://www.w3.org/2000/svg')
-        # TODO: make this settable
+        # TODO: Make this settable
         self.g = self.svg.addChild(name='g')
         self.g.setAttr('fill', 'none')
         self.g.setAttr('stroke-linecap', 'round')
 
     def add_path(self, data, line_width, color):
-        ''' adds the path to the items listing, both minidom node and goocanvas
-        object in a tuple '''
-
-        goocanvas_obj = GooCanvas.CanvasPath(parent=self.root, data=data,
-                line_width=line_width, stroke_color_rgba=color)
-        goocanvas_obj.connect('button-press-event', self.item_button_press_events)
+        '''
+        Adds the path to the items listing, both minidom node and goocanvas
+        object in a tuple
+        '''
+        goocanvas_obj = GooCanvas.CanvasPath(
+            parent=self.root,
+            data=data,
+            line_width=line_width,
+            stroke_color_rgba=color)
+        goocanvas_obj.connect('button-press-event',
+                              self.item_button_press_events)
 
         node = self.g.addChild(name='path')
         node.setAttr('d', data)
@@ -300,16 +325,26 @@ class SVGObject():
         self.g.addChild(node=node)
 
         rids = self.session.generate_rids(4)
-        self.items[rids[0]] = {'type':'element', 'data':[node, goocanvas_obj], 'children':rids[1:]}
-        self.items[rids[1]] = {'type':'attr', 'data':'d', 'parent':node}
-        self.items[rids[2]] = {'type':'attr', 'data':'stroke-width', 'parent':node}
-        self.items[rids[3]] = {'type':'attr', 'data':'stroke', 'parent':node}
+        self.items[rids[0]] = {'type': 'element',
+                               'data': [node, goocanvas_obj],
+                               'children': rids[1:]}
+        self.items[rids[1]] = {'type': 'attr',
+                               'data': 'd',
+                               'parent': node}
+        self.items[rids[2]] = {'type': 'attr',
+                               'data': 'stroke-width',
+                               'parent': node}
+        self.items[rids[3]] = {'type': 'attr',
+                               'data': 'stroke',
+                               'parent': node}
 
         self.session.send_items(self.items, rids)
 
     def add_recieved(self, parent_rid, new_items):
-        ''' adds the path to the items listing, both minidom node and goocanvas
-        object in a tuple '''
+        '''
+        Adds the path to the items listing, both minidom node and goocanvas
+        object in a tuple
+        '''
         node = new_items[parent_rid]['data'][0]
 
         self.items[parent_rid] = new_items[parent_rid]
@@ -317,35 +352,41 @@ class SVGObject():
             self.items[x] = new_items[x]
 
         if node.getName() == 'path':
-            goocanvas_obj = GooCanvas.CanvasPath(parent=self.root,
-                            data=node.getAttr('d'),
-                            line_width=int(node.getAttr('stroke-width')),
-                            stroke_color_rgba=int(node.getAttr('stroke')))
+            goocanvas_obj = GooCanvas.CanvasPath(
+                parent=self.root,
+                data=node.getAttr('d'),
+                line_width=int(node.getAttr('stroke-width')),
+                stroke_color_rgba=int(node.getAttr('stroke')))
 
         if node.getName() == 'ellipse':
-            goocanvas_obj = GooCanvas.CanvasEllipse(parent=self.root,
-                            center_x=float(node.getAttr('cx')),
-                            center_y=float(node.getAttr('cy')),
-                            radius_x=float(node.getAttr('rx')),
-                            radius_y=float(node.getAttr('ry')),
-                            stroke_color_rgba=int(node.getAttr('stroke')),
-                            line_width=float(node.getAttr('stroke-width')))
+            goocanvas_obj = GooCanvas.CanvasEllipse(
+                parent=self.root,
+                center_x=float(node.getAttr('cx')),
+                center_y=float(node.getAttr('cy')),
+                radius_x=float(node.getAttr('rx')),
+                radius_y=float(node.getAttr('ry')),
+                stroke_color_rgba=int(node.getAttr('stroke')),
+                line_width=float(node.getAttr('stroke-width')))
 
         self.items[parent_rid]['data'].append(goocanvas_obj)
-        goocanvas_obj.connect('button-press-event', self.item_button_press_events)
+        goocanvas_obj.connect('button-press-event',
+                              self.item_button_press_events)
 
     def add_ellipse(self, cx, cy, rx, ry, line_width, stroke_color):
-        ''' adds the ellipse to the items listing, both minidom node and goocanvas
-        object in a tuple '''
-
-        goocanvas_obj = GooCanvas.CanvasEllipse(parent=self.root,
-                                center_x=cx,
-                                center_y=cy,
-                                radius_x=rx,
-                                radius_y=ry,
-                                stroke_color_rgba=stroke_color,
-                                line_width=line_width)
-        goocanvas_obj.connect('button-press-event', self.item_button_press_events)
+        '''
+        Adds the ellipse to the items listing, both minidom node and goocanvas
+        object in a tuple
+        '''
+        goocanvas_obj = GooCanvas.CanvasEllipse(
+            parent=self.root,
+            center_x=cx,
+            center_y=cy,
+            radius_x=rx,
+            radius_y=ry,
+            stroke_color_rgba=stroke_color,
+            line_width=line_width)
+        goocanvas_obj.connect('button-press-event',
+                              self.item_button_press_events)
 
         node = self.g.addChild(name='ellipse')
         node.setAttr('cx', str(cx))
@@ -357,13 +398,27 @@ class SVGObject():
         self.g.addChild(node=node)
 
         rids = self.session.generate_rids(7)
-        self.items[rids[0]] = {'type':'element', 'data':[node, goocanvas_obj], 'children':rids[1:]}
-        self.items[rids[1]] = {'type':'attr', 'data':'cx', 'parent':node}
-        self.items[rids[2]] = {'type':'attr', 'data':'cy', 'parent':node}
-        self.items[rids[3]] = {'type':'attr', 'data':'rx', 'parent':node}
-        self.items[rids[4]] = {'type':'attr', 'data':'ry', 'parent':node}
-        self.items[rids[5]] = {'type':'attr', 'data':'stroke-width', 'parent':node}
-        self.items[rids[6]] = {'type':'attr', 'data':'stroke', 'parent':node}
+        self.items[rids[0]] = {'type': 'element',
+                               'data': [node, goocanvas_obj],
+                               'children': rids[1:]}
+        self.items[rids[1]] = {'type': 'attr',
+                               'data': 'cx',
+                               'parent': node}
+        self.items[rids[2]] = {'type': 'attr',
+                               'data': 'cy',
+                               'parent': node}
+        self.items[rids[3]] = {'type': 'attr',
+                               'data': 'rx',
+                               'parent': node}
+        self.items[rids[4]] = {'type': 'attr',
+                               'data': 'ry',
+                               'parent': node}
+        self.items[rids[5]] = {'type': 'attr',
+                               'data': 'stroke-width',
+                               'parent': node}
+        self.items[rids[6]] = {'type': 'attr',
+                               'data': 'stroke',
+                               'parent': node}
 
         self.session.send_items(self.items, rids)
 
