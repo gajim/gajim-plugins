@@ -1,21 +1,20 @@
-## plugins/tictactoe/plugin.py
-##
-## Copyright (C) 2011 Yann Leboulanger <asterix AT lagaule.org>
-##
-## This file is part of Gajim.
-##
-## Gajim is free software; you can redistribute it and/or modify
-## it under the terms of the GNU General Public License as published
-## by the Free Software Foundation; version 3 only.
-##
-## Gajim is distributed in the hope that it will be useful,
-## but WITHOUT ANY WARRANTY; without even the implied warranty of
-## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-## GNU General Public License for more details.
-##
-## You should have received a copy of the GNU General Public License
-## along with Gajim. If not, see <http://www.gnu.org/licenses/>.
-##
+#
+# Copyright (C) 2011 Yann Leboulanger <asterix AT lagaule.org>
+#
+# This file is part of the TicTacToe plugin for Gajim.
+#
+# Gajim is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published
+# by the Free Software Foundation; version 3 only.
+#
+# Gajim is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with Gajim. If not, see <http://www.gnu.org/licenses/>.
+#
 
 '''
 Tictactoe plugin.
@@ -30,36 +29,53 @@ import string
 import itertools
 import random
 
-import nbxmpp
+from functools import partial
+
 from gi.repository import Gtk
 from gi.repository import Gdk
 from gi.repository import Gio
 from gi.repository import GLib
-import gi
-gi.require_version('PangoCairo', '1.0')
-from gi.repository import PangoCairo
 
-from gajim.common import helpers
-from gajim.common import app
-from gajim.plugins import GajimPlugin
-from gajim.plugins.helpers import log_calls, log
-from gajim.plugins.gui import GajimPluginConfigDialog
+import nbxmpp
+
 from gajim import chat_control
+
+from gajim.common import app
 from gajim.common import ged
+from gajim.common import helpers
 from gajim.common.connection_handlers_events import InformationEvent
-from gajim.plugins.plugins_i18n import _
 
 from gajim.gtk.dialogs import DialogButton
 from gajim.gtk.dialogs import NewConfirmationDialog
 
+from gajim.plugins import GajimPlugin
+from gajim.plugins.helpers import log
+from gajim.plugins.helpers import log_calls
+from gajim.plugins.plugins_i18n import _
+
+from tictactoe.config_dialog import TicTacToeConfigDialog
+
+try:
+    import gi
+    gi.require_version('PangoCairo', '1.0')
+    from gi.repository import PangoCairo
+    HAS_PANGOCAIRO = True
+except ImportError:
+    HAS_PANGOCAIRO = False
+
 NS_GAMES = 'http://jabber.org/protocol/games'
 NS_GAMES_TICTACTOE = NS_GAMES + '/tictactoe'
+
 
 class TictactoePlugin(GajimPlugin):
     @log_calls('TictactoePlugin')
     def init(self):
+        if not HAS_PANGOCAIRO:
+            self.activatable = False
+            self.config_dialog = None
+            self.available_text = _('TicTacToe requires PangoCairo to run')
         self.description = _('Play Tictactoe.')
-        self.config_dialog = TictactoePluginConfigDialog(self)
+        self.config_dialog = partial(TicTacToeConfigDialog, self)
         self.events_handlers = {
             'decrypted-message-received': (
                 ged.PREGUI, self._nec_decrypted_message_received),
@@ -109,8 +125,8 @@ class TictactoePlugin(GajimPlugin):
             # Already existing session?
             conn = app.connections[control.account]
             sessions = conn.get_sessions(control.contact.jid)
-            tictactoes = [s for s in sessions if isinstance(s,
-                TicTacToeSession)]
+            tictactoes = [s for s in sessions if isinstance(
+                s, TicTacToeSession)]
             if tictactoes:
                 base.tictactoe = tictactoes[0]
                 base.enable_action(True)
@@ -125,8 +141,8 @@ class TictactoePlugin(GajimPlugin):
     def update_button_state(self, control):
         for base in self.controls:
             if base.chat_control == control:
-                if control.contact.supports(NS_GAMES) and \
-                control.contact.supports(NS_GAMES_TICTACTOE):
+                if (control.contact.supports(NS_GAMES) and
+                        control.contact.supports(NS_GAMES_TICTACTOE)):
                     base.enable_action(True)
                 else:
                     base.enable_action(False)
@@ -166,12 +182,12 @@ class TictactoePlugin(GajimPlugin):
             obj.session.received(obj.stanza)
         game_invite = obj.stanza.getTag('invite', namespace=NS_GAMES)
         if game_invite:
-            account = obj.conn.name
             game = game_invite.getTag('game')
             if game and game.getAttr('var') == NS_GAMES_TICTACTOE:
                 session = obj.conn.make_new_session(obj.fjid, obj.thread_id,
-                    cls=TicTacToeSession)
+                                                    cls=TicTacToeSession)
                 self.show_request_dialog(obj, session)
+
 
 class Base(object):
     def __init__(self, plugin, chat_control):
@@ -230,8 +246,10 @@ class Base(object):
                 menu.remove(i)
                 break
 
+
 class InvalidMove(Exception):
     pass
+
 
 class TicTacToeSession(object):
     def __init__(self, conn, jid, thread_id, type_):
@@ -266,7 +284,10 @@ class TicTacToeSession(object):
 
     def get_to(self):
         to = str(self.jid)
-        return app.get_jid_without_resource(to) + '/' + self.resource
+        jid = app.get_jid_without_resource(to)
+        if self.resource:
+            jid += '/' + self.resource
+        return jid
 
     def generate_thread_id(self):
         return ''.join(
@@ -274,7 +295,7 @@ class TicTacToeSession(object):
                 random.choice, 32)]
         )
 
-    # initiate a session
+    # Initiate a session
     def begin(self, role_s='x'):
         self.rows = self.base.plugin.config['board_size']
         self.cols = self.base.plugin.config['board_size']
@@ -343,23 +364,23 @@ class TicTacToeSession(object):
         else:
             self.cols = 3
 
-        # number in a row needed to win
+        # Number in a row needed to win
         if form.getField('strike'):
             self.strike = int(form.getField('strike').getValues()[0])
         else:
             self.strike = 3
 
-    # received an invitation
+    # Received an invitation
     def invited(self, msg):
         self.read_invitation(msg)
 
-        # the number of the move about to be made
+        # The number of the move about to be made
         self.next_move_id = 1
 
-        # display the board
+        # Display the board
         self.board = TicTacToeBoard(self, self.rows, self.cols)
 
-        # accept the invitation, join the game
+        # Accept the invitation, join the game
         response = nbxmpp.Message()
 
         join = response.NT.join
@@ -377,7 +398,7 @@ class TicTacToeSession(object):
 
             self.our_turn()
 
-    # just sent an invitation, expecting a reply
+    # Just sent an invitation, expecting a reply
     def wait_for_invite_response(self, msg):
         if msg.getTag('join', namespace=NS_GAMES):
             self.board = TicTacToeBoard(self, self.rows, self.cols)
@@ -388,13 +409,15 @@ class TicTacToeSession(object):
                 self.their_turn()
 
         elif msg.getTag('decline', namespace=NS_GAMES):
-            app.nec.push_incoming_event(InformationEvent(None, conn=self.conn,
-                level='info', pri_txt=_('Invitation refused'),
-                sec_txt=_('%(name)s refused your invitation to play tic tac '
-                'toe.') % {'name': self.name}))
+            app.nec.push_incoming_event(
+                InformationEvent(
+                    None,
+                    conn=self.conn,
+                    level='info',
+                    pri_txt=_('Invitation refused'),
+                    sec_txt=_('%(name)s refused your invitation to play tic '
+                              'tac toe.') % {'name': self.name}))
             self.conn.delete_session(str(self.jid), self.thread_id)
-            if self.base:
-                self.base.button.set_active(False)
 
     def decline_invitation(self):
         msg = nbxmpp.Message()
@@ -413,14 +436,14 @@ class TicTacToeSession(object):
             self.received = self.game_over
             return True
 
-    # silently ignores any received messages
+    # Silently ignores any received messages
     def ignore(self, msg):
         self.treat_terminate(msg)
 
     def game_over(self, msg):
         invite = msg.getTag('invite', namespace=NS_GAMES)
 
-        # ignore messages unless they're renewing the game
+        # Ignore messages unless they're renewing the game
         if invite and invite.getAttr('type') == 'renew':
             self.invited(msg)
 
@@ -440,14 +463,14 @@ class TicTacToeSession(object):
 
         try:
             self.board.mark(row, col, self.role_o)
-        except InvalidMove as e:
-            # received an invalid move, end the game.
+        except InvalidMove:
+            # Received an invalid move, end the game.
             self.board.cheated()
             self.end_game('cheating')
             self.received = self.game_over
             return
 
-        # check win conditions
+        # Check win conditions
         if self.board.check_for_strike(self.role_o, row, col, self.strike):
             self.lost()
         elif self.board.full():
@@ -461,7 +484,7 @@ class TicTacToeSession(object):
         return self.received == self.ignore
 
     def our_turn(self):
-        # ignore messages until we've made our move
+        # Ignore messages until we've made our move
         self.received = self.ignore
         self.board.set_title('your turn')
 
@@ -473,13 +496,13 @@ class TicTacToeSession(object):
     def move(self, row, col):
         try:
             self.board.mark(row, col, self.role_s)
-        except InvalidMove as e:
-            log.warn('you made an invalid move')
+        except InvalidMove:
+            log.warn('You made an invalid move')
             return
 
         self.send_move(row, col)
 
-        # check win conditions
+        # Check win conditions
         if self.board.check_for_strike(self.role_s, row, col, self.strike):
             self.won()
         elif self.board.full():
@@ -489,7 +512,7 @@ class TicTacToeSession(object):
 
             self.their_turn()
 
-    # sends a move message
+    # Sends a move message
     def send_move(self, row, column):
         msg = nbxmpp.Message()
         msg.setType('chat')
@@ -506,7 +529,7 @@ class TicTacToeSession(object):
 
         self.send(msg)
 
-    # sends a termination message and ends the game
+    # Sends a termination message and ends the game
     def end_game(self, reason):
         msg = nbxmpp.Message()
 
@@ -547,22 +570,22 @@ class TicTacToeBoard:
         self.rows = rows
         self.cols = cols
 
-        self.board = [ [None] * self.cols for r in range(self.rows) ]
+        self.board = [[None] * self.cols for r in range(self.rows)]
 
         self.setup_window()
 
-    # check if the last move (at row r and column c) won the game
+    # Check if the last move (at row r and column c) won the game
     def check_for_strike(self, p, r, c, strike):
-        # number in a row: up and down, left and right
+        # Number in a row: up and down, left and right
         tallyI = 0
         tally_ = 0
 
-        # number in a row: diagonal
+        # Number in a row: diagonal
         # (imagine L or F as two sides of a right triangle: L\ or F/)
         tallyL = 0
         tallyF = 0
 
-        # convert real columns to internal columns
+        # Convert real columns to internal columns
         r -= 1
         c -= 1
 
@@ -570,19 +593,19 @@ class TicTacToeBoard:
             r_in_range = 0 <= r+d < self.rows
             c_in_range = 0 <= c+d < self.cols
 
-            # vertical check
+            # Vertical check
             if r_in_range:
                 tallyI = tallyI + 1
                 if self.board[r+d][c] != p:
                     tallyI = 0
 
-            # horizontal check
+            # Horizontal check
             if c_in_range:
                 tally_ = tally_ + 1
                 if self.board[r][c+d] != p:
                     tally_ = 0
 
-            # diagonal checks
+            # Diagonal checks
             if r_in_range and c_in_range:
                 tallyL = tallyL + 1
                 if self.board[r+d][c+d] != p:
@@ -598,11 +621,11 @@ class TicTacToeBoard:
 
         return False
 
-    # is the board full?
+    # Is the board full?
     def full(self):
         for r in range(self.rows):
             for c in range(self.cols):
-                if self.board[r][c] == None:
+                if self.board[r][c] is None:
                     return False
 
         return True
@@ -628,16 +651,16 @@ class TicTacToeBoard:
 
         (width, height) = widget.get_size()
 
-        # convert click co-ordinates to row and column
-        row_height = height    // self.rows
-        col_width = width    // self.cols
+        # Convert click co-ordinates to row and column
+        row_height = height // self.rows
+        col_width = width // self.cols
 
-        row    = int(event.y // row_height) + 1
+        row = int(event.y // row_height) + 1
         column = int(event.x // col_width) + 1
 
         self.session.move(row, column)
 
-    # this actually draws the board
+    # This actually draws the board
     def do_draw(self, widget, cr):
         cr.set_source_rgb(1.0, 1.0, 1.0)
 
@@ -647,7 +670,7 @@ class TicTacToeBoard:
         (width, height) = self.win.get_size()
 
         row_height = (height - text_height) // self.rows
-        col_width  = width // self.cols
+        col_width = width // self.cols
 
         cr.set_source_rgb(0, 0, 0)
         cr.set_line_width(2)
@@ -669,11 +692,11 @@ class TicTacToeBoard:
             txt = _('You won !')
         elif self.state == 'lost':
             txt = _('You lost !')
-        elif self.state == 'resign': # other part resigned
+        elif self.state == 'resign':  # Other part resigned
             txt = _('%(name)s capitulated') % {'name': self.session.name}
-        elif self.state == 'cheated': # other part cheated
+        elif self.state == 'cheated':  # Other part cheated
             txt = _('%(name)s cheated') % {'name': self.session.name}
-        else: #draw
+        else:  # Draw
             txt = _('It\'s a draw')
         layout.set_text(txt, -1)
         # Inform Pango to re-layout the text with the new transformation
@@ -689,9 +712,9 @@ class TicTacToeBoard:
 
     def draw_x(self, cr, row, col, row_height, col_width):
         if self.session.role_s == 'x':
-            color = '#3d79fb'  # out
+            color = '#3d79fb'  # Out
         else:
-            color = '#f03838'  # red
+            color = '#f03838'  # Red
         rgba = Gdk.RGBA()
         rgba.parse(color)
         cr.set_source_rgba(rgba.red, rgba.green, rgba.blue, rgba.alpha)
@@ -724,12 +747,12 @@ class TicTacToeBoard:
         x = col_width * (col + 0.5)
         y = row_height * (row + 0.5)
 
-        cr.arc(x, y, row_height/4, 0, 2.0*3.2) # slightly further than 2*pi
+        cr.arc(x, y, row_height/4, 0, 2.0*3.2)  # Slightly further than 2*pi
 
         cr.set_line_width(row_height / 5)
         cr.stroke()
 
-    # mark a move on the board
+    # Mark a move on the board
     def mark(self, row, column, player):
         if self.board[row-1][column-1]:
             raise InvalidMove
@@ -738,7 +761,7 @@ class TicTacToeBoard:
 
         self.win.queue_draw()
 
-    def set_title(self, suffix = None):
+    def set_title(self, suffix=None):
         str_ = self.title_prefix
 
         if suffix:
@@ -764,24 +787,3 @@ class TicTacToeBoard:
     def cheated(self):
         self.state == 'cheated'
         self.win.queue_draw()
-
-
-class TictactoePluginConfigDialog(GajimPluginConfigDialog):
-    def init(self):
-        self.GTK_BUILDER_FILE_PATH = self.plugin.local_file_path(
-            'config_dialog.ui')
-        self.xml = Gtk.Builder()
-        self.xml.set_translation_domain('gajim_plugins')
-        self.xml.add_objects_from_file(self.GTK_BUILDER_FILE_PATH, ['vbox1'])
-        self.board_size_spinbutton = self.xml.get_object('board_size')
-        self.board_size_spinbutton.get_adjustment().configure(3, 3, 10, 1, 1, 0)
-        vbox = self.xml.get_object('vbox1')
-        self.get_child().pack_start(vbox, True, True, 0)
-
-        self.xml.connect_signals(self)
-
-    def on_run(self):
-        self.board_size_spinbutton.set_value(self.plugin.config['board_size'])
-
-    def board_size_value_changed(self, spinbutton):
-        self.plugin.config['board_size'] = int(spinbutton.get_value())
