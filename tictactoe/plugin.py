@@ -46,9 +46,11 @@ from gajim.plugins.helpers import log_calls, log
 from gajim.plugins.gui import GajimPluginConfigDialog
 from gajim import chat_control
 from gajim.common import ged
-from gajim import dialogs
 from gajim.common.connection_handlers_events import InformationEvent
 from gajim.plugins.plugins_i18n import _
+
+from gajim.gtk.dialogs import DialogButton
+from gajim.gtk.dialogs import NewConfirmationDialog
 
 NS_GAMES = 'http://jabber.org/protocol/games'
 NS_GAMES_TICTACTOE = NS_GAMES + '/tictactoe'
@@ -131,10 +133,10 @@ class TictactoePlugin(GajimPlugin):
 
     @log_calls('TictactoePlugin')
     def show_request_dialog(self, obj, session):
-        def on_ok():
+        def _on_accept():
             session.invited(obj.stanza)
 
-        def on_cancel():
+        def _on_decline():
             session.decline_invitation()
 
         account = obj.conn.name
@@ -143,12 +145,20 @@ class TictactoePlugin(GajimPlugin):
             name = contact.get_shown_name()
         else:
             name = obj.jid
-        pritext = _('Incoming Tictactoe')
-        sectext = _('%(name)s (%(jid)s) wants to play tictactoe with you. '
-            'Do you want to accept?') % {'name': name, 'jid': obj.jid}
-        dialog = dialogs.NonModalConfirmationDialog(pritext, sectext=sectext,
-            on_response_ok=on_ok, on_response_cancel=on_cancel)
-        dialog.popup()
+
+        NewConfirmationDialog(
+            _('Incoming Tictactoe'),
+            _('Incoming Tictactoe Invitation'),
+            _('%(name)s (%(jid)s) wants to play tictactoe with you.') % {
+                'name': name, 'jid': obj.jid},
+            [DialogButton.make('Cancel',
+                               text=_('_Decline'),
+                               callback=_on_decline),
+             DialogButton.make('OK',
+                               text=_('_Accept'),
+                               callback=_on_accept)],
+            modal=False,
+            transient_for=app.app.get_active_window()).show()
 
     @log_calls('TictactoePlugin')
     def _nec_decrypted_message_received(self, obj):
