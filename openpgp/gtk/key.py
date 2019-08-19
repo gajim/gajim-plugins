@@ -20,7 +20,6 @@ import time
 from gi.repository import Gtk
 
 from gajim.common import app
-from gajim.common.const import ButtonAction
 
 from gajim.gtk.dialogs import NewConfirmationDialog
 from gajim.gtk.dialogs import DialogButton
@@ -126,11 +125,10 @@ class KeyRow(Gtk.ListBoxRow):
             _('Delete Public Key'),
             _('This will permanently delete this public key'),
             [DialogButton.make('Cancel'),
-             DialogButton.make('OK',
+             DialogButton.make('Remove',
                                text=_('Delete'),
-                               callback=_remove,
-                               action=ButtonAction.DESTRUCTIVE)],
-            transient_for=self.get_toplevel())
+                               callback=_remove)],
+            transient_for=self.get_toplevel()).show()
 
     def set_trust(self, trust):
         icon_name, tooltip, css_class = TRUST_DATA[trust]
