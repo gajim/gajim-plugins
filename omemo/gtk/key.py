@@ -26,7 +26,6 @@ from gi.repository import Gtk
 from gi.repository import GdkPixbuf
 
 from gajim.common import app
-from gajim.common.const import ButtonAction
 from gajim.plugins.plugins_i18n import _
 from gajim.plugins.helpers import get_builder
 from gajim.gtk.dialogs import NewConfirmationDialog
@@ -284,11 +283,10 @@ class KeyRow(Gtk.ListBoxRow):
             _('Delete Fingerprint'),
             _('Doing so will permanently delete this Fingerprint'),
             [DialogButton.make('Cancel'),
-             DialogButton.make('OK',
+             DialogButton.make('Remove',
                                text=_('Delete'),
-                               callback=_remove,
-                               action=ButtonAction.DESTRUCTIVE)],
-            transient_for=self.get_toplevel())
+                               callback=_remove)],
+            transient_for=self.get_toplevel()).show()
 
     def set_trust(self):
         icon_name, tooltip, css_class = TRUST_DATA[self.trust]
