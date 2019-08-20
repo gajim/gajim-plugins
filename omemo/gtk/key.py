@@ -296,7 +296,7 @@ class KeyRow(Gtk.ListBoxRow):
         image.set_tooltip_text(tooltip)
 
         backend = self.get_toplevel()._omemo.backend
-        backend.storage.setTrust(self._identity_key, self.trust)
+        backend.storage.setTrust(self.jid, self._identity_key, self.trust)
 
     @property
     def active(self):

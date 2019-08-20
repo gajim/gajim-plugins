@@ -230,7 +230,7 @@ class LiteAxolotlStore(AxolotlStore):
                 CREATE TABLE IF NOT EXISTS secret (
                     device_id INTEGER, public_key BLOB, private_key BLOB);
                 INSERT INTO secret (device_id, public_key, private_key)
-                SELECT registration_id + 1, public_key, private_key 
+                SELECT registration_id + 1, public_key, private_key
                 FROM identities
                 WHERE recipient_id = -1;
             """
@@ -587,10 +587,11 @@ class LiteAxolotlStore(AxolotlStore):
         self._con.execute(query, fingerprints)
         self._con.commit()
 
-    def setTrust(self, identityKey, trust):
-        query = 'UPDATE identities SET trust = ? WHERE public_key = ?'
+    def setTrust(self, recipient_id, identityKey, trust):
+        query = '''UPDATE identities SET trust = ? WHERE public_key = ?
+                   AND recipient_id = ?'''
         public_key = identityKey.getPublicKey().serialize()
-        self._con.execute(query, (trust, public_key))
+        self._con.execute(query, (trust, public_key, recipient_id))
         self._con.commit()
 
     def isTrusted(self, recipient_id, device_id):
