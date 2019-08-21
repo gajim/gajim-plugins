@@ -349,7 +349,7 @@ class Base(object):
         self.enable_action(False)
         if reason:
             txt = _('Whiteboard stopped: %(reason)s') % {'reason': reason}
-            self.chat_control.print_conversation(txt, 'info')
+            self.chat_control.add_status_message(txt)
         if not self.whiteboard:
             return
         hbox = self.chat_control.xml.get_object('chat_control_hbox')
