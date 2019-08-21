@@ -328,4 +328,4 @@ class OmemoPlugin(GajimPlugin):
             msg = _('You have undecided fingerprints')
         if msg is None:
             return
-        chat_control.print_conversation_line(msg, 'status', '', None)
+        chat_control.add_status_message(msg)
