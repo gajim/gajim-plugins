@@ -60,5 +60,5 @@ class FormDialog(Gtk.ApplicationWindow):
         control = find_control(self._account, self._jid)
         if control is None:
             return
-        control.print_conversation('Form has successfully been sent', 'info')
+        control.add_status_message('Form has successfully been sent')
         self.destroy()
