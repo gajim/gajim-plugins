@@ -194,11 +194,13 @@
         <property name="spacing">18</property>
         <child>
           <object class="GtkLabel" id="plugin_name_label">
+            <property name="visible">True</property>
             <property name="can_focus">False</property>
             <property name="no_show_all">True</property>
             <property name="halign">start</property>
             <property name="label" translatable="yes">&lt;Plugin Name&gt;</property>
             <property name="selectable">True</property>
+            <property name="xalign">0</property>
             <style>
               <class name="large-header"/>
             </style>
@@ -218,6 +220,7 @@
             <property name="wrap">True</property>
             <property name="wrap_mode">word-char</property>
             <property name="selectable">True</property>
+            <property name="xalign">0</property>
           </object>
           <packing>
             <property name="expand">False</property>
