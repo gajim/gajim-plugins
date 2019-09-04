@@ -491,7 +491,7 @@ class Base:
                 image.connect(
                     'button-press-event', self._on_button_press_event,
                     filepath, filename, url, encrypted)
-                image.get_window().set_cursor(get_cursor('HAND2'))
+                image.get_window().set_cursor(get_cursor('pointer'))
 
                 if at_end:
                     self._scroll_to_end()
