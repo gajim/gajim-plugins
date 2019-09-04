@@ -16,8 +16,9 @@ from gajim.plugins import GajimPlugin
 from gajim.plugins.helpers import log_calls
 from gajim.plugins.gui import GajimPluginConfigDialog
 from gajim.conversation_textview import TextViewImage
-from gajim import gtkgui_helpers
 from gajim.plugins.plugins_i18n import _
+
+from gajim.gtk.util import get_cursor
 
 
 class JuickPlugin(GajimPlugin):
@@ -538,12 +539,12 @@ class Base(object):
             iter_ = self.textview.tv.get_iter_at_position(x_pos, y_pos)[0]
         tags = iter_.get_tags()
         if self.change_cursor:
-            window.set_cursor(gtkgui_helpers.get_cursor('XTERM'))
+            window.set_cursor(get_cursor('text'))
             self.change_cursor = False
         for tag in tags:
             tag_name = tag.get_property('name')
             if tag_name in ('juick_nick', 'sharp_slash'):
-                window.set_cursor(gtkgui_helpers.get_cursor('HAND2'))
+                window.set_cursor(get_cursor('pointer'))
             self.change_cursor = True
 
     def create_juick_menu(self):
