@@ -38,10 +38,6 @@ class ClientsIconsConfigDialog(SettingsDialog):
                     SettingType.VALUE, self.plugin.config['show_in_roster'],
                     callback=self._on_setting, data='show_in_roster'),
 
-            Setting(SettingKind.SWITCH, _('Show Icons in Group Chats'),
-                    SettingType.VALUE, self.plugin.config['show_in_groupchats'],
-                    callback=self._on_setting, data='show_in_groupchats'),
-
             Setting(SettingKind.SWITCH, _('Show Icons in Tooltip'),
                     SettingType.VALUE, self.plugin.config['show_in_tooltip'],
                     callback=self._on_setting, data='show_in_tooltip'),

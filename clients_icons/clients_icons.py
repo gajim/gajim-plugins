@@ -33,9 +33,6 @@ class ClientsIconsPlugin(GajimPlugin):
         }
 
         self.gui_extension_points = {
-            'groupchat_control': (
-                self.connect_with_groupchat_control,
-                self.disconnect_from_groupchat_control),
             'roster_draw_contact': (
                 self.connect_with_roster_draw_contact,
                 None),
@@ -49,7 +46,6 @@ class ClientsIconsPlugin(GajimPlugin):
 
         self.config_default_values = {
             'show_in_roster': (True, ''),
-            'show_in_groupchats': (True, ''),
             'show_in_tooltip': (True, ''),
             'show_unknown_icon': (True, ''),
             'pos_in_list': ('0', ''),
@@ -216,76 +212,6 @@ class ClientsIconsPlugin(GajimPlugin):
                 self.set_icon(
                     roster.model, iter_, self.renderer_num, node, contact)
 
-    def connect_with_groupchat_control(self, chat_control):
-        chat_control.nb_ext_renderers += 1
-        chat_control.columns += [str]
-        self.groupchats_tree_is_transformed = True
-        self.chat_control = chat_control
-        col = Gtk.TreeViewColumn()
-        self.muc_renderer_num = 4 + chat_control.nb_ext_renderers
-        client_icon_rend = (
-            'client_icon', Gtk.CellRendererPixbuf(), False,
-            'icon_name', self.muc_renderer_num,
-            self.tree_cell_data_func, chat_control)
-
-        # Remove old column
-        chat_control.list_treeview.remove_column(
-            chat_control.list_treeview.get_column(0))
-
-        # Add new renderer in renderers list
-        position_list = ['name', 'avatar']
-        position = position_list[int(self.config['pos_in_list'])]
-        for renderer in chat_control.renderers_list:
-            if renderer[0] == position:
-                break
-        num = chat_control.renderers_list.index(renderer)
-        chat_control.renderers_list.insert(num, client_icon_rend)
-
-        # Fill and append column
-        chat_control.fill_column(col)
-        chat_control.list_treeview.insert_column(col, 0)
-
-        chat_control.model = Gtk.TreeStore(*chat_control.columns)
-        chat_control.model.set_sort_func(1, chat_control.tree_compare_iters)
-        chat_control.model.set_sort_column_id(1, Gtk.SortType.ASCENDING)
-        chat_control.list_treeview.set_model(chat_control.model)
-
-        # Draw roster
-        for nick in app.contacts.get_nick_list(
-                chat_control.account, chat_control.room_jid):
-            gc_contact = app.contacts.get_gc_contact(
-                chat_control.account, chat_control.room_jid, nick)
-            iter_ = chat_control.add_contact_to_roster(nick)
-            if not self.config['show_in_groupchats']:
-                continue
-            caps = gc_contact.client_caps._node
-            self.set_icon(
-                chat_control.model, iter_,
-                self.muc_renderer_num, caps, gc_contact)
-        chat_control.draw_all_roles()
-
-        # Recalculate column width for ellipsizing
-        chat_control.list_treeview.columns_autosize()
-
-    def disconnect_from_groupchat_control(self, gc_control):
-        gc_control.nb_ext_renderers -= 1
-        col = gc_control.list_treeview.get_column(0)
-        gc_control.list_treeview.remove_column(col)
-        col = Gtk.TreeViewColumn()
-        for renderer in gc_control.renderers_list:
-            if renderer[0] == 'client_icon':
-                gc_control.renderers_list.remove(renderer)
-                break
-        gc_control.fill_column(col)
-        gc_control.list_treeview.insert_column(col, 0)
-        gc_control.columns = gc_control.columns[:self.muc_renderer_num] + \
-            gc_control.columns[self.muc_renderer_num + 1:]
-        gc_control.model = Gtk.TreeStore(*gc_control.columns)
-        gc_control.model.set_sort_func(1, gc_control.tree_compare_iters)
-        gc_control.model.set_sort_column_id(1, Gtk.SortType.ASCENDING)
-        gc_control.list_treeview.set_model(gc_control.model)
-        gc_control.draw_roster()
-
     def activate(self):
         self.active = None
         roster = app.interface.roster
@@ -372,9 +298,8 @@ class ClientsIconsPlugin(GajimPlugin):
             return
 
         if contact.is_gc_contact:
-            self._draw_gc_contact(event, contact)
-        else:
-            self._draw_roster_contact(event, contact)
+            return
+        self._draw_roster_contact(event, contact)
 
     def _draw_roster_contact(self, event, contact):
         if not self.config['show_in_roster']:
@@ -401,23 +326,6 @@ class ClientsIconsPlugin(GajimPlugin):
             self.set_icon(
                 roster.model, iter_, self.renderer_num, caps, contact)
 
-    def _draw_gc_contact(self, event, contact):
-        if not self.config['show_in_groupchats']:
-            return
-
-        control = app.interface.msg_win_mgr.get_gc_control(
-            contact.room_jid, event.conn.name)
-        if control is None:
-            return
-        iter_ = control.get_contact_iter(contact.name)
-        if control.model[iter_][self.muc_renderer_num] is not None:
-            return
-        caps = contact.client_caps._node
-        if not caps:
-            return
-        self.set_icon(
-            control.model, iter_, self.muc_renderer_num, caps, contact)
-
     def _get_contact_or_gc_contact_for_jid(self, account, fjid):
         contact = app.contacts.get_contact_from_full_jid(account, fjid)
 
@@ -438,24 +346,3 @@ class ClientsIconsPlugin(GajimPlugin):
                 return
 
         model[iter_][pos] = icon_name
-
-    def tree_cell_data_func(self, column, renderer, model, iter_, control):
-        if not model.iter_parent(iter_):
-            renderer.set_property('visible', False)
-            return
-
-        if model[iter_][self.muc_renderer_num]:
-            renderer.set_property('visible', True)
-
-        contact = app.contacts.get_gc_contact(
-            control.account, control.room_jid, model[iter_][1])
-        if not contact:
-            return
-
-        bgcolor = app.config.get_per(
-            'themes', app.config.get('roster_theme'), 'contactbgcolor')
-        if bgcolor:
-            renderer.set_property('cell-background', bgcolor)
-        else:
-            renderer.set_property('cell-background', None)
-        renderer.set_property('width', 16)
