@@ -206,10 +206,15 @@ class OMEMO(BaseModule):
         if not properties.is_omemo:
             return
 
-        if properties.is_mam_message:
+        if properties.is_carbon_message and properties.carbon.is_sent:
+            from_jid = self._own_jid
+
+        elif properties.is_mam_message:
             from_jid = self._process_mam_message(properties)
+
         elif properties.from_muc:
             from_jid = self._process_muc_message(properties)
+
         else:
             from_jid = properties.jid.getBare()
 
@@ -266,14 +271,13 @@ class OMEMO(BaseModule):
 
     def _process_mam_message(self, properties):
         self._log.info('Message received, archive: %s', properties.mam.archive)
-        from_jid = properties.jid.getBare()
         if properties.from_muc:
             self._log.info('MUC MAM Message received')
             if properties.muc_user.jid is None:
                 self._log.info('No real jid found')
                 return
-            from_jid = properties.muc_user.jid.getBare()
-        return from_jid
+            return properties.muc_user.jid.getBare()
+        return properties.from_.getBare()
 
     def _on_muc_user_presence(self, _con, _stanza, properties):
         if properties.type == PresenceType.ERROR:
