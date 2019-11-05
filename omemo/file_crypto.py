@@ -20,8 +20,6 @@ import hashlib
 import logging
 import socket
 import threading
-import platform
-import subprocess
 import binascii
 import ssl
 from urllib.request import urlopen
@@ -33,6 +31,7 @@ from gi.repository import GLib
 
 from gajim.common import app
 from gajim.common import configpaths
+from gajim.common import helpers
 from gajim.common.const import URIType
 from gajim.plugins.plugins_i18n import _
 from gajim.gtk.dialogs import ErrorDialog
@@ -134,26 +133,21 @@ class FileDecryption:
         file.filepath = os.path.join(DIRECTORY, newfilename)
 
     def finished(self, file):
+        def _open_file():
+            helpers.open_file(file.filepath)
+
         NewConfirmationDialog(
             _('Open File'),
             _('Open File?'),
             _('Do you want to open %s?') % file.filename,
             [DialogButton.make('Cancel',
                                text=_('_No')),
-             DialogButton.make('OK',
+             DialogButton.make('Accept',
                                text=_('_Open'),
-                               callback=self.open_file(file.filepath))],
+                               callback=_open_file)],
             transient_for=self.window).show()
 
         return False
-
-    def open_file(self, path):
-        if platform.system() == "Windows":
-            os.startfile(path)
-        elif platform.system() == "Darwin":
-            subprocess.Popen(["open", path])
-        else:
-            subprocess.Popen(["xdg-open", path])
 
 
 class Download:
