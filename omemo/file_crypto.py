@@ -136,12 +136,19 @@ class FileDecryption:
         def _open_file():
             helpers.open_file(file.filepath)
 
+        def _open_folder():
+            directory = os.path.dirname(file.filepath)
+            helpers.open_file(directory)
+
         NewConfirmationDialog(
             _('Open File'),
             _('Open File?'),
             _('Do you want to open %s?') % file.filename,
             [DialogButton.make('Cancel',
                                text=_('_No')),
+             DialogButton.make('OK',
+                               text=_('Open _Folder'),
+                               callback=_open_folder),
              DialogButton.make('Accept',
                                text=_('_Open'),
                                callback=_open_file)],
