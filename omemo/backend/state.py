@@ -244,19 +244,17 @@ class OmemoState(DeviceManager):
             return cipher
 
     def _process_pre_key_message(self, jid, device, key):
+        self._log.info('Process pre key message from %s', jid)
         pre_key_message = PreKeyWhisperMessage(serialized=key)
         if not pre_key_message.getPreKeyId():
             raise Exception('Received Pre Key Message '
                             'without PreKey => %s' % jid)
 
-        identity_key = pre_key_message.getIdentityKey()
-        trust = self._storage.getTrustForIdentity(jid, identity_key)
-        trust = Trust(trust) if trust is not None else Trust.UNDECIDED
-
         session_cipher = self._get_session_cipher(jid, device)
-
-        self._log.info('Process pre key message from %s', jid)
         key = session_cipher.decryptPkmsg(pre_key_message)
+
+        identity_key = pre_key_message.getIdentityKey()
+        trust = self._get_trust_from_identity_key(jid, identity_key)
         fingerprint = get_fingerprint(identity_key)
 
         self._storage.setIdentityLastSeen(jid, identity_key)
@@ -266,24 +264,34 @@ class OmemoState(DeviceManager):
         return key, fingerprint, trust
 
     def _process_message(self, jid, device, key):
-        message = WhisperMessage(serialized=key)
         self._log.info('Process message from %s', jid)
+        message = WhisperMessage(serialized=key)
 
         session_cipher = self._get_session_cipher(jid, device)
         key = session_cipher.decryptMsg(message, textMsg=False)
 
-        session_record = self._storage.loadSession(jid, device)
-        identity_key = session_record.getSessionState().getRemoteIdentityKey()
-
-        trust = self._storage.getTrustForIdentity(jid, identity_key)
-        trust = Trust(trust) if trust is not None else Trust.UNDECIDED
-
+        identity_key = self._get_identity_key_from_device(jid, device)
+        trust = self._get_trust_from_identity_key(jid, identity_key)
         fingerprint = get_fingerprint(identity_key)
+
         self._storage.setIdentityLastSeen(jid, identity_key)
 
         self.add_device(jid, device)
 
         return key, fingerprint, trust
+
+    @staticmethod
+    def _get_identity_key_from_pk_message(key):
+        pre_key_message = PreKeyWhisperMessage(serialized=key)
+        return pre_key_message.getIdentityKey()
+
+    def _get_identity_key_from_device(self, jid, device):
+        session_record = self._storage.loadSession(jid, device)
+        return session_record.getSessionState().getRemoteIdentityKey()
+
+    def _get_trust_from_identity_key(self, jid, identity_key):
+        trust = self._storage.getTrustForIdentity(jid, identity_key)
+        return Trust(trust) if trust is not None else Trust.UNDECIDED
 
     def _check_pre_key_count(self):
         # Check if enough PreKeys are available
