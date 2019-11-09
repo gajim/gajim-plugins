@@ -91,7 +91,8 @@ class OmemoPlugin(GajimPlugin):
         self.events_handlers = {
             'omemo-new-fingerprint': (ged.PRECORE, self._on_new_fingerprints),
             'signed-in': (ged.PRECORE, self._on_signed_in),
-            'muc-config-changed': (ged.GUI2, self._on_muc_config_changed),
+            'muc-disco-update': (ged.GUI1, self._on_muc_disco_update),
+            'muc-joined': (ged.GUI1, self._on_muc_joined),
         }
         self.modules = [omemo]
         self.config_dialog = OMEMOConfigDialog(self)
@@ -177,10 +178,15 @@ class OmemoPlugin(GajimPlugin):
             return
         self.get_omemo(account).on_signed_in()
 
-    def _on_muc_config_changed(self, event):
+    def _on_muc_disco_update(self, event):
         if not self._is_enabled_account(event.account):
             return
-        self.get_omemo(event.account).on_muc_config_changed(event)
+        self.get_omemo(event.account).on_muc_disco_update(event)
+
+    def _on_muc_joined(self, event):
+        if not self._is_enabled_account(event.account):
+            return
+        self.get_omemo(event.account).on_muc_joined(event)
 
     def _update_caps(self, account):
         if not self._is_enabled_account(account):
@@ -189,14 +195,6 @@ class OmemoPlugin(GajimPlugin):
 
     @staticmethod
     def activate_encryption(chat_control):
-        if isinstance(chat_control, GroupchatControl):
-            omemo_con = app.connections[chat_control.account].get_module('OMEMO')
-            if not omemo_con.is_omemo_groupchat(chat_control.room_jid):
-                dialogs.ErrorDialog(
-                    _('Bad Configuration'),
-                    _('To use OMEMO in a Groupchat, the Groupchat should be'
-                      ' non-anonymous and members-only.'))
-                return False
         return True
 
     def _muc_encrypt_message(self, conn, obj, callback):
@@ -249,6 +247,14 @@ class OmemoPlugin(GajimPlugin):
         self.new_fingerprints_available(chat_control)
         if isinstance(chat_control, GroupchatControl):
             room = chat_control.room_jid
+            if not omemo.is_omemo_groupchat(room):
+                dialogs.ErrorDialog(
+                    _('Bad Configuration'),
+                    _('To use OMEMO in a Groupchat, the Groupchat should be'
+                      ' non-anonymous and members-only.'))
+                chat_control.sendmessage = False
+                return
+
             missing = True
             for jid in omemo.backend.get_muc_members(room):
                 if not omemo.are_keys_missing(jid):
@@ -257,6 +263,7 @@ class OmemoPlugin(GajimPlugin):
                 log.info('%s => No Trusted Fingerprints for %s',
                          account, room)
                 self.print_message(chat_control, UserMessages.NO_FINGERPRINTS)
+                chat_control.sendmessage = False
         else:
             # check if we have devices for the contact
             if not omemo.backend.get_devices(contact.jid, without_self=True):

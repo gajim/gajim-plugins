@@ -310,19 +310,11 @@ class OMEMO(BaseModule):
         else:
             self.backend.add_muc_member(room, jid)
 
-        if room in self._omemo_groupchats:
+        if self.is_omemo_groupchat(room):
             if not self.is_contact_in_roster(jid):
                 # Query Devicelists from JIDs not in our Roster
                 self._log.info('%s not in Roster, query devicelist...', jid)
                 self.request_devicelist(jid)
-
-        if properties.is_muc_self_presence:
-            if StatusCode.NON_ANONYMOUS in status_codes:
-                # non-anonymous Room (Full JID)
-                self._omemo_groupchats.add(room)
-
-                self._log.info('OMEMO capable Room found: %s', room)
-                self.get_affiliation_list(room)
 
     def get_affiliation_list(self, room_jid):
         for affiliation in ('owner', 'admin', 'member'):
@@ -354,11 +346,22 @@ class OMEMO(BaseModule):
             return False
         return contact.sub == 'both'
 
-    def on_muc_config_changed(self, event):
-        status_codes = event.status_codes or []
-        if StatusCode.CONFIG_NON_ANONYMOUS in status_codes:
-            self._omemo_groupchats.add(event.room_jid)
-            self._log.info('Room config change: non-anonymous')
+    def on_muc_disco_update(self, event):
+        self._check_if_omemo_capable(event.room_jid)
+
+    def on_muc_joined(self, event):
+        self._check_if_omemo_capable(event.room_jid)
+        if self.is_omemo_groupchat(event.room_jid):
+            self.get_affiliation_list(event.room_jid)
+
+    def _check_if_omemo_capable(self, jid):
+        disco_info = app.logger.get_last_disco_info(jid)
+        if disco_info.muc_is_members_only and disco_info.muc_is_nonanonymous:
+            self._log.info('OMEMO room discovered: %s', jid)
+            self._omemo_groupchats.add(jid)
+        else:
+            self._log.info('OMEMO room removed due to config change: %s', jid)
+            self._omemo_groupchats.discard(jid)
 
     def _check_for_missing_sessions(self, jid):
         devices_without_session = self.backend.devices_without_sessions(jid)
