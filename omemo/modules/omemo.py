@@ -273,8 +273,9 @@ class OMEMO(BaseModule):
         self._log.info('Message received, archive: %s', properties.mam.archive)
         if properties.from_muc:
             self._log.info('MUC MAM Message received')
-            if properties.muc_user.jid is None:
-                self._log.info('No real jid found')
+            if properties.muc_user is None or properties.muc_user.jid is None:
+                self._log.warning('Received MAM Message which can '
+                                  'not be mapped to a real jid')
                 return
             return properties.muc_user.jid.getBare()
         return properties.from_.getBare()
