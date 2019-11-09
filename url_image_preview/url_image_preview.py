@@ -35,6 +35,8 @@ from gi.repository import GdkPixbuf
 from gajim.common import app
 from gajim.common import helpers
 from gajim.common import configpaths
+from gajim.common.helpers import open_file
+from gajim.common.helpers import open_uri
 from gajim.gtkgui_helpers import add_css_to_widget
 from gajim.gtk.dialogs import ErrorDialog
 from gajim.gtk.filechoosers import FileSaveDialog
@@ -650,9 +652,9 @@ class Base:
         original_filename = data['original_filename']
         url = data['url']
         if original_filename.startswith('location_'):
-            helpers.open_uri(url)
+            open_uri(url)
             return
-        helpers.launch_file_manager(filepath)
+        open_file(filepath)
 
     def _on_save_as_menuitem_activate(self, menu, data):
         filepath = data['filepath']
@@ -675,7 +677,7 @@ class Base:
                        transient_for=app.app.get_active_window())
 
     def _on_open_folder_menuitem_activate(self, menu, data):
-        helpers.launch_file_manager(self.directory)
+        open_file(self.directory)
 
     def _on_copy_link_location_menuitem_activate(self, menu, data):
         url = data['url']
@@ -688,7 +690,7 @@ class Base:
         if data['encrypted']:
             self._on_open_menuitem_activate(self, data)
         else:
-            helpers.open_uri(url)
+            open_uri(url)
 
     def _on_open_file_in_browser_menuitem_activate(self, menu, data):
         if os.name == 'nt':
