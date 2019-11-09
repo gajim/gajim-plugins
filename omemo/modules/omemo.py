@@ -242,8 +242,16 @@ class OMEMO(BaseModule):
             trust = Trust.VERIFIED
             del self._muc_temp_store[properties.omemo.payload]
 
-        except (DecryptionFailed, MessageNotForDevice):
+        except DecryptionFailed:
             return
+
+        except MessageNotForDevice:
+            plaintext = _('This message was encrypted with OMEMO, '
+                          'but not for your device.')
+            # Neither trust nor fingerprint can be verified if we didn't
+            # successfully decrypt the message
+            trust = Trust.UNTRUSTED
+            fingerprint = None
 
         prepare_stanza(stanza, plaintext)
         self._debug_print_stanza(stanza)
