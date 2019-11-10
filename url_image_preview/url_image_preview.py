@@ -33,7 +33,6 @@ from gi.repository import GLib
 from gi.repository import GdkPixbuf
 
 from gajim.common import app
-from gajim.common import helpers
 from gajim.common import configpaths
 from gajim.common.helpers import open_file
 from gajim.common.helpers import open_uri
@@ -615,16 +614,9 @@ class Base:
             'copy_link_location_menuitem')
         open_link_in_browser_menuitem = xml.get_object(
             'open_link_in_browser_menuitem')
-        open_file_in_browser_menuitem = xml.get_object(
-            'open_file_in_browser_menuitem')
-        extras_separator = xml.get_object('extras_separator')
 
         if data['encrypted']:
             open_link_in_browser_menuitem.hide()
-        if app.config.get('autodetect_browser_mailer') \
-                or app.config.get('custombrowser') == '':
-            extras_separator.hide()
-            open_file_in_browser_menuitem.hide()
 
         id_ = open_menuitem.connect(
             'activate', self._on_open_menuitem_activate, data)
@@ -641,9 +633,6 @@ class Base:
         id_ = open_link_in_browser_menuitem.connect(
             'activate', self._on_open_link_in_browser_menuitem_activate, data)
         self.handlers[id_] = open_link_in_browser_menuitem
-        id_ = open_file_in_browser_menuitem.connect(
-            'activate', self._on_open_file_in_browser_menuitem_activate, data)
-        self.handlers[id_] = open_file_in_browser_menuitem
 
         return menu
 
@@ -691,26 +680,6 @@ class Base:
             self._on_open_menuitem_activate(self, data)
         else:
             open_uri(url)
-
-    def _on_open_file_in_browser_menuitem_activate(self, menu, data):
-        if os.name == 'nt':
-            filepath = 'file://' + os.path.abspath(data['filepath'])
-        else:
-            filepath = 'file://' + data['filepath']
-        if app.config.get('autodetect_browser_mailer') \
-                or app.config.get('custombrowser') == '':
-            ErrorDialog(
-                _('Cannot open downloaded file in browser'),
-                _('You have to set a custom browser executable '
-                  'in Gajim\'s Preferences for this to work.'),
-                transient_for=app.app.get_active_window())
-            return
-        command = app.config.get('custombrowser')
-        command = helpers.build_command(command, filepath)
-        try:
-            helpers.exec_command(command)
-        except Exception:
-            pass
 
     def _on_button_press_event(self, eb, event, filepath, original_filename,
                                url, encrypted):

@@ -44,8 +44,7 @@ class UrlImagePreviewConfigDialog(SettingsDialog):
             ('save_as_menuitem', _('Save as')),
             ('open_folder_menuitem', _('Open Folder')),
             ('copy_link_location_menuitem', _('Copy Link Location')),
-            ('open_link_in_browser_menuitem', _('Open Link in Browser')),
-            ('open_file_in_browser_menuitem', _('Open File in Browser'))]
+            ('open_link_in_browser_menuitem', _('Open Link in Browser'))]
 
         geo_providers = [
             ('no_preview', _('No map preview')),
