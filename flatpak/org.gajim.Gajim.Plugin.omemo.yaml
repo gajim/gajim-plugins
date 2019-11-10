@@ -1,6 +1,6 @@
 id: org.gajim.Gajim.Plugin.omemo
 runtime: org.gajim.Gajim
-sdk: org.gnome.Sdk//3.32
+sdk: org.gnome.Sdk//3.34
 build-extension: true
 separate-locales: false
 appstream-compose: false
@@ -16,11 +16,11 @@ modules:
     buildsystem: simple
     build-commands:
       - install -d ${FLATPAK_DEST}/lib/python3.7/site-packages/
-      - pip3 install --prefix=${FLATPAK_DEST} protobuf-3.7.0-py2.py3-none-any.whl
+      - pip3 install --prefix=${FLATPAK_DEST} protobuf-3.10.0-py2.py3-none-any.whl
     sources:
       - type: file
-        url: https://files.pythonhosted.org/packages/41/7c/6029e1b37ca730648a22502d75e2c7707da7a207db1b366f76edc5a01a0b/protobuf-3.7.0-py2.py3-none-any.whl
-        sha256: e47d248d614c68e4b029442de212bdd4f6ae02ae36821de319ae90314ea2578c
+        url: https://files.pythonhosted.org/packages/ad/c2/86c65136e280607ddb2e5dda19e2953c1174f9919b557d1d154574481de4/protobuf-3.10.0-py2.py3-none-any.whl
+        sha256: 56a77d61a91186cc5676d8e11b36a5feb513873e4ae88d2ee5cf530d52bbcd3b
 
   - name: python3-axolotl-curve25519
     buildsystem: simple
@@ -36,11 +36,11 @@ modules:
     buildsystem: simple
     build-commands:
       - install -d ${FLATPAK_DEST}/lib/python3.7/site-packages/
-      - pip3 install --prefix=${FLATPAK_DEST} .
+      - pip3 install --prefix=${FLATPAK_DEST} python_axolotl-0.2.3-py3-none-any.whl
     sources:
-      - type: archive
-        url: https://files.pythonhosted.org/packages/27/99/3b905f0061aba53526408d286e53cee3b00c9fd256eed7d21d5d41033690/python-axolotl-0.1.42.tar.gz
-        sha256: ef78c2efabcd4c33741669334bdda04710a3ef0e00b653f00127acff6460a7f0
+      - type: file
+        url: https://files.pythonhosted.org/packages/0f/b3/4a0b0e664435691bba36fac6e366cece506d002294c293bd3dcb40c2b2ba/python_axolotl-0.2.3-py3-none-any.whl
+        sha256: 6a22acbf646c3b736ea1a4663ab5c52687fce6612e92ae6a7fe63803c212fb9e
 
   - name: python3-qrcode
     buildsystem: simple
@@ -61,8 +61,8 @@ modules:
       - appstream-compose --basename=org.gajim.Gajim.Plugin.omemo --prefix=${FLATPAK_DEST} --origin=flatpak org.gajim.Gajim.Plugin.omemo
     sources:
       - type: archive
-        url: https://ftp.gajim.org/plugins_releases/omemo_2.6.53.zip
-        sha256: 296a2add78ec1af0471528c4cc2e088933e103b27899d2569c67c48ef2118339
+        url: https://ftp.gajim.org/plugins_releases/omemo_2.6.67.zip
+        sha256: c41e9341a6a807a889e794c37e384ea598cd6341e5b96ad4be8f5b741a753452
       - type: file
         path: org.gajim.Gajim.Plugin.omemo.metainfo.xml
         sha256: d7ef976ee4239d5c6b0da7b5e3bcc85d99db7d860c0329347a9522e8a176c69e
