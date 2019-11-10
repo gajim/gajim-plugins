@@ -270,6 +270,7 @@
               <object class="GtkButton" id="cleardevice_button">
                 <property name="label" translatable="yes">_Clear Devices</property>
                 <property name="visible">True</property>
+                <property name="sensitive">False</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
                 <property name="tooltip_text" translatable="yes">This clears your device list from the server.
@@ -292,6 +293,7 @@ It is advised to go online with all of your actively used devices after clearing
                 <property name="label">gtk-refresh</property>
                 <property name="width_request">160</property>
                 <property name="visible">True</property>
+                <property name="sensitive">False</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
                 <property name="use_stock">True</property>

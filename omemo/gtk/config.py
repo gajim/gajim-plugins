@@ -77,7 +77,7 @@ class OMEMOConfigDialog(GajimPluginConfigDialog):
     def update_account_combobox(self):
         if self.plugin_active is False:
             return
-        if self._ui.account_store:
+        if len(self._ui.account_store):
             self._ui.account_combobox.set_active(0)
         else:
             self.account_combobox_changed_cb(self._ui.account_combobox)
@@ -130,7 +130,7 @@ class OMEMOConfigDialog(GajimPluginConfigDialog):
     def update_context_list(self):
         self._ui.deviceid_store.clear()
 
-        if not self._ui.account_store:
+        if not len(self._ui.account_store):
             self._ui.ID.set_markup('')
             self._ui.fingerprint_label.set_markup('')
             self._ui.refresh.set_sensitive(False)
