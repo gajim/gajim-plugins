@@ -297,12 +297,11 @@ class OMEMO(BaseModule):
 
         room = properties.jid.getBare()
 
-        jid = properties.muc_user.jid
-        if jid is None:
+        if properties.muc_user is None or properties.muc_user.jid is None:
             # No real jid found
             return
 
-        jid = jid.getBare()
+        jid = properties.muc_user.jid.getBare()
         if properties.muc_user.affiliation in (Affiliation.OUTCAST,
                                                Affiliation.NONE):
             self.backend.remove_muc_member(room, jid)
