@@ -1,3 +1,7 @@
+2.6.68 / 2019-11-18
+- Correctly handle presence in anonymous rooms
+- Fix error in config dialog if no account is available
+
 2.6.67 / 2019-11-10
 - Correctly handle MAM Messages in anonymous rooms
 - Show error when message was not encrypted for our device
