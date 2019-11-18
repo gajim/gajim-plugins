@@ -296,7 +296,6 @@ class OMEMO(BaseModule):
             return
 
         room = properties.jid.getBare()
-        status_codes = properties.muc_status_codes or []
 
         jid = properties.muc_user.jid
         if jid is None:
