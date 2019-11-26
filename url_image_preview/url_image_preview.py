@@ -619,7 +619,7 @@ class Base(object):
             'activate', self.on_open_menuitem_activate, data)
         self.handlers[id_] = open_menuitem
         id_ = save_as_menuitem.connect(
-            'activate', self.on_save_as_menuitem_activate_new, data)
+            'activate', self.on_save_as_menuitem_activate, data)
         self.handlers[id_] = save_as_menuitem
         id_ = copy_link_location_menuitem.connect(
             'activate', self.on_copy_link_location_menuitem_activate, data)
@@ -642,7 +642,7 @@ class Base(object):
             return
         helpers.launch_file_manager(filepath)
 
-    def on_save_as_menuitem_activate_new(self, menu, data):
+    def on_save_as_menuitem_activate(self, menu, data):
         filepath = data["filepath"]
         original_filename = data["original_filename"]
 
