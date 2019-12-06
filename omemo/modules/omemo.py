@@ -478,9 +478,10 @@ class OMEMO(BaseModule):
 
     @event_node(nbxmpp.NS_OMEMO_TEMP_DL)
     def _devicelist_notification_received(self, _con, _stanza, properties):
-        devicelist = []
-        if not properties.pubsub_event.empty:
-            devicelist = properties.pubsub_event.data
+        if properties.pubsub_event.retracted:
+            return
+
+        devicelist = properties.pubsub_event.data or []
 
         self._process_devicelist_update(str(properties.jid), devicelist)
 
