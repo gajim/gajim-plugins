@@ -135,9 +135,10 @@ class OpenPGP(BaseModule):
 
     @event_node(nbxmpp.NS_OPENPGP_PK)
     def _keylist_notification_received(self, _con, _stanza, properties):
-        keylist = []
-        if not properties.pubsub_event.empty:
-            keylist = properties.pubsub_event.data
+        if properties.pubsub_event.retracted:
+            return
+
+        keylist = properties.pubsub_event.data or []
 
         self._process_keylist(keylist, properties.jid)
 
