@@ -1,3 +1,6 @@
+2.6.69 / 2019-12-06
+- Adapt to nbxmpp changes
+
 2.6.68 / 2019-11-18
 - Correctly handle presence in anonymous rooms
 - Fix error in config dialog if no account is available
