@@ -48,6 +48,7 @@ class LengthNotifierPlugin(GajimPlugin):
 
         self.config_default_values = {
             'MESSAGE_WARNING_LENGTH' : (140, 'Message length at which notification is invoked.'),
+            'CHAR_COUNTER': (True, 'Show character count'),
             'WARNING_COLOR' : ('#F0DB3E', 'Background color of text entry field in chat window when notification is invoked.'),
             'JIDS' : ([], 'JabberIDs that plugin should be used with (eg. restrict only to one microblogging bot). If empty plugin is used with every JID. [not implemented]')
             }
@@ -56,9 +57,12 @@ class LengthNotifierPlugin(GajimPlugin):
     def textview_length_warning(self, tb, chat_control):
         tv = chat_control.msg_textview
         d = chat_control.length_notifier_plugin_data
+        if not tv.has_text():
+            self.counter.set_text('0')
         if tv.has_text():
             t = tb.get_text(tb.get_start_iter(), tb.get_end_iter(), True)
             len_t = len(t)
+            self.counter.set_text(str(len_t))
             if len_t > self.config['MESSAGE_WARNING_LENGTH']:
                 if not d['prev_color']:
                     #FIXME: That doesn't work
@@ -80,6 +84,7 @@ class LengthNotifierPlugin(GajimPlugin):
     def connect_with_chat_control(self, chat_control):
         jid = chat_control.contact.jid
         if self.jid_is_ok(jid):
+            self._create_counter(chat_control)
             d = {'prev_color' : None}
             tv = chat_control.msg_textview
             tb = tv.get_buffer()
@@ -90,6 +95,7 @@ class LengthNotifierPlugin(GajimPlugin):
             if tv.has_text():
                 t = tb.get_text(tb.get_start_iter(), tb.get_end_iter(), True)
                 len_t = len(t)
+                self.counter.set_text(str(len_t))
                 if len_t > self.config['MESSAGE_WARNING_LENGTH']:
                     context = tv.get_style_context()
                     d['prev_color'] = context.get_background_color(
@@ -97,7 +103,8 @@ class LengthNotifierPlugin(GajimPlugin):
                     color = Gdk.RGBA()
                     Gdk.RGBA.parse(color, self.config['WARNING_COLOR'])
                     tv.override_background_color(Gtk.StateType.NORMAL, color)
-
+            else:
+                self.counter.set_text('0')
             chat_control.length_notifier_plugin_data = d
 
             return True
@@ -107,6 +114,8 @@ class LengthNotifierPlugin(GajimPlugin):
     @log_calls('LengthNotifierPlugin')
     def disconnect_from_chat_control(self, chat_control):
         try:
+            actions_hbox = chat_control.xml.get_object('hbox')
+            actions_hbox.remove(self.counter)
             d = chat_control.length_notifier_plugin_data
             tv = chat_control.msg_textview
             tv.get_buffer().disconnect(d['h_id'])
@@ -124,6 +133,22 @@ class LengthNotifierPlugin(GajimPlugin):
 
         return False
 
+    def _create_counter(self, chat_control):
+        actions_hbox = chat_control.xml.get_object('hbox')
+        self.counter = Gtk.Label()
+        self.counter.set_tooltip_text(_('Number of typed characters'))
+        self.counter.get_style_context().add_class('dim-label')
+        self.counter.set_no_show_all(True)
+        actions_hbox.pack_start(self.counter, False, False, 0)
+        self.toggle_counter()
+
+    def toggle_counter(self):
+        if self.config['CHAR_COUNTER']:
+            self.counter.show()
+        else:
+            self.counter.hide()
+
+
 class LengthNotifierPluginConfigDialog(GajimPluginConfigDialog):
     def init(self):
         self.GTK_BUILDER_FILE_PATH = self.plugin.local_file_path(
@@ -139,6 +164,7 @@ class LengthNotifierPluginConfigDialog(GajimPluginConfigDialog):
             'message_length_spinbutton')
         self.message_length_spinbutton.get_adjustment().configure(140, 0, 500,
             1, 10, 0)
+        self.char_counter = self.xml.get_object('char_counter')
         self.notification_colorbutton = self.xml.get_object(
             'notification_colorbutton')
         self.jids_entry = self.xml.get_object('jids_entry')
@@ -149,6 +175,7 @@ class LengthNotifierPluginConfigDialog(GajimPluginConfigDialog):
         self.message_length_spinbutton.set_value(self.plugin.config[
             'MESSAGE_WARNING_LENGTH'])
         color = Gdk.Color.parse(self.plugin.config['WARNING_COLOR'])[1]
+        self.char_counter.set_active(self.plugin.config['CHAR_COUNTER'])
         self.notification_colorbutton.set_color(color)
         #self.jids_entry.set_text(self.plugin.config['JIDS'])
         self.jids_entry.set_text(','.join(self.plugin.config['JIDS']))
@@ -156,6 +183,10 @@ class LengthNotifierPluginConfigDialog(GajimPluginConfigDialog):
     @log_calls('LengthNotifierPluginConfigDialog')
     def on_message_length_spinbutton_value_changed(self, spinbutton):
         self.plugin.config['MESSAGE_WARNING_LENGTH'] = spinbutton.get_value()
+
+    def _on_char_counter_toggled(self, checkbutton):
+        self.plugin.config['CHAR_COUNTER'] = checkbutton.get_active()
+        self.plugin.toggle_counter()
 
     @log_calls('LengthNotifierPluginConfigDialog')
     def on_notification_colorbutton_color_set(self, colorbutton):

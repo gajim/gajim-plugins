@@ -1,150 +1,125 @@
-<?xml version="1.0"?>
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Generated with glade 3.22.1 -->
 <interface>
-  <requires lib="gtk+" version="2.16"/>
-  <!-- interface-naming-policy toplevel-contextual -->
-  <object class="GtkWindow" id="window1">
+  <requires lib="gtk+" version="3.20"/>
+  <object class="GtkWindow">
+    <property name="can_focus">False</property>
     <child>
-      <object class="GtkTable" id="length_notifier_config_table">
+      <object class="GtkGrid" id="length_notifier_config_table">
         <property name="visible">True</property>
-        <property name="border_width">9</property>
-        <property name="n_rows">3</property>
-        <property name="n_columns">2</property>
-        <property name="column_spacing">7</property>
-        <property name="row_spacing">5</property>
+        <property name="can_focus">False</property>
+        <property name="tooltip_text" translatable="yes">Background color of the text entry when the specified message length is exceeded</property>
+        <property name="halign">center</property>
+        <property name="border_width">18</property>
+        <property name="row_spacing">6</property>
+        <property name="column_spacing">12</property>
         <child>
-          <object class="GtkLabel" id="label1">
+          <object class="GtkLabel">
             <property name="visible">True</property>
-            <property name="tooltip_text" translatable="yes">Message length at which notification is invoked.</property>
-            <property name="xalign">0</property>
-            <property name="label" translatable="yes">Message length:</property>
+            <property name="can_focus">False</property>
+            <property name="halign">end</property>
+            <property name="label" translatable="yes">Message Length</property>
+            <style>
+              <class name="dim-label"/>
+            </style>
           </object>
           <packing>
-            <property name="x_options">GTK_FILL</property>
-            <property name="y_options">GTK_FILL</property>
+            <property name="left_attach">0</property>
+            <property name="top_attach">0</property>
           </packing>
         </child>
         <child>
-          <object class="GtkLabel" id="label2">
+          <object class="GtkSpinButton" id="message_length_spinbutton">
             <property name="visible">True</property>
-            <property name="tooltip_text" translatable="yes">Background color of text entry field in chat window when notification is invoked.</property>
-            <property name="xalign">0</property>
-            <property name="label" translatable="yes">Notification color:</property>
+            <property name="can_focus">True</property>
+            <property name="tooltip_text" translatable="yes">Message length for the notification to be shown</property>
+            <property name="halign">start</property>
+            <property name="width_chars">6</property>
+            <property name="input_purpose">number</property>
+            <property name="snap_to_ticks">True</property>
+            <property name="numeric">True</property>
+            <signal name="value-changed" handler="on_message_length_spinbutton_value_changed" swapped="no"/>
           </object>
           <packing>
-            <property name="top_attach">1</property>
-            <property name="bottom_attach">2</property>
-            <property name="x_options">GTK_FILL</property>
-            <property name="y_options">GTK_FILL</property>
+            <property name="left_attach">1</property>
+            <property name="top_attach">0</property>
           </packing>
         </child>
         <child>
-          <object class="GtkLabel" id="label3">
+          <object class="GtkLabel">
             <property name="visible">True</property>
-            <property name="tooltip_text" translatable="yes">JabberIDs that plugin should be used with (eg. restrict only to one microblogging bot). Use comma (without space) as separator. If empty plugin is used with every JID. </property>
-            <property name="xalign">0</property>
-            <property name="label" translatable="yes">JabberIDs to include:</property>
+            <property name="can_focus">False</property>
+            <property name="halign">end</property>
+            <property name="label" translatable="yes">XMPP Addresses</property>
+            <style>
+              <class name="dim-label"/>
+            </style>
           </object>
           <packing>
-            <property name="top_attach">2</property>
-            <property name="bottom_attach">3</property>
-            <property name="x_options">GTK_FILL</property>
-            <property name="y_options">GTK_FILL</property>
+            <property name="left_attach">0</property>
+            <property name="top_attach">3</property>
           </packing>
         </child>
         <child>
           <object class="GtkEntry" id="jids_entry">
             <property name="visible">True</property>
             <property name="can_focus">True</property>
-            <property name="tooltip_text" translatable="yes">JabberIDs that plugin should be used with (eg. restrict only to one microblogging bot). Use comma (without space) as separator. If empty plugin is used with every JID. </property>
-            <signal name="editing_done" handler="on_jids_entry_editing_done"/>
-            <signal name="changed" handler="on_jids_entry_changed"/>
+            <property name="tooltip_text" translatable="yes">Restrict this plugin to certain contacts, e.g. to one microblogging bot (use comma without space as separator)</property>
+            <property name="halign">start</property>
+            <property name="placeholder_text" translatable="yes">user@example.org</property>
           </object>
           <packing>
             <property name="left_attach">1</property>
-            <property name="right_attach">2</property>
+            <property name="top_attach">3</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkLabel">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="halign">end</property>
+            <property name="label" translatable="yes">Notification Color</property>
+            <style>
+              <class name="dim-label"/>
+            </style>
+          </object>
+          <packing>
+            <property name="left_attach">0</property>
             <property name="top_attach">2</property>
-            <property name="bottom_attach">3</property>
-            <property name="y_options">GTK_FILL</property>
           </packing>
         </child>
         <child>
-          <object class="GtkHBox" id="hbox1">
+          <object class="GtkColorButton" id="notification_colorbutton">
             <property name="visible">True</property>
-            <child>
-              <object class="GtkColorButton" id="notification_colorbutton">
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">True</property>
-                <property name="tooltip_text" translatable="yes">Background color of text entry field in chat window when notification is invoked.</property>
-                <property name="xalign">0</property>
-                <property name="title" translatable="yes">Pick a color for notification</property>
-                <property name="color">#000000000000</property>
-                <signal name="color_set" handler="on_notification_colorbutton_color_set"/>
-              </object>
-              <packing>
-                <property name="expand">False</property>
-                <property name="fill">False</property>
-                <property name="position">0</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkAlignment" id="alignment1">
-                <property name="visible">True</property>
-                <child>
-                  <placeholder/>
-                </child>
-              </object>
-              <packing>
-                <property name="position">1</property>
-              </packing>
-            </child>
+            <property name="can_focus">True</property>
+            <property name="receives_default">True</property>
+            <property name="tooltip_text" translatable="yes">Background color of the message input when the specified message length is reached</property>
+            <property name="halign">start</property>
+            <property name="title" translatable="yes">Pick a color for notification</property>
           </object>
           <packing>
             <property name="left_attach">1</property>
-            <property name="right_attach">2</property>
+            <property name="top_attach">2</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkCheckButton" id="char_counter">
+            <property name="label" translatable="yes">Show Character Count</property>
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="receives_default">False</property>
+            <property name="tooltip_text" translatable="yes">Adds a character counter to the message input</property>
+            <property name="halign">start</property>
+            <property name="draw_indicator">True</property>
+            <signal name="toggled" handler="_on_char_counter_toggled" swapped="no"/>
+          </object>
+          <packing>
+            <property name="left_attach">1</property>
             <property name="top_attach">1</property>
-            <property name="bottom_attach">2</property>
-            <property name="x_options">GTK_FILL</property>
-            <property name="y_options"></property>
           </packing>
         </child>
         <child>
-          <object class="GtkHBox" id="hbox2">
-            <property name="visible">True</property>
-            <child>
-              <object class="GtkSpinButton" id="message_length_spinbutton">
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="tooltip_text" translatable="yes">Message length at which notification is invoked.</property>
-                <property name="width_chars">6</property>
-                <property name="snap_to_ticks">True</property>
-                <property name="numeric">True</property>
-                <signal name="value_changed" handler="on_message_length_spinbutton_value_changed"/>
-              </object>
-              <packing>
-                <property name="expand">False</property>
-                <property name="fill">False</property>
-                <property name="position">0</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkAlignment" id="alignment2">
-                <property name="visible">True</property>
-                <child>
-                  <placeholder/>
-                </child>
-              </object>
-              <packing>
-                <property name="position">1</property>
-              </packing>
-            </child>
-          </object>
-          <packing>
-            <property name="left_attach">1</property>
-            <property name="right_attach">2</property>
-            <property name="x_options">GTK_FILL</property>
-            <property name="y_options">GTK_FILL</property>
-          </packing>
+          <placeholder/>
         </child>
       </object>
     </child>
