@@ -281,12 +281,9 @@ class PGPLegacy(BaseModule):
             GLib.idle_add(self._on_file_encryption_error, encrypted.status)
             return
 
-        file.encrypted = True
         file.size = len(encrypted.data)
-        file.path += '.pgp'
-        file.data = encrypted.data
-        if file.event.isSet():
-            return
+        file.set_uri_transform_func(lambda uri: '%s.pgp' % uri)
+        file.set_encrypted_data(encrypted.data)
         GLib.idle_add(callback, file)
 
     @staticmethod
