@@ -221,13 +221,12 @@ class OmemoPlugin(GajimPlugin):
 
     @staticmethod
     def _encrypt_file_thread(file, callback, *args, **kwargs):
-        result = aes_encrypt_file(file.get_data(full=True))
-        file.encrypted = True
+        result = aes_encrypt_file(file.get_data())
         file.size = len(result.payload)
-        file.user_data = binascii.hexlify(result.iv + result.key).decode()
-        file.data = result.payload
-        if file.event.isSet():
-            return
+        fragment = binascii.hexlify(result.iv + result.key).decode()
+        file.set_uri_transform_func(
+            lambda uri: 'aesgcm%s#%s' % (uri[5:], fragment))
+        file.set_encrypted_data(result.payload)
         GLib.idle_add(callback, file)
 
     @staticmethod
