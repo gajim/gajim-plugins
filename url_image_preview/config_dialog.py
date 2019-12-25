@@ -21,7 +21,6 @@ from gi.repository import GObject
 from gi.repository import Gtk
 
 from gajim.gtk.settings import SettingsDialog
-from gajim.gtk.settings import GenericSetting
 from gajim.gtk.settings import SpinSetting
 from gajim.gtk.const import Setting
 from gajim.gtk.const import SettingKind
@@ -40,16 +39,11 @@ class UrlImagePreviewConfigDialog(SettingsDialog):
                  ('10485760', '10 MiB')]
 
         actions = [
-            ('open_menuitem', _('Open')),
-            ('save_as_menuitem', _('Save as')),
-            ('open_folder_menuitem', _('Open Folder')),
-            ('copy_link_location_menuitem', _('Copy Link Location')),
-            ('open_link_in_browser_menuitem', _('Open Link in Browser'))]
-
-        geo_providers = [
-            ('no_preview', _('No map preview')),
-            ('Google', _('Google Maps')),
-            ('OSM', _('OpenStreetMap'))]
+            ('open', _('Open')),
+            ('save_as', _('Save as')),
+            ('open_folder', _('Open Folder')),
+            ('copy_link_location', _('Copy Link Location')),
+            ('open_link_in_browser', _('Open Link in Browser'))]
 
         self.plugin = plugin
         settings = [
@@ -77,12 +71,6 @@ class UrlImagePreviewConfigDialog(SettingsDialog):
                     desc=_('Action when left clicking a preview'),
                     props={'combo_items': actions}),
 
-            Setting(SettingKind.COMBO, _('Map Service'),
-                    SettingType.VALUE, self.plugin.config['GEO_PREVIEW_PROVIDER'],
-                    callback=self.on_setting, data='GEO_PREVIEW_PROVIDER',
-                    desc=_('Service used for map previews'),
-                    props={'combo_items': geo_providers}),
-
             Setting(SettingKind.SWITCH, _('HTTPS Verification'),
                     SettingType.VALUE, self.plugin.config['VERIFY'],
                     desc=_('Whether to check for a valid certificate'),
@@ -91,8 +79,8 @@ class UrlImagePreviewConfigDialog(SettingsDialog):
 
         SettingsDialog.__init__(self, parent, _('UrlImagePreview Configuration'),
                                 Gtk.DialogFlags.MODAL, settings, None,
-                                extend=[
-                                   ('PreviewSizeSpinSetting', SizeSpinSetting)])
+                                extend=[('PreviewSizeSpinSetting',
+                                         SizeSpinSetting)])
 
     def on_setting(self, value, data):
         self.plugin.config[data] = value

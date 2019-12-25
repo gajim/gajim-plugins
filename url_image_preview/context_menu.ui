@@ -5,7 +5,7 @@
   <object class="GtkMenu" id="context_menu">
     <property name="can_focus">False</property>
     <child>
-      <object class="GtkMenuItem" id="open_menuitem">
+      <object class="GtkMenuItem" id="open">
         <property name="visible">True</property>
         <property name="can_focus">False</property>
         <property name="label" translatable="yes">_Open</property>
@@ -13,7 +13,7 @@
       </object>
     </child>
     <child>
-      <object class="GtkMenuItem" id="save_as_menuitem">
+      <object class="GtkMenuItem" id="save_as">
         <property name="visible">True</property>
         <property name="can_focus">False</property>
         <property name="label" translatable="yes">_Save as</property>
@@ -21,7 +21,7 @@
       </object>
     </child>
     <child>
-      <object class="GtkMenuItem" id="open_folder_menuitem">
+      <object class="GtkMenuItem" id="open_folder">
         <property name="visible">True</property>
         <property name="can_focus">False</property>
         <property name="label" translatable="yes">Open _Folder</property>
@@ -35,7 +35,7 @@
       </object>
     </child>
     <child>
-      <object class="GtkMenuItem" id="copy_link_location_menuitem">
+      <object class="GtkMenuItem" id="copy_link_location">
         <property name="visible">True</property>
         <property name="can_focus">False</property>
         <property name="label" translatable="yes">_Copy Link</property>
@@ -43,7 +43,7 @@
       </object>
     </child>
     <child>
-      <object class="GtkMenuItem" id="open_link_in_browser_menuitem">
+      <object class="GtkMenuItem" id="open_link_in_browser">
         <property name="visible">True</property>
         <property name="can_focus">False</property>
         <property name="label" translatable="yes">Open Link in _Browser</property>
