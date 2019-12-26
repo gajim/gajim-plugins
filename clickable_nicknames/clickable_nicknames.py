@@ -2,147 +2,116 @@ from gi.repository import Gtk
 from gi.repository import Gdk
 
 from gajim.common import app
+
 from gajim.plugins import GajimPlugin
-from gajim.plugins.helpers import log_calls
 from gajim.plugins.plugins_i18n import _
+
+from gajim.gtk.util import get_cursor
 
 
 class ClickableNicknames(GajimPlugin):
-
-    @log_calls('ClickableNicknamesPlugin')
     def init(self):
+        # pylint: disable=attribute-defined-outside-init
         self.description = _('Clickable nicknames '
-            'in the conversation textview.')
-        self.config_dialog = None 
+                             'in the conversation textview.')
+        self.config_dialog = None
         self.gui_extension_points = {
-                'chat_control_base': (self.connect_with_chat_control,
-                                       self.disconnect_from_chat_control)}
+            'chat_control_base': (self._on_connect_chat_control,
+                                  self._on_disconnect_chat_control)}
 
-        self.is_active = None
-        self.gc_controls = {}
+        self._pointer_active = {}
+        self._event_ids = {}
 
-        self.tag_names = []
-        colors = app.config.get('gc_nicknames_colors')
-        colors = colors.split(':')
-        for i, color in enumerate(colors):
-            tagname = 'gc_nickname_color_' + str(i)
-            self.tag_names.append(tagname)
-
-    @log_calls('ClickableNicknamesPlugin')
-    def activate(self):
-        for gc_control in app.interface.msg_win_mgr.get_controls('gc'):
-            # TODO support minimized groupchat
-            if gc_control not in self.gc_controls.keys():
-                control = Base(self, gc_control)
-                self.gc_controls[gc_control] = control
-            else:
-                self.gc_controls[gc_control].connect_signals()
-        self.is_active = True
-
-    @log_calls('ClickableNicknamesPlugin')
-    def deactivate(self):
-        for control in self.gc_controls.keys():
-            self.gc_controls[control].disconnect_from_chat_control()
-        self.gc_controls.clear()
-        self.is_active = None
-
-    @log_calls('ClickableNicknamesPlugin')
-    def connect_with_chat_control(self, chat_control):
-        if chat_control.widget_name != 'groupchat_control':
+    def _on_connect_chat_control(self, control):
+        if not control.type.is_groupchat:
             return
-        if self.is_active:
-            control = Base(self, chat_control)
-            self.gc_controls[chat_control] = control
 
-    @log_calls('ClickableNicknamesPlugin')
-    def disconnect_from_chat_control(self, chat_control):
-        pass
+        textview = control.conv_textview.tv
+        nickname_tag = self._get_nickname_tag(textview)
 
+        tag_table = textview.get_buffer().get_tag_table()
+        tag = tag_table.lookup('nickname')
+        event_id = tag.connect('event',
+                               self._on_nickname_clicked,
+                               control.msg_textview)
 
-class Base(object):
+        motion_id = textview.connect('motion-notify-event',
+                                     self._on_textview_motion_notify,
+                                     nickname_tag)
 
-    def __init__(self, plugin, chat_control):
-        self.plugin = plugin
-        self.chat_control = chat_control
-        self.textview = self.chat_control.conv_textview
-        self.tags_id = []
-        self.change_cursor = False
-        self.connect_signals()
+        self._event_ids[control.control_id] = (event_id, motion_id)
 
-    def connect_signals(self):
-        # connect signals with textbuffer tags
-        self.tag_names = self.plugin.tag_names
-        tag_table = self.textview.tv.get_buffer().get_tag_table()
-        for name in self.tag_names:
-            tag = tag_table.lookup(name)
-            if tag:
-                id_ = tag.connect('event', self.insert_nick, name)
-                self.chat_control.handlers[id_] = tag
-                self.tags_id.append((id_, tag))
+    def _on_disconnect_chat_control(self, control):
+        if not control.type.is_groupchat:
+            return
 
-        self.id_ = self.textview.tv.connect('motion_notify_event',
-                self.on_textview_motion_notify_event)
-        self.chat_control.handlers[self.id_] = self.textview.tv
+        textview = control.conv_textview.tv
+        nickname_tag = self._get_nickname_tag(textview)
 
-    def on_textview_motion_notify_event(self, widget, event):
-        # change cursor on the nicks
-        pointer_x, pointer_y = self.textview.tv.get_window(
-            Gtk.TextWindowType.TEXT).get_pointer()[1:3]
-        x, y = self.textview.tv.window_to_buffer_coords(Gtk.TextWindowType.TEXT,
-            pointer_x, pointer_y)
-        tags = self.textview.tv.get_iter_at_location(x, y)[1].get_tags()
-        tag_table = self.textview.tv.get_buffer().get_tag_table()
-        if self.change_cursor:
-            self.textview.tv.get_window(Gtk.TextWindowType.TEXT).set_cursor(
-                    Gdk.Cursor.new(Gdk.CursorType.XTERM))
-            self.change_cursor = False
-        for tag in tags:
-            if tag in [x[1] for x in self.tags_id]:
-                self.textview.tv.get_window(Gtk.TextWindowType.TEXT).set_cursor(
-                    Gdk.Cursor.new(Gdk.CursorType.HAND2))
-            self.change_cursor = True
+        event_id, motion_id = self._event_ids.pop(control.control_id)
+        textview.disconnect(motion_id)
+        nickname_tag.disconnect(event_id)
+        self._pointer_active.pop(id(textview), None)
 
-    def insert_nick(self, texttag, widget, event, iter_, kind):
-        # insert nickname to message buffer
-        if event.type == Gdk.EventType.BUTTON_PRESS and event.button.button == 1:
-            # left mouse button clicked
-            begin_iter = iter_.copy()
-            # we get the beginning of the tag
-            while not begin_iter.begins_tag(texttag):
-                begin_iter.backward_char()
-            end_iter = iter_.copy()
-            # we get the end of the tag
-            while not end_iter.ends_tag(texttag):
-                end_iter.forward_char()
-            buffer_ = self.textview.tv.get_buffer()
-            word = buffer_.get_text(begin_iter, end_iter, True)
-            nick = word.rstrip().rstrip(app.config.get('after_nickname'))
-            if nick.startswith('* '):
-                nick = nick.lstrip('* ').split(' ')[0] + ' '
-            nick = nick.lstrip(app.config.get('before_nickname'))
-            nicks = app.contacts.get_nick_list(self.chat_control.account,
-                self.chat_control.room_jid)
-            if nick[:-1] not in nicks:
-                return
+    @staticmethod
+    def _get_nickname_tag(textview):
+        tag_table = textview.get_buffer().get_tag_table()
+        return tag_table.lookup('nickname')
 
-            message_buffer = self.chat_control.msg_textview.get_buffer()
-            # delete PLACEHOLDER
-            start, end = message_buffer.get_bounds()
-            placeholder = self.chat_control.msg_textview.PLACEHOLDER
-            text = message_buffer.get_text(start, end, False)
-            if text == placeholder or len(text) == 0:
-                message_buffer.set_text('', -1)
-                nick = nick + app.config.get('gc_refer_to_nick_char')
-            elif len(text) > 0 and text[-1] != ' ':
-                nick = ' ' + nick
-            nick += ' '
-            message_buffer.insert_at_cursor(nick)
-            self.chat_control.msg_textview.grab_focus()
+    def _is_pointer_active(self, textview):
+        return self._pointer_active.get(id(textview), False)
 
-    def disconnect_from_chat_control(self):
-        # disconnect signals from textbuffer tags
-        for item in self.tags_id:
-            if item[1].handler_is_connected(item[0]):
-                item[1].disconnect(item[0])
-        if self.textview.tv.handler_is_connected(self.id_):
-            self.textview.tv.disconnect(self.id_)
+    def _set_pointer_state(self, textview, state):
+        self._pointer_active[id(textview)] = state
+
+    def _on_textview_motion_notify(self, textview, event, nickname_tag):
+        window = textview.get_window(Gtk.TextWindowType.TEXT)
+        x_pos, y_pos = textview.window_to_buffer_coords(Gtk.TextWindowType.TEXT,
+                                                        event.x,
+                                                        event.y)
+
+        iter_ = textview.get_iter_at_position(x_pos, y_pos)[1]
+        if iter_.has_tag(nickname_tag):
+            window.set_cursor(get_cursor('pointer'))
+            self._set_pointer_state(textview, True)
+
+        elif self._is_pointer_active(textview):
+            window.set_cursor(get_cursor('default'))
+            self._set_pointer_state(textview, False)
+
+    @staticmethod
+    def _on_nickname_clicked(text_tag, textview, event, iter_, message_input):
+        if event.type != Gdk.EventType.BUTTON_PRESS:
+            return
+        if event.button.button != 1:
+            return
+
+        start = iter_.copy()
+        end = iter_.copy()
+
+        start.backward_to_tag_toggle(text_tag)
+        end.forward_to_tag_toggle(text_tag)
+
+        nickname = textview.get_buffer().get_text(start, end, False)
+
+        # Remove Space
+        nickname = nickname[:-1]
+        nickname = nickname.rstrip(app.config.get('after_nickname'))
+        # Remove direction mark
+        nickname = nickname[:-3]
+        nickname = nickname.lstrip(app.config.get('before_nickname'))
+
+        message_input.grab_focus()
+        if not message_input.has_text():
+            # There is no text add refer char
+            nickname = '%s%s ' % (nickname,
+                                  app.config.get('gc_refer_to_nick_char'))
+        else:
+            input_buffer = message_input.get_buffer()
+            start, end = input_buffer.get_bounds()
+            text = input_buffer.get_text(start, end, False)
+            if text[:-1] != ' ':
+                # Add space in front
+                nickname = ' %s' % nickname
+
+        message_input.insert_text(nickname)
