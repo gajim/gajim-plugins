@@ -299,8 +299,8 @@ def get_image_paths(uri, urlparts, size, orig_dir, thumb_dir):
                                            size,
                                            extension)
 
-    orig_path = Path(orig_dir) / orig_filename
-    thumb_path = Path(thumb_dir) / thumb_filename
+    orig_path = orig_dir / orig_filename
+    thumb_path = thumb_dir / thumb_filename
     return orig_path, thumb_path
 
 

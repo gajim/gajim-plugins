@@ -116,16 +116,14 @@ class UrlImagePreviewPlugin(GajimPlugin):
         self._session.props.https_aliases = ['aesgcm']
         self._session.props.ssl_strict = False
 
-        self.directory = os.path.join(configpaths.get('MY_DATA'),
-                                      'downloads')
-        self.thumbpath = os.path.join(configpaths.get('MY_CACHE'),
-                                      'downloads.thumb')
+        self._orig_dir = Path(configpaths.get('MY_DATA')) / 'downloads'
+        self._thumb_dir = Path(configpaths.get('MY_CACHE')) / 'downloads.thumb'
 
-        if GLib.mkdir_with_parents(self.directory, 0o700) != 0:
-            log.error('Failed to create: %s', self.directory)
+        if GLib.mkdir_with_parents(str(self._orig_dir), 0o700) != 0:
+            log.error('Failed to create: %s', self._orig_dir)
 
-        if GLib.mkdir_with_parents(self.thumbpath, 0o700) != 0:
-            log.error('Failed to create: %s', self.directory)
+        if GLib.mkdir_with_parents(str(self._thumb_dir), 0o700) != 0:
+            log.error('Failed to create: %s', self._thumb_dir)
 
         self._migrate_config()
 
@@ -156,7 +154,7 @@ class UrlImagePreviewPlugin(GajimPlugin):
 
         if len(text.split(' ')) > 1:
             # urlparse doesn't recognise spaces as URL delimiter
-            log.debug('Text is not an uri: %s', text[:15])
+            log.debug('Text is not an uri: %s...', text[:15])
             return
 
         uri = text
@@ -272,8 +270,8 @@ class UrlImagePreviewPlugin(GajimPlugin):
         orig_path, thumb_path = get_image_paths(uri,
                                                 urlparts,
                                                 size,
-                                                self.directory,
-                                                self.thumbpath)
+                                                self._orig_dir,
+                                                self._thumb_dir)
         return Preview(uri,
                        urlparts,
                        orig_path,
