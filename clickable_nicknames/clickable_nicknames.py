@@ -98,7 +98,7 @@ class ClickableNicknames(GajimPlugin):
         nickname = nickname[:-1]
         nickname = nickname.rstrip(app.config.get('after_nickname'))
         # Remove direction mark
-        nickname = nickname[:-3]
+        nickname = nickname[:-1]
         nickname = nickname.lstrip(app.config.get('before_nickname'))
 
         message_input.grab_focus()
