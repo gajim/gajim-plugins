@@ -14,136 +14,145 @@
 # You should have received a copy of the GNU General Public License
 # along with OMEMO Gajim Plugin. If not, see <http://www.gnu.org/licenses/>.
 
-import os
-import sys
 import hashlib
 import logging
-import socket
-import threading
 import binascii
-import ssl
-from urllib.request import urlopen
-from urllib.error import URLError
-from urllib.parse import urlparse, urldefrag
-from io import BufferedWriter, FileIO, BytesIO
+from pathlib import Path
+from urllib.parse import urlparse, unquote
 
 from gi.repository import GLib
+from gi.repository import Soup
 
 from gajim.common import app
 from gajim.common import configpaths
-from gajim.common import helpers
+from gajim.common.helpers import write_file_async
+from gajim.common.helpers import open_file
 from gajim.common.const import URIType
+from gajim.common.const import FTState
+from gajim.common.filetransfer import FileTransfer
 from gajim.plugins.plugins_i18n import _
-from gajim.gtk.dialogs import ErrorDialog
 from gajim.gtk.dialogs import DialogButton
 from gajim.gtk.dialogs import NewConfirmationDialog
 
-from omemo.gtk.progress import ProgressWindow
 from omemo.backend.aes import aes_decrypt_file
 
-if sys.platform in ('win32', 'darwin'):
-    import certifi
 
 log = logging.getLogger('gajim.p.omemo.filedecryption')
 
-DIRECTORY = os.path.join(configpaths.get('MY_DATA'), 'downloads')
-
-ERROR = False
-try:
-    if not os.path.exists(DIRECTORY):
-        os.makedirs(DIRECTORY)
-except Exception:
-    ERROR = True
-    log.exception('Error')
-
-
-class File:
-    def __init__(self, url, account):
-        self.account = account
-        self.url, self.fragment = urldefrag(url)
-        self.key = None
-        self.iv = None
-        self.filepath = None
-        self.filename = None
+DIRECTORY = Path(configpaths.get('MY_DATA')) / 'downloads'
 
 
 class FileDecryption:
     def __init__(self, plugin):
         self.plugin = plugin
         self.window = None
+        self._session = Soup.Session()
 
     def hyperlink_handler(self, uri, instance, window):
-        if ERROR or uri.type != URIType.WEB:
+        if uri.type != URIType.WEB:
             return
         self.window = window
-        urlparts = urlparse(uri.data)
-        file = File(urlparts.geturl(), instance.account)
 
-        if urlparts.scheme not in ['https', 'aesgcm'] or not urlparts.netloc:
-            log.info("Not accepting URL for decryption: %s", uri.data)
-            return
-
-        if urlparts.scheme == 'aesgcm':
-            log.debug('aesgcm scheme detected')
-            file.url = 'https://' + file.url[9:]
-
-        if not self.is_encrypted(file):
+        urlparts = urlparse(unquote(uri.data))
+        if urlparts.scheme != 'aesgcm':
             log.info('URL not encrypted: %s', uri.data)
             return
 
-        self.create_paths(file)
-
-        if os.path.exists(file.filepath):
-            instance.plugin_modified = True
-            self.finished(file)
+        try:
+            key, iv = self._parse_fragment(urlparts.fragment)
+        except ValueError:
+            log.info('URL not encrypted: %s', uri.data)
             return
 
-        event = threading.Event()
-        progressbar = ProgressWindow(self.plugin, self.window, event)
-        thread = threading.Thread(target=Download,
-                                  args=(file, progressbar, self.window,
-                                        event, self))
-        thread.daemon = True
-        thread.start()
+        file_path = self._get_file_path(uri.data, urlparts)
+        if file_path.exists():
+            instance.plugin_modified = True
+            self._show_file_open_dialog(file_path)
+            return
+
+        file_path.parent.mkdir(mode=0o700, exist_ok=True)
+
+        transfer = OMEMODownload(instance.account,
+                                 self._cancel_download,
+                                 urlparts,
+                                 file_path,
+                                 key,
+                                 iv)
+
+        app.interface.show_httpupload_progress(transfer)
+
+        self._download_content(transfer)
         instance.plugin_modified = True
 
-    def is_encrypted(self, file):
-        if file.fragment:
-            try:
-                fragment = binascii.unhexlify(file.fragment)
-                file.key = fragment[16:]
-                file.iv = fragment[:16]
-                if len(file.key) == 32 and len(file.iv) == 16:
-                    return True
+    def _download_content(self, transfer):
+        log.info('Start downloading: %s', transfer.request_uri)
+        transfer.set_started()
+        message = transfer.get_soup_message()
+        message.connect('got-headers', self._on_got_headers, transfer)
+        message.connect('got-chunk', self._on_got_chunk, transfer)
 
-                file.key = fragment[12:]
-                file.iv = fragment[:12]
-                if len(file.key) == 32 and len(file.iv) == 12:
-                    return True
-            except:
-                return False
-        return False
+        self._session.queue_message(message, self._on_finished, transfer)
 
-    def create_paths(self, file):
-        file.filename = os.path.basename(file.url)
-        ext = os.path.splitext(file.filename)[1]
-        name = os.path.splitext(file.filename)[0]
-        urlhash = hashlib.sha1(file.url.encode('utf-8')).hexdigest()
-        newfilename = name + '_' + urlhash[:10] + ext
-        file.filepath = os.path.join(DIRECTORY, newfilename)
+    def _cancel_download(self, transfer):
+        message = transfer.get_soup_message()
+        self._session.cancel_message(message, Soup.Status.CANCELLED)
 
-    def finished(self, file):
+    @staticmethod
+    def _on_got_headers(message, transfer):
+        transfer.set_in_progress()
+        size = message.props.response_headers.get_content_length()
+        transfer.size = size
+
+    def _on_got_chunk(self, message, chunk, transfer):
+        transfer.set_chunk(chunk.get_data())
+        transfer.update_progress()
+
+        self._session.pause_message(message)
+        GLib.idle_add(self._session.unpause_message, message)
+
+    def _on_finished(self, _session, message, transfer):
+        if message.props.status_code == Soup.Status.CANCELLED:
+            log.info('Download cancelled')
+            return
+
+        if message.status_code != Soup.Status.OK:
+            log.warning('Download failed: %s', transfer.request_uri)
+            log.warning(Soup.Status.get_phrase(message.status_code))
+            return
+
+        data = message.props.response_body_data.get_data()
+        if data is None:
+            return
+
+        decrypted_data = aes_decrypt_file(transfer.key,
+                                          transfer.iv,
+                                          data)
+
+        write_file_async(transfer.path,
+                         decrypted_data,
+                         self._on_decrypted,
+                         transfer)
+
+        transfer.set_decrypting()
+
+    def _on_decrypted(self, _result, error, transfer):
+        if error is not None:
+            log.error('%s: %s', transfer.path, error)
+            return
+        transfer.set_finished()
+        self._show_file_open_dialog(transfer.path)
+
+    def _show_file_open_dialog(self, file_path):
         def _open_file():
-            helpers.open_file(file.filepath)
+            open_file(file_path)
 
         def _open_folder():
-            directory = os.path.dirname(file.filepath)
-            helpers.open_file(directory)
+            open_file(file_path.parent)
 
         NewConfirmationDialog(
             _('Open File'),
             _('Open File?'),
-            _('Do you want to open %s?') % file.filename,
+            _('Do you want to open %s?') % file_path.name,
             [DialogButton.make('Cancel',
                                text=_('_No')),
              DialogButton.make('OK',
@@ -154,104 +163,69 @@ class FileDecryption:
                                callback=_open_file)],
             transient_for=self.window).show()
 
-        return False
+    @staticmethod
+    def _parse_fragment(fragment):
+        if not fragment:
+            raise ValueError('Invalid fragment')
+
+        fragment = binascii.unhexlify(fragment)
+        key = fragment[16:]
+        iv = fragment[:16]
+        if len(key) != 32 or len(iv) != 16:
+            raise ValueError('Invalid fragment')
+        return key, iv
+
+    @staticmethod
+    def _get_file_path(uri, urlparts):
+        path = Path(urlparts.path)
+        stem = path.stem
+        extension = path.suffix
+
+        if len(stem) > 90:
+            # Many Filesystems have a limit on filename length
+            # Most have 255, some encrypted ones only 143
+            # We add around 50 chars for the hash,
+            # so the filename should not exceed 90
+            stem = stem[:90]
+
+        name_hash = hashlib.sha1(str(uri).encode()).hexdigest()
+
+        hash_filename = '%s_%s%s' % (stem, name_hash, extension)
+
+        file_path = DIRECTORY / hash_filename
+        return file_path
 
 
-class Download:
-    def __init__(self, file, progressbar, window, event, base):
-        self.file = file
-        self.progressbar = progressbar
-        self.window = window
-        self.event = event
-        self.base = base
-        self.download()
+class OMEMODownload(FileTransfer):
 
-    def download(self):
-        GLib.idle_add(self.progressbar.set_text, _('Downloading...'))
-        data = self.load_url()
-        if isinstance(data, str):
-            GLib.idle_add(self.progressbar.close_dialog)
-            GLib.idle_add(self.error, data)
-            return
+    _state_descriptions = {
+        FTState.DECRYPTING: _('Decrypting file…'),
+        FTState.STARTED: _('Downloading…'),
+    }
 
-        GLib.idle_add(self.progressbar.set_text, _('Decrypting...'))
+    def __init__(self, account, cancel_func, urlparts, path, key, iv):
+        FileTransfer.__init__(self, account, cancel_func=cancel_func)
 
-        decrypted_data = aes_decrypt_file(self.file.key,
-                                          self.file.iv,
-                                          data.getvalue())
+        self._urlparts = urlparts
+        self.path = path
+        self.iv = iv
+        self.key = key
 
-        GLib.idle_add(
-            self.progressbar.set_text, _('Writing file to harddisk...'))
-        self.write_file(decrypted_data)
+        self._message = None
 
-        GLib.idle_add(self.progressbar.close_dialog)
+    @property
+    def request_uri(self):
+        urlparts = self._urlparts._replace(scheme='https', fragment='')
+        return urlparts.geturl()
 
-        GLib.idle_add(self.base.finished, self.file)
+    @property
+    def filename(self):
+        return Path(self._urlparts.path).name
 
-    def load_url(self):
-        try:
-            stream = BytesIO()
-            if not app.config.get_per('accounts',
-                                      self.file.account,
-                                      'httpupload_verify'):
-                context = ssl.create_default_context()
-                context.check_hostname = False
-                context.verify_mode = ssl.CERT_NONE
-                log.warning('CERT Verification disabled')
-                get_request = urlopen(self.file.url, timeout=30, context=context)
-            else:
-                cafile = None
-                if sys.platform in ('win32', 'darwin'):
-                    cafile = certifi.where()
-                context = ssl.create_default_context(cafile=cafile)
-                get_request = urlopen(self.file.url, timeout=30, context=context)
+    def set_chunk(self, bytes_):
+        self._seen += len(bytes_)
 
-            size = get_request.info()['Content-Length']
-            if not size:
-                errormsg = 'Content-Length not found in header'
-                log.error(errormsg)
-                return errormsg
-            while True:
-                try:
-                    if self.event.isSet():
-                        raise DownloadAbortedException
-                    temp = get_request.read(10000)
-                    GLib.idle_add(
-                        self.progressbar.update_progress, len(temp), size)
-                except socket.timeout:
-                    errormsg = 'Request timeout'
-                    log.error(errormsg)
-                    return errormsg
-                if temp:
-                    stream.write(temp)
-                else:
-                    return stream
-        except DownloadAbortedException as error:
-            log.info('Download Aborted')
-            errormsg = error
-        except URLError as error:
-            log.exception('URLError')
-            errormsg = error.reason
-        except Exception as error:
-            log.exception('Error')
-            errormsg = error
-        stream.close()
-        return str(errormsg)
-
-    def write_file(self, data):
-        log.info('Writing data to %s', self.file.filepath)
-        try:
-            with BufferedWriter(FileIO(self.file.filepath, "wb")) as output:
-                output.write(data)
-                output.close()
-        except Exception:
-            log.exception('Failed to write file')
-
-    def error(self, error):
-        ErrorDialog(_('Error'), error, transient_for=self.window)
-        return False
-
-
-class DownloadAbortedException(Exception):
-    def __str__(self):
-        return _('Download Aborted')
+    def get_soup_message(self):
+        if self._message is None:
+            self._message = Soup.Message.new('GET', self.request_uri)
+        return self._message
