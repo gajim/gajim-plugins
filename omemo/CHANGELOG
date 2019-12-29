@@ -1,3 +1,6 @@
+2.6.71 / 2019-12-29
+- Refactor file downloads
+
 2.6.70 / 2019-12-18
 - Adapt to Gajim HTTPUpload changes
 
