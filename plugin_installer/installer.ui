@@ -6,8 +6,6 @@
     <columns>
       <!-- column-name icon -->
       <column type="GdkPixbuf"/>
-      <!-- column-name dir -->
-      <column type="gchararray"/>
       <!-- column-name name -->
       <column type="gchararray"/>
       <!-- column-name localversion -->
@@ -16,12 +14,8 @@
       <column type="gchararray"/>
       <!-- column-name upgrade -->
       <column type="gboolean"/>
-      <!-- column-name description -->
-      <column type="gchararray"/>
-      <!-- column-name authors -->
-      <column type="gchararray"/>
-      <!-- column-name homepage -->
-      <column type="gchararray"/>
+      <!-- column-name plugin -->
+      <column type="PyObject"/>
     </columns>
   </object>
   <object class="GtkBox" id="available_plugins_box">
@@ -54,7 +48,7 @@
                     <property name="search_column">2</property>
                     <child internal-child="selection">
                       <object class="GtkTreeSelection" id="treeview-selection">
-                        <signal name="changed" handler="_available_plugins_treeview_selection_changed" swapped="no"/>
+                        <signal name="changed" handler="_on_plugin_selection_changed" swapped="no"/>
                       </object>
                     </child>
                     <child>
@@ -79,7 +73,7 @@
                             <property name="ellipsize">end</property>
                           </object>
                           <attributes>
-                            <attribute name="text">2</attribute>
+                            <attribute name="text">1</attribute>
                           </attributes>
                         </child>
                       </object>
@@ -90,7 +84,7 @@
                         <child>
                           <object class="GtkCellRendererText" id="versiontextrenderer"/>
                           <attributes>
-                            <attribute name="text">3</attribute>
+                            <attribute name="text">2</attribute>
                           </attributes>
                         </child>
                       </object>
@@ -101,7 +95,7 @@
                         <child>
                           <object class="GtkCellRendererText" id="availabletextrenderer"/>
                           <attributes>
-                            <attribute name="text">4</attribute>
+                            <attribute name="text">3</attribute>
                           </attributes>
                         </child>
                       </object>
@@ -112,13 +106,13 @@
                         <property name="clickable">True</property>
                         <property name="alignment">0.5</property>
                         <property name="sort_indicator">True</property>
-                        <property name="sort_column_id">5</property>
+                        <property name="sort_column_id">4</property>
                         <child>
                           <object class="GtkCellRendererToggle" id="togglerenderer">
                             <signal name="toggled" handler="_available_plugin_toggled" swapped="no"/>
                           </object>
                           <attributes>
-                            <attribute name="active">5</attribute>
+                            <attribute name="active">4</attribute>
                           </attributes>
                         </child>
                       </object>
@@ -148,7 +142,7 @@
                     <property name="can_focus">False</property>
                     <property name="tooltip_text" translatable="yes">Install/Update Plugin</property>
                     <property name="icon_name">software-update-available-symbolic</property>
-                    <signal name="clicked" handler="_on_install_upgrade_clicked" swapped="no"/>
+                    <signal name="clicked" handler="_on_install_update_clicked" swapped="no"/>
                   </object>
                   <packing>
                     <property name="expand">False</property>
@@ -193,7 +187,7 @@
         <property name="orientation">vertical</property>
         <property name="spacing">18</property>
         <child>
-          <object class="GtkLabel" id="plugin_name_label">
+          <object class="GtkLabel" id="name_label">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
             <property name="no_show_all">True</property>
@@ -212,7 +206,7 @@
           </packing>
         </child>
         <child>
-          <object class="GtkLabel" id="plugin_description_label">
+          <object class="GtkLabel" id="description_label">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
             <property name="halign">start</property>
@@ -283,7 +277,7 @@
               </packing>
             </child>
             <child>
-              <object class="GtkLabel" id="plugin_version_label">
+              <object class="GtkLabel" id="version_label">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <property name="halign">start</property>
@@ -299,7 +293,7 @@
               </packing>
             </child>
             <child>
-              <object class="GtkLabel" id="plugin_authors_label">
+              <object class="GtkLabel" id="authors_label">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <property name="halign">start</property>
@@ -315,7 +309,7 @@
               </packing>
             </child>
             <child>
-              <object class="GtkLabel" id="plugin_homepage_linkbutton">
+              <object class="GtkLabel" id="homepage_linkbutton">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <property name="halign">start</property>
