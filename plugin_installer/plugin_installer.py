@@ -161,6 +161,9 @@ class PluginInstaller(GajimPlugin):
             return
 
         plugin_list = parse_manifests_zip(data)
+        if not plugin_list:
+            log.warning('No plugins found in zip')
+
         if self._available_page is None:
             return
         self._available_page.append_plugins(plugin_list)

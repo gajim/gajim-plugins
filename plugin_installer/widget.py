@@ -58,7 +58,10 @@ class AvailablePage(Observable):
     def append_plugins(self, plugins):
         for plugin in plugins:
             self._ui.plugin_store.append(plugin.fields)
-        self._select_first_plugin()
+
+        if plugins:
+            self._select_first_plugin()
+
         self._update_install_button()
         self._ui.spinner.stop()
         self._ui.spinner.hide()
