@@ -39,7 +39,8 @@ class PluginInfo:
     @classmethod
     def from_zip_file(cls, zip_file, manifest_path):
         config = ConfigParser()
-        with zip_file.open(str(manifest_path)) as manifest_file:
+        # ZipFile can only handle posix paths
+        with zip_file.open(manifest_path.as_posix()) as manifest_file:
             try:
                 config.read_string(manifest_file.read().decode())
             except configparser.Error as error:
@@ -167,12 +168,13 @@ def is_manifest_valid(config):
 
 
 def load_icon_from_zip(zip_file, icon_path):
+    # ZipFile can only handle posix paths
     try:
-        zip_file.getinfo(str(icon_path))
+        zip_file.getinfo(icon_path.as_posix())
     except KeyError:
         return None
 
-    with zip_file.open(str(icon_path)) as png_file:
+    with zip_file.open(icon_path.as_posix()) as png_file:
         data = png_file.read()
 
     pixbuf = GdkPixbuf.PixbufLoader()
