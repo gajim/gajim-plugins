@@ -52,6 +52,9 @@ class AvailablePage(Observable):
         self._plugin = None
         self.disconnect_signals()
 
+    def show_page(self):
+        self._notebook.set_current_page(self._page_num)
+
     def append_plugins(self, plugins):
         for plugin in plugins:
             self._ui.plugin_store.append(plugin.fields)

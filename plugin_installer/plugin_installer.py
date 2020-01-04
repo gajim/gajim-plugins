@@ -129,8 +129,7 @@ class PluginInstaller(GajimPlugin):
             if is_checked:
                 self.config['auto_update'] = True
             get_action('plugins').activate()
-            page = self.notebook.page_num(self._ui.available_plugins_box)
-            self.notebook.set_current_page(page)
+            self._available_page.show_page()
 
         plugins_str = '\n' + '\n'.join([plugin.name for plugin in plugins])
         NewConfirmationCheckDialog(
