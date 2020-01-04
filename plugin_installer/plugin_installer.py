@@ -72,7 +72,7 @@ class PluginInstaller(GajimPlugin):
 
     def activate(self):
         if self.config['check_update']:
-            # Check for updates 30 seconds after Gajim was started
+            # Check for updates X seconds after Gajim was started
             self._check_update_id = GLib.timeout_add_seconds(
                 10, self._check_for_updates)
 
