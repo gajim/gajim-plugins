@@ -244,7 +244,7 @@ class PluginInstaller(GajimPlugin):
 
     def _on_connect_plugin_window(self, plugin_window):
         self._available_page = AvailablePage(
-            self.local_file_path('installer.ui'), plugin_window)
+            self.local_file_path('installer.ui'), plugin_window.get_notebook())
         self._available_page.set_download_in_progress(
             self._download_in_progress)
         self._available_page.connect('download-plugins',

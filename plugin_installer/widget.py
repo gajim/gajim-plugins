@@ -31,11 +31,11 @@ class Column(IntEnum):
 
 
 class AvailablePage(Observable):
-    def __init__(self, builder_path, plugin_window):
+    def __init__(self, builder_path, notebook):
         Observable.__init__(self)
         self._ui = get_builder(builder_path)
 
-        self._notebook = plugin_window.plugins_notebook
+        self._notebook = notebook
         self._page_num = self._notebook.append_page(
             self._ui.available_plugins_box,
             Gtk.Label.new(_('Available')))
