@@ -271,10 +271,19 @@ def parse_fragment(fragment):
         raise ValueError('Invalid fragment')
 
     fragment = binascii.unhexlify(fragment)
-    key = fragment[16:]
-    iv = fragment[:16]
-    if len(key) != 32 or len(iv) != 16:
-        raise ValueError('Invalid fragment')
+    size = len(fragment)
+    # Clients started out with using a 16 byte IV but long term
+    # want to swtich to the more performant 12 byte IV
+    # We have to support both
+    if size == 48:
+        key = fragment[16:]
+        iv = fragment[:16]
+    elif size == 44:
+        key = fragment[12:]
+        iv = fragment[:12]
+    else:
+        raise ValueError('Invalid fragment size: %s' % size)
+
     return key, iv
 
 
