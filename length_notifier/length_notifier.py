@@ -42,7 +42,8 @@ class LengthNotifierPlugin(GajimPlugin):
         self.config_dialog = LengthNotifierPluginConfigDialog(self)
 
         self.gui_extension_points = {
-            'chat_control' : (self.connect_with_chat_control,
+            'chat_control_base': (
+                self.connect_with_chat_control,
                 self.disconnect_from_chat_control)
         }
 
