@@ -5,6 +5,9 @@
   <object class="GtkWindow">
     <property name="can_focus">False</property>
     <child>
+      <placeholder/>
+    </child>
+    <child>
       <object class="GtkGrid" id="length_notifier_config_table">
         <property name="visible">True</property>
         <property name="can_focus">False</property>
@@ -32,7 +35,7 @@
           <object class="GtkSpinButton" id="message_length_spinbutton">
             <property name="visible">True</property>
             <property name="can_focus">True</property>
-            <property name="tooltip_text" translatable="yes">Message length for the notification to be shown</property>
+            <property name="tooltip_text" translatable="yes">Message length for the notification to be shown (set to 0 to disable color notification)</property>
             <property name="halign">start</property>
             <property name="width_chars">6</property>
             <property name="input_purpose">number</property>
@@ -50,34 +53,6 @@
             <property name="visible">True</property>
             <property name="can_focus">False</property>
             <property name="halign">end</property>
-            <property name="label" translatable="yes">XMPP Addresses</property>
-            <style>
-              <class name="dim-label"/>
-            </style>
-          </object>
-          <packing>
-            <property name="left_attach">0</property>
-            <property name="top_attach">3</property>
-          </packing>
-        </child>
-        <child>
-          <object class="GtkEntry" id="jids_entry">
-            <property name="visible">True</property>
-            <property name="can_focus">True</property>
-            <property name="tooltip_text" translatable="yes">Restrict this plugin to certain contacts, e.g. to one microblogging bot (use comma without space as separator)</property>
-            <property name="halign">start</property>
-            <property name="placeholder_text" translatable="yes">user@example.org</property>
-          </object>
-          <packing>
-            <property name="left_attach">1</property>
-            <property name="top_attach">3</property>
-          </packing>
-        </child>
-        <child>
-          <object class="GtkLabel">
-            <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <property name="halign">end</property>
             <property name="label" translatable="yes">Notification Color</property>
             <style>
               <class name="dim-label"/>
@@ -85,7 +60,7 @@
           </object>
           <packing>
             <property name="left_attach">0</property>
-            <property name="top_attach">2</property>
+            <property name="top_attach">1</property>
           </packing>
         </child>
         <child>
@@ -99,27 +74,36 @@
           </object>
           <packing>
             <property name="left_attach">1</property>
-            <property name="top_attach">2</property>
-          </packing>
-        </child>
-        <child>
-          <object class="GtkCheckButton" id="char_counter">
-            <property name="label" translatable="yes">Show Character Count</property>
-            <property name="visible">True</property>
-            <property name="can_focus">True</property>
-            <property name="receives_default">False</property>
-            <property name="tooltip_text" translatable="yes">Adds a character counter to the message input</property>
-            <property name="halign">start</property>
-            <property name="draw_indicator">True</property>
-            <signal name="toggled" handler="_on_char_counter_toggled" swapped="no"/>
-          </object>
-          <packing>
-            <property name="left_attach">1</property>
             <property name="top_attach">1</property>
           </packing>
         </child>
         <child>
-          <placeholder/>
+          <object class="GtkLabel">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="halign">end</property>
+            <property name="label" translatable="yes">XMPP Addresses</property>
+            <style>
+              <class name="dim-label"/>
+            </style>
+          </object>
+          <packing>
+            <property name="left_attach">0</property>
+            <property name="top_attach">2</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkEntry" id="jids_entry">
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="tooltip_text" translatable="yes">Restrict this plugin to certain contacts, e.g. to one microblogging bot (use comma without space as separator)</property>
+            <property name="halign">start</property>
+            <property name="placeholder_text" translatable="yes">user@example.org</property>
+          </object>
+          <packing>
+            <property name="left_attach">1</property>
+            <property name="top_attach">2</property>
+          </packing>
         </child>
       </object>
     </child>
