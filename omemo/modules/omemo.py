@@ -246,6 +246,10 @@ class OMEMO(BaseModule):
             return
 
         except MessageNotForDevice:
+            if properties.omemo.payload is None:
+                # Key Transport message for another device
+                return
+
             plaintext = _('This message was encrypted with OMEMO, '
                           'but not for your device.')
             # Neither trust nor fingerprint can be verified if we didn't
