@@ -289,11 +289,11 @@ class ClientsIconsPlugin(GajimPlugin):
 
     def _on_caps_update(self, event):
         # Zeroconf
-        if event.conn.name == 'Local':
+        if event.account == 'Local':
             return
 
         contact = self._get_contact_or_gc_contact_for_jid(
-            event.conn.name, event.fjid)
+            event.account, event.fjid)
         if contact is None:
             return
 
@@ -309,7 +309,7 @@ class ClientsIconsPlugin(GajimPlugin):
             return
         roster = app.interface.roster
         iters = roster._get_contact_iter(
-            event.jid, event.conn.name, contact, roster.model)
+            event.jid, event.account, contact, roster.model)
         iter_ = iters[0]
 
         # Highest contact changed
