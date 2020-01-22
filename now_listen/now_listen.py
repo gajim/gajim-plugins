@@ -5,7 +5,6 @@ from gi.repository import Gtk
 from gi.repository import Gdk
 
 from gajim.plugins import GajimPlugin
-from gajim.plugins.helpers import log_calls
 from gajim.plugins.gui import GajimPluginConfigDialog
 from gajim.plugins.plugins_i18n import _
 
@@ -16,14 +15,14 @@ log = logging.getLogger('gajim.p.now_listen')
 
 
 class NowListenPlugin(GajimPlugin):
-    @log_calls('NowListenPlugin')
     def init(self):
+        # pylint: disable=attribute-defined-outside-init
         self.description = _('Copy tune info of playing music to conversation '
                              'input box at cursor position (Alt + N)')
         self.config_dialog = NowListenPluginConfigDialog(self)
         self.gui_extension_points = {'chat_control_base':
-                                     (self.connect_with_chat_control,
-                                      self.disconnect_from_chat_control)}
+                                     (self._on_connect_chat_control,
+                                      self._on_disconnect_chat_control)}
 
         self.config_default_values = {
             'format_string':
@@ -31,115 +30,66 @@ class NowListenPlugin(GajimPlugin):
             'format_string_http':
                 (_('Now listening to: "%title" by %artist'), ''), }
 
-        self.controls = []
-        self.first_run = True
-        self.music_track_changed_signal = None
         if os.name == 'nt':
             self.available_text = _('Plugin cannot be run under Windows.')
             self.activatable = False
 
-    @log_calls('NowListenPlugin')
-    def connect_with_chat_control(self, chat_control):
-        self.chat_control = chat_control
-        control = Base(self, self.chat_control)
-        self.controls.append(control)
+        self._event_ids = {}
+        self._track_changed_id = None
+        self._music_track_info = None
 
-    @log_calls('NowListenPlugin')
-    def disconnect_from_chat_control(self, chat_control):
-        for control in self.controls:
-            control.disconnect_from_chat_control()
-        self.controls = []
+    def _on_connect_chat_control(self, control):
+        signal_id = control.msg_textview.connect('key-press-event',
+                                                 self._on_insert)
+        self._event_ids[control.control_id] = signal_id
 
-    @log_calls('NowListenPlugin')
+    def _on_disconnect_chat_control(self, control):
+        signal_id = self._event_ids.pop(control.control_id)
+        # Raises a warning because the textview is already destroyed
+        # But for the deactivate() case this method is called for all active
+        # controls and in this case the textview is not destroyed
+        # We need someway to detect if the textview is already destroyed
+        control.msg_textview.disconnect(signal_id)
+
     def activate(self):
         listener = MusicTrackListener.get()
-        if not self.music_track_changed_signal:
-            self.music_track_changed_signal = listener.connect(
-                'music-track-changed', self.music_track_changed)
-            try:
-                listener.start()
-            except AttributeError:
-                track = listener.get_playing_track('org.mpris.MediaPlayer2')
-                self.music_track_changed(listener, track)
+        self._track_changed_id = listener.connect(
+            'music-track-changed',
+            self._on_music_track_changed)
 
+        listener.start()
 
-    @log_calls('NowListenPlugin')
     def deactivate(self):
         listener = MusicTrackListener.get()
-        if self.music_track_changed_signal:
-            listener.disconnect(self.music_track_changed_signal)
-            self.music_track_changed_signal = None
-            try:
-                listener.stop()
-            except AttributeError:
-                pass
+        if self._track_changed_id is not None:
+            listener.disconnect(self._track_changed_id)
+            self._track_changed_id = None
 
-    def music_track_changed(self, unused_listener, music_track_info,
-                            account=None):
+    def _on_music_track_changed(self, _listener, music_track_info):
+        self._music_track_info = music_track_info
 
-        if music_track_info is None or music_track_info.paused:
-            self.artist = self.title = self.album = ''
-        else:
-            self.artist = music_track_info.artist
-            self.title = music_track_info.title
-            self.album = music_track_info.album
-            log.debug("%s - %s", self.artist, self.title)
-            if hasattr(music_track_info, 'url'):
-                self.url = music_track_info.url
-                self.albumartist = music_track_info.albumartist
-            else:
-                self.url = ''
+    def _get_tune_string(self):
+        format_string = self.config['format_string']
+        tune_string = format_string.\
+            replace('%artist', self._music_track_info.artist).\
+            replace('%title', self._music_track_info.title).\
+            replace('%album', self._music_track_info.album)
+        return tune_string
 
-
-class Base(object):
-    def __init__(self, plugin, chat_control):
-        self.plugin = plugin
-        self.chat_control = chat_control
-        if not hasattr(self.plugin, 'title'):
-            self.plugin.artist = self.plugin.title = self.plugin.album = ''
-        self.plugin.url = self.plugin.albumartist = ''
-
-        self.id_ = self.chat_control.msg_textview.connect('key_press_event',
-                                                          self.on_insert)
-        self.chat_control.handlers[self.id_] = self.chat_control.msg_textview
-
-    def disconnect_from_chat_control(self):
-        if self.id_ not in self.chat_control.handlers:
-            return
-        if self.chat_control.handlers[self.id_].handler_is_connected(self.id_):
-            self.chat_control.handlers[self.id_].disconnect(self.id_)
-            del self.chat_control.handlers[self.id_]
-
-    def on_insert(self, widget, event):
-        """
-        Insert text to conversation input box, at cursor position
-        """
+    def _on_insert(self, textview, event):
+        # Insert text to message input box, at cursor position
         if event.keyval != Gdk.KEY_n:
             return
         if not event.state & Gdk.ModifierType.MOD1_MASK:  # ALT+N
             return
 
-        if self.plugin.artist == self.plugin.title == self.plugin.album == '':
-            tune_string = _('No music playing')
-        else:
-            format_string = self.plugin.config['format_string']
-            if self.plugin.url and not self.plugin.url.startswith('file://'):
-                format_string = self.plugin.config['format_string_http']
+        if self._music_track_info is None:
+            return
 
-            if self.plugin.artist is None:
-                self.plugin.artist = _('unknown artist')
-            if self.plugin.album is None:
-                self.plugin.album = _('unknown album')
+        tune_string = self._get_tune_string()
 
-            tune_string = format_string.\
-                replace('%artist', self.plugin.artist).\
-                replace('%title', self.plugin.title).\
-                replace('%album', self.plugin.album).\
-                replace('%url', self.plugin.url)
-
-        message_buffer = self.chat_control.msg_textview.get_buffer()
-        message_buffer.insert_at_cursor(tune_string)
-        self.chat_control.msg_textview.grab_focus()
+        textview.get_buffer().insert_at_cursor(tune_string)
+        textview.grab_focus()
         return True
 
 
