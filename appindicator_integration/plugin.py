@@ -182,15 +182,7 @@ class AppindicatorIntegrationPlugin(GajimPlugin):
 
         event.time = when
         if key not in self.events:
-            icon = None
-            if app.config.get("show_avatars_in_roster"):
-                pix = app.contacts.get_avatar(account, jid, size=16)
-                icon = Gtk.Image()
-                icon.set_from_pixbuf(pix)
-            item = Gtk.ImageMenuItem(contact + " (1)")
-            if icon:
-                item.set_image(icon)
-                item.set_always_show_image(True)
+            item = Gtk.MenuItem(label=contact + " (1)")
             item.connect("activate", self.event_raise, event)
             item.show()
             self.menu.insert(item, self.menuEventInsertIndex)
