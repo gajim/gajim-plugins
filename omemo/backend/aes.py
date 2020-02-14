@@ -28,6 +28,7 @@ log = logging.getLogger('gajim.p.omemo')
 
 EncryptionResult = namedtuple('EncryptionResult', 'payload key iv')
 
+IV_SIZE = 12
 
 def _decrypt(key, iv, tag, data):
     decryptor = Cipher(
@@ -60,7 +61,7 @@ def aes_decrypt_file(key, iv, payload):
     return _decrypt(key, iv, tag, data)
 
 
-def _encrypt(data, key_size, iv_size):
+def _encrypt(data, key_size, iv_size=IV_SIZE):
     if isinstance(data, str):
         data = data.encode()
     key = os.urandom(key_size)
@@ -75,13 +76,13 @@ def _encrypt(data, key_size, iv_size):
 
 
 def aes_encrypt(plaintext):
-    key, iv, tag, payload = _encrypt(plaintext, 16, 16)
+    key, iv, tag, payload = _encrypt(plaintext, 16)
     key += tag
     return EncryptionResult(payload=payload, key=key, iv=iv)
 
 
 def aes_encrypt_file(data):
-    key, iv, tag, payload, = _encrypt(data, 32, 16)
+    key, iv, tag, payload, = _encrypt(data, 32)
     payload += tag
     return EncryptionResult(payload=payload, key=key, iv=iv)
 
@@ -91,4 +92,4 @@ def get_new_key():
 
 
 def get_new_iv():
-    return os.urandom(16)
+    return os.urandom(IV_SIZE)
