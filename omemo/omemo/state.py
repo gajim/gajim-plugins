@@ -221,7 +221,7 @@ class OmemoState:
 
     def create_msg(self, from_jid, jid, plaintext):
         key = os.urandom(16)
-        iv = os.urandom(16)
+        iv = os.urandom(12)
         encrypted_keys = {}
 
         devices_list = self.device_list_for(jid)
@@ -277,7 +277,7 @@ class OmemoState:
 
     def create_gc_msg(self, from_jid, jid, plaintext):
         key = os.urandom(16)
-        iv = os.urandom(16)
+        iv = os.urandom(12)
         encrypted_keys = {}
         room = jid
         encrypted_jids = []

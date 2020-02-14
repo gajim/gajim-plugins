@@ -65,7 +65,7 @@ except Exception:
 
 def encrypt_file(data):
     key = os.urandom(32)
-    iv = os.urandom(16)
+    iv = os.urandom(12)
 
     payload, tag = aes_encrypt(key, iv, data)
     encrypted_data = payload + tag
