@@ -25,4 +25,4 @@ modules:
         sha256: cc6bb502630ff402b7e75b9f29b87a8f9e8d09382aa411ad001374e4521875e2
       - type: file
         path: org.gajim.Gajim.Plugin.url_image_preview.metainfo.xml
-        sha256: 3b11c6bcb9c349bb6b831031da6740f5da6fc1e925ab98c5c06a62d787ca26fc
+        sha256: 4e4966951ae64ef6c6ae159cc2f46195e6f8d42677d7b059f06816c661400f43

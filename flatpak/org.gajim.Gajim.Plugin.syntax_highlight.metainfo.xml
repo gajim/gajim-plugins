@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <component type="addon">
   <id>org.gajim.Gajim.Plugin.syntax_highlight</id>
-  <extends>org.gajim.Gajim.desktop</extends>
+  <extends>org.gajim.Gajim</extends>
   <name>Source Code Syntax Highlight Plugin</name>
   <summary>Source code syntax highlighting in the chat window</summary>
   <url type="homepage">https://gajim.org/</url>

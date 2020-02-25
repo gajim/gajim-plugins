@@ -65,4 +65,4 @@ modules:
         sha256: c41e9341a6a807a889e794c37e384ea598cd6341e5b96ad4be8f5b741a753452
       - type: file
         path: org.gajim.Gajim.Plugin.omemo.metainfo.xml
-        sha256: d7ef976ee4239d5c6b0da7b5e3bcc85d99db7d860c0329347a9522e8a176c69e
+        sha256: 795eabeddcee3338a627f84068ee07e8221cca4ae91c08030ffb57fdcccf750b

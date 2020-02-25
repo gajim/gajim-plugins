@@ -24,4 +24,4 @@ modules:
         sha256: edaa200d996a87f4632c99dd02c7ffacf01fad1b70381f6896b9a9c45bdda01e
       - type: file
         path: org.gajim.Gajim.Plugin.openpgp.metainfo.xml
-        sha256: bfe2a4b508b7682dba37d3187f7b111cb07163dad141c52dbb4b6d264ac66c8a
+        sha256: 4769307f972aca3320311c1b0e514a7e41f1d1f437887147eb84ff1ec3245203

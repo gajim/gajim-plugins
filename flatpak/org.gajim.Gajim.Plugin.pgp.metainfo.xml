@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <component type="addon">
   <id>org.gajim.Gajim.Plugin.pgp</id>
-  <extends>org.gajim.Gajim.desktop</extends>
+  <extends>org.gajim.Gajim</extends>
   <name>PGP Plugin</name>
   <summary>XMPP Extension Protocol (XEP) for secure multi-client end-to-end encryption</summary>
   <url type="homepage">https://gajim.org/</url>

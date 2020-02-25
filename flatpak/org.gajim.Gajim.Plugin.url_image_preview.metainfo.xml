@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <component type="addon">
   <id>org.gajim.Gajim.Plugin.url_image_preview</id>
-  <extends>org.gajim.Gajim.desktop</extends>
+  <extends>org.gajim.Gajim</extends>
   <name>URL Image Preview Plugin</name>
   <summary>Display a preview of links to images</summary>
   <url type="homepage">https://gajim.org/</url>
