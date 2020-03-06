@@ -1,5 +1,5 @@
-id: org.gajim.Gajim.Plugin.url_image_preview
-runtime: org.gajim.Gajim
+id: org.gajim.Gajim.Devel.Plugin.url_image_preview
+runtime: org.gajim.Gajim.Devel
 sdk: org.gnome.Sdk//3.34
 build-extension: true
 separate-locales: false
@@ -26,3 +26,6 @@ modules:
       - type: file
         path: org.gajim.Gajim.Plugin.url_image_preview.metainfo.xml
         sha256: 4e4966951ae64ef6c6ae159cc2f46195e6f8d42677d7b059f06816c661400f43
+      - type: shell
+        commands:
+          - sed -i "s+org.gajim.Gajim+org.gajim.Gajim.Devel+" org.gajim.Gajim.Plugin.*.metainfo.xml

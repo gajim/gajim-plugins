@@ -1,5 +1,5 @@
-id: org.gajim.Gajim.Plugin.omemo
-runtime: org.gajim.Gajim
+id: org.gajim.Gajim.Devel.Plugin.omemo
+runtime: org.gajim.Gajim.Devel
 sdk: org.gnome.Sdk//3.34
 build-extension: true
 separate-locales: false
@@ -66,3 +66,6 @@ modules:
       - type: file
         path: org.gajim.Gajim.Plugin.omemo.metainfo.xml
         sha256: 795eabeddcee3338a627f84068ee07e8221cca4ae91c08030ffb57fdcccf750b
+      - type: shell
+        commands:
+          - sed -i "s+org.gajim.Gajim+org.gajim.Gajim.Devel+" org.gajim.Gajim.Plugin.*.metainfo.xml

@@ -1,5 +1,5 @@
-id: org.gajim.Gajim.Plugin.syntax_highlight
-runtime: org.gajim.Gajim
+id: org.gajim.Gajim.Devel.Plugin.syntax_highlight
+runtime: org.gajim.Gajim.Devel
 sdk: org.gnome.Sdk//3.34
 build-extension: true
 separate-locales: false
@@ -34,3 +34,6 @@ modules:
       - type: file
         path: org.gajim.Gajim.Plugin.syntax_highlight.metainfo.xml
         sha256: 46bff3ab0a5d97a252652b5d2224e973f4f9e5bdffb9a7a9196b07fca0255957
+      - type: shell
+        commands:
+          - sed -i "s+org.gajim.Gajim+org.gajim.Gajim.Devel+" org.gajim.Gajim.Plugin.*.metainfo.xml

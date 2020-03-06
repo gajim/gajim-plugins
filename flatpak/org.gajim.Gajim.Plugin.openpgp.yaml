@@ -1,5 +1,5 @@
-id: org.gajim.Gajim.Plugin.openpgp
-runtime: org.gajim.Gajim
+id: org.gajim.Gajim.Devel.Plugin.openpgp
+runtime: org.gajim.Gajim.Devel
 sdk: org.gnome.Sdk//3.34
 build-extension: true
 separate-locales: false
@@ -25,3 +25,6 @@ modules:
       - type: file
         path: org.gajim.Gajim.Plugin.openpgp.metainfo.xml
         sha256: 4769307f972aca3320311c1b0e514a7e41f1d1f437887147eb84ff1ec3245203
+      - type: shell
+        commands:
+          - sed -i "s+org.gajim.Gajim+org.gajim.Gajim.Devel+" org.gajim.Gajim.Plugin.*.metainfo.xml
