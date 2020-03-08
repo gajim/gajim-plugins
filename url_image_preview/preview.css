@@ -1,0 +1,11 @@
+.preview-box {
+    border: 1px solid;
+    border-color: @borders;
+    border-radius: 5px;
+    padding: 10px;
+    margin: 5px;
+    background-color: @theme_unfocused_base_color;
+}
+.preview-button {
+    border: 1px solid @borders;
+}
