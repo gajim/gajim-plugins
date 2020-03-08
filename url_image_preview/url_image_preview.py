@@ -17,6 +17,7 @@
 import os
 import logging
 import shutil
+import mimetypes
 from pathlib import Path
 from functools import partial
 from urllib.parse import urlparse
@@ -24,9 +25,10 @@ from urllib.parse import unquote
 
 from gi.repository import Gtk
 from gi.repository import Gdk
+from gi.repository import GdkPixbuf
+from gi.repository import Gio
 from gi.repository import GLib
 from gi.repository import Soup
-from gi.repository import GdkPixbuf
 
 from gajim.common import app
 from gajim.common import configpaths
@@ -38,15 +40,16 @@ from gajim.common.helpers import get_tls_error_phrase
 from gajim.common.helpers import get_user_proxy
 from gajim.gtk.dialogs import ErrorDialog
 from gajim.gtk.filechoosers import FileSaveDialog
-from gajim.gtk.util import load_icon
+from gajim.gtk.util import get_cursor
 from gajim.gtk.util import get_monitor_scale_factor
+from gajim.gtk.util import load_icon
 
 from gajim.plugins import GajimPlugin
 from gajim.plugins.helpers import get_builder
 from gajim.plugins.plugins_i18n import _
 
 from url_image_preview.config_dialog import UrlImagePreviewConfigDialog
-
+from url_image_preview.mime_types import MIME_TYPES
 
 log = logging.getLogger('gajim.p.preview')
 
@@ -72,26 +75,29 @@ if ERROR_MSG is None:
     from url_image_preview.utils import parse_fragment
     from url_image_preview.utils import create_thumbnail
     from url_image_preview.utils import pixbuf_from_data
-    from url_image_preview.utils import create_clickable_image
     from url_image_preview.utils import filename_from_uri
 # pylint: enable=ungrouped-imports
 
-def get_accepted_mime_types():
-    accepted_mime_types = set()
+
+def get_previewable_mime_types():
+    previewable_mime_types = set()
     for fmt in GdkPixbuf.Pixbuf.get_formats():
         for mime_type in fmt.get_mime_types():
-            accepted_mime_types.add(mime_type.lower())
+            previewable_mime_types.add(mime_type.lower())
     if Image is not None:
         Image.init()
         for mime_type in Image.MIME.values():
-            accepted_mime_types.add(mime_type.lower())
+            previewable_mime_types.add(mime_type.lower())
     return tuple(filter(
         lambda mime_type: mime_type.startswith('image'),
-        accepted_mime_types
+        previewable_mime_types
     ))
 
-ACCEPTED_MIME_TYPES = get_accepted_mime_types()
 
+PREVIEWABLE_MIME_TYPES = get_previewable_mime_types()
+mime_types = set(MIME_TYPES)
+# Merge both: if it’s a previewable image, it should be allowed
+ALLOWED_MIME_TYPES = mime_types.union(PREVIEWABLE_MIME_TYPES)
 
 class UrlImagePreviewPlugin(GajimPlugin):
     def init(self):
@@ -109,15 +115,17 @@ class UrlImagePreviewPlugin(GajimPlugin):
                                   self._on_disconnect_chat_control_base),
             'history_window': (self._on_connect_history_window,
                                self._on_disconnect_history_window),
-            'print_real_text': (self._print_real_text, None), }
+            'print_real_text': (self._print_real_text, None),
+        }
 
         self.config_default_values = {
             'PREVIEW_SIZE': (150, 'Preview size (100-1000)'),
-            'MAX_FILE_SIZE': (5242880, 'Max file size for image preview'),
+            'MAX_FILE_SIZE': ('10485760', 'Max file size for image preview'),
             'ALLOW_ALL_IMAGES': (False, ''),
             'LEFTCLICK_ACTION': ('open_menuitem', 'Open'),
             'ANONYMOUS_MUC': (False, ''),
-            'VERIFY': (True, ''),}
+            'VERIFY': (True, ''),
+        }
 
         self._textviews = {}
         self._sessions = {}
@@ -131,12 +139,36 @@ class UrlImagePreviewPlugin(GajimPlugin):
         if GLib.mkdir_with_parents(str(self._thumb_dir), 0o700) != 0:
             log.error('Failed to create: %s', self._thumb_dir)
 
+        if app.config.get('use_kib_mib'):
+            self._units = GLib.FormatSizeFlags.IEC_UNITS
+        else:
+            self._units = GLib.FormatSizeFlags.DEFAULT
+
         self._migrate_config()
+        self._load_css()
 
     def _migrate_config(self):
         action = self.config['LEFTCLICK_ACTION']
         if action.endswith('_menuitem'):
             self.config['LEFTCLICK_ACTION'] = action[:-9]
+
+    @staticmethod
+    def _load_css():
+        path = Path(__file__).parent / 'preview.css'
+        try:
+            with path.open('r') as file:
+                css = file.read()
+        except Exception as exc:
+            log.error('Error loading css: %s', exc)
+            return
+
+        try:
+            provider = Gtk.CssProvider()
+            provider.load_from_data(bytes(css.encode('utf-8')))
+            Gtk.StyleContext.add_provider_for_screen(Gdk.Screen.get_default(),
+                                                     provider, 610)
+        except Exception:
+            log.exception('Error loading application css')
 
     def _on_connect_chat_control_base(self, chat_control):
         account = chat_control.account
@@ -161,7 +193,8 @@ class UrlImagePreviewPlugin(GajimPlugin):
             if textview == textview_:
                 return control_id
 
-    def _create_session(self, account):
+    @staticmethod
+    def _create_session(account):
         session = Soup.Session()
         session.add_feature_by_type(Soup.ContentSniffer)
         session.props.https_aliases = ['aesgcm']
@@ -211,7 +244,7 @@ class UrlImagePreviewPlugin(GajimPlugin):
                                size=preview.size,
                                scale=get_monitor_scale_factor(),
                                pixbuf=True)
-            self._update_textview(pixbuf, preview)
+            self._update_textview(preview, pixbuf)
             return
 
         preview = self._process_web_uri(uri,
@@ -287,9 +320,9 @@ class UrlImagePreviewPlugin(GajimPlugin):
                          account):
         try:
             split_geo_uri(uri)
-        except Exception as error:
+        except Exception as err:
             log.error(uri)
-            log.error(error)
+            log.error(err)
             return
 
         return Preview(uri,
@@ -331,11 +364,16 @@ class UrlImagePreviewPlugin(GajimPlugin):
             log.error('%s: %s', preview.orig_path.name, error)
             return
 
-        if preview.create_thumbnail(data):
-            write_file_async(preview.thumb_path,
-                             preview.thumbnail,
-                             self._on_thumb_write_finished,
-                             preview)
+        preview.mime_type = self._guess_mime_type(preview.orig_path)
+        preview.file_size = os.path.getsize(preview.orig_path)
+        if preview.is_previewable:
+            if preview.create_thumbnail(data):
+                write_file_async(preview.thumb_path,
+                                 preview.thumbnail,
+                                 self._on_thumb_write_finished,
+                                 preview)
+        else:
+            self._update_textview(preview, None)
 
     def _on_thumb_load_finished(self, data, error, preview):
         if data is None:
@@ -343,6 +381,8 @@ class UrlImagePreviewPlugin(GajimPlugin):
             return
 
         preview.thumbnail = data
+        preview.mime_type = self._guess_mime_type(preview.orig_path)
+        preview.file_size = os.path.getsize(preview.orig_path)
 
         try:
             pixbuf = pixbuf_from_data(preview.thumbnail)
@@ -351,9 +391,9 @@ class UrlImagePreviewPlugin(GajimPlugin):
                       preview.thumb_path.name,
                       err)
             return
-        self._update_textview(pixbuf, preview)
+        self._update_textview(preview, pixbuf)
 
-    def _download_content(self, preview):
+    def _download_content(self, preview, force=False):
         if preview.account is None:
             # History Window can be opened without account context
             # This means we can not apply proxy settings
@@ -361,7 +401,8 @@ class UrlImagePreviewPlugin(GajimPlugin):
         log.info('Start downloading: %s', preview.request_uri)
         message = Soup.Message.new('GET', preview.request_uri)
         message.connect('starting', self._check_certificate, preview)
-        message.connect('content-sniffed', self._on_content_sniffed, preview)
+        message.connect(
+            'content-sniffed', self._on_content_sniffed, preview, force)
 
         session = self._get_session(preview.account)
         session.queue_message(message, self._on_finished, preview)
@@ -379,20 +420,25 @@ class UrlImagePreviewPlugin(GajimPlugin):
             session.cancel_message(message, Soup.Status.CANCELLED)
             return
 
-    def _on_content_sniffed(self, message, type_, _params, preview):
-        size = message.props.response_headers.get_content_length()
+    def _on_content_sniffed(self, message, type_, _params, preview, force):
+        file_size = message.props.response_headers.get_content_length()
         uri = message.props.uri.to_string(False)
         session = self._get_session(preview.account)
-        if type_ not in ACCEPTED_MIME_TYPES:
-            log.info('Not allowed content type: %s, %s', type_, uri)
+        preview.mime_type = type_
+        preview.file_size = file_size
+
+        if type_ not in ALLOWED_MIME_TYPES:
+            log.info('Not an allowed content type: %s, %s', type_, uri)
             session.cancel_message(message, Soup.Status.CANCELLED)
             return
 
-        if size == 0 or size > int(self.config['MAX_FILE_SIZE']):
+        if file_size == 0 or file_size > int(self.config['MAX_FILE_SIZE']):
             log.info('File size (%s) too big or unknown (zero) for URL: \'%s\'',
-                     size, uri)
-            session.cancel_message(message, Soup.Status.CANCELLED)
-            return
+                     file_size, uri)
+            if not force:
+                session.cancel_message(message, Soup.Status.CANCELLED)
+
+        self._update_textview(preview, None)
 
     def _on_finished(self, _session, message, preview):
         if message.status_code != Soup.Status.OK:
@@ -412,11 +458,14 @@ class UrlImagePreviewPlugin(GajimPlugin):
                          self._on_orig_write_finished,
                          preview)
 
-        if preview.create_thumbnail(data):
-            write_file_async(preview.thumb_path,
-                             preview.thumbnail,
-                             self._on_thumb_write_finished,
-                             preview)
+        if preview.is_previewable:
+            if preview.create_thumbnail(data):
+                write_file_async(preview.thumb_path,
+                                 preview.thumbnail,
+                                 self._on_thumb_write_finished,
+                                 preview)
+        else:
+            self._update_textview(preview, None)
 
     @staticmethod
     def _on_orig_write_finished(_result, error, preview):
@@ -425,6 +474,7 @@ class UrlImagePreviewPlugin(GajimPlugin):
             return
 
         log.info('File stored: %s', preview.orig_path.name)
+        preview.file_size = os.path.getsize(preview.orig_path)
 
     def _on_thumb_write_finished(self, _result, error, preview):
         if error is not None:
@@ -435,14 +485,29 @@ class UrlImagePreviewPlugin(GajimPlugin):
 
         try:
             pixbuf = pixbuf_from_data(preview.thumbnail)
-        except Exception as err:
+        except Exception as error:
             log.error('Unable to load: %s, %s',
                       preview.thumb_path.name,
-                      err)
+                      error)
             return
-        self._update_textview(pixbuf, preview)
+        self._update_textview(preview, pixbuf)
 
-    def _update_textview(self, pixbuf, preview):
+    @staticmethod
+    def _guess_mime_type(data):
+        mime_type, _ = mimetypes.MimeTypes().guess_type(data)
+        if mime_type is None:
+            # Try to guess MIME type by file name
+            mime_type, _ = Gio.content_type_guess(str(data), None)
+        log.debug('Guessed MIME type: %s', str(mime_type))
+        return mime_type
+
+    @staticmethod
+    def _get_icon_for_mime_type(mime_type):
+        if mime_type is None:
+            return Gio.Icon.new_for_string('mail-attachment')
+        return Gio.content_type_get_icon(mime_type)
+
+    def _update_textview(self, preview, data):
         textview = self._textviews.get(preview.control_id)
         if textview is None:
             # Control closed
@@ -454,30 +519,108 @@ class UrlImagePreviewPlugin(GajimPlugin):
         anchor = buffer_.create_child_anchor(iter_)
         anchor.plaintext = preview.uri
 
-        image = create_clickable_image(pixbuf, preview)
+        preview_widget = self._create_preview_widget(preview, data)
 
-        textview.tv.add_child_at_anchor(image, anchor)
+        textview.tv.add_child_at_anchor(preview_widget, anchor)
         buffer_.delete(iter_,
                        buffer_.get_iter_at_mark(preview.end_mark))
-
-        image.connect('button-press-event',
-                      self._on_button_press_event,
-                      preview)
 
         if textview.autoscroll:
             textview.scroll_to_end()
 
-    def _get_context_menu(self, preview):
-        path = self.local_file_path('context_menu.ui')
+    def _create_preview_widget(self, preview, data):
+        if isinstance(data, GdkPixbuf.PixbufAnimation):
+            image = Gtk.Image.new_from_animation(data)
+        elif isinstance(data, GdkPixbuf.Pixbuf):
+            image = Gtk.Image.new_from_pixbuf(data)
+        else:
+            icon = self._get_icon_for_mime_type(preview.mime_type)
+            image = Gtk.Image.new_from_gicon(icon, Gtk.IconSize.DIALOG)
+
+        def _on_realize(box):
+            box.get_window().set_cursor(get_cursor('pointer'))
+
+        def _on_enter_leave(button, event):
+            if event.type == Gdk.EventType.ENTER_NOTIFY:
+                button.get_window().set_cursor(get_cursor('default'))
+            else:
+                button.get_window().set_cursor(get_cursor('text'))
+
+        path = self.local_file_path('preview.ui')
         ui = get_builder(path)
-        if preview.is_aes_encrypted:
-            ui.open_link_in_browser.hide()
+
+        ui.download_button.set_no_show_all(True)
+        ui.download_button.connect('enter-notify-event', _on_enter_leave)
+        ui.download_button.connect('leave-notify-event', _on_enter_leave)
+        ui.download_button.connect('clicked', self._on_download, preview)
+
+        ui.save_as_button.set_no_show_all(True)
+        ui.save_as_button.connect('enter-notify-event', _on_enter_leave)
+        ui.save_as_button.connect('leave-notify-event', _on_enter_leave)
+        ui.save_as_button.connect('clicked', self._on_save_as, preview)
+
+        ui.open_folder_button.set_no_show_all(True)
+        ui.open_folder_button.connect('enter-notify-event', _on_enter_leave)
+        ui.open_folder_button.connect('leave-notify-event', _on_enter_leave)
+        ui.open_folder_button.connect('clicked', self._on_open_folder, preview)
+
+        ui.event_box.set_tooltip_text(preview.filename)
+        ui.event_box.add(image)
+        ui.event_box.connect('realize', _on_realize)
+        ui.event_box.connect('button-press-event',
+                             self._on_button_press_event,
+                             preview)
+
+        ui.preview_box.show_all()
 
         if preview.is_geo_uri:
-            ui.open_link_in_browser.hide()
-            ui.save_as.hide()
-            ui.open_folder.hide()
+            ui.file_name.set_text(_('Click to view location'))
+            ui.save_as_button.hide()
+            ui.open_folder_button.hide()
+            ui.download_button.hide()
+            location = split_geo_uri(preview.uri)
+            ui.file_size.set_text(_('Lat: %s Lon: %s') % (
+                location.lat, location.lon))
+            ui.event_box.set_tooltip_text(_('Location at Lat: %s Lon: %s') % (
+                location.lat, location.lon))
+            ui.event_box.set_halign(Gtk.Align.CENTER)
+            ui.preview_box.set_size_request(160, -1)
+            return ui.preview_box
 
+        if preview.is_previewable and preview.orig_exists():
+            ui.event_box.set_halign(Gtk.Align.CENTER)
+        else:
+            image.set_property('pixel-size', 64)
+
+        if preview.orig_exists():
+            ui.download_button.hide()
+        else:
+            ui.save_as_button.hide()
+            ui.open_folder_button.hide()
+
+        file_size_string = _('File size unknown')
+        if preview.file_size != 0:
+            file_size_string = GLib.format_size_full(
+                preview.file_size, self._units)
+        ui.file_size.set_text(file_size_string)
+
+        ui.preview_box.set_size_request(300, -1)
+        ui.file_name.set_text(preview.filename)
+        ui.file_name.set_tooltip_text(preview.filename)
+
+        return ui.preview_box
+
+    def _get_context_menu(self, preview):
+        def destroy(menu, _pspec):
+            visible = menu.get_property('visible')
+            if not visible:
+                GLib.idle_add(menu.destroy)
+
+        path = self.local_file_path('context_menu.ui')
+        ui = get_builder(path)
+
+        ui.download.connect(
+            'activate', self._on_download, preview)
         ui.open.connect(
             'activate', self._on_open, preview)
         ui.save_as.connect(
@@ -488,24 +631,43 @@ class UrlImagePreviewPlugin(GajimPlugin):
             'activate', self._on_open_link_in_browser, preview)
         ui.copy_link_location.connect(
             'activate', self._on_copy_link_location, preview)
-
-        def destroy(menu, _pspec):
-            visible = menu.get_property('visible')
-            if not visible:
-                GLib.idle_add(menu.destroy)
-
         ui.context_menu.connect('notify::visible', destroy)
+
+        if preview.is_aes_encrypted:
+            ui.open_link_in_browser.hide()
+
+        if preview.is_geo_uri:
+            ui.download.hide()
+            ui.open_link_in_browser.hide()
+            ui.save_as.hide()
+            ui.open_folder.hide()
+            return ui.context_menu
+
+        if preview.orig_exists():
+            ui.download.hide()
+        else:
+            ui.open.hide()
+            ui.save_as.hide()
+            ui.open_folder.hide()
+
         return ui.context_menu
 
-    @staticmethod
-    def _on_open(_menu, preview):
+    def _on_download(self, _menu, preview):
+        if not preview.orig_exists():
+            self._download_content(preview, force=True)
+
+    def _on_open(self, _menu, preview):
         if preview.is_geo_uri:
             open_uri(preview.uri)
             return
+
+        if not preview.orig_exists():
+            self._download_content(preview, force=True)
+            return
+
         open_file(preview.orig_path)
 
-    @staticmethod
-    def _on_save_as(_menu, preview):
+    def _on_save_as(self, _menu, preview):
         def on_ok(target_path):
             dirname = Path(target_path).parent
             if not os.access(dirname, os.W_OK):
@@ -517,13 +679,19 @@ class UrlImagePreviewPlugin(GajimPlugin):
                 return
             shutil.copyfile(str(preview.orig_path), target_path)
 
+        if not preview.orig_exists():
+            self._download_content(preview, force=True)
+            return
+
         FileSaveDialog(on_ok,
                        path=app.config.get('last_save_dir'),
                        file_name=preview.filename,
                        transient_for=app.app.get_active_window())
 
-    @staticmethod
-    def _on_open_folder(_menu, preview):
+    def _on_open_folder(self, _menu, preview):
+        if not preview.orig_exists():
+            self._download_content(preview, force=True)
+            return
         open_file(preview.orig_path.parent)
 
     @staticmethod
@@ -560,14 +728,18 @@ class Preview:
         self._uri = uri
         self._urlparts = urlparts
         self._filename = filename_from_uri(self._uri)
+
         self.size = size
         self.control_id = control_id
         self.orig_path = orig_path
         self.thumb_path = thumb_path
         self.start_mark = start_mark
         self.end_mark = end_mark
-        self.thumbnail = None
         self.account = account
+
+        self.thumbnail = None
+        self.mime_type = None
+        self.file_size = 0
 
         self.key, self.iv = None, None
         if self.is_aes_encrypted:
@@ -580,6 +752,10 @@ class Preview:
     @property
     def is_web_uri(self):
         return not self.is_geo_uri
+
+    @property
+    def is_previewable(self):
+        return self.mime_type in PREVIEWABLE_MIME_TYPES
 
     @property
     def uri(self):
@@ -612,6 +788,6 @@ class Preview:
     def create_thumbnail(self, data):
         self.thumbnail = create_thumbnail(data, self.size)
         if self.thumbnail is None:
-            log.warning('creating thumbnail failed for: %s', self.orig_path)
+            log.warning('Creating thumbnail failed for: %s', self.orig_path)
             return False
         return True

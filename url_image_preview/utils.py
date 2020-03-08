@@ -26,7 +26,6 @@ from urllib.parse import unquote
 
 from gi.repository import GdkPixbuf
 from gi.repository import GLib
-from gi.repository import Gtk
 
 from PIL import Image
 
@@ -35,7 +34,6 @@ from cryptography.hazmat.primitives.ciphers import Cipher
 from cryptography.hazmat.primitives.ciphers import algorithms
 from cryptography.hazmat.primitives.ciphers.modes import GCM
 
-from gajim.gtk.util import get_cursor
 
 log = logging.getLogger('gajim.p.preview.utils')
 
@@ -235,35 +233,6 @@ def pixbuf_from_data(data):
         return pixbuf
 
     return loader.get_pixbuf()
-
-
-def create_clickable_image(pixbuf, preview):
-    if isinstance(pixbuf, GdkPixbuf.PixbufAnimation):
-        image = Gtk.Image.new_from_animation(pixbuf)
-    else:
-        image = Gtk.Image.new_from_pixbuf(pixbuf)
-
-    css = '''#Preview {
-    box-shadow: 0px 0px 3px 0px alpha(@theme_text_color, 0.2);
-    margin: 5px 10px 5px 10px; }'''
-
-    provider = Gtk.CssProvider()
-    provider.load_from_data(bytes(css.encode()))
-    context = image.get_style_context()
-    context.add_provider(provider,
-                         Gtk.STYLE_PROVIDER_PRIORITY_USER)
-
-    image.set_name('Preview')
-
-    def _on_realize(box):
-        box.get_window().set_cursor(get_cursor('pointer'))
-
-    event_box = Gtk.EventBox()
-    event_box.connect('realize', _on_realize)
-    event_box.set_tooltip_text(preview.uri)
-    event_box.add(image)
-    event_box.show_all()
-    return event_box
 
 
 def parse_fragment(fragment):
