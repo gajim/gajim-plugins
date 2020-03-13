@@ -26,6 +26,7 @@ from gi.repository import Gtk
 from gi.repository import Gdk
 from gi.repository import GLib
 from gi.repository import Soup
+from gi.repository import GdkPixbuf
 
 from gajim.common import app
 from gajim.common import configpaths
@@ -52,6 +53,7 @@ ERROR_MSG = None
 try:
     from PIL import Image  # pylint: disable=unused-import
 except ImportError:
+    Image = None
     log.error('Pillow not available')
     ERROR_MSG = _('Please install python-pillow')
 
@@ -73,14 +75,21 @@ if ERROR_MSG is None:
     from url_image_preview.utils import filename_from_uri
 # pylint: enable=ungrouped-imports
 
-ACCEPTED_MIME_TYPES = [
-    'image/png',
-    'image/jpeg',
-    'image/gif',
-    'image/raw',
-    'image/svg+xml',
-    'image/x-ms-bmp',
-]
+def get_accepted_mime_types():
+    accepted_mime_types = set()
+    for fmt in GdkPixbuf.Pixbuf.get_formats():
+        for mime_type in fmt.get_mime_types():
+            accepted_mime_types.add(mime_type.lower())
+    if Image is not None:
+        Image.init()
+        for mime_type in Image.MIME.values():
+            accepted_mime_types.add(mime_type.lower())
+    return tuple(filter(
+        lambda mime_type: mime_type.startswith('image'),
+        accepted_mime_types
+    ))
+
+ACCEPTED_MIME_TYPES = get_accepted_mime_types()
 
 
 class UrlImagePreviewPlugin(GajimPlugin):
