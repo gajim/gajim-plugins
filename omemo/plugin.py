@@ -40,7 +40,7 @@ from omemo.backend.aes import aes_encrypt_file
 
 AXOLOTL_MISSING = 'You are missing Python3-Axolotl or use an outdated version'
 PROTOBUF_MISSING = "OMEMO can't import Google Protobuf, you can find help in " \
-                   "the GitHub Wiki"
+                   "the GitLab Wiki"
 ERROR_MSG = ''
 
 
