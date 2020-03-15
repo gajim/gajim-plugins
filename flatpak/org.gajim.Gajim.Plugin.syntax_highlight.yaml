@@ -1,6 +1,6 @@
 id: org.gajim.Gajim.Devel.Plugin.syntax_highlight
 runtime: org.gajim.Gajim.Devel
-sdk: org.gnome.Sdk//3.34
+sdk: org.gnome.Sdk//3.36
 build-extension: true
 separate-locales: false
 appstream-compose: false
@@ -14,11 +14,11 @@ modules:
     buildsystem: simple
     build-commands:
       - install -d ${FLATPAK_DEST}/lib/python3.7/site-packages/
-      - pip3 install --prefix=${FLATPAK_DEST} --ignore-installed Pygments-2.5.2-py2.py3-none-any.whl
+      - pip3 install --prefix=${FLATPAK_DEST} --ignore-installed Pygments-2.6.1-py3-none-any.whl
     sources:
       - type: file
-        url: https://files.pythonhosted.org/packages/be/39/32da3184734730c0e4d3fa3b2b5872104668ad6dc1b5a73d8e477e5fe967/Pygments-2.5.2-py2.py3-none-any.whl
-        sha256: 2a3fe295e54a20164a9df49c75fa58526d3be48e14aceba6d6b1e8ac0bfd6f1b
+        url: https://files.pythonhosted.org/packages/2d/68/106af3ae51daf807e9cdcba6a90e518954eb8b70341cee52995540a53ead/Pygments-2.6.1-py3-none-any.whl
+        sha256: ff7a40b4860b727ab48fad6360eb351cc1b33cbf9b15a0f689ca5353e9463324
 
   - name: gajim-syntax_highlight
     buildsystem: simple
