@@ -26,7 +26,7 @@ modules:
       - 'cp -R -t ${FLATPAK_DEST} *'
     post-install:
       - install -Dm644 --target-directory=${FLATPAK_DEST}/share/metainfo org.gajim.Gajim.Plugin.syntax_highlight.metainfo.xml
-      - appstream-compose --basename=org.gajim.Gajim.Plugin.syntax_highlight --prefix=${FLATPAK_DEST} --origin=flatpak org.gajim.Gajim.Plugin.syntax_highlight
+      - appstream-compose --basename=org.gajim.Gajim.Devel.Plugin.syntax_highlight --prefix=${FLATPAK_DEST} --origin=flatpak org.gajim.Gajim.Plugin.syntax_highlight
     sources:
       - type: archive
         url: https://ftp.gajim.org/plugins_releases/syntax_highlight_1.2.5.zip
