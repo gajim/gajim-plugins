@@ -21,6 +21,7 @@ from gajim.common.helpers import Observable
 from gajim.plugins.plugins_i18n import _
 from gajim.plugins.helpers import get_builder
 
+
 class Column(IntEnum):
     PIXBUF = 0
     NAME = 1
@@ -131,7 +132,7 @@ class AvailablePage(Observable):
     def _select_first_plugin(self):
         selection = self._ui.available_plugins_treeview.get_selection()
         iter_ = self._ui.plugin_store.get_iter_first()
-        selection.select_iter(iter_)
-
-        path = self._ui.plugin_store.get_path(iter_)
-        self._ui.available_plugins_treeview.scroll_to_cell(path)
+        if iter_ is not None:
+            selection.select_iter(iter_)
+            path = self._ui.plugin_store.get_path(iter_)
+            self._ui.available_plugins_treeview.scroll_to_cell(path)
