@@ -502,7 +502,7 @@ class UrlImagePreviewPlugin(GajimPlugin):
                       'create files in this directory.'),
                     transient_for=app.app.get_active_window())
                 return
-            shutil.copy(str(preview.orig_path), target_path)
+            shutil.copyfile(str(preview.orig_path), target_path)
 
         FileSaveDialog(on_ok,
                        path=app.config.get('last_save_dir'),
