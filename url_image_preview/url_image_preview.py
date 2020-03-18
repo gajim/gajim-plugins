@@ -35,6 +35,7 @@ from gajim.common.helpers import open_uri
 from gajim.common.helpers import write_file_async
 from gajim.common.helpers import load_file_async
 from gajim.common.helpers import get_tls_error_phrase
+from gajim.common.helpers import get_user_proxy
 from gajim.gtk.dialogs import ErrorDialog
 from gajim.gtk.filechoosers import FileSaveDialog
 from gajim.gtk.util import load_icon
@@ -119,11 +120,7 @@ class UrlImagePreviewPlugin(GajimPlugin):
             'VERIFY': (True, ''),}
 
         self._textviews = {}
-
-        self._session = Soup.Session()
-        self._session.add_feature_by_type(Soup.ContentSniffer)
-        self._session.props.https_aliases = ['aesgcm']
-        self._session.props.ssl_strict = False
+        self._sessions = {}
 
         self._orig_dir = Path(configpaths.get('MY_DATA')) / 'downloads'
         self._thumb_dir = Path(configpaths.get('MY_CACHE')) / 'downloads.thumb'
@@ -142,12 +139,18 @@ class UrlImagePreviewPlugin(GajimPlugin):
             self.config['LEFTCLICK_ACTION'] = action[:-9]
 
     def _on_connect_chat_control_base(self, chat_control):
+        account = chat_control.account
+        if account not in self._sessions:
+            self._sessions[account] = self._create_session(account)
         self._textviews[chat_control.control_id] = chat_control.conv_textview
 
     def _on_disconnect_chat_control_base(self, chat_control):
         self._textviews.pop(chat_control.control_id, None)
 
     def _on_connect_history_window(self, history_window):
+        account = history_window.account
+        if (account is not None and account not in self._sessions):
+            self._sessions[account] = self._create_session(account)
         self._textviews[id(history_window)] = history_window.history_textview
 
     def _on_disconnect_history_window(self, history_window):
@@ -157,6 +160,24 @@ class UrlImagePreviewPlugin(GajimPlugin):
         for control_id, textview_ in self._textviews.items():
             if textview == textview_:
                 return control_id
+
+    def _create_session(self, account):
+        session = Soup.Session()
+        session.add_feature_by_type(Soup.ContentSniffer)
+        session.props.https_aliases = ['aesgcm']
+        session.props.ssl_strict = False
+
+        proxy = get_user_proxy(account)
+        if proxy is None:
+            resolver = None
+        else:
+            resolver = proxy.get_resolver()
+
+        session.props.proxy_resolver = resolver
+        return session, resolver
+
+    def _get_session(self, account):
+        return self._sessions[account][0]
 
     def _print_real_text(self, textview, text, _text_tags, _graphics,
                          iter_, additional_data):
@@ -182,7 +203,8 @@ class UrlImagePreviewPlugin(GajimPlugin):
             preview = self._process_geo_uri(uri,
                                             start_mark,
                                             end_mark,
-                                            control_id)
+                                            control_id,
+                                            textview.account)
             if preview is None:
                 return
             pixbuf = load_icon('map',
@@ -196,7 +218,8 @@ class UrlImagePreviewPlugin(GajimPlugin):
                                         urlparts,
                                         start_mark,
                                         end_mark,
-                                        control_id)
+                                        control_id,
+                                        textview.account)
 
         if not preview.orig_exists():
             self._download_content(preview)
@@ -257,7 +280,11 @@ class UrlImagePreviewPlugin(GajimPlugin):
         return False
 
     @staticmethod
-    def _process_geo_uri(uri, start_mark, end_mark, control_id):
+    def _process_geo_uri(uri,
+                         start_mark,
+                         end_mark,
+                         control_id,
+                         account):
         try:
             split_geo_uri(uri)
         except Exception as error:
@@ -272,9 +299,17 @@ class UrlImagePreviewPlugin(GajimPlugin):
                        start_mark,
                        end_mark,
                        96,
-                       control_id)
+                       control_id,
+                       account)
 
-    def _process_web_uri(self, uri, urlparts, start_mark, end_mark, control_id):
+    def _process_web_uri(self,
+                         uri,
+                         urlparts,
+                         start_mark,
+                         end_mark,
+                         control_id,
+                         account):
+
         size = self.config['PREVIEW_SIZE']
         orig_path, thumb_path = get_image_paths(uri,
                                                 urlparts,
@@ -288,7 +323,8 @@ class UrlImagePreviewPlugin(GajimPlugin):
                        start_mark,
                        end_mark,
                        size,
-                       control_id)
+                       control_id,
+                       account)
 
     def _on_orig_load_finished(self, data, error, preview):
         if data is None:
@@ -312,13 +348,19 @@ class UrlImagePreviewPlugin(GajimPlugin):
         self._update_textview(pixbuf, preview)
 
     def _download_content(self, preview):
+        if preview.account is None:
+            # History Window can be opened without account context
+            # This means we can not apply proxy settings
+            return
         log.info('Start downloading: %s', preview.request_uri)
         message = Soup.Message.new('GET', preview.request_uri)
-        message.connect('starting', self._check_certificate)
-        message.connect('content-sniffed', self._on_content_sniffed)
-        self._session.queue_message(message, self._on_finished, preview)
+        message.connect('starting', self._check_certificate, preview)
+        message.connect('content-sniffed', self._on_content_sniffed, preview)
 
-    def _check_certificate(self, message):
+        session = self._get_session(preview.account)
+        session.queue_message(message, self._on_finished, preview)
+
+    def _check_certificate(self, message, preview):
         _https_used, _tls_certificate, tls_errors = message.get_https_status()
 
         if not self.config['VERIFY']:
@@ -327,21 +369,23 @@ class UrlImagePreviewPlugin(GajimPlugin):
         if tls_errors:
             phrase = get_tls_error_phrase(tls_errors)
             log.warning('TLS verification failed: %s', phrase)
-            self._session.cancel_message(message, Soup.Status.CANCELLED)
+            session = self._get_session(preview.account)
+            session.cancel_message(message, Soup.Status.CANCELLED)
             return
 
-    def _on_content_sniffed(self, message, type_, _params):
+    def _on_content_sniffed(self, message, type_, _params, preview):
         size = message.props.response_headers.get_content_length()
         uri = message.props.uri.to_string(False)
+        session = self._get_session(preview.account)
         if type_ not in ACCEPTED_MIME_TYPES:
             log.info('Not allowed content type: %s, %s', type_, uri)
-            self._session.cancel_message(message, Soup.Status.CANCELLED)
+            session.cancel_message(message, Soup.Status.CANCELLED)
             return
 
         if size == 0 or size > int(self.config['MAX_FILE_SIZE']):
             log.info('File size (%s) too big or unknown (zero) for URL: \'%s\'',
                      size, uri)
-            self._session.cancel_message(message, Soup.Status.CANCELLED)
+            session.cancel_message(message, Soup.Status.CANCELLED)
             return
 
     def _on_finished(self, _session, message, preview):
@@ -499,7 +543,7 @@ class UrlImagePreviewPlugin(GajimPlugin):
 
 class Preview:
     def __init__(self, uri, urlparts, orig_path, thumb_path,
-                 start_mark, end_mark, size, control_id):
+                 start_mark, end_mark, size, control_id, account):
         self._uri = uri
         self._urlparts = urlparts
         self._filename = filename_from_uri(self._uri)
@@ -510,6 +554,7 @@ class Preview:
         self.start_mark = start_mark
         self.end_mark = end_mark
         self.thumbnail = None
+        self.account = account
 
         self.key, self.iv = None, None
         if self.is_aes_encrypted:
