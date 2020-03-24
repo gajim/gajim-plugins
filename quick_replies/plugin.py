@@ -54,8 +54,8 @@ class QuickRepliesPlugin(GajimPlugin):
         for base in self.controls:
             if base.chat_control != chat_control:
                 continue
-            base.button.set_sensitive(chat_control.contact.show != 'offline' \
-            and app.connections[chat_control.account].connected > 0)
+            base.button.set_sensitive(
+                 app.account_is_connected(chat_control.account))
 
 
 class Base(object):
