@@ -77,6 +77,7 @@ class PGPPlugin(GajimPlugin):
         self.description = _('PGP encryption as per XEP-0027')
         if ERROR_MSG:
             self.activatable = False
+            self.config_dialog = None
             self.available_text = ERROR_MSG
             return
 
