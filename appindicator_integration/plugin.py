@@ -36,11 +36,12 @@ class AppindicatorIntegrationPlugin(GajimPlugin):
 
     @log_calls("AppindicatorIntegrationPlugin")
     def init(self):
+        self.config_dialog = None
         if ERRORMSG:
             self.activatable = False
             self.available_text += ERRORMSG
             return
-        self.config_dialog = None
+
         self.events_handlers = {'our-show': (ged.GUI2,
                                              self.set_indicator_icon)}
         self.windowstate = None
