@@ -97,25 +97,24 @@ class TictactoePlugin(GajimPlugin):
         self.announce_caps = True
 
     @log_calls('TictactoePlugin')
-    def _update_caps(self, account):
+    def _update_caps(self, account, features):
         if not self.announce_caps:
             return
-        if NS_GAMES not in app.gajim_optional_features[account]:
-            app.gajim_optional_features[account].append(NS_GAMES)
-        if NS_GAMES_TICTACTOE not in app.gajim_optional_features[account]:
-            app.gajim_optional_features[account].append(NS_GAMES_TICTACTOE)
+
+        features.append(NS_GAMES)
+        features.append(NS_GAMES_TICTACTOE)
 
     @log_calls('TictactoePlugin')
     def activate(self):
-        for account in app.caps_hash:
-            if app.caps_hash[account] != '':
-                self.announce_caps = True
-                helpers.update_optional_features(account)
+        self.announce_caps = True
+        for con in app.connections.values():
+            con.get_module('Caps').update_caps()
 
     @log_calls('TictactoePlugin')
     def deactivate(self):
         self.announce_caps = False
-        helpers.update_optional_features()
+        for con in app.connections.values():
+            con.get_module('Caps').update_caps()
 
     @log_calls('TictactoePlugin')
     def connect_with_chat_control(self, control):
