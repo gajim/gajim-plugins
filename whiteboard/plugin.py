@@ -82,27 +82,27 @@ class WhiteboardPlugin(GajimPlugin):
         self.announce_caps = True
 
     @log_calls('WhiteboardPlugin')
-    def _update_caps(self, account):
+    def _update_caps(self, _account, features):
         if not self.announce_caps:
             return
-        if NS_JINGLE_SXE not in app.gajim_optional_features[account]:
-            app.gajim_optional_features[account].append(NS_JINGLE_SXE)
-        if NS_SXE not in app.gajim_optional_features[account]:
-            app.gajim_optional_features[account].append(NS_SXE)
+
+        features.append(NS_JINGLE_SXE)
+        features.append(NS_SXE)
 
     @log_calls('WhiteboardPlugin')
     def activate(self):
         if not HAS_GOOCANVAS:
             raise GajimPluginException('python-pygoocanvas is missing!')
-        for account in app.caps_hash:
-            if app.caps_hash[account] != '':
-                self.announce_caps = True
-                helpers.update_optional_features(account)
+
+        self.announce_caps = True
+        for con in app.connections.values():
+            con.get_module('Caps').update_caps()
 
     @log_calls('WhiteboardPlugin')
     def deactivate(self):
         self.announce_caps = False
-        helpers.update_optional_features()
+        for con in app.connections.values():
+            con.get_module('Caps').update_caps()
 
     @log_calls('WhiteboardPlugin')
     def connect_with_chat_control(self, control):
