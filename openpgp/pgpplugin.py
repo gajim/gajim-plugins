@@ -115,11 +115,8 @@ class OpenPGPPlugin(GajimPlugin):
 
     def activate(self):
         for account in app.connections:
-            if app.caps_hash[account] != '':
-                # Gajim has already a caps hash calculated, update it
-                helpers.update_optional_features(account)
-
             con = app.connections[account]
+            con.get_module('Caps').update_caps()
             if app.account_is_connected(account):
                 if con.get_module('OpenPGP').secret_key_available:
                     log.info('%s => Publish keylist and public key '
@@ -131,10 +128,8 @@ class OpenPGPPlugin(GajimPlugin):
         pass
 
     @staticmethod
-    def _update_caps(account):
-        namespace = nbxmpp.NS_OPENPGP_PK + '+notify'
-        if namespace not in app.gajim_optional_features[account]:
-            app.gajim_optional_features[account].append(namespace)
+    def _update_caps(_account, features):
+        features.append('%s+notify' % nbxmpp.NS_OPENPGP_PK)
 
     def activate_encryption(self, chat_control):
         account = chat_control.account
