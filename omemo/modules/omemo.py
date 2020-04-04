@@ -23,7 +23,6 @@ import nbxmpp
 from nbxmpp.protocol import NodeProcessed
 from nbxmpp.protocol import JID
 from nbxmpp.util import is_error_result
-from nbxmpp.const import StatusCode
 from nbxmpp.const import PresenceType
 from nbxmpp.const import Affiliation
 from nbxmpp.structs import StanzaHandler
@@ -31,7 +30,6 @@ from nbxmpp.modules.omemo import create_omemo_message
 from nbxmpp.modules.omemo import get_key_transport_message
 
 from gajim.common import app
-from gajim.common import helpers
 from gajim.common import configpaths
 from gajim.common.nec import NetworkEvent
 from gajim.common.const import EncryptionData
@@ -137,9 +135,7 @@ class OMEMO(BaseModule):
     def activate(self):
         """ Method called when the Plugin is activated in the PluginManager
         """
-        if app.caps_hash[self._account] != '':
-            # Gajim has already a caps hash calculated, update it
-            helpers.update_optional_features(self._account)
+        self._con.get_module('Caps').update_caps()
 
         if app.account_is_connected(self._account):
             self._log.info('Announce Support after Plugin Activation')
@@ -151,12 +147,6 @@ class OMEMO(BaseModule):
         """ Method called when the Plugin is deactivated in the PluginManager
         """
         self._query_for_bundles = []
-
-    @staticmethod
-    def update_caps(account):
-        node = '%s+notify' % nbxmpp.NS_OMEMO_TEMP_DL
-        if node not in app.gajim_optional_features[account]:
-            app.gajim_optional_features[account].append(node)
 
     def encrypt_message(self, conn, event, callback, groupchat):
         if not event.message:
