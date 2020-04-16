@@ -1,111 +1,91 @@
 import logging
-import sys
+from functools import partial
 
 from gajim.plugins import GajimPlugin
+from gajim.plugins.plugins_i18n import _
 
 from syntax_highlight.types import LineBreakOptions
 from syntax_highlight.types import CodeMarkerOptions
 from syntax_highlight.types import PLUGIN_INTERNAL_NONE_LEXER_ID
-if sys.version_info >= (3, 4):
-    from importlib.util import find_spec as find_module
-else:
-    from importlib import find_loader as find_module
-
-PYGMENTS_MISSING = 'You are missing Python-Pygments.'
 
 log = logging.getLogger('gajim.p.syntax_highlight')
 
-
-def try_loading_pygments():
-    success = find_module('pygments') is not None
-    if success:
-        try:
-            from syntax_highlight.chat_syntax_highlighter import \
-                ChatSyntaxHighlighter
-            from syntax_highlight.plugin_config_dialog import \
-                SyntaxHighlighterPluginConfiguration
-            from syntax_highlight.plugin_config import SyntaxHighlighterConfig
-            global SyntaxHighlighterPluginConfiguration
-            global ChatSyntaxHighlighter
-            global SyntaxHighlighterConfig
-            success = True
-            log.debug("pygments loaded.")
-        except Exception as exception:
-            log.error("Import Error: %s.", exception)
-            success = False
-
-    return success
+HAS_PYGMENTS = False
+try:
+    from syntax_highlight.chat_syntax_highlighter import ChatSyntaxHighlighter
+    from syntax_highlight.config_dialog import SyntaxHighlighterPluginConfig
+    from syntax_highlight.highlighter_config import HighlighterConfig
+    HAS_PYGMENTS = True
+except Exception as exception:
+    log.error('Could not load pygments: %s', exception)
 
 
 class SyntaxHighlighterPlugin(GajimPlugin):
-    def on_connect_with_chat_control(self, chat_control):
-        account = chat_control.contact.account.name
-        jid = chat_control.contact.jid
-        if account not in self.ccontrol:
-            self.ccontrol[account] = {}
-        self.ccontrol[account][jid] = ChatSyntaxHighlighter(
-            self.conf, chat_control.conv_textview)
-
-    def on_disconnect_from_chat_control(self, chat_control):
-        account = chat_control.contact.account.name
-        jid = chat_control.contact.jid
-        del self.ccontrol[account][jid]
-
-    def on_print_real_text(self, text_view, real_text, other_tags, graphics,
-            iterator, additional):
-        account = text_view.account
-        for jid in self.ccontrol[account]:
-            if self.ccontrol[account][jid].textview != text_view:
-                continue
-            self.ccontrol[account][jid].process_text(
-                real_text, other_tags, graphics, iterator, additional)
-            return
-
-    def try_init(self):
-        """
-        Separating this part of the initialization from the init() method
-        allows repeating this step again, without reloading the plugin,
-        i.e. restarting Gajim for instance.
-        Doing so allows resolving the dependency issues without restart :)
-        """
-        pygments_loaded = try_loading_pygments()
-        if not pygments_loaded:
-            return False
-
-        self.activatable = True
-        self.available_text = None
-        self.config_dialog = SyntaxHighlighterPluginConfiguration(self)
-
-        self.conf = SyntaxHighlighterConfig(self.config)
-        # The following initialization requires pygments to be available.
-        self.conf.init_pygments()
-
-        self.config_dialog = SyntaxHighlighterPluginConfiguration(self)
-        self.config_dialog.set_config(self.conf)
-
-        self.gui_extension_points = {
-            'chat_control_base': (
-                self.on_connect_with_chat_control,
-                self.on_disconnect_from_chat_control),
-            'print_real_text': (self.on_print_real_text, None), }
-        return True
-
     def init(self):
-        self.ccontrol = {}
+        self.description = _(
+            'Source code syntax highlighting in the chat window.\n\n'
+            'Markdown-style syntax is supported, i.e. text inbetween '
+            '`single backticks` is rendered as inline code.\n'
+            '```language\n'
+            'selection is possible in multi-line code snippets inbetween '
+            'triple-backticks\n'
+            'Note the newlines in this case…\n'
+            '```\n\n'
+            'Changed settings will take effect after re-opening the message '
+            'tab/window.')
 
         self.config_default_values = {
             'default_lexer': (PLUGIN_INTERNAL_NONE_LEXER_ID, ''),
             'line_break': (LineBreakOptions.MULTILINE, ''),
             'style': ('default', ''),
             'font': ('Monospace 10', ''),
-            'bgcolor': ('#ccc', ''),
+            'bgcolor': ('rgb(200, 200, 200)', ''),
             'bgcolor_override': (True, ''),
             'code_marker': (CodeMarkerOptions.AS_COMMENT, ''),
-            'pygments_path': (None, ''), }
+        }
 
-        is_initialized = self.try_init()
+        self.gui_extension_points = {
+            'chat_control_base': (
+                self._connect_chat_control,
+                self._disconnect_chat_control),
+            'print_real_text': (self._on_print_real_text, None)
+        }
 
-        if not is_initialized:
+        if not HAS_PYGMENTS:
             self.activatable = False
-            self.available_text = PYGMENTS_MISSING
+            self.available_text = _('You are missing python-pygments.')
             self.config_dialog = None
+
+        self._migrate_settings()
+        self._highlighters = {}
+        self.config_dialog = partial(SyntaxHighlighterPluginConfig, self)
+        self.highlighter_config = HighlighterConfig(self.config)
+
+    def _migrate_settings(self):
+        line_break = self.config['line_break']
+        if isinstance(line_break, int):
+            self.config['line_break'] = LineBreakOptions(line_break)
+
+    def _connect_chat_control(self, chat_control):
+        highlighter = ChatSyntaxHighlighter(
+            self.config, self.highlighter_config, chat_control.conv_textview)
+        self._highlighters[chat_control.control_id] = highlighter
+
+    def _disconnect_chat_control(self, chat_control):
+        highlighter = self._highlighters.get(chat_control.control_id)
+        if highlighter is not None:
+            del highlighter
+            self._highlighters.pop(chat_control.control_id, None)
+
+    def _on_print_real_text(self, text_view, real_text, other_tags, graphics,
+                            iterator, additional):
+        for highlighter in self._highlighters.values():
+            if highlighter.textview != text_view:
+                continue
+            highlighter.process_text(
+                real_text, other_tags, graphics, iterator, additional)
+            return
+
+    def update_highlighters(self):
+        for highlighter in self._highlighters.values():
+            highlighter.update_config(self.config)

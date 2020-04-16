@@ -67,7 +67,7 @@ class GTKFormatter(Formatter):
 
     def format(self, tokensource, outfile):
         if not isinstance(outfile, Gtk.TextBuffer) or outfile is None:
-            log.warn("Did not get a buffer to format...")
+            log.warning('Did not get a buffer to format...')
             return
         buf = outfile
 
