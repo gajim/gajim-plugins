@@ -64,7 +64,7 @@ modules:
         url: https://ftp.gajim.org/plugins_releases/omemo_2.6.75.zip
         sha256: 1e090db7efd4473238a2a658e57039b306e1152fa3ba9be5f7b5f3f22460decb
       - type: file
-        path: org.gajim.Gajim.Plugin.omemo.metainfo.xml
+        path: ../omemo/org.gajim.Gajim.Plugin.omemo.metainfo.xml
         sha256: 795eabeddcee3338a627f84068ee07e8221cca4ae91c08030ffb57fdcccf750b
       - type: shell
         commands:

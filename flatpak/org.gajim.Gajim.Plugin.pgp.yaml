@@ -24,7 +24,7 @@ modules:
         url: https://ftp.gajim.org/plugins_releases/pgp_1.2.42.zip
         sha256: f221642f8590c0ac0a90c0c5f8983485bd95a485fbfc5486dbdc67dc747358aa
       - type: file
-        path: org.gajim.Gajim.Plugin.pgp.metainfo.xml
+        path: ../pgp/org.gajim.Gajim.Plugin.pgp.metainfo.xml
         sha256: fa574af0b79ae62599d6d7c9c4016742de3b1b4b10890f66b096b7581dfe593d
       - type: shell
         commands:
