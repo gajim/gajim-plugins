@@ -19,6 +19,7 @@ import time
 import threading
 
 import nbxmpp
+from nbxmpp.namespaces import Namespace
 from nbxmpp.structs import StanzaHandler
 from gi.repository import GLib
 
@@ -41,18 +42,18 @@ from pgp.exceptions import NoKeyIdFound
 name = 'PGPLegacy'
 zeroconf = True
 
-ALLOWED_TAGS = [('request', nbxmpp.NS_RECEIPTS),
-                ('active', nbxmpp.NS_CHATSTATES),
-                ('gone', nbxmpp.NS_CHATSTATES),
-                ('inactive', nbxmpp.NS_CHATSTATES),
-                ('paused', nbxmpp.NS_CHATSTATES),
-                ('composing', nbxmpp.NS_CHATSTATES),
-                ('no-store', nbxmpp.NS_MSG_HINTS),
-                ('store', nbxmpp.NS_MSG_HINTS),
-                ('no-copy', nbxmpp.NS_MSG_HINTS),
-                ('no-permanent-store', nbxmpp.NS_MSG_HINTS),
-                ('replace', nbxmpp.NS_CORRECT),
-                ('origin-id', nbxmpp.NS_SID),
+ALLOWED_TAGS = [('request', Namespace.RECEIPTS),
+                ('active', Namespace.CHATSTATES),
+                ('gone', Namespace.CHATSTATES),
+                ('inactive', Namespace.CHATSTATES),
+                ('paused', Namespace.CHATSTATES),
+                ('composing', Namespace.CHATSTATES),
+                ('no-store', Namespace.HINTS),
+                ('store', Namespace.HINTS),
+                ('no-copy', Namespace.HINTS),
+                ('no-permanent-store', Namespace.HINTS),
+                ('replace', Namespace.CORRECT),
+                ('origin-id', Namespace.SID),
                 ]
 
 
@@ -63,11 +64,11 @@ class PGPLegacy(BaseModule):
         self.handlers = [
             StanzaHandler(name='message',
                           callback=self._message_received,
-                          ns=nbxmpp.NS_ENCRYPTED,
+                          ns=Namespace.ENCRYPTED,
                           priority=9),
             StanzaHandler(name='presence',
                           callback=self._on_presence_received,
-                          ns=nbxmpp.NS_SIGNED,
+                          ns=Namespace.SIGNED,
                           priority=48),
         ]
 
@@ -205,10 +206,10 @@ class PGPLegacy(BaseModule):
 
     def _create_pgp_legacy_message(self, stanza, payload):
         stanza.setBody(self._get_info_message())
-        stanza.setTag('x', namespace=nbxmpp.NS_ENCRYPTED).setData(payload)
+        stanza.setTag('x', namespace=Namespace.ENCRYPTED).setData(payload)
         eme_node = nbxmpp.Node('encryption',
-                               attrs={'xmlns': nbxmpp.NS_EME,
-                                      'namespace': nbxmpp.NS_ENCRYPTED})
+                               attrs={'xmlns': Namespace.EME,
+                                      'namespace': Namespace.ENCRYPTED})
         stanza.addChild(node=eme_node)
 
     def sign_presence(self, presence, status):
@@ -224,7 +225,7 @@ class PGPLegacy(BaseModule):
             return
         # self._log.debug(self._pgp.sign.cache_info())
         self._log.info('Presence signed')
-        presence.setTag(nbxmpp.NS_SIGNED + ' x').setData(result)
+        presence.setTag(Namespace.SIGNED + ' x').setData(result)
 
     @staticmethod
     def _get_info_message():

@@ -17,11 +17,11 @@
 import os
 import subprocess
 
-import nbxmpp
+from nbxmpp.namespaces import Namespace
 
 
 def prepare_stanza(stanza, plaintext):
-    delete_nodes(stanza, 'encrypted', nbxmpp.NS_ENCRYPTED)
+    delete_nodes(stanza, 'encrypted', Namespace.ENCRYPTED)
     delete_nodes(stanza, 'body')
     stanza.setBody(plaintext)
 
