@@ -20,7 +20,7 @@ from pathlib import Path
 
 from gi.repository import Gtk
 from gi.repository import Gdk
-import nbxmpp
+from nbxmpp.namespaces import Namespace
 from nbxmpp import JID
 
 from gajim.common import app
@@ -129,7 +129,7 @@ class OpenPGPPlugin(GajimPlugin):
 
     @staticmethod
     def _update_caps(_account, features):
-        features.append('%s+notify' % nbxmpp.NS_OPENPGP_PK)
+        features.append('%s+notify' % Namespace.OPENPGP_PK)
 
     def activate_encryption(self, chat_control):
         account = chat_control.account

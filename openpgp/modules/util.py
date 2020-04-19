@@ -17,17 +17,17 @@
 from enum import IntEnum
 from collections import namedtuple
 
-import nbxmpp
+from nbxmpp.namespaces import Namespace
 
 
 ENCRYPTION_NAME = 'OpenPGP'
 
 NOT_ENCRYPTED_TAGS = [
-    ('no-store', nbxmpp.NS_MSG_HINTS),
-    ('store', nbxmpp.NS_MSG_HINTS),
-    ('no-copy', nbxmpp.NS_MSG_HINTS),
-    ('no-permanent-store', nbxmpp.NS_MSG_HINTS),
-    ('origin-id', nbxmpp.NS_SID),
+    ('no-store', Namespace.HINTS),
+    ('store', Namespace.HINTS),
+    ('no-copy', Namespace.HINTS),
+    ('no-permanent-store', Namespace.HINTS),
+    ('origin-id', Namespace.SID),
     ('thread', None)
 ]
 
@@ -42,7 +42,7 @@ class Trust(IntEnum):
 
 
 def prepare_stanza(stanza, payload):
-    delete_nodes(stanza, 'openpgp', nbxmpp.NS_OPENPGP)
+    delete_nodes(stanza, 'openpgp', Namespace.OPENPGP)
     delete_nodes(stanza, 'body')
 
     nodes = [(node.getName(), node.getNamespace()) for node in payload]
@@ -56,7 +56,7 @@ def prepare_stanza(stanza, payload):
 def delete_nodes(stanza, name, namespace=None):
     attrs = None
     if namespace is not None:
-        attrs = {'xmlns': nbxmpp.NS_OPENPGP}
+        attrs = {'xmlns': Namespace.OPENPGP}
     nodes = stanza.getTags(name, attrs)
     for node in nodes:
         stanza.delChild(node)

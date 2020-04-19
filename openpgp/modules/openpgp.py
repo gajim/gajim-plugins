@@ -18,7 +18,7 @@ import time
 import logging
 from pathlib import Path
 
-import nbxmpp
+from nbxmpp.namespaces import Namespace
 from nbxmpp import Node
 from nbxmpp import StanzaMalformed
 from nbxmpp.util import is_error_result
@@ -72,7 +72,7 @@ class OpenPGP(BaseModule):
         self.handlers = [
             StanzaHandler(name='message',
                           callback=self.decrypt_message,
-                          ns=nbxmpp.NS_OPENPGP,
+                          ns=Namespace.OPENPGP,
                           priority=9),
         ]
 
@@ -133,7 +133,7 @@ class OpenPGP(BaseModule):
         log.info('%s => Publish keylist', self._account)
         self._nbxmpp('OpenPGP').set_keylist(keylist)
 
-    @event_node(nbxmpp.NS_OPENPGP_PK)
+    @event_node(Namespace.OPENPGP_PK)
     def _keylist_notification_received(self, _con, _stanza, properties):
         if properties.pubsub_event.retracted:
             return
