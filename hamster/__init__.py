@@ -1,1 +1,0 @@
-from .hamster import HamsterIntegrationPlugin
