@@ -20,6 +20,7 @@ import os
 import time
 
 import nbxmpp
+from nbxmpp.namespaces import Namespace
 from nbxmpp.protocol import NodeProcessed
 from nbxmpp.protocol import JID
 from nbxmpp.util import is_error_result
@@ -50,19 +51,19 @@ from omemo.modules.util import prepare_stanza
 
 
 ALLOWED_TAGS = [
-    ('request', nbxmpp.NS_RECEIPTS),
-    ('active', nbxmpp.NS_CHATSTATES),
-    ('gone', nbxmpp.NS_CHATSTATES),
-    ('inactive', nbxmpp.NS_CHATSTATES),
-    ('paused', nbxmpp.NS_CHATSTATES),
-    ('composing', nbxmpp.NS_CHATSTATES),
-    ('no-store', nbxmpp.NS_MSG_HINTS),
-    ('store', nbxmpp.NS_MSG_HINTS),
-    ('no-copy', nbxmpp.NS_MSG_HINTS),
-    ('no-permanent-store', nbxmpp.NS_MSG_HINTS),
-    ('replace', nbxmpp.NS_CORRECT),
+    ('request', Namespace.RECEIPTS),
+    ('active', Namespace.CHATSTATES),
+    ('gone', Namespace.CHATSTATES),
+    ('inactive', Namespace.CHATSTATES),
+    ('paused', Namespace.CHATSTATES),
+    ('composing', Namespace.CHATSTATES),
+    ('no-store', Namespace.HINTS),
+    ('store', Namespace.HINTS),
+    ('no-copy', Namespace.HINTS),
+    ('no-permanent-store', Namespace.HINTS),
+    ('replace', Namespace.CORRECT),
     ('thread', None),
-    ('origin-id', nbxmpp.NS_SID),
+    ('origin-id', Namespace.SID),
 ]
 
 ENCRYPTION_NAME = 'OMEMO'
@@ -88,11 +89,11 @@ class OMEMO(BaseModule):
         self.handlers = [
             StanzaHandler(name='message',
                           callback=self._message_received,
-                          ns=nbxmpp.NS_OMEMO_TEMP,
+                          ns=Namespace.OMEMO_TEMP,
                           priority=9),
             StanzaHandler(name='presence',
                           callback=self._on_muc_user_presence,
-                          ns=nbxmpp.NS_MUC_USER,
+                          ns=Namespace.MUC_USER,
                           priority=48),
         ]
 
@@ -470,7 +471,7 @@ class OMEMO(BaseModule):
 
         self._process_devicelist_update(jid, devicelist)
 
-    @event_node(nbxmpp.NS_OMEMO_TEMP_DL)
+    @event_node(Namespace.OMEMO_TEMP_DL)
     def _devicelist_notification_received(self, _con, _stanza, properties):
         if properties.pubsub_event.retracted:
             return

@@ -15,11 +15,11 @@
 # along with OMEMO Gajim Plugin. If not, see <http://www.gnu.org/licenses/>.
 
 
-import nbxmpp
+from nbxmpp.namespaces import Namespace
 
 
 def prepare_stanza(stanza, plaintext):
-    delete_nodes(stanza, 'encrypted', nbxmpp.NS_OMEMO_TEMP)
+    delete_nodes(stanza, 'encrypted', Namespace.OMEMO_TEMP)
     delete_nodes(stanza, 'body')
     stanza.setBody(plaintext)
 

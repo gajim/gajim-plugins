@@ -26,7 +26,7 @@ from gi.repository import GLib
 from gi.repository import Gtk
 from gi.repository import Gdk
 
-import nbxmpp
+from nbxmpp.namespaces import Namespace
 
 from gajim import dialogs
 from gajim.common import app, ged
@@ -193,7 +193,7 @@ class OmemoPlugin(GajimPlugin):
     def _update_caps(self, account, features):
         if not self._is_enabled_account(account):
             return
-        features.append('%s+notify' % nbxmpp.NS_OMEMO_TEMP_DL)
+        features.append('%s+notify' % Namespace.OMEMO_TEMP_DL)
 
     @staticmethod
     def activate_encryption(chat_control):
