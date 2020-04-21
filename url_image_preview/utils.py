@@ -216,6 +216,7 @@ def pixbuf_from_data(data):
     loader = GdkPixbuf.PixbufLoader()
     try:
         loader.write(data)
+        loader.close()
     except GLib.Error:
         # Fallback to Pillow
         input_file = BytesIO(data)
@@ -233,7 +234,6 @@ def pixbuf_from_data(data):
         input_file.close()
         return pixbuf
 
-    loader.close()
     return loader.get_pixbuf()
 
 

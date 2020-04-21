@@ -344,7 +344,13 @@ class UrlImagePreviewPlugin(GajimPlugin):
 
         preview.thumbnail = data
 
-        pixbuf = pixbuf_from_data(preview.thumbnail)
+        try:
+            pixbuf = pixbuf_from_data(preview.thumbnail)
+        except Exception as err:
+            log.error('Unable to load: %s, %s',
+                      preview.thumb_path.name,
+                      err)
+            return
         self._update_textview(pixbuf, preview)
 
     def _download_content(self, preview):
@@ -426,7 +432,14 @@ class UrlImagePreviewPlugin(GajimPlugin):
             return
 
         log.info('Thumbnail stored: %s ', preview.thumb_path.name)
-        pixbuf = pixbuf_from_data(preview.thumbnail)
+
+        try:
+            pixbuf = pixbuf_from_data(preview.thumbnail)
+        except Exception as err:
+            log.error('Unable to load: %s, %s',
+                      preview.thumb_path.name,
+                      err)
+            return
         self._update_textview(pixbuf, preview)
 
     def _update_textview(self, pixbuf, preview):
