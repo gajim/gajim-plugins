@@ -81,7 +81,7 @@ class Triggers(GajimPlugin):
 
     def _check_rule_status(self, obj, rule):
         rule_statuses = rule['status'].split()
-        our_status = app.SHOW_LIST[obj.conn.connected]
+        our_status = app.connections[obj.conn.name].status
         if rule['status'] != 'all' and our_status not in rule_statuses:
             return False
 
