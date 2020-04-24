@@ -294,7 +294,7 @@ class TriggersPluginConfigDialog(GajimPluginConfigDialog):
         # Fill window
         for w in ('conditions_treeview', 'config_box', 'event_combobox',
         'recipient_type_combobox', 'recipient_list_entry', 'delete_button',
-        'online_cb', 'away_cb', 'xa_cb', 'dnd_cb', 'invisible_cb',
+        'online_cb', 'away_cb', 'xa_cb', 'dnd_cb',
         'use_sound_cb', 'disable_sound_cb', 'use_popup_cb',
         'disable_popup_cb', 'use_auto_open_cb', 'disable_auto_open_cb',
         'use_systray_cb', 'disable_systray_cb', 'use_roster_cb',
@@ -382,7 +382,7 @@ class TriggersPluginConfigDialog(GajimPluginConfigDialog):
         else:
             self._ui.special_status_rb.set_active(True)
             values = value.split()
-            for v in ('online', 'away', 'xa', 'dnd', 'invisible'):
+            for v in ('online', 'away', 'xa', 'dnd'):
                 if v in values:
                     self._ui.__dict__[v + '_cb'].set_active(True)
                 else:
@@ -461,7 +461,7 @@ class TriggersPluginConfigDialog(GajimPluginConfigDialog):
             status = ''
         else:
             status = _('and I am: ')
-            for st in ('online', 'away', 'xa', 'dnd', 'invisible'):
+            for st in ('online', 'away', 'xa', 'dnd'):
                 if self._ui.__dict__[st + '_cb'].get_active():
                     status += helpers.get_uf_show(st) + ' '
         model[iter_][1] = _('When event: %(event)s for category: '
@@ -592,7 +592,7 @@ class TriggersPluginConfigDialog(GajimPluginConfigDialog):
         if self.active_num < 0:
             return
         status = ''
-        for st in ('online', 'away', 'xa', 'dnd', 'invisible'):
+        for st in ('online', 'away', 'xa', 'dnd'):
             if self._ui.__dict__[st + '_cb'].get_active():
                 status += st + ' '
         if status:
@@ -607,13 +607,13 @@ class TriggersPluginConfigDialog(GajimPluginConfigDialog):
             self._ui.status_expander.set_expanded(False)
             self.config[self.active_num]['status'] = 'all'
             # 'All status' clicked
-            for st in ('online', 'away', 'xa', 'dnd', 'invisible'):
+            for st in ('online', 'away', 'xa', 'dnd'):
                 self._ui.__dict__[st + '_cb'].set_sensitive(False)
         else:
             self._ui.status_expander.set_expanded(True)
             self.set_status_config()
             # 'special status' clicked
-            for st in ('online', 'away', 'xa', 'dnd', 'invisible'):
+            for st in ('online', 'away', 'xa', 'dnd'):
                 self._ui.__dict__[st + '_cb'].set_sensitive(True)
 
         self.set_treeview_string()
