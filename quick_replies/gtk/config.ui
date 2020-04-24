@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Generated with glade 3.22.2 -->
+<interface>
+  <requires lib="gtk+" version="3.20"/>
+  <object class="GtkListStore" id="replies_store">
+    <columns>
+      <!-- column-name reply -->
+      <column type="gchararray"/>
+    </columns>
+  </object>
+  <object class="GtkBox" id="box">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <property name="border_width">18</property>
+    <property name="orientation">vertical</property>
+    <child>
+      <object class="GtkScrolledWindow">
+        <property name="visible">True</property>
+        <property name="can_focus">True</property>
+        <property name="vexpand">True</property>
+        <property name="shadow_type">in</property>
+        <child>
+          <object class="GtkTreeView" id="replies_treeview">
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="model">replies_store</property>
+            <property name="search_column">1</property>
+            <child internal-child="selection">
+              <object class="GtkTreeSelection" id="selection">
+                <property name="mode">multiple</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkTreeViewColumn">
+                <property name="resizable">True</property>
+                <property name="title" translatable="yes">Quick Reply</property>
+                <property name="clickable">True</property>
+                <property name="sort_indicator">True</property>
+                <property name="sort_column_id">0</property>
+                <child>
+                  <object class="GtkCellRendererText">
+                    <property name="editable">True</property>
+                    <signal name="edited" handler="_on_reply_edited" swapped="no"/>
+                  </object>
+                  <attributes>
+                    <attribute name="text">0</attribute>
+                  </attributes>
+                </child>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+      <packing>
+        <property name="expand">False</property>
+        <property name="fill">True</property>
+        <property name="position">0</property>
+      </packing>
+    </child>
+    <child>
+      <object class="GtkToolbar">
+        <property name="visible">True</property>
+        <property name="can_focus">False</property>
+        <property name="toolbar_style">icons</property>
+        <property name="icon_size">4</property>
+        <child>
+          <object class="GtkToolButton">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="tooltip_text" translatable="yes">Add</property>
+            <property name="icon_name">list-add-symbolic</property>
+            <signal name="clicked" handler="_on_add_clicked" swapped="no"/>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="homogeneous">True</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkToolButton">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="tooltip_text" translatable="yes">Remove</property>
+            <property name="icon_name">list-remove-symbolic</property>
+            <signal name="clicked" handler="_on_remove_clicked" swapped="no"/>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="homogeneous">True</property>
+          </packing>
+        </child>
+        <style>
+          <class name="inline-toolbar"/>
+        </style>
+      </object>
+      <packing>
+        <property name="expand">False</property>
+        <property name="fill">True</property>
+        <property name="position">1</property>
+      </packing>
+    </child>
+  </object>
+</interface>
