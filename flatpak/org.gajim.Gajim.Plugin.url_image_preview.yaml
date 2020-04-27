@@ -1,5 +1,5 @@
-id: org.gajim.Gajim.Devel.Plugin.url_image_preview
-runtime: org.gajim.Gajim.Devel
+id: org.gajim.Gajim.Plugin.url_image_preview
+runtime: org.gajim.Gajim
 sdk: org.gnome.Sdk//3.36
 build-extension: true
 separate-locales: false
@@ -18,11 +18,8 @@ modules:
       - 'cp -R -t ${FLATPAK_DEST} *'
     post-install:
       - install -Dm644 --target-directory=${FLATPAK_DEST}/share/metainfo org.gajim.Gajim.Plugin.url_image_preview.metainfo.xml
-      - appstream-compose --basename=org.gajim.Gajim.Devel.Plugin.url_image_preview --prefix=${FLATPAK_DEST} --origin=flatpak org.gajim.Gajim.Plugin.url_image_preview
+      - appstream-compose --basename=org.gajim.Gajim.Plugin.url_image_preview --prefix=${FLATPAK_DEST} --origin=flatpak org.gajim.Gajim.Plugin.url_image_preview
     sources:
       - type: archive
         url: https://ftp.gajim.org/plugins_releases/url_image_preview_2.4.3.zip
         sha256: 6d181972e3488400729ff8063e1bf7d2ab45b8f00fb5645d22ff5806c6cd24de
-      - type: shell
-        commands:
-          - sed -i "s+org.gajim.Gajim+org.gajim.Gajim.Devel+" org.gajim.Gajim.Plugin.*.metainfo.xml

@@ -1,5 +1,5 @@
-id: org.gajim.Gajim.Devel.Plugin.openpgp
-runtime: org.gajim.Gajim.Devel
+id: org.gajim.Gajim.Plugin.openpgp
+runtime: org.gajim.Gajim
 sdk: org.gnome.Sdk//3.36
 build-extension: true
 separate-locales: false
@@ -17,7 +17,7 @@ modules:
       - 'cp -R -t ${FLATPAK_DEST} *'
     post-install:
       - install -Dm644 --target-directory=${FLATPAK_DEST}/share/metainfo org.gajim.Gajim.Plugin.openpgp.metainfo.xml
-      - appstream-compose --basename=org.gajim.Gajim.Devel.Plugin.openpgp --prefix=${FLATPAK_DEST} --origin=flatpak org.gajim.Gajim.Plugin.openpgp
+      - appstream-compose --basename=org.gajim.Gajim.Plugin.openpgp --prefix=${FLATPAK_DEST} --origin=flatpak org.gajim.Gajim.Plugin.openpgp
     sources:
       - type: archive
         url: https://ftp.gajim.org/plugins_releases/openpgp_1.2.9.zip
@@ -25,6 +25,3 @@ modules:
       - type: file
         path: ../openpgp/org.gajim.Gajim.Plugin.openpgp.metainfo.xml
         sha256: 4769307f972aca3320311c1b0e514a7e41f1d1f437887147eb84ff1ec3245203
-      - type: shell
-        commands:
-          - sed -i "s+org.gajim.Gajim+org.gajim.Gajim.Devel+" org.gajim.Gajim.Plugin.*.metainfo.xml
