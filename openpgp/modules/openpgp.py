@@ -234,7 +234,7 @@ class OpenPGP(BaseModule):
         keys += self._contacts.get_keys(self.own_jid)
         keys += [Key(self._fingerprint, None)]
 
-        payload = create_signcrypt_node(obj.msg_iq, NOT_ENCRYPTED_TAGS)
+        payload = create_signcrypt_node(obj.stanza, NOT_ENCRYPTED_TAGS)
 
         encrypted_payload, error = self._pgp.encrypt(payload, keys)
         if error:
@@ -249,7 +249,7 @@ class OpenPGP(BaseModule):
                              session=None))
             return
 
-        create_message_stanza(obj.msg_iq, encrypted_payload, bool(obj.message))
+        create_message_stanza(obj.stanza, encrypted_payload, bool(obj.message))
         add_additional_data(obj.additional_data,
                             self._fingerprint)
 
