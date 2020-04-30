@@ -169,7 +169,7 @@ class OMEMO(BaseModule):
                              session=session))
             return
 
-        create_omemo_message(event.msg_iq, omemo_message,
+        create_omemo_message(event.stanza, omemo_message,
                              node_whitelist=ALLOWED_TAGS)
 
         if groupchat:
@@ -179,7 +179,7 @@ class OMEMO(BaseModule):
             event.encrypted = ENCRYPTION_NAME
             event.additional_data['encrypted'] = {'name': ENCRYPTION_NAME}
 
-        self._debug_print_stanza(event.msg_iq)
+        self._debug_print_stanza(event.stanza)
         callback(event)
 
     def _send_key_transport_message(self, typ, jid, devices):
