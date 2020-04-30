@@ -20,7 +20,7 @@ from nbxmpp.modules.dataforms import extend_form
 from gi.repository import Gtk
 
 from gajim.common import app
-from gajim.common.connection_handlers_events import MessageOutgoingEvent
+from gajim.common.structs import OutgoingMessage
 
 from gajim.gtk.dataform import DataFormWidget
 
@@ -52,11 +52,21 @@ class FormDialog(Gtk.ApplicationWindow):
 
     def _on_send_clicked(self, _button):
         form = self._form_widget.get_submit_form()
-        app.nec.push_outgoing_event(MessageOutgoingEvent(None,
-                                                         account=self._account,
-                                                         jid=self._jid,
-                                                         form_node=form,
-                                                         is_loggable=False))
+
+        contact = app.contacts.get_contact(self._account, self._jid)
+        if contact is None:
+            return
+
+        message = OutgoingMessage(account=self._account,
+                                  contact=contact,
+                                  message='Form sent',
+                                  type_='chat',
+                                  nodes=[form])
+
+        message.is_loggable = False
+
+        app.connections[self._account].send_message(message)
+
         control = find_control(self._account, self._jid)
         if control is None:
             return
