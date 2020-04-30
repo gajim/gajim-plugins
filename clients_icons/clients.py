@@ -64,6 +64,7 @@ class ClientsDict(UserDict):
 
 CLIENTS = ClientsDict({
     'http://gajim.org': ClientData(('Gajim', 'gajim')),
+    'https://gajim.org': ClientData(('Gajim', 'gajim')),
     'http://conversations.im': ClientData(
         default=('Conversations', 'conversations'),
         variations={'Conversations Legacy': 'conversations-legacy'}
