@@ -168,7 +168,7 @@ class PGPLegacy(BaseModule):
             return
 
         self._cleanup_stanza(event)
-        self._create_pgp_legacy_message(event.msg_iq, encrypted_payload)
+        self._create_pgp_legacy_message(event.stanza, encrypted_payload)
 
         event.xhtml = None
         event.encrypted = 'PGP'
@@ -253,15 +253,15 @@ class PGPLegacy(BaseModule):
     def _cleanup_stanza(obj):
         ''' We make sure only allowed tags are in the stanza '''
         stanza = nbxmpp.Message(
-            to=obj.msg_iq.getTo(),
-            typ=obj.msg_iq.getType())
+            to=obj.stanza.getTo(),
+            typ=obj.stanza.getType())
         stanza.setID(obj.stanza_id)
-        stanza.setThread(obj.msg_iq.getThread())
+        stanza.setThread(obj.stanza.getThread())
         for tag, ns in ALLOWED_TAGS:
-            node = obj.msg_iq.getTag(tag, namespace=ns)
+            node = obj.stanza.getTag(tag, namespace=ns)
             if node:
                 stanza.addChild(node=node)
-        obj.msg_iq = stanza
+        obj.stanza = stanza
 
     def encrypt_file(self, file, callback):
         thread = threading.Thread(target=self._encrypt_file_thread,
