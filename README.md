@@ -24,7 +24,6 @@ There are several ways to install a plugin:
 |Gajim master|[master branch](https://dev.gajim.org/gajim/gajim-plugins/tree/master)|
 |Gajim 1.2|[1.2 branch](https://dev.gajim.org/gajim/gajim-plugins/tree/gajim_1.2)|
 |Gajim 1.1|[1.1 branch](https://dev.gajim.org/gajim/gajim-plugins/tree/gajim_1.1)|
-|Gajim 1.1|[1.1 branch](https://dev.gajim.org/gajim/gajim-plugins/tree/gajim_1.1)|
 |Gajim 1.0|[1.0 branch](https://dev.gajim.org/gajim/gajim-plugins/tree/gajim_1.0)|
 
 *Note: Using master branch for plugins requires frequent updates of both Gajim and plugins!*
