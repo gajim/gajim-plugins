@@ -28,6 +28,10 @@ from functools import partial
 
 from gi.repository import Gtk
 
+from nbxmpp.protocol import JID
+
+from gajim.common import app
+
 from gajim.plugins import GajimPlugin
 from gajim.plugins.plugins_i18n import _
 
@@ -45,8 +49,8 @@ class LengthNotifierPlugin(GajimPlugin):
 
         self.gui_extension_points = {
             'chat_control_base': (
-                self._on_connect_chat_control,
-                self._on_disconnect_chat_control
+                self._connect_chat_control,
+                self._disconnect_chat_control
             )
         }
 
@@ -65,7 +69,7 @@ class LengthNotifierPlugin(GajimPlugin):
 
         self._counters = {}
 
-    def _on_connect_chat_control(self, chat_control):
+    def _connect_chat_control(self, chat_control):
         jid = chat_control.contact.jid
         if self._check_jid(jid):
             counter = Counter(chat_control, self.config)
@@ -74,25 +78,41 @@ class LengthNotifierPlugin(GajimPlugin):
             actions_hbox.pack_start(counter, False, False, 0)
             counter.show()
 
-    def _on_disconnect_chat_control(self, chat_control):
+    def _disconnect_chat_control(self, chat_control):
         counter = self._counters.get(chat_control.control_id)
         if counter is not None:
+            counter.reset()
             counter.destroy()
             self._counters.pop(chat_control.control_id, None)
 
     def _check_jid(self, jid):
-        allowed_jids = []
-        if len(self.config['JIDS']) > 0:
-            allowed_jids = self.config['JIDS'].split(',')
+        if not self.config['JIDS']:
+            # Not restricted to any JIDs
+            return True
 
-        jid_allowed = jid in allowed_jids or not self.config['JIDS']
-        if not jid_allowed:
-            log.debug('No counter for JID %s' % jid)
-        return jid_allowed
+        current_jid = JID(jid)
+        allowed_jids = self.config['JIDS'].split(',')
+        for allowed_jid in allowed_jids:
+            try:
+                address = JID(allowed_jid.strip())
+            except Exception as error:
+                log.debug('Error parsing JID: %s (%s)' % (error, allowed_jid))
+                continue
+            if address.isDomain:
+                if current_jid.getDomain() == address:
+                    log.debug('Add counter for Domain %s' % address)
+                    return True
+            if current_jid == address:
+                log.debug('Add counter for JID %s' % address)
+                return True
 
-    def update_settings(self):
-        for counter in self._counters.values():
-            counter.update_settings(self.config)
+    def update(self):
+        if not app.plugin_manager.get_active_plugin('length_notifier'):
+            # Don’t update if the plugin is disabled
+            return
+        for control in app.interface.msg_win_mgr.get_controls():
+            self._disconnect_chat_control(control)
+            self._connect_chat_control(control)
 
 
 class Counter(Gtk.Label):
@@ -107,11 +127,11 @@ class Counter(Gtk.Label):
 
         self._textview = self._control.msg_textview
         self._textbuffer = self._textview.get_buffer()
-        self._textbuffer.connect('changed', self._text_changed)
+        self._textbuffer.connect('changed', self._update)
         self._provider = None
 
-        self._set_count('0')
         self._set_css()
+        self._update()
 
     def _set_css(self):
         self._context = self._textview.get_style_context()
@@ -127,7 +147,10 @@ class Counter(Gtk.Label):
         self._context.add_provider(
             self._provider, Gtk.STYLE_PROVIDER_PRIORITY_USER)
 
-    def _text_changed(self, *args):
+    def _set_count(self, count):
+        self.set_label(str(count))
+
+    def _update(self, *args):
         if self._textview.has_text():
             text = self._textbuffer.get_text(
                 self._textbuffer.get_start_iter(),
@@ -143,11 +166,5 @@ class Counter(Gtk.Label):
             self._set_count('0')
             self._context.remove_class('length-warning')
 
-    def _set_count(self, count):
-        self.set_label(str(count))
-
-    def update_settings(self, new_config):
-        self._max_length = new_config['MESSAGE_WARNING_LENGTH']
-        self._color = new_config['WARNING_COLOR']
-        self._set_css()
-        self._text_changed()
+    def reset(self):
+        self._context.remove_class('length-warning')
