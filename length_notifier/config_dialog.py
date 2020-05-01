@@ -70,7 +70,7 @@ class LengthNotifierConfigDialog(SettingsDialog):
         if isinstance(value, str):
             value.strip()
         self.plugin.config[data] = value
-        self.plugin.update_settings()
+        self.plugin.update()
 
 
 class SizeSpinSetting(SpinSetting):
