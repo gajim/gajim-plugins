@@ -21,8 +21,8 @@ modules:
       - appstream-compose --basename=org.gajim.Gajim.Devel.Plugin.pgp --prefix=${FLATPAK_DEST} --origin=flatpak org.gajim.Gajim.Plugin.pgp
     sources:
       - type: archive
-        url: https://ftp.gajim.org/plugins_releases/pgp_1.3.0.zip
-        sha256: ec39557f6593f9575ac05da4c17592fec5a21ceafa3b6f5891de08d7da6f5652
+        url: https://ftp.gajim.org/plugins_releases/pgp_1.3.1.zip
+        sha256: 4a241ba92b54704ee6a49ef1c0f6230cc294e0018e64b553e0cd92ad80d22bac
       - type: shell
         commands:
           - sed -i "s+org.gajim.Gajim+org.gajim.Gajim.Devel+" org.gajim.Gajim.Plugin.*.metainfo.xml
