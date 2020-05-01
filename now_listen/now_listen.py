@@ -1,14 +1,31 @@
-import os
-import logging
+# This file is part of Gajim.
+#
+# Gajim is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# Gajim is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with Gajim. If not, see <http://www.gnu.org/licenses/>.
 
-from gi.repository import Gtk
+import sys
+import logging
+from functools import partial
+
 from gi.repository import Gdk
+from gi.repository import GObject
 
 from gajim.plugins import GajimPlugin
-from gajim.plugins.gui import GajimPluginConfigDialog
 from gajim.plugins.plugins_i18n import _
 
 from gajim.common.dbus.music_track import MusicTrackListener
+
+from now_listen.gtk.config import NowListenConfigDialog
 
 
 log = logging.getLogger('gajim.p.now_listen')
@@ -19,24 +36,21 @@ class NowListenPlugin(GajimPlugin):
         # pylint: disable=attribute-defined-outside-init
         self.description = _('Copy tune info of playing music to conversation '
                              'input box at cursor position (Alt + N)')
-        self.config_dialog = NowListenPluginConfigDialog(self)
+        self.config_dialog = partial(NowListenConfigDialog, self)
         self.gui_extension_points = {'chat_control_base':
                                      (self._on_connect_chat_control,
                                       self._on_disconnect_chat_control)}
 
         self.config_default_values = {
             'format_string':
-                (_('Now listening to: "%title" by %artist from %album'), ''),
-            'format_string_http':
-                (_('Now listening to: "%title" by %artist'), ''), }
+                (_('Now listening to: "%title" by %artist'), ''),
+        }
 
-        if os.name == 'nt':
-            self.available_text = _('Plugin cannot be run under Windows.')
+        if sys.platform != 'linux':
+            self.available_text = _('Plugin only available for Linux')
             self.activatable = False
 
         self._event_ids = {}
-        self._track_changed_id = None
-        self._music_track_info = None
 
     def _on_connect_chat_control(self, control):
         signal_id = control.msg_textview.connect('key-press-event',
@@ -45,35 +59,14 @@ class NowListenPlugin(GajimPlugin):
 
     def _on_disconnect_chat_control(self, control):
         signal_id = self._event_ids.pop(control.control_id)
-        # Raises a warning because the textview is already destroyed
-        # But for the deactivate() case this method is called for all active
-        # controls and in this case the textview is not destroyed
-        # We need someway to detect if the textview is already destroyed
-        control.msg_textview.disconnect(signal_id)
+        if GObject.signal_handler_is_connected(control.msg_textview, signal_id):
+            control.msg_textview.disconnect(signal_id)
 
-    def activate(self):
-        listener = MusicTrackListener.get()
-        self._track_changed_id = listener.connect(
-            'music-track-changed',
-            self._on_music_track_changed)
-
-        listener.start()
-
-    def deactivate(self):
-        listener = MusicTrackListener.get()
-        if self._track_changed_id is not None:
-            listener.disconnect(self._track_changed_id)
-            self._track_changed_id = None
-
-    def _on_music_track_changed(self, _listener, music_track_info):
-        self._music_track_info = music_track_info
-
-    def _get_tune_string(self):
+    def _get_tune_string(self, info):
         format_string = self.config['format_string']
         tune_string = format_string.\
-            replace('%artist', self._music_track_info.artist).\
-            replace('%title', self._music_track_info.title).\
-            replace('%album', self._music_track_info.album)
+            replace('%artist', info.artist or '').\
+            replace('%title', info.title or '')
         return tune_string
 
     def _on_insert(self, textview, event):
@@ -83,37 +76,13 @@ class NowListenPlugin(GajimPlugin):
         if not event.state & Gdk.ModifierType.MOD1_MASK:  # ALT+N
             return
 
-        if self._music_track_info is None:
+        info = MusicTrackListener.get().current_tune
+        if info is None:
+            log.info('No current tune available')
             return
 
-        tune_string = self._get_tune_string()
+        tune_string = self._get_tune_string(info)
 
         textview.get_buffer().insert_at_cursor(tune_string)
         textview.grab_focus()
         return True
-
-
-class NowListenPluginConfigDialog(GajimPluginConfigDialog):
-    def init(self):
-        self.GTK_BUILDER_FILE_PATH = self.plugin.local_file_path(
-            'config_dialog.ui')
-        self.xml = Gtk.Builder()
-        self.xml.set_translation_domain('gajim_plugins')
-        self.xml.add_objects_from_file(self.GTK_BUILDER_FILE_PATH,
-                                       ['now_listen_config'])
-
-        self.config_vbox = self.xml.get_object('now_listen_config')
-        self.get_child().pack_start(self.config_vbox, True, True, 0)
-
-        self.format_string = self.xml.get_object('format_string')
-        self.format_string_http = self.xml.get_object('format_string_http')
-        self.xml.connect_signals(self)
-        self.connect('hide', self.on_hide)
-
-    def on_run(self):
-        self.format_string.set_text(self.plugin.config['format_string'])
-        self.format_string_http.set_text(self.plugin.config['format_string_http'])
-
-    def on_hide(self, widget):
-        self.plugin.config['format_string'] = self.format_string.get_text()
-        self.plugin.config['format_string_http'] = self.format_string_http.get_text()
