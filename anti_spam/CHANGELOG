@@ -1,24 +1,18 @@
-## [Unreleased]
-### Added
-- Sending confirmation message that anti spam check was passed. It can be disabled in plugin gui config.
+1.5.1 / 2020-05-03
+- Rework plugin
+- Adapt to upstream changes in Gajim and python-nbxmpp
+- Use new configuration dialog
+- Remove pubsub blocking (Gajim handles these messages differently now)
+- Remove domain blocking feature (Gajim handles this)
 
-## [1.4.3] - 2016-12-04
-### Added
-- Filtering 'normal' type messages
-
-### Changed
+1.4.3 / 2016-12-04
+- Added filtering 'normal' type messages
 - User from private conference conversation permanently stored in file
 - Switched to GTK3
+- Messages sent before the correct answer were marked as received
+- Fixed chat between the two antispam plugins
 
-### Fixed
-- Messages that was sent before correct answer was marked as received
-- Chat between the two antispam plugins
-
-## [0.4.2] - 2016-11-28
-### Added
-- Anti spam question functionality
-- This CHANGELOG
-- README with some explanation of functionality
-
-### Changed
-- homepage in manifest.ini
+0.4.2 / 2016-11-28
+- Added anti spam question functionality
+- Added README with some explanation of functionality
+- Added website in manifest.ini
