@@ -20,8 +20,6 @@ from collections import namedtuple
 
 import gnupg
 
-from gajim.common import app
-
 from openpgp.modules.util import DecryptionFailed
 
 log = logging.getLogger('gajim.p.openpgp.pygnupg')
@@ -32,7 +30,7 @@ KeyringItem = namedtuple('KeyringItem', 'jid keyid fingerprint')
 class PGPContext(gnupg.GPG):
     def __init__(self, jid, gnupghome):
         gnupg.GPG.__init__(
-            self, gpgbinary=app.get_gpg_binary(), gnupghome=str(gnupghome))
+            self, gpgbinary='gpg', gnupghome=str(gnupghome))
 
         self._passphrase = 'gajimopenpgppassphrase'
         self._jid = jid.getBare()
