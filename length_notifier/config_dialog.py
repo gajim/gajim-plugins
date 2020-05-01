@@ -30,6 +30,7 @@ from gajim.plugins.plugins_i18n import _
 class LengthNotifierConfigDialog(SettingsDialog):
     def __init__(self, plugin, parent):
         self.plugin = plugin
+        jids = self.plugin.config['JIDS'] or ''
         settings = [
             Setting('MessageLengthSpinSetting',
                     _('Message Length'),
@@ -51,7 +52,7 @@ class LengthNotifierConfigDialog(SettingsDialog):
             Setting(SettingKind.ENTRY,
                     _('Selected Addresses'),
                     SettingType.VALUE,
-                    self.plugin.config['JIDS'],
+                    jids,
                     callback=self._on_setting,
                     data='JIDS',
                     desc=_('Enable the plugin for selected XMPP addresses '
@@ -66,6 +67,8 @@ class LengthNotifierConfigDialog(SettingsDialog):
                                          SizeSpinSetting)])
 
     def _on_setting(self, value, data):
+        if isinstance(value, str):
+            value.strip()
         self.plugin.config[data] = value
         self.plugin.update_settings()
 
