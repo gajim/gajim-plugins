@@ -2,9 +2,11 @@ import os
 import time
 import logging
 from datetime import datetime
+from pathlib import Path
 
 import gi
 from gi.repository import Gtk
+from nbxmpp.structs import LocationData
 
 from gajim.plugins.gui import GajimPluginConfigDialog
 from gajim.plugins import GajimPlugin
@@ -15,7 +17,6 @@ from gajim.common import ged
 from gajim.common import helpers
 from gajim.common import configpaths
 
-from gajim import gtkgui_helpers
 from gajim.gtk.dialogs import InputDialog, WarningDialog
 
 
@@ -73,7 +74,7 @@ class SetLocationPlugin(GajimPlugin):
     def deactivate(self):
         self._data = {}
         for acct in app.connections:
-            app.connections[acct].get_module('UserLocation').send(self._data)
+            app.connections[acct].get_module('UserLocation').set_location(None)
         app.ged.remove_event_handler('signed-in', ged.POSTGUI,
             self.on_signed_in)
 
@@ -87,16 +88,19 @@ class SetLocationPlugin(GajimPlugin):
         timestamp = timestamp.strftime('%Y-%m-%dT%H:%M:%SZ')
         self._data['timestamp'] = timestamp
         for name in self.config_default_values:
+            if name == 'presets':
+                continue
             self._data[name] = self.config[name]
 
         if not acct:
             # Set geo for all accounts
             for acct in app.connections:
                 if app.config.get_per('accounts', acct, 'publish_location'):
-                    app.connections[acct].get_module('UserLocation').send(
-                        self._data)
+                    app.connections[acct].get_module('UserLocation').set_location(
+                        LocationData(**self._data))
         elif app.config.get_per('accounts', acct, 'publish_location'):
-            app.connections[acct].get_module('UserLocation').send(self._data)
+            app.connections[acct].get_module('UserLocation').set_location(
+                LocationData(**self._data))
 
 
 class SetLocationPluginConfigDialog(GajimPluginConfigDialog):
@@ -167,15 +171,17 @@ class SetLocationPluginConfigDialog(GajimPluginConfigDialog):
                 self.xml.get_object('lon').set_text('0.0')
             self.view.center_on(self.lat, self.lon)
 
-            self.path_to_image = os.path.abspath(gtkgui_helpers.get_icon_path(
-                'org.gajim.Gajim', 16))
+            icon = 'org.gajim.Gajim.svg'
+            icons_dir = Path(configpaths.get('ICONS')) / 'hicolor/scalable/apps'
+            self.path_to_image = icons_dir / icon
+
             map_box.pack_start(embed, expand=True, fill=True, padding=0)
 
             self.is_active = True
             self.layer = Champlain.MarkerLayer()
             texture = Clutter.Texture()
-            texture.set_from_file(self.path_to_image)
-            texture.set_size(32,32)
+            texture.set_from_file(str(self.path_to_image))
+            texture.set_size(32, 32)
             self.marker = Champlain.Label.new_with_image(texture)
             self.marker.set_location(self.lat, self.lon)
             self.marker.set_text(_('Your location'))
