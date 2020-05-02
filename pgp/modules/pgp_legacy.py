@@ -255,7 +255,7 @@ class PGPLegacy(BaseModule):
         stanza = nbxmpp.Message(
             to=obj.stanza.getTo(),
             typ=obj.stanza.getType())
-        stanza.setID(obj.stanza_id)
+        stanza.setID(obj.stanza.getID())
         stanza.setThread(obj.stanza.getThread())
         for tag, ns in ALLOWED_TAGS:
             node = obj.stanza.getTag(tag, namespace=ns)
