@@ -11,7 +11,6 @@ from nbxmpp.structs import LocationData
 from gajim.plugins.gui import GajimPluginConfigDialog
 from gajim.plugins import GajimPlugin
 from gajim.plugins.plugins_i18n import _
-from gajim.plugins.helpers import log_calls
 from gajim.common import app
 from gajim.common import ged
 from gajim.common import helpers
@@ -38,9 +37,9 @@ except:
 
 
 class SetLocationPlugin(GajimPlugin):
-    @log_calls('SetLocationPlugin')
     def init(self):
-        self.description = _('Set information about your current geographical '
+        self.description = _(
+            'Set information about your current geographical '
             'or physical location. \nTo be able to set your location on the '
             'built-in map, you need to have gir1.2-gtkchamplain and '
             'gir1.2-gtkclutter-1.0 installed')
@@ -64,43 +63,43 @@ class SetLocationPlugin(GajimPlugin):
             'uri': ('http://beta.plazes.com/plazes/1940:jabber_inc', ''),
             'presets': ({'default': {}}, ''), }
 
-    @log_calls('SetLocationPlugin')
     def activate(self):
-        app.ged.register_event_handler('signed-in', ged.POSTGUI,
-            self.on_signed_in)
+        app.ged.register_event_handler('signed-in',
+                                       ged.POSTGUI,
+                                       self.on_signed_in)
         self.send_locations()
 
-    @log_calls('SetLocationPlugin')
     def deactivate(self):
-        self._data = {}
         for acct in app.connections:
             app.connections[acct].get_module('UserLocation').set_location(None)
-        app.ged.remove_event_handler('signed-in', ged.POSTGUI,
-            self.on_signed_in)
+        app.ged.remove_event_handler('signed-in',
+                                     ged.POSTGUI,
+                                     self.on_signed_in)
 
-    def on_signed_in(self, network_event):
-        self.send_locations(network_event.conn.name)
+    def on_signed_in(self, event):
+        self.send_locations(account=event.account)
 
-    def send_locations(self, acct=False):
-        self._data = {}
+    def send_locations(self, account=None):
+        data = {}
         timestamp = time.time()
         timestamp = datetime.utcfromtimestamp(timestamp)
         timestamp = timestamp.strftime('%Y-%m-%dT%H:%M:%SZ')
-        self._data['timestamp'] = timestamp
+        data['timestamp'] = timestamp
         for name in self.config_default_values:
             if name == 'presets':
                 continue
-            self._data[name] = self.config[name]
+            data[name] = self.config[name]
 
-        if not acct:
+        if account is None:
             # Set geo for all accounts
             for acct in app.connections:
                 if app.config.get_per('accounts', acct, 'publish_location'):
                     app.connections[acct].get_module('UserLocation').set_location(
-                        LocationData(**self._data))
-        elif app.config.get_per('accounts', acct, 'publish_location'):
-            app.connections[acct].get_module('UserLocation').set_location(
-                LocationData(**self._data))
+                        LocationData(**data))
+
+        elif app.config.get_per('accounts', account, 'publish_location'):
+            app.connections[account].get_module('UserLocation').set_location(
+                LocationData(**data))
 
 
 class SetLocationPluginConfigDialog(GajimPluginConfigDialog):
@@ -124,10 +123,7 @@ class SetLocationPluginConfigDialog(GajimPluginConfigDialog):
         cellrenderer = Gtk.CellRendererText()
         self.preset_combo.pack_start(cellrenderer, True)
         self.preset_combo.add_attribute(cellrenderer, 'text', 0)
-        #self.plugin.config['presets'] = {'default': {}}
 
-
-    @log_calls('SetLocationPlugin.SetLocationPluginConfigDialog')
     def on_run(self):
         if not self.is_active:
             pres_keys = sorted(self.plugin.config['presets'].keys())
