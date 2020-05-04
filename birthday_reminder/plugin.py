@@ -70,7 +70,7 @@ class BirthDayPlugin(GajimPlugin):
         with path.open('r') as file:
             content = file.read()
             if content:
-                self._birthdays = json.load(file)
+                self._birthdays = json.loads(content)
 
     def _store_birthdays(self):
         data_path = Path(configpaths.get('PLUGINS_DATA'))
