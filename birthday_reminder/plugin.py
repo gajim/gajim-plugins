@@ -12,10 +12,10 @@
 # You should have received a copy of the GNU General Public License
 # along with Birthday Reminder.  If not, see <http://www.gnu.org/licenses/>.
 
-import os
 import json
 import datetime
 import logging
+from pathlib import Path
 
 from gi.repository import GLib
 
@@ -29,16 +29,18 @@ from gajim.plugins.plugins_i18n import _
 
 log = logging.getLogger('gajim.p.birthday')
 
-TITLE = _('%s has birthday today')
-TEXT = _('Send him a message')
+TITLE = _('Birthday Reminder')
+TEXT = _('Send your best wishes to %s')
 
 
 class BirthDayPlugin(GajimPlugin):
     def init(self):
         self.config_dialog = None
-        self.description = ('Birthday reminder plugin')
+        self.description = ('Checks vCards of your contacts for upcoming '
+                            'birthdays and reminds you on that day.')
         self.events_handlers = {
-            'vcard-received': (ged.GUI2, self._vcard_received)}
+            'vcard-received': (ged.GUI2, self._vcard_received)
+        }
 
         self._timeout_id = None
         self._timeout_id_start = None
@@ -52,7 +54,7 @@ class BirthDayPlugin(GajimPlugin):
         self._timeout_id_start = GLib.timeout_add_seconds(
             5, self._check_birthdays_at_start)
         self._timeout_id = GLib.timeout_add_seconds(
-            86400, self._check_birthdays)
+            86400, self._check_birthdays)  # 24h
 
     def deactivate(self):
         if self._timeout_id is not None:
@@ -61,16 +63,23 @@ class BirthDayPlugin(GajimPlugin):
             GLib.source_remove(self._timeout_id_start)
 
     def _load_birthdays(self):
-        path = os.path.join(configpaths.get('MY_DATA'), 'birthdays.json')
-        if os.path.exists(path):
-            with open(path, 'r', encoding='utf-8') as file:
-                content = file.read()
-                if content:
-                    self._birthdays = json.loads(content)
+        data_path = Path(configpaths.get('PLUGINS_DATA'))
+        path = data_path / 'birthday_reminder' / 'birthdays.json'
+        if not path.exists():
+            return
+        with path.open('r') as file:
+            content = file.read()
+            if content:
+                self._birthdays = json.load(file)
 
     def _store_birthdays(self):
-        path = os.path.join(configpaths.get('MY_DATA'), 'birthdays.json')
-        with open(path, 'w', encoding='utf-8') as file:
+        data_path = Path(configpaths.get('PLUGINS_DATA'))
+        path = data_path / 'birthday_reminder'
+        if not path.exists():
+            path.mkdir(parents=True)
+
+        filepath = path / 'birthdays.json'
+        with filepath.open('w') as file:
             json.dump(self._birthdays, file)
 
     def _vcard_received(self, event):
@@ -118,8 +127,8 @@ class BirthDayPlugin(GajimPlugin):
                         jid,
                         account,
                         icon_name='trophy-gold',
-                        title=TITLE % GLib.markup_escape_text(nick),
-                        text=TEXT)
+                        title=TITLE,
+                        text=TEXT % GLib.markup_escape_text(nick))
 
         return True
 
