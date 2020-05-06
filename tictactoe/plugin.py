@@ -42,7 +42,6 @@ from gajim import chat_control
 
 from gajim.common import app
 from gajim.common import ged
-from gajim.common import helpers
 from gajim.common.connection_handlers_events import InformationEvent
 
 from gajim.gtk.dialogs import DialogButton
@@ -78,7 +77,7 @@ class TictactoePlugin(GajimPlugin):
         self.config_dialog = partial(TicTacToeConfigDialog, self)
         self.events_handlers = {
             'decrypted-message-received': (
-                ged.PREGUI, self._nec_decrypted_message_received),
+                ged.PREGUI, self._on_message_received),
         }
 
         self.gui_extension_points = {
@@ -97,7 +96,7 @@ class TictactoePlugin(GajimPlugin):
         self.announce_caps = True
 
     @log_calls('TictactoePlugin')
-    def _update_caps(self, account, features):
+    def _update_caps(self, _account, features):
         if not self.announce_caps:
             return
 
@@ -131,7 +130,7 @@ class TictactoePlugin(GajimPlugin):
                 base.enable_action(True)
 
     @log_calls('TictactoePlugin')
-    def disconnect_from_chat_control(self, chat_control):
+    def disconnect_from_chat_control(self, _chat_control):
         for base in self.controls:
             base.disconnect_from_chat_control()
         self.controls = []
@@ -176,19 +175,19 @@ class TictactoePlugin(GajimPlugin):
             transient_for=app.app.get_active_window()).show()
 
     @log_calls('TictactoePlugin')
-    def _nec_decrypted_message_received(self, obj):
-        if isinstance(obj.session, TicTacToeSession):
-            obj.session.received(obj.stanza)
-        game_invite = obj.stanza.getTag('invite', namespace=NS_GAMES)
+    def _on_message_received(self, event):
+        if isinstance(event.session, TicTacToeSession):
+            event.session.received(event.stanza)
+        game_invite = event.stanza.getTag('invite', namespace=NS_GAMES)
         if game_invite:
             game = game_invite.getTag('game')
             if game and game.getAttr('var') == NS_GAMES_TICTACTOE:
-                session = obj.conn.make_new_session(
-                    obj.fjid, obj.properties.thread, cls=TicTacToeSession)
-                self.show_request_dialog(obj, session)
+                session = event.conn.make_new_session(
+                    event.fjid, event.properties.thread, cls=TicTacToeSession)
+                self.show_request_dialog(event, session)
 
 
-class Base(object):
+class Base():
     def __init__(self, plugin, chat_control):
         self.plugin = plugin
         self.chat_control = chat_control
@@ -206,7 +205,7 @@ class Base(object):
         self.chat_control.parent_win.window.add_action(act)
 
         self.chat_control.control_menu.append(
-            'TicTacToe', 'win.' + action_name)
+            'Tic Tac Toe', 'win.' + action_name)
 
     def enable_action(self, state):
         win = self.chat_control.parent_win.window
@@ -239,10 +238,10 @@ class Base(object):
 
     def disconnect_from_chat_control(self):
         menu = self.chat_control.control_menu
-        for i in range(menu.get_n_items()):
-            label = menu.get_item_attribute_value(i, 'label')
-            if label.get_string() == 'TicTacToe':
-                menu.remove(i)
+        for item in range(menu.get_n_items()):
+            label = menu.get_item_attribute_value(item, 'label')
+            if label.get_string() == 'Tic Tac Toe':
+                menu.remove(item)
                 break
 
 
@@ -250,7 +249,7 @@ class InvalidMove(Exception):
     pass
 
 
-class TicTacToeSession(object):
+class TicTacToeSession():
     def __init__(self, conn, jid, thread_id, type_):
         self.conn = conn
         self.jid = jid
@@ -271,7 +270,8 @@ class TicTacToeSession(object):
         self.control = None
         self.enable_encryption = False
 
-    def is_loggable(self):
+    @staticmethod
+    def is_loggable():
         return False
 
     def send(self, msg):
@@ -288,7 +288,8 @@ class TicTacToeSession(object):
             jid += '/' + self.resource
         return jid
 
-    def generate_thread_id(self):
+    @staticmethod
+    def generate_thread_id():
         return ''.join(
             [f(string.ascii_letters) for f in itertools.repeat(
                 random.choice, 32)]
@@ -413,9 +414,9 @@ class TicTacToeSession(object):
                     None,
                     conn=self.conn,
                     level='info',
-                    pri_txt=_('Invitation refused'),
-                    sec_txt=_('%(name)s refused your invitation to play tic '
-                              'tac toe.') % {'name': self.name}))
+                    pri_txt=_('Invitation Declined'),
+                    sec_txt=_('%(name)s declined your invitation to play Tic '
+                              'Tac Toe.') % {'name': self.name}))
             self.conn.delete_session(str(self.jid), self.thread_id)
 
     def decline_invitation(self):
@@ -457,7 +458,7 @@ class TicTacToeSession(object):
         id_ = int(move.getAttr('id'))
 
         if id_ != self.next_move_id:
-            log.warn('unexpected move id, lost a move somewhere?')
+            log.warning('unexpected move id, lost a move somewhere?')
             return
 
         try:
@@ -496,7 +497,7 @@ class TicTacToeSession(object):
         try:
             self.board.mark(row, col, self.role_s)
         except InvalidMove:
-            log.warn('You made an invalid move')
+            log.warning('You made an invalid move')
             return
 
         self.send_move(row, col)
@@ -634,7 +635,7 @@ class TicTacToeBoard:
         draw = DrawBoard()
         self.win.add(draw)
 
-        self.title_prefix = 'tic-tac-toe with %s' % self.session.name
+        self.title_prefix = _('Tic Tac Toe with %s') % self.session.name
         self.set_title()
 
         self.win.add_events(Gdk.EventMask.BUTTON_PRESS_MASK)
@@ -660,7 +661,7 @@ class TicTacToeBoard:
         self.session.move(row, column)
 
     # This actually draws the board
-    def do_draw(self, widget, cr):
+    def do_draw(self, _widget, cr):
         cr.set_source_rgb(1.0, 1.0, 1.0)
 
         layout = PangoCairo.create_layout(cr)
@@ -684,19 +685,19 @@ class TicTacToeBoard:
         cr.move_to(0, height - text_height)
         if self.state == 'None':
             if self.session.is_my_turn():
-                txt = _('It\'s your turn')
+                txt = _('It’s your turn')
             else:
-                txt = _('It\'s %(name)s\'s turn') % {'name': self.session.name}
+                txt = _('It’s %(name)s\'s turn') % {'name': self.session.name}
         elif self.state == 'won':
-            txt = _('You won !')
+            txt = _('You won!')
         elif self.state == 'lost':
-            txt = _('You lost !')
+            txt = _('You lost!')
         elif self.state == 'resign':  # Other part resigned
             txt = _('%(name)s capitulated') % {'name': self.session.name}
         elif self.state == 'cheated':  # Other part cheated
             txt = _('%(name)s cheated') % {'name': self.session.name}
         else:  # Draw
-            txt = _('It\'s a draw')
+            txt = _('It’s a draw')
         layout.set_text(txt, -1)
         # Inform Pango to re-layout the text with the new transformation
         PangoCairo.update_layout(cr, layout)
@@ -755,8 +756,7 @@ class TicTacToeBoard:
     def mark(self, row, column, player):
         if self.board[row-1][column-1]:
             raise InvalidMove
-        else:
-            self.board[row-1][column-1] = player
+        self.board[row-1][column-1] = player
 
         self.win.queue_draw()
 
@@ -770,17 +770,17 @@ class TicTacToeBoard:
 
     def won(self):
         self.state = 'won'
-        self.set_title('you won!')
+        self.set_title(_('You won!'))
         self.win.queue_draw()
 
     def lost(self):
         self.state = 'lost'
-        self.set_title('you lost.')
+        self.set_title(_('You’ve lost.'))
         self.win.queue_draw()
 
     def drawn(self):
         self.state = 'drawn'
-        self.win.set_title(self.title_prefix + ': a draw.')
+        self.win.set_title(_('%s: it’s a draw.') % self.title_prefix)
         self.win.queue_draw()
 
     def cheated(self):
