@@ -183,8 +183,8 @@ class TictactoePlugin(GajimPlugin):
         if game_invite:
             game = game_invite.getTag('game')
             if game and game.getAttr('var') == NS_GAMES_TICTACTOE:
-                session = obj.conn.make_new_session(obj.fjid, obj.thread_id,
-                                                    cls=TicTacToeSession)
+                session = obj.conn.make_new_session(
+                    obj.fjid, obj.properties.thread, cls=TicTacToeSession)
                 self.show_request_dialog(obj, session)
 
 
