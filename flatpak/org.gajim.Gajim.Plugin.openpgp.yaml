@@ -20,5 +20,5 @@ modules:
       - appstream-compose --basename=org.gajim.Gajim.Plugin.openpgp --prefix=${FLATPAK_DEST} --origin=flatpak org.gajim.Gajim.Plugin.openpgp
     sources:
       - type: archive
-        url: https://ftp.gajim.org/plugins_releases/openpgp_1.2.11.zip
-        sha256: 181b29e55da6f69b37f0fb67a7cafb047949f810ea8cc681d8eda17f625ffdb9
+        url: https://ftp.gajim.org/plugins_releases/openpgp_1.2.12.zip
+        sha256: a1082e6683db5432b6337da03fe149b27da4fb9c43d108d1a1e05a0b798f17d7
