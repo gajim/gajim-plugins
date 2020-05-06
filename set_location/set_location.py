@@ -3,37 +3,43 @@ import time
 import logging
 from datetime import datetime
 from pathlib import Path
+from functools import partial
 
 import gi
+from gi.repository import Gdk
 from gi.repository import Gtk
+
 from nbxmpp.structs import LocationData
 
-from gajim.plugins.gui import GajimPluginConfigDialog
-from gajim.plugins import GajimPlugin
-from gajim.plugins.plugins_i18n import _
 from gajim.common import app
 from gajim.common import ged
-from gajim.common import helpers
 from gajim.common import configpaths
+from gajim.common.helpers import sanitize_filename
 
-from gajim.gtk.dialogs import InputDialog, WarningDialog
+from gajim.gtk.dialogs import DialogButton
+from gajim.gtk.dialogs import InputDialog
+from gajim.gtk.dialogs import WarningDialog
 
+from gajim.plugins import GajimPlugin
+from gajim.plugins.helpers import get_builder
+from gajim.plugins.plugins_i18n import _
 
 log = logging.getLogger('gajim.p.set_location')
 
-CHAMPLAIN_AVAILABLE = True
-
+CHAMPLAIN_AVAILABLE = False
 try:
     gi.require_version('Clutter', '1.0')
     gi.require_version('GtkClutter', '1.0')
     gi.require_version('Champlain', '0.12')
     gi.require_version('GtkChamplain', '0.12')
-    from gi.repository import Clutter, GtkClutter
-    GtkClutter.init([]) # Must be initialized before importing those:
-    from gi.repository import Champlain, GtkChamplain
-except:
-    log.exception('To view the map, you have to install all dependencies')
-    CHAMPLAIN_AVAILABLE = False
+    from gi.repository import Clutter
+    from gi.repository import GtkClutter
+    GtkClutter.init([])  # Must be initialized before importing those:
+    from gi.repository import Champlain
+    from gi.repository import GtkChamplain
+    CHAMPLAIN_AVAILABLE = True
+except Exception:
+    log.info('To view the map, you have to install all dependencies')
 
 
 class SetLocationPlugin(GajimPlugin):
@@ -43,7 +49,7 @@ class SetLocationPlugin(GajimPlugin):
             'or physical location. \nTo be able to set your location on the '
             'built-in map, you need to have gir1.2-gtkchamplain and '
             'gir1.2-gtkclutter-1.0 installed')
-        self.config_dialog = SetLocationPluginConfigDialog(self)
+        self.config_dialog = partial(SetLocationConfigDialog, self)
         self.config_default_values = {
             'alt': (1609, ''),
             'area': ('Central Park', ''),
@@ -60,7 +66,7 @@ class SetLocationPlugin(GajimPlugin):
             'room': ('Observatory', ''),
             'street': ('34th and Broadway', ''),
             'text': ('Northwest corner of the lobby', ''),
-            'uri': ('http://beta.plazes.com/plazes/1940:jabber_inc', ''),
+            'uri': ('', ''),
             'presets': ({'default': {}}, ''), }
 
     def activate(self):
@@ -102,49 +108,58 @@ class SetLocationPlugin(GajimPlugin):
                 LocationData(**data))
 
 
-class SetLocationPluginConfigDialog(GajimPluginConfigDialog):
-    def init(self):
-        self.GTK_BUILDER_FILE_PATH = self.plugin.local_file_path(
-                'config_dialog.ui')
-        self.xml = Gtk.Builder()
-        self.xml.set_translation_domain('gajim_plugins')
-        self.xml.add_objects_from_file(self.GTK_BUILDER_FILE_PATH, 
-                ['config_box'])
-        config_box = self.xml.get_object('config_box')
-        self.get_child().pack_start(config_box, True, True, 0)
-        self.xml.connect_signals(self)
-        self.connect('hide', self.on_hide)
-        self.connect('show', self.on_show)
+class SetLocationConfigDialog(Gtk.ApplicationWindow):
+    def __init__(self, plugin, transient):
+        Gtk.ApplicationWindow.__init__(self)
+        self.set_application(app.app)
+        self.set_show_menubar(False)
+        self.set_title(_('Set Location Configuration'))
+        self.set_transient_for(transient)
+        self.set_default_size(400, 600)
+        self.set_type_hint(Gdk.WindowTypeHint.DIALOG)
+        self.set_modal(True)
+        self.set_destroy_with_parent(True)
+
+        self._plugin = plugin
+
+        ui_path = Path(__file__).parent
+        self._ui = get_builder(ui_path.resolve() / 'config_dialog.ui')
+        self._ui.set_translation_domain('gajim_plugins')
+        self.add(self._ui.config_box)
+        self.show_all()
+
+        self._ui.connect_signals(self)
+        self.connect('hide', self._on_hide)
+        self.connect('show', self._on_show)
+
         self.is_active = None
+        self._initialize()
 
-        self.preset_combo = self.xml.get_object('preset_combobox')
-        self.preset_liststore = Gtk.ListStore(str)
-        self.preset_combo.set_model(self.preset_liststore)
+    def _initialize(self):
+        self._preset_liststore = Gtk.ListStore(str)
+        self._ui.preset_combobox.set_model(self._preset_liststore)
         cellrenderer = Gtk.CellRendererText()
-        self.preset_combo.pack_start(cellrenderer, True)
-        self.preset_combo.add_attribute(cellrenderer, 'text', 0)
+        self._ui.preset_combobox.pack_start(cellrenderer, True)
+        self._ui.preset_combobox.add_attribute(cellrenderer, 'text', 0)
 
-    def on_run(self):
+
         if not self.is_active:
-            pres_keys = sorted(self.plugin.config['presets'].keys())
+            pres_keys = sorted(self._plugin.config['presets'].keys())
             for key in pres_keys:
-                self.preset_liststore.append((key,))
+                self._preset_liststore.append((key,))
+        self._ui.preset_combobox.set_active(0)
 
-        for name in self.plugin.config_default_values:
+        for name in self._plugin.config_default_values:
             if name == 'presets':
                 continue
-            widget = self.xml.get_object(name)
-            widget.set_text(str(self.plugin.config[name]))
-
-        map_placeholder = self.xml.get_object('map_placeholder')
-        dependency_bar = self.xml.get_object('dependency_warning')
+            widget = self._ui.get_object(name)
+            widget.set_text(str(self._plugin.config[name]))
 
         if CHAMPLAIN_AVAILABLE and not self.is_active:
-            map_placeholder.set_no_show_all(True)
-            map_placeholder.hide()
-            dependency_bar.hide()
-            map_box = self.xml.get_object('map_box')
-            map_box.set_size_request(400, -1)
+            self._ui.map_placeholder.set_no_show_all(True)
+            self._ui.map_placeholder.hide()
+            self._ui.dependency_warning.hide()
+            self._ui.map_box.set_size_request(400, -1)
 
             embed = GtkChamplain.Embed()
 
@@ -152,29 +167,32 @@ class SetLocationPluginConfigDialog(GajimPluginConfigDialog):
             self.view.set_reactive(True)
             self.view.set_property('kinetic-mode', True)
             self.view.set_property('zoom-level', 12)
-            self.view.connect('button-release-event', self.map_clicked,
+            self.view.connect('button-release-event', self._map_clicked,
                               self.view)
 
             scale = Champlain.Scale()
             scale.connect_view(self.view)
             self.view.add_child(scale)
 
-            lat = self.plugin.config['lat']
-            lon = self.plugin.config['lon']
-            if not self.is_valid_coord(lat, lon):
+            lat = self._plugin.config['lat']
+            lon = self._plugin.config['lon']
+            if not self._is_valid_coord(lat, lon):
                 self.lat = self.lon = 0.0
-                self.xml.get_object('lat').set_text('0.0')
-                self.xml.get_object('lon').set_text('0.0')
+                self._ui.lat.set_text('0.0')
+                self._ui.lon.set_text('0.0')
             self.view.center_on(self.lat, self.lon)
 
             icon = 'org.gajim.Gajim.svg'
             icons_dir = Path(configpaths.get('ICONS')) / 'hicolor/scalable/apps'
             self.path_to_image = icons_dir / icon
 
-            map_box.pack_start(embed, expand=True, fill=True, padding=0)
+            self._ui.map_box.pack_start(
+                embed, expand=True, fill=True, padding=0)
+            self._ui.map_box.show_all()
 
             self.is_active = True
             self.layer = Champlain.MarkerLayer()
+
             texture = Clutter.Texture()
             texture.set_from_file(str(self.path_to_image))
             texture.set_size(32, 32)
@@ -184,44 +202,45 @@ class SetLocationPluginConfigDialog(GajimPluginConfigDialog):
             self.view.add_layer(self.layer)
             self.layer.add_marker(self.marker)
             self.markers_is_visible = False
-            self.xml.get_object('lat').connect('changed', self.on_latlon_changed)
-            self.xml.get_object('lon').connect('changed', self.on_latlon_changed)
+            self._ui.lat.connect('changed', self._on_latlon_changed)
+            self._ui.lon.connect('changed', self._on_latlon_changed)
             self.layer.animate_in_all_markers()
             self.contacts_layer = Champlain.MarkerLayer()
 
-    def on_show(self, widget):
+    def _on_show(self, _widget):
         if CHAMPLAIN_AVAILABLE:
             self.contacts_layer.remove_all()
             self.view.center_on(self.lat, self.lon)
-            self.show_contacts()
+            self._show_contacts()
 
-    def on_hide(self, widget):
-        for name in self.plugin.config_default_values:
+    def _on_hide(self, widget):
+        for name in self._plugin.config_default_values:
             if name in ['presets', 'lat', 'lon']:
                 continue
-            widget = self.xml.get_object(name)
-            self.plugin.config[name] = widget.get_text()
+            widget = self._ui.get_object(name)
+            self._plugin.config[name] = widget.get_text()
 
-        lat = self.xml.get_object('lat').get_text()
-        lon = self.xml.get_object('lon').get_text()
-        if self.is_valid_coord(lat, lon):
-            self.plugin.config['lat'] = lat
-            self.plugin.config['lon'] = lon
-            if self.plugin.active:
-                self.plugin.activate()
+        lat = self._ui.lat.get_text()
+        lon = self._ui.lon.get_text()
+        if self._is_valid_coord(lat, lon):
+            self._plugin.config['lat'] = lat
+            self._plugin.config['lon'] = lon
+            if self._plugin.active:
+                self._plugin.activate()
         else:
-            self.plugin.config['lat'] = '0.0'
-            self.plugin.config['lon'] = '0.0'
-            error_text = _('Latitude or Longitude field contains an invalid value')
+            self._plugin.config['lat'] = '0.0'
+            self._plugin.config['lon'] = '0.0'
+            error_text = _('Latitude or Longitude field contains an invalid '
+                           'value')
             WarningDialog(_('Wrong coordinates'), error_text, self)
 
-    def map_clicked(self, actor, event, view):
-        x, y = event.x, event.y
-        lat, lon = view.x_to_longitude(x), view.y_to_latitude(y)
+    def _map_clicked(self, _actor, event, view):
+        x_coord, y_coord = event.x, event.y
+        lat, lon = view.x_to_longitude(x_coord), view.y_to_latitude(y_coord)
         if event.button == 3:
             self.marker.set_location(lat, lon)
-            self.xml.get_object('lon').set_text(str(lat))
-            self.xml.get_object('lat').set_text(str(lon))
+            self._ui.lon.set_text(str(lat))
+            self._ui.lat.set_text(str(lon))
         if event.button == 2:
             if self.markers_is_visible:
                 self.contacts_layer.animate_out_all_markers()
@@ -229,24 +248,24 @@ class SetLocationPluginConfigDialog(GajimPluginConfigDialog):
                 self.contacts_layer.animate_in_all_markers()
             self.markers_is_visible = not self.markers_is_visible
 
-    def is_valid_coord(self, lat, lon):
+    def _is_valid_coord(self, lat, lon):
         try:
             self.lat = float(lat)
             self.lon = float(lon)
-        except ValueError as e:
+        except ValueError:
             return
         if not -85 < self.lat < 85 or not -180 < self.lon < 180:
             return
         return True
 
-    def on_latlon_changed(self, widget):
-        lat = self.xml.get_object('lat').get_text()
-        lon = self.xml.get_object('lon').get_text()
-        if self.is_valid_coord(lat, lon):
+    def _on_latlon_changed(self, _widget):
+        lat = self._ui.lat.get_text()
+        lon = self._ui.lon.get_text()
+        if self._is_valid_coord(lat, lon):
             self.marker.set_location(self.lat, self.lon)
             self.view.go_to(self.lat, self.lon)
 
-    def show_contacts(self):
+    def _show_contacts(self):
         data = {}
         accounts = app.contacts._accounts
         for account in accounts:
@@ -266,8 +285,8 @@ class SetLocationPluginConfigDialog(GajimPluginConfigDialog):
 
         self.contacts_layer = Champlain.MarkerLayer()
         for jid in data:
-            path = self.get_path_to_generic_or_avatar(self.path_to_image,
-                jid=jid, suffix='')
+            path = self._get_path_to_generic_or_avatar(
+                self.path_to_image, jid=jid, suffix='')
             texture = Clutter.Texture()
             texture.set_from_file(path)
             texture.set_size(32,32)
@@ -280,7 +299,8 @@ class SetLocationPluginConfigDialog(GajimPluginConfigDialog):
         self.contacts_layer.animate_in_all_markers()
         self.markers_is_visible = True
 
-    def get_path_to_generic_or_avatar(self, generic, jid=None, suffix=None):
+    @staticmethod
+    def _get_path_to_generic_or_avatar(generic, jid=None, suffix=None):
         """
         Choose between avatar image and default image
 
@@ -289,7 +309,7 @@ class SetLocationPluginConfigDialog(GajimPluginConfigDialog):
         """
         if jid:
             # we want an avatar
-            puny_jid = helpers.sanitize_filename(jid)
+            puny_jid = sanitize_filename(jid)
             path_to_file = os.path.join(
                 configpaths.get('AVATAR'), puny_jid) + suffix
             path_to_local_file = path_to_file + '_local'
@@ -303,45 +323,56 @@ class SetLocationPluginConfigDialog(GajimPluginConfigDialog):
                     return path_to_file_full
         return os.path.abspath(generic)
 
-    def on_preset_button_clicked(self, widget):
-        def on_ok(preset_name):
+    def _on_preset_button_clicked(self, _widget):
+        def _on_save(preset_name):
             if preset_name == '':
                 return
             preset = {}
-            for name in self.plugin.config_default_values:
+            for name in self._plugin.config_default_values:
                 if name == 'presets':
                     continue
-                widget = self.xml.get_object(name)
+                widget = self._ui.get_object(name)
                 preset[name] = widget.get_text()
             preset = {preset_name: preset}
-            presets = dict(list(self.plugin.config['presets'].items()) + \
-                list(preset.items()))
-            if preset_name not in list(self.plugin.config['presets'].keys()):
-                iter_ = self.preset_liststore.append((preset_name,))
-            self.plugin.config['presets'] = presets
-        self.set_modal(False)
+            presets = dict(list(
+                self._plugin.config['presets'].items()) + list(preset.items()))
+            if preset_name not in list(self._plugin.config['presets'].keys()):
+                iter_ = self._preset_liststore.append((preset_name,))
+                self._ui.preset_combobox.set_active_iter(iter_)
+            self._plugin.config['presets'] = presets
+
+        active_preset = self._ui.preset_combobox.get_active()
+        current_preset = self._preset_liststore[active_preset][0]
+
         InputDialog(_('Save as Preset'),
-                    _('Please type a name for this preset'),
-                    'default', is_modal=True, ok_handler=on_ok)
+                    _('Save as Preset'),
+                    _('Please enter a name for this preset'),
+                    [DialogButton.make('Cancel'),
+                     DialogButton.make('Accept',
+                                       text=_('Save'),
+                                       callback=_on_save)],
+                    input_str=current_preset).show()
 
-    def on_preset_combobox_changed(self, widget):
-        model = widget.get_model()
-        active = widget.get_active()
-        if active < 0:
-            self.xml.get_object('del_preset').set_sensitive(False)
+    def _on_preset_combobox_changed(self, widget):
+        active = widget.get_active_iter()
+        if active is None:
+            self._ui.del_preset.set_sensitive(False)
             return
-        pres_name = model[active][0]
-        for name in list(self.plugin.config['presets'][pres_name].keys()):
-            widget = self.xml.get_object(name)
-            widget.set_text(str(self.plugin.config['presets'][pres_name][name]))
 
-        self.xml.get_object('del_preset').set_sensitive(True)
+        pres_name = self._preset_liststore[active][0]
+        self._ui.del_preset.set_sensitive(pres_name != 'default')
+        for name in list(self._plugin.config['presets'][pres_name].keys()):
+            widget = self._ui.get_object(name)
+            widget.set_text(str(self._plugin.config['presets'][pres_name][name]))
 
-    def on_del_preset_clicked(self, widget):
-        active = self.preset_combo.get_active()
-        active_iter = self.preset_combo.get_active_iter()
-        name = self.preset_liststore[active][0]
-        presets = self.plugin.config['presets']
+    def _on_del_preset_clicked(self, _widget):
+        active = self._ui.preset_combobox.get_active()
+        active_iter = self._ui.preset_combobox.get_active_iter()
+        name = self._preset_liststore[active][0]
+        if name == 'default':
+            return
+        presets = self._plugin.config['presets']
         del presets[name]
-        self.plugin.config['presets'] = presets
-        self.preset_liststore.remove(active_iter)
+        self._plugin.config['presets'] = presets
+        self._preset_liststore.remove(active_iter)
+        self._ui.preset_combobox.set_active(0)
