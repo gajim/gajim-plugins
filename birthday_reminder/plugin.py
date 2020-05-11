@@ -36,8 +36,8 @@ TEXT = _('Send your best wishes to %s')
 class BirthDayPlugin(GajimPlugin):
     def init(self):
         self.config_dialog = None
-        self.description = ('Checks vCards of your contacts for upcoming '
-                            'birthdays and reminds you on that day.')
+        self.description = _('Checks vCards of your contacts for upcoming '
+                             'birthdays and reminds you on that day.')
         self.events_handlers = {
             'vcard-received': (ged.GUI2, self._vcard_received)
         }
