@@ -16,14 +16,14 @@ from gi.repository import Gtk, GLib, Gdk
 try:
     gi.require_version('AppIndicator3', '0.1')
     from gi.repository import AppIndicator3 as appindicator
-    ERRORMSG = None
+    HAS_ERROR = False
 except (ValueError, ImportError):
     try:
         gi.require_version('AyatanaAppIndicator3', '0.1')
         from gi.repository import AyatanaAppIndicator3 as appindicator
-        ERRORMSG = None
+        HAS_ERROR = False
     except (ValueError, ImportError):
-        ERRORMSG = 'Please install libappindicator3'
+        HAS_ERROR = True
 
 from gajim.common import app, ged
 from gajim.common import configpaths
@@ -36,10 +36,12 @@ class AppindicatorIntegrationPlugin(GajimPlugin):
 
     @log_calls("AppindicatorIntegrationPlugin")
     def init(self):
+        self.description = _('This plugin integrates Gajim with the Ayatana '
+                             'AppIndicator.')
         self.config_dialog = None
-        if ERRORMSG:
+        if HAS_ERROR:
             self.activatable = False
-            self.available_text += ERRORMSG
+            self.available_text += _('Please install libappindicator3')
             return
 
         self.events_handlers = {'our-show': (ged.GUI2,
@@ -55,10 +57,11 @@ class AppindicatorIntegrationPlugin(GajimPlugin):
         self.offline_icon = 'org.gajim.Gajim-symbolic'
         self.connected = 0
 
-        self.connect_menu_item = Gtk.MenuItem('Connect')
+        self.connect_menu_item = Gtk.MenuItem(label=_('Connect'))
         self.connect_menu_item.connect("activate", self.connect)
 
-        self.show_gajim_menu_item = Gtk.MenuItem('Show/hide roster')
+        self.show_gajim_menu_item = Gtk.MenuItem(
+            label=_('Show/hide contact list'))
         self.show_gajim_menu_item.connect("activate", self.roster_raise)
         self.show_gajim_menu_item.show()
 
@@ -68,7 +71,7 @@ class AppindicatorIntegrationPlugin(GajimPlugin):
         itemExitSeparator = Gtk.SeparatorMenuItem()
         itemExitSeparator.show()
 
-        itemExit = Gtk.MenuItem('Exit')
+        itemExit = Gtk.MenuItem(label=_('Quit'))
         itemExit.connect("activate", self.on_exit_menuitem_activate)
         itemExit.show()
 
@@ -84,7 +87,7 @@ class AppindicatorIntegrationPlugin(GajimPlugin):
             'Gajim', self.offline_icon,
             appindicator.IndicatorCategory.COMMUNICATIONS)
         self.indicator.set_icon_theme_path(configpaths.get('ICONS'))
-        self.indicator.set_attention_icon('mail-unread')
+        self.indicator.set_attention_icon_full('mail-unread', 'New Message')
         self.indicator.set_status(appindicator.IndicatorStatus.ACTIVE)
         self.indicator.set_menu(self.menu)
 
