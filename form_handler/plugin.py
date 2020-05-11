@@ -32,7 +32,8 @@ log = logging.getLogger('gajim.p.form_handler')
 
 class FormHandlerPlugin(GajimPlugin):
     def init(self):
-
+        self.description = _('Lets the user display and answer forms attached '
+                             'to messages.')
         self.config_dialog = None
 
         self.events_handlers = {
