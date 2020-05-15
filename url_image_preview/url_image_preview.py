@@ -108,6 +108,7 @@ class UrlImagePreviewPlugin(GajimPlugin):
             self.config_dialog = None
             return
 
+        self.description = _('Displays a preview of image links.')
         self.config_dialog = partial(UrlImagePreviewConfigDialog, self)
 
         self.gui_extension_points = {
