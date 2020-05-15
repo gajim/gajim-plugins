@@ -493,11 +493,11 @@ class UrlImagePreviewPlugin(GajimPlugin):
         self._update_textview(preview, pixbuf)
 
     @staticmethod
-    def _guess_mime_type(data):
-        mime_type, _ = mimetypes.MimeTypes().guess_type(data)
+    def _guess_mime_type(file_path):
+        mime_type, _ = mimetypes.MimeTypes().guess_type(str(file_path))
         if mime_type is None:
             # Try to guess MIME type by file name
-            mime_type, _ = Gio.content_type_guess(str(data), None)
+            mime_type, _ = Gio.content_type_guess(str(file_path), None)
         log.debug('Guessed MIME type: %s', str(mime_type))
         return mime_type
 
