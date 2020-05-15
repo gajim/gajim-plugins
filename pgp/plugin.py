@@ -17,7 +17,7 @@
 import os
 import logging
 from functools import partial
-from distutils.version import LooseVersion as V
+from packaging.version import Version as V
 
 import nbxmpp
 
