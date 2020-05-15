@@ -19,7 +19,7 @@ import time
 import locale
 import logging
 import tempfile
-from distutils.version import LooseVersion as V
+from packaging.version import Version as V
 
 from pkg_resources import get_distribution
 from gi.repository import Gtk
