@@ -4,7 +4,7 @@ from pathlib import Path
 from zipfile import ZipFile
 import configparser
 from configparser import ConfigParser
-from distutils.version import LooseVersion as V
+from packaging.version import Version as V
 
 from gi.repository import Gtk
 from gi.repository import GdkPixbuf
