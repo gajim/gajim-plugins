@@ -93,7 +93,7 @@ class PluginInfo:
     def _get_installed_version(self):
         for plugin in app.plugin_manager.plugins:
             if plugin.name == self.name:
-                return plugin.version
+                return V(plugin.version)
 
         # Fallback:
         # If the plugin has errors and is not loaded by the
@@ -110,7 +110,7 @@ class PluginInfo:
         if not manifest_path.exists():
             return None
         try:
-            return PluginInfo.from_path(manifest_path).version
+            return V(PluginInfo.from_path(manifest_path).version)
         except Exception as error:
             log.warning(error)
         return None
