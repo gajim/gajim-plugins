@@ -38,12 +38,7 @@ def _jid_adapter(jid):
     return str(jid)
 
 
-def _jid_converter(jid):
-    return JID(jid.decode())
-
-
 sqlite3.register_adapter(JID, _jid_adapter)
-sqlite3.register_converter('JID', _jid_converter)
 
 
 class Storage:
