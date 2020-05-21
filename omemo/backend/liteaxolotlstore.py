@@ -49,7 +49,6 @@ def _convert_record(record):
     return SessionRecord(serialized=record)
 
 
-sqlite3.register_converter('jid', _convert_to_string)
 sqlite3.register_converter('pk', _convert_identity_key)
 sqlite3.register_converter('session_record', _convert_record)
 
@@ -59,7 +58,6 @@ class LiteAxolotlStore(AxolotlStore):
         self._log = log
         self._con = sqlite3.connect(db_path,
                                     detect_types=sqlite3.PARSE_COLNAMES)
-        self._con.text_factory = bytes
         self._con.row_factory = self._namedtuple_factory
         self.createDb()
         self.migrateDb()
@@ -257,7 +255,7 @@ class LiteAxolotlStore(AxolotlStore):
 
         if self.user_version() < 8:
             # Sanitize invalid BLOBs from the python2 days
-            query_keys = '''SELECT recipient_id as "recipient_id [jid]",
+            query_keys = '''SELECT recipient_id,
                             registration_id,
                             CAST(public_key as BLOB) as public_key,
                             CAST(private_key as BLOB) as private_key,
@@ -344,13 +342,13 @@ class LiteAxolotlStore(AxolotlStore):
         return result.record if result is not None else SessionRecord()
 
     def getJidFromDevice(self, device_id):
-        query = '''SELECT recipient_id as "recipient_id [jid]"
+        query = '''SELECT recipient_id
                    FROM sessions WHERE device_id = ?'''
         result = self._con.execute(query, (device_id, )).fetchone()
         return result.recipient_id if result is not None else None
 
     def getActiveDeviceTuples(self):
-        query = '''SELECT recipient_id as "recipient_id [jid]", device_id
+        query = '''SELECT recipient_id, device_id
                    FROM sessions WHERE active = 1'''
         return self._con.execute(query).fetchall()
 
@@ -388,7 +386,7 @@ class LiteAxolotlStore(AxolotlStore):
         self._con.commit()
 
     def getSessionsFromJid(self, recipientId):
-        query = '''SELECT recipient_id as "recipient_id [jid]",
+        query = '''SELECT recipient_id,
                           device_id,
                           record as "record [session_record]",
                           active
@@ -396,7 +394,7 @@ class LiteAxolotlStore(AxolotlStore):
         return self._con.execute(query, (recipientId,)).fetchall()
 
     def getSessionsFromJids(self, recipientIds):
-        query = '''SELECT recipient_id as "recipient_id [jid]",
+        query = '''SELECT recipient_id,
                           device_id,
                           record as "record [session_record]",
                           active
@@ -542,7 +540,7 @@ class LiteAxolotlStore(AxolotlStore):
         return result.trust if result is not None else None
 
     def getFingerprints(self, jid):
-        query = '''SELECT recipient_id as "recipient_id [jid]",
+        query = '''SELECT recipient_id,
                           public_key as "public_key [pk]",
                           trust,
                           timestamp
@@ -552,7 +550,7 @@ class LiteAxolotlStore(AxolotlStore):
 
     def getMucFingerprints(self, jids):
         query = '''
-            SELECT recipient_id as "recipient_id [jid]",
+            SELECT recipient_id,
                    public_key as "public_key [pk]",
                    trust,
                    timestamp
