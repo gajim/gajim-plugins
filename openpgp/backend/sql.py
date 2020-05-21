@@ -18,13 +18,11 @@ import sqlite3
 import logging
 from collections import namedtuple
 
-from nbxmpp import JID
-
 log = logging.getLogger('gajim.p.openpgp.sql')
 
 TABLE_LAYOUT = '''
     CREATE TABLE contacts (
-        jid JID,
+        jid TEXT,
         fingerprint TEXT,
         active BOOLEAN,
         trust INTEGER,
@@ -34,19 +32,10 @@ TABLE_LAYOUT = '''
     CREATE UNIQUE INDEX jid_fingerprint ON contacts (jid, fingerprint);'''
 
 
-def _jid_adapter(jid):
-    return str(jid)
-
-
-sqlite3.register_adapter(JID, _jid_adapter)
-
-
 class Storage:
     def __init__(self, folder_path):
         self._con = sqlite3.connect(str(folder_path / 'contacts.db'),
-                                    detect_types=sqlite3.PARSE_DECLTYPES)
-
-
+                                    detect_types=sqlite3.PARSE_COLNAMES)
 
         self._con.row_factory = self._namedtuple_factory
         self._create_database()
@@ -82,7 +71,15 @@ class Storage:
         pass
 
     def load_contacts(self):
-        return self._con.execute('SELECT * from contacts').fetchall()
+        sql = '''SELECT jid as "jid [jid]",
+                        fingerprint,
+                        active, 
+                        trust,
+                        timestamp,
+                        comment
+                FROM contacts'''
+
+        return self._con.execute(sql).fetchall()
 
     def save_contact(self, db_values):
         sql = '''REPLACE INTO
