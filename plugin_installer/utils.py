@@ -110,7 +110,7 @@ class PluginInfo:
         if not manifest_path.exists():
             return None
         try:
-            return V(PluginInfo.from_path(manifest_path).version)
+            return PluginInfo.from_path(manifest_path).version
         except Exception as error:
             log.warning(error)
         return None
