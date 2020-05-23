@@ -147,7 +147,7 @@ class LiteAxolotlStore(AxolotlStore):
             create_db_sql = """
                 BEGIN TRANSACTION;
                 %s
-                PRAGMA user_version=8;
+                PRAGMA user_version=9;
                 END TRANSACTION;
                 """ % (create_tables)
             self._con.executescript(create_db_sql)
@@ -276,6 +276,27 @@ class LiteAxolotlStore(AxolotlStore):
                 except Exception as error:
                     self._log.warning(error)
             self._con.execute('PRAGMA user_version=8')
+            self._con.commit()
+
+        if self.user_version() < 9:
+            # Sanitize invalid BLOBs from the python2 days
+            query_keys = '''SELECT device_id,
+                            CAST(public_key as BLOB) as public_key,
+                            CAST(private_key as BLOB) as private_key
+                            FROM secret'''
+            rows = self._con.execute(query_keys).fetchall()
+
+            delete = 'DELETE FROM secret'
+            self._con.execute(delete)
+
+            insert = '''INSERT INTO secret (device_id, public_key, private_key)
+                        VALUES (?, ?, ?)'''
+            for row in rows:
+                try:
+                    self._con.execute(insert, row)
+                except Exception as error:
+                    self._log.warning(error)
+            self._con.execute('PRAGMA user_version=9')
             self._con.commit()
 
     def loadSignedPreKey(self, signedPreKeyId):
