@@ -656,7 +656,11 @@ class LiteAxolotlStore(AxolotlStore):
         query = '''SELECT public_key as "public_key [pk]" FROM identities
                    WHERE recipient_id = ? AND trust = ?'''
         result = self._con.execute(query, (jid, Trust.UNDECIDED)).fetchall()
-        return True if result else False
+        undecided = [row.public_key for row in result]
+
+        inactive = self.getInactiveSessionsKeys(jid)
+        undecided = set(undecided) - set(inactive)
+        return bool(undecided)
 
     def getTrustedFingerprints(self, jid):
         query = '''SELECT public_key as "public_key [pk]" FROM identities
