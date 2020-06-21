@@ -148,7 +148,12 @@ class OmemoState(DeviceManager):
             self._log.debug("Decrypted Key Exchange Message")
             raise KeyExchangeMessage
 
-        result = aes_decrypt(key, omemo_message.iv, omemo_message.payload)
+        try:
+            result = aes_decrypt(key, omemo_message.iv, omemo_message.payload)
+        except Exception as error:
+            self._log.warning(error)
+            raise DecryptionFailed
+
         self._log.debug("Decrypted Message => %s", result)
         return result, fingerprint, trust
 
