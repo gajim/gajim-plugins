@@ -23,6 +23,10 @@ import gnupg
 from openpgp.modules.util import DecryptionFailed
 
 log = logging.getLogger('gajim.p.openpgp.pygnupg')
+if log.getEffectiveLevel() == logging.DEBUG:
+    log = logging.getLogger('gnupg')
+    log.addHandler(logging.StreamHandler())
+    log.setLevel(logging.DEBUG)
 
 KeyringItem = namedtuple('KeyringItem', 'jid keyid fingerprint')
 
