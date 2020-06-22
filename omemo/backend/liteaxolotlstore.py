@@ -696,10 +696,6 @@ class LiteAxolotlStore(AxolotlStore):
         return self.getTrustForIdentity(
             recipient_id, identity_key) == Trust.VERIFIED
 
-    def isUntrustedIdentity(self, recipient_id, identity_key):
-        return self.getTrustForIdentity(
-            recipient_id, identity_key) == Trust.UNTRUSTED
-
     def getIdentityLastSeen(self, recipient_id, identity_key):
         identity_key = identity_key.getPublicKey().serialize()
         query = '''SELECT timestamp FROM identities
