@@ -177,7 +177,9 @@ class OMEMO(BaseModule):
         else:
             event.xhtml = None
             event.encrypted = ENCRYPTION_NAME
-            event.additional_data['encrypted'] = {'name': ENCRYPTION_NAME}
+            event.additional_data['encrypted'] = {
+                'name': ENCRYPTION_NAME,
+                'trust': GajimTrust[Trust.VERIFIED.name]}
 
         self._debug_print_stanza(event.stanza)
         callback(event)
