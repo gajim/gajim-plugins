@@ -114,7 +114,10 @@ class OmemoPlugin(GajimPlugin):
         self.disabled_accounts = []
         self._windows = {}
 
-        self.config_default_values = {'DISABLED_ACCOUNTS': ([], ''), }
+        self.config_default_values = {
+            'DISABLED_ACCOUNTS': ([], ''),
+            'BLIND_TRUST': (True, '')
+        }
 
         for account in self.config['DISABLED_ACCOUNTS']:
             self.disabled_accounts.append(account)

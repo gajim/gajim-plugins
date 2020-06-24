@@ -47,7 +47,10 @@ TRUST_DATA = {
                       'warning-color'),
     Trust.VERIFIED: ('security-high-symbolic',
                      _('Verified'),
-                     'encrypted-color')
+                     'encrypted-color'),
+    Trust.BLIND: ('security-medium-symbolic',
+                  _('Blind Trust'),
+                  'encrypted-color')
 }
 
 
@@ -352,11 +355,7 @@ class TrustPopver(Gtk.Popover):
         self._row = row
         self._listbox = Gtk.ListBox()
         self._listbox.set_selection_mode(Gtk.SelectionMode.NONE)
-        if row.trust != Trust.VERIFIED:
-            self._listbox.add(VerifiedOption())
-        if row.trust != Trust.UNTRUSTED:
-            self._listbox.add(NotTrustedOption())
-        self._listbox.add(DeleteOption())
+        self.update()
         self.add(self._listbox)
         self._listbox.show_all()
         self._listbox.connect('row-activated', self._activated)
@@ -376,6 +375,8 @@ class TrustPopver(Gtk.Popover):
         self._listbox.foreach(self._listbox.remove)
         if self._row.trust != Trust.VERIFIED:
             self._listbox.add(VerifiedOption())
+        if self._row.trust != Trust.BLIND:
+            self._listbox.add(BlindOption())
         if self._row.trust != Trust.UNTRUSTED:
             self._listbox.add(NotTrustedOption())
         self._listbox.add(DeleteOption())
@@ -396,6 +397,17 @@ class MenuOption(Gtk.ListBoxRow):
         box.add(label)
         self.add(box)
         self.show_all()
+
+
+class BlindOption(MenuOption):
+
+    type_ = Trust.BLIND
+    icon = 'security-medium-symbolic'
+    label = _('Blind Trust')
+    color = 'encrypted-color'
+
+    def __init__(self):
+        MenuOption.__init__(self)
 
 
 class VerifiedOption(MenuOption):
