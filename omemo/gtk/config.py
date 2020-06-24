@@ -58,6 +58,7 @@ class OMEMOConfigDialog(GajimPluginConfigDialog):
         self.update_account_store()
         self.update_account_combobox()
         self.update_disabled_account_view()
+        self.update_settings()
 
     def is_in_accountstore(self, account):
         for row in self._ui.account_store:
@@ -127,6 +128,9 @@ class OMEMOConfigDialog(GajimPluginConfigDialog):
     def refresh_button_clicked_cb(self, button, *args):
         self.update_context_list()
 
+    def _on_blind_trust(self, button):
+        self.plugin.config['BLIND_TRUST'] = button.get_active()
+
     def update_context_list(self):
         self._ui.deviceid_store.clear()
 
@@ -158,3 +162,7 @@ class OMEMOConfigDialog(GajimPluginConfigDialog):
         # Set Device ID List
         for item in omemo.backend.get_devices(own_jid):
             self._ui.deviceid_store.append([item])
+
+    def update_settings(self):
+        self._ui.blind_trust_checkbutton.set_active(
+            self.plugin.config['BLIND_TRUST'])

@@ -32,6 +32,7 @@ class Trust(IntEnum):
     UNTRUSTED = 0
     VERIFIED = 1
     UNDECIDED = 2
+    BLIND = 3
 
 
 def get_fingerprint(identity_key, formatted=False):

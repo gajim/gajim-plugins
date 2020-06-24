@@ -30,6 +30,8 @@ from axolotl.identitykeypair import IdentityKeyPair
 from axolotl.util.medium import Medium
 from axolotl.util.keyhelper import KeyHelper
 
+from gajim.common import app
+
 from omemo.backend.util import Trust
 from omemo.backend.util import IdentityKeyExtended
 from omemo.backend.util import DEFAULT_PREKEY_AMOUNT
@@ -74,6 +76,12 @@ class LiteAxolotlStore(AxolotlStore):
         if not self.getLocalRegistrationId():
             self._log.info("Generating OMEMO keys")
             self._generate_axolotl_keys()
+
+    @staticmethod
+    def _is_blind_trust_enabled():
+        plugin = app.plugin_manager.get_active_plugin('omemo')
+        print(plugin.config['BLIND_TRUST'])
+        return plugin.config['BLIND_TRUST']
 
     @staticmethod
     def _namedtuple_factory(cursor, row):
@@ -596,12 +604,15 @@ class LiteAxolotlStore(AxolotlStore):
         self._con.commit()
 
     def saveIdentity(self, recipientId, identityKey):
-        query = '''INSERT INTO identities (recipient_id, public_key, trust)
-                   VALUES(?, ?, ?)'''
+        query = '''INSERT INTO identities (recipient_id, public_key, trust, shown)
+                   VALUES(?, ?, ?, ?)'''
         if not self.containsIdentity(recipientId, identityKey):
+            trust = self.getDefaultTrust(recipientId)
+            print('TRUST', trust)
             self._con.execute(query, (recipientId,
                                       identityKey.getPublicKey().serialize(),
-                                      Trust.UNDECIDED))
+                                      trust,
+                                      1 if trust == Trust.BLIND else 0))
             self._con.commit()
 
     def containsIdentity(self, recipientId, identityKey):
@@ -662,10 +673,21 @@ class LiteAxolotlStore(AxolotlStore):
         undecided = set(undecided) - set(inactive)
         return bool(undecided)
 
+    def getDefaultTrust(self, jid):
+        if not self._is_blind_trust_enabled():
+            return Trust.UNDECIDED
+
+        query = '''SELECT * FROM identities
+                   WHERE recipient_id = ? AND trust IN (0, 1)'''
+        result = self._con.execute(query, (jid,)).fetchone()
+        if result is None:
+            return Trust.BLIND
+        return Trust.UNDECIDED
+
     def getTrustedFingerprints(self, jid):
         query = '''SELECT public_key as "public_key [pk]" FROM identities
-                   WHERE recipient_id = ? AND trust = ?'''
-        result = self._con.execute(query, (jid, Trust.VERIFIED)).fetchall()
+                   WHERE recipient_id = ? AND trust IN(1, 3)'''
+        result = self._con.execute(query, (jid,)).fetchall()
         return [row.public_key for row in result]
 
     def getNewFingerprints(self, jid):
@@ -694,7 +716,7 @@ class LiteAxolotlStore(AxolotlStore):
             return False
         identity_key = record.getSessionState().getRemoteIdentityKey()
         return self.getTrustForIdentity(
-            recipient_id, identity_key) == Trust.VERIFIED
+            recipient_id, identity_key) in (Trust.VERIFIED, Trust.BLIND)
 
     def getIdentityLastSeen(self, recipient_id, identity_key):
         identity_key = identity_key.getPublicKey().serialize()
