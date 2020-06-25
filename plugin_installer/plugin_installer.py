@@ -211,7 +211,9 @@ class PluginInstaller(GajimPlugin):
         activated = app.plugin_manager.update_plugins(
             replace=False, activate=True, plugin_name=plugin.short_name)
         if activated:
-            self._available_page.update_plugin(plugin)
+            if self._available_page is not None:
+                self._available_page.update_plugin(plugin)
+
         else:
             self._needs_restart = True
             log.info('Plugin %s needs restart', plugin.name)
