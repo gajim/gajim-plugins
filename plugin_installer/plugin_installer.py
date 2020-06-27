@@ -128,8 +128,7 @@ class PluginInstaller(GajimPlugin):
         def _open_update(is_checked):
             if is_checked:
                 self.config['auto_update'] = True
-            get_action('plugins').activate()
-            self._available_page.show_page()
+            self._download_plugins(plugins)
 
         plugins_str = '\n' + '\n'.join([plugin.name for plugin in plugins])
         NewConfirmationCheckDialog(
