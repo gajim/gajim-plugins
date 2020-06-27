@@ -116,7 +116,8 @@ class OmemoPlugin(GajimPlugin):
 
         self.config_default_values = {
             'DISABLED_ACCOUNTS': ([], ''),
-            'BLIND_TRUST': (True, '')
+            'BLIND_TRUST': (True, ''),
+            'SHOW_HELP_FINGERPRINTS': (True, ''),
         }
 
         for account in self.config['DISABLED_ACCOUNTS']:

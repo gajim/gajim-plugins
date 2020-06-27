@@ -78,6 +78,13 @@ class KeyDialog(Gtk.Dialog):
         path = self._plugin.local_file_path('gtk/key.ui')
         self._ui = get_builder(path)
 
+        markup = '<a href="%s">%s</a>' % (
+            'https://dev.gajim.org/gajim/gajim-plugins/-/'
+            'wikis/omemogajimplugin', _('Read more about blind trust.'))
+        self._ui.btbv_link.set_markup(markup)
+        self._ui.infobar.set_revealed(
+            self._plugin.config['SHOW_HELP_FINGERPRINTS'])
+
         self._ui.header.set_text(_('Fingerprints for %s') % self._contact.jid)
 
         omemo_img_path = self._plugin.local_file_path('omemo.png')
@@ -90,13 +97,18 @@ class KeyDialog(Gtk.Dialog):
         ownfpr_format = get_fingerprint(self._identity_key, formatted=True)
         self._ui.own_fingerprint.set_text(ownfpr_format)
 
-        self.get_content_area().add(self._ui.grid)
+        self.get_content_area().add(self._ui.box)
 
         self.update()
         self._load_qrcode()
         self._ui.connect_signals(self)
         self.connect('destroy', self._on_destroy)
         self.show_all()
+
+    def _on_infobar_response(self, _widget, response):
+        if response == Gtk.ResponseType.CLOSE:
+            self._ui.infobar.set_revealed(False)
+            self._plugin.config['SHOW_HELP_FINGERPRINTS'] = False
 
     def _filter_func(self, row, _user_data):
         search_text = self._ui.search.get_text()

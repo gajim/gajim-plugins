@@ -7,8 +7,6 @@
 
 .omemo-last-seen { font-size: 11px; }
 
-.omemo-key-dialog > box { margin: 18px; }
-
 .omemo-key-dialog scrolledwindow row {
     border-bottom: 1px solid;
     border-color: @unfocused_borders;
