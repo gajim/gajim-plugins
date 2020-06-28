@@ -1,3 +1,6 @@
+2.7.7 / 2020-06-28
+- Add hints for the fingerprint dialog
+
 2.7.6 / 2020-06-24
 - Implement Blind Trust Before Verification
 - Show outgoing messages as VERIFIED
