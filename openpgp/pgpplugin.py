@@ -99,10 +99,11 @@ class OpenPGPPlugin(GajimPlugin):
         except Exception:
             log.exception('Error loading application css')
 
-    def _create_paths(self):
-        keyring_path = os.path.join(configpaths.get('MY_DATA'), 'openpgp')
-        if not os.path.exists(keyring_path):
-            os.makedirs(keyring_path)
+    @staticmethod
+    def _create_paths():
+        keyring_path = Path(configpaths.get('MY_DATA')) / 'openpgp'
+        if not keyring_path.exists():
+            keyring_path.mkdir()
 
     def signed_in(self, event):
         account = event.conn.name
