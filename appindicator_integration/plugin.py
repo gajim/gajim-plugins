@@ -86,7 +86,7 @@ class AppindicatorIntegrationPlugin(GajimPlugin):
         self.indicator = appindicator.Indicator.new(
             'Gajim', self.offline_icon,
             appindicator.IndicatorCategory.COMMUNICATIONS)
-        self.indicator.set_icon_theme_path(configpaths.get('ICONS'))
+        self.indicator.set_icon_theme_path(str(configpaths.get('ICONS')))
         self.indicator.set_attention_icon_full('mail-unread', 'New Message')
         self.indicator.set_status(appindicator.IndicatorStatus.ACTIVE)
         self.indicator.set_menu(self.menu)
