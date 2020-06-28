@@ -1,3 +1,10 @@
+2.6.80 / 2020-06-29
+- Add hints for the fingerprint dialog
+- Implement Blind Trust Before Verification
+- Show outgoing messages as VERIFIED
+- Don't drop message silently on decryption error
+- Don't include inactive devices on checking undecided trust
+
 2.6.79 / 2020-05-23
 - Sanitize BLOBs in database
 
