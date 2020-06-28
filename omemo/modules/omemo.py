@@ -18,6 +18,7 @@
 
 import os
 import time
+from pathlib import Path
 
 import nbxmpp
 from nbxmpp.namespaces import Namespace
@@ -120,8 +121,8 @@ class OMEMO(BaseModule):
         return self._backend
 
     def _get_backend(self):
-        data_dir = configpaths.get('MY_DATA')
-        db_path = os.path.join(data_dir, 'omemo_' + self._own_jid + '.db')
+        data_dir = Path(configpaths.get('MY_DATA'))
+        db_path = data_dir / f'omemo_{self._own_jid}.db'
         return OmemoState(self._own_jid, db_path, self._account, self)
 
     def is_omemo_groupchat(self, room_jid):
