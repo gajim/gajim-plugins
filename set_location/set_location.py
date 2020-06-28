@@ -285,11 +285,10 @@ class SetLocationConfigDialog(Gtk.ApplicationWindow):
 
         self.contacts_layer = Champlain.MarkerLayer()
         for jid in data:
-            path = self._get_path_to_generic_or_avatar(
-                self.path_to_image, jid=jid, suffix='')
+            # TODO: get avatar image of contact instead of fallback icon
             texture = Clutter.Texture()
-            texture.set_from_file(path)
-            texture.set_size(32,32)
+            texture.set_from_file(str(self.path_to_image))
+            texture.set_size(32, 32)
             marker = Champlain.Label.new_with_image(texture)
             marker.set_text(data[jid][2])
             marker.set_location(float(data[jid][0]), float(data[jid][1]))
@@ -298,30 +297,6 @@ class SetLocationConfigDialog(Gtk.ApplicationWindow):
         self.view.add_layer(self.contacts_layer)
         self.contacts_layer.animate_in_all_markers()
         self.markers_is_visible = True
-
-    @staticmethod
-    def _get_path_to_generic_or_avatar(generic, jid=None, suffix=None):
-        """
-        Choose between avatar image and default image
-
-        Returns full path to the avatar image if it exists, otherwise returns full
-        path to the image.  generic must be with extension and suffix without
-        """
-        if jid:
-            # we want an avatar
-            puny_jid = sanitize_filename(jid)
-            path_to_file = os.path.join(
-                configpaths.get('AVATAR'), puny_jid) + suffix
-            path_to_local_file = path_to_file + '_local'
-            for extension in ('.png', '.jpeg'):
-                path_to_local_file_full = path_to_local_file + extension
-                if os.path.exists(path_to_local_file_full):
-                    return path_to_local_file_full
-            for extension in ('.png', '.jpeg'):
-                path_to_file_full = path_to_file + extension
-                if os.path.exists(path_to_file_full):
-                    return path_to_file_full
-        return os.path.abspath(generic)
 
     def _on_preset_button_clicked(self, _widget):
         def _on_save(preset_name):
