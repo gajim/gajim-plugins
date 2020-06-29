@@ -29,8 +29,8 @@ modules:
       - appstream-compose --basename=org.gajim.Gajim.Devel.Plugin.syntax_highlight --prefix=${FLATPAK_DEST} --origin=flatpak org.gajim.Gajim.Plugin.syntax_highlight
     sources:
       - type: archive
-        url: https://ftp.gajim.org/plugins_releases/syntax_highlight_1.3.0.zip
-        sha256: f79e67bbfd1f3ff3e709852ffb6b37b8df4c05dfddc88667f5c605ee61730b74
+        url: https://ftp.gajim.org/plugins_releases/syntax_highlight_1.3.1.zip
+        sha256: 43bad99b2e0a90ca1d6c90a646c92f79eb56ba96652eebf8e41f10b99e5903a0
       - type: shell
         commands:
           - sed -i "s+org.gajim.Gajim+org.gajim.Gajim.Devel+" org.gajim.Gajim.Plugin.*.metainfo.xml
