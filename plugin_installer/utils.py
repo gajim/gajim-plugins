@@ -9,6 +9,7 @@ from packaging.version import Version as V
 from gi.repository import Gtk
 from gi.repository import GdkPixbuf
 
+import gajim
 from gajim.common import app
 from gajim.common import configpaths
 
@@ -87,7 +88,7 @@ class PluginInfo:
         return self._installed_version
 
     def has_valid_version(self):
-        gajim_version = V(app.config.get('version'))
+        gajim_version = V(gajim.__version__)
         return self.min_gajim_version <= gajim_version <= self.max_gajim_version
 
     def _get_installed_version(self):
