@@ -101,7 +101,11 @@ class PluginInfo:
         # PluginManager. Look in the Gajim config if the plugin is
         # known and active, if yes load the manifest from the Plugin
         # dir and parse the version
-        active = app.config.get_per('plugins', self.short_name, 'active')
+        plugin_settings = app.settings.get_plugins()
+        if self.short_name not in plugin_settings:
+            return None
+
+        active = app.settings.get_plugin_setting(self.short_name, 'active')
         if not active:
             return None
 
