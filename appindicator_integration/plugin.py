@@ -102,8 +102,8 @@ class AppindicatorIntegrationPlugin(GajimPlugin):
 
     def connect(self, widget, data=None):
         for account in app.connections:
-            if app.config.get_per('accounts', account,
-                                  'sync_with_global_status'):
+            if app.settings.get_account_setting(account,
+                                                'sync_with_global_status'):
                 app.connections[account].change_status('online',
                                                        'online')
 
@@ -116,8 +116,8 @@ class AppindicatorIntegrationPlugin(GajimPlugin):
     def set_indicator_icon(self, *args):
         is_connected = 0
         for account in app.connections:
-            if not app.config.get_per('accounts', account,
-                                      'sync_with_global_status'):
+            if not app.settings.get_account_setting(account,
+                                                    'sync_with_global_status'):
                 continue
             if app.account_is_connected(account):
                 is_connected = 1
