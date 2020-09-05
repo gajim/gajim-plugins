@@ -56,6 +56,7 @@ MIME_TYPES = (
     'audio/opus',
     'audio/wav',
     'audio/x-flac',
+    'audio/x-m4a',
     'audio/x-matroska',
     # font/*
     'font/ttf',

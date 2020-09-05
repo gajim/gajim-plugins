@@ -29,6 +29,12 @@ from gi.repository import GdkPixbuf
 from gi.repository import Gio
 from gi.repository import GLib
 from gi.repository import Soup
+try:
+    from gi.repository import Gst
+    from gi.repository import GstPbutils
+except Exception:
+    pass
+
 
 from gajim.common import app
 from gajim.common import configpaths
@@ -94,10 +100,18 @@ def get_previewable_mime_types():
     ))
 
 
+def change_cursor(widget, event):
+    if event.type == Gdk.EventType.ENTER_NOTIFY:
+        widget.get_window().set_cursor(get_cursor('default'))
+    else:
+        widget.get_window().set_cursor(get_cursor('text'))
+
+
 PREVIEWABLE_MIME_TYPES = get_previewable_mime_types()
 mime_types = set(MIME_TYPES)
 # Merge both: if it’s a previewable image, it should be allowed
 ALLOWED_MIME_TYPES = mime_types.union(PREVIEWABLE_MIME_TYPES)
+
 
 class UrlImagePreviewPlugin(GajimPlugin):
     def init(self):
@@ -434,8 +448,9 @@ class UrlImagePreviewPlugin(GajimPlugin):
             return
 
         if file_size == 0 or file_size > int(self.config['MAX_FILE_SIZE']):
-            log.info('File size (%s) too big or unknown (zero) for URL: \'%s\'',
-                     file_size, uri)
+            log.info(
+                'File size (%s) too big or unknown (zero) for URL: \'%s\'',
+                file_size, uri)
             if not force:
                 session.cancel_message(message, Soup.Status.CANCELLED)
 
@@ -486,10 +501,10 @@ class UrlImagePreviewPlugin(GajimPlugin):
 
         try:
             pixbuf = pixbuf_from_data(preview.thumbnail)
-        except Exception as error:
+        except Exception as err:
             log.error('Unable to load: %s, %s',
                       preview.thumb_path.name,
-                      error)
+                      err)
             return
         self._update_textview(preview, pixbuf)
 
@@ -541,28 +556,22 @@ class UrlImagePreviewPlugin(GajimPlugin):
         def _on_realize(box):
             box.get_window().set_cursor(get_cursor('pointer'))
 
-        def _on_enter_leave(button, event):
-            if event.type == Gdk.EventType.ENTER_NOTIFY:
-                button.get_window().set_cursor(get_cursor('default'))
-            else:
-                button.get_window().set_cursor(get_cursor('text'))
-
         path = self.local_file_path('preview.ui')
         ui = get_builder(path)
 
         ui.download_button.set_no_show_all(True)
-        ui.download_button.connect('enter-notify-event', _on_enter_leave)
-        ui.download_button.connect('leave-notify-event', _on_enter_leave)
+        ui.download_button.connect('enter-notify-event', change_cursor)
+        ui.download_button.connect('leave-notify-event', change_cursor)
         ui.download_button.connect('clicked', self._on_download, preview)
 
         ui.save_as_button.set_no_show_all(True)
-        ui.save_as_button.connect('enter-notify-event', _on_enter_leave)
-        ui.save_as_button.connect('leave-notify-event', _on_enter_leave)
+        ui.save_as_button.connect('enter-notify-event', change_cursor)
+        ui.save_as_button.connect('leave-notify-event', change_cursor)
         ui.save_as_button.connect('clicked', self._on_save_as, preview)
 
         ui.open_folder_button.set_no_show_all(True)
-        ui.open_folder_button.connect('enter-notify-event', _on_enter_leave)
-        ui.open_folder_button.connect('leave-notify-event', _on_enter_leave)
+        ui.open_folder_button.connect('enter-notify-event', change_cursor)
+        ui.open_folder_button.connect('leave-notify-event', change_cursor)
         ui.open_folder_button.connect('clicked', self._on_open_folder, preview)
 
         ui.event_box.set_tooltip_text(preview.filename)
@@ -595,6 +604,10 @@ class UrlImagePreviewPlugin(GajimPlugin):
 
         if preview.orig_exists():
             ui.download_button.hide()
+            if (preview.is_audio and app.is_installed('GST') and
+                    self._contains_audio_streams(preview.orig_path)):
+                audio_widget = AudioWidget(preview.orig_path)
+                ui.preview_box.pack_start(audio_widget, True, True, 0)
         else:
             ui.save_as_button.hide()
             ui.open_folder_button.hide()
@@ -722,6 +735,17 @@ class UrlImagePreviewPlugin(GajimPlugin):
             menu = self._get_context_menu(preview)
             menu.popup_at_pointer(event)
 
+    @staticmethod
+    def _contains_audio_streams(file_path):
+        # Check if it is really an audio file
+        discoverer = GstPbutils.Discoverer()
+        info = discoverer.discover_uri(f'file://{str(file_path)}')
+        has_audio = bool(info.get_audio_streams())
+        if not has_audio:
+            log.warning('File does not contain audio stream: %s',
+                        str(file_path))
+        return has_audio
+
 
 class Preview:
     def __init__(self, uri, urlparts, orig_path, thumb_path,
@@ -759,6 +783,11 @@ class Preview:
         return self.mime_type in PREVIEWABLE_MIME_TYPES
 
     @property
+    def is_audio(self):
+        is_allowed = bool(self.mime_type in ALLOWED_MIME_TYPES)
+        return is_allowed and self.mime_type.startswith('audio/')
+
+    @property
     def uri(self):
         return self._uri
 
@@ -792,3 +821,126 @@ class Preview:
             log.warning('Creating thumbnail failed for: %s', self.orig_path)
             return False
         return True
+
+
+class AudioWidget(Gtk.Box):
+    def __init__(self, file_path):
+        Gtk.Box.__init__(self, orientation=Gtk.Orientation.HORIZONTAL,
+                         spacing=6)
+        self._playbin = None
+        self._query = None
+        self._has_timeout = False
+
+        self._build_audio_widget()
+        self._setup_audio_player(file_path)
+
+    def _build_audio_widget(self):
+        play_button = Gtk.Button()
+        play_button.get_style_context().add_class('flat')
+        play_button.get_style_context().add_class('preview-button')
+        play_button.set_tooltip_text(_('Start/stop playback'))
+        self._play_icon = Gtk.Image.new_from_icon_name(
+            'media-playback-start-symbolic',
+            Gtk.IconSize.BUTTON)
+        play_button.add(self._play_icon)
+        self._seek_bar = Gtk.Scale(
+            orientation=Gtk.Orientation.HORIZONTAL)
+        self._seek_bar.set_range(0.0, 1.0)
+        self._seek_bar.set_hexpand(True)
+        self._seek_bar.set_value_pos(Gtk.PositionType.RIGHT)
+        self._seek_bar.connect('enter-notify-event', change_cursor)
+        self._seek_bar.connect('leave-notify-event', change_cursor)
+        self._seek_bar.connect('change-value', self._on_seek)
+        self._seek_bar.connect(
+            'format-value', self._format_audio_timestamp)
+        play_button.connect('enter-notify-event', change_cursor)
+        play_button.connect('leave-notify-event', change_cursor)
+        play_button.connect('clicked', self._on_play_clicked)
+
+        self.add(play_button)
+        self.add(self._seek_bar)
+        self.connect('destroy', self._on_destroy)
+        self.show_all()
+
+    def _setup_audio_player(self, file_path):
+        self._playbin = Gst.ElementFactory.make('playbin', 'bin')
+        if self._playbin is None:
+            return
+        self._playbin.set_property(
+            'uri', f'file://{str(file_path)}')
+        state_return = self._playbin.set_state(Gst.State.PAUSED)
+        if state_return == Gst.StateChangeReturn.FAILURE:
+            return
+
+        self._query = Gst.Query.new_position(Gst.Format.TIME)
+        bus = self._playbin.get_bus()
+        bus.add_signal_watch()
+        bus.connect('message', self._on_bus_message)
+
+    def _on_bus_message(self, _bus, message):
+        if message.type == Gst.MessageType.EOS:
+            self._set_pause(True)
+            self._playbin.seek_simple(
+                Gst.Format.TIME, Gst.SeekFlags.FLUSH, 0)
+        elif message.type == Gst.MessageType.STATE_CHANGED:
+            _success, duration = self._playbin.query_duration(
+                Gst.Format.TIME)
+            if duration > 0:
+                self._seek_bar.set_range(0.0, duration)
+
+            is_paused = self._get_paused()
+            if (duration > 0 and not is_paused and
+                    not self._has_timeout):
+                GLib.timeout_add(500, self._update_seek_bar)
+                self._has_timeout = True
+
+    def _on_seek(self, _range, _scroll, value):
+        self._playbin.seek_simple(
+            Gst.Format.TIME, Gst.SeekFlags.FLUSH, value)
+        return False
+
+    def _on_play_clicked(self, _button):
+        self._set_pause(not self._get_paused())
+
+    def _on_destroy(self, _widget):
+        self._playbin.set_state(Gst.State.NULL)
+
+    def _get_paused(self):
+        _, state, _ = self._playbin.get_state(20)
+        return state == Gst.State.PAUSED
+
+    def _set_pause(self, paused):
+        if paused:
+            self._playbin.set_state(Gst.State.PAUSED)
+            self._play_icon.set_from_icon_name(
+                'media-playback-start-symbolic',
+                Gtk.IconSize.BUTTON)
+        else:
+            self._playbin.set_state(Gst.State.PLAYING)
+            self._play_icon.set_from_icon_name(
+                'media-playback-pause-symbolic',
+                Gtk.IconSize.BUTTON)
+
+    def _update_seek_bar(self):
+        if self._get_paused():
+            self._has_timeout = False
+            return False
+
+        if self._playbin.query(self._query):
+            _fmt, cur_pos = self._query.parse_position()
+            self._seek_bar.set_value(cur_pos)
+        return True
+
+    @staticmethod
+    def _format_audio_timestamp(_widget, ns):
+        seconds = ns / 1000000000
+        minutes = seconds / 60
+        hours = minutes / 60
+
+        i_seconds = int(seconds)
+        i_minutes = int(minutes)
+        i_hours = int(hours)
+
+        if i_hours > 0:
+            return f'{i_hours:d}:{i_minutes:02d}:{i_seconds:02d}'
+        return f'{i_minutes:d}:{i_seconds:02d}'
