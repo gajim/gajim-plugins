@@ -74,8 +74,9 @@ class PGPLegacy(BaseModule):
 
         self.own_jid = self._con.get_own_jid()
 
-        self._store = KeyStore(self._account, self.own_jid, self._log)
         self._pgp = PGP()
+        self._store = KeyStore(self._account, self.own_jid, self._log,
+                               self._pgp.list_keys)
         self._always_trust = []
         self._presence_key_id_store = {}
 
@@ -118,7 +119,7 @@ class PGPLegacy(BaseModule):
         if key_id is None:
             return
 
-        self._presence_key_id_store[jid] = key_id[8:]
+        self._presence_key_id_store[jid] = key_id
 
         key_data = self.get_contact_key_data(jid)
         if key_data is not None:
@@ -131,7 +132,7 @@ class PGPLegacy(BaseModule):
             return
 
         self._log.info('Assign key-id: %s to %s', key_id, jid)
-        self.set_contact_key_data(jid, (key_id[8:], key[0]['uids'][0]))
+        self.set_contact_key_data(jid, (key_id, key[0]['uids'][0]))
 
     def _message_received(self, _con, stanza, properties):
         if not properties.is_pgp_legacy or properties.from_muc:

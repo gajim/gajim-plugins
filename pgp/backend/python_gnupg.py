@@ -105,7 +105,7 @@ class PGP(gnupg.GPG, metaclass=Singleton):
                 )
             result = super().verify(data.encode('utf8'))
             if result.valid:
-                return result.key_id
+                return result.fingerprint
 
     def get_key(self, key_id):
         return super().list_keys(keys=[key_id])
@@ -116,7 +116,7 @@ class PGP(gnupg.GPG, metaclass=Singleton):
 
         for key in result:
             # Take first not empty uid
-            keys[key['keyid'][8:]] = [uid for uid in key['uids'] if uid][0]
+            keys[key['fingerprint']] = next(uid for uid in key['uids'] if uid)
         return keys
 
     @staticmethod
