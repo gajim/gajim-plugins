@@ -21,7 +21,7 @@ from gi.repository import Gtk
 
 from gajim.common import app
 
-from gajim.gtk.dialogs import NewConfirmationDialog
+from gajim.gtk.dialogs import ConfirmationDialog
 from gajim.gtk.dialogs import DialogButton
 from gajim.plugins.plugins_i18n import _
 
@@ -120,7 +120,7 @@ class KeyRow(Gtk.ListBoxRow):
             self.key.delete()
             self.destroy()
 
-        NewConfirmationDialog(
+        ConfirmationDialog(
             _('Delete'),
             _('Delete Public Key'),
             _('This will permanently delete this public key'),

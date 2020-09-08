@@ -31,7 +31,7 @@ from gajim.plugins.plugins_i18n import _
 
 from gajim.gtk.dialogs import DialogButton
 from gajim.gtk.dialogs import InformationDialog
-from gajim.gtk.dialogs import NewConfirmationCheckDialog
+from gajim.gtk.dialogs import ConfirmationCheckDialog
 
 from plugin_installer.config_dialog import PluginInstallerConfigDialog
 from plugin_installer.widget import AvailablePage
@@ -130,7 +130,7 @@ class PluginInstaller(GajimPlugin):
             self._download_plugins(plugins)
 
         plugins_str = '\n' + '\n'.join([plugin.name for plugin in plugins])
-        NewConfirmationCheckDialog(
+        ConfirmationCheckDialog(
             _('Plugin Updates'),
             _('Plugin Updates Available'),
             _('There are updates for your plugins:\n'
@@ -236,7 +236,7 @@ class PluginInstaller(GajimPlugin):
             def _on_ok(is_checked):
                 if is_checked:
                     self.config['auto_update_feedback'] = False
-            NewConfirmationCheckDialog(
+            ConfirmationCheckDialog(
                 _('Plugins Updated'),
                 _('Plugins Updated'),
                 _('Plugin updates have successfully been downloaded.\n'

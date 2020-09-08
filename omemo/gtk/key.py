@@ -28,7 +28,7 @@ from gi.repository import GdkPixbuf
 from gajim.common import app
 from gajim.plugins.plugins_i18n import _
 from gajim.plugins.helpers import get_builder
-from gajim.gtk.dialogs import NewConfirmationDialog
+from gajim.gtk.dialogs import ConfirmationDialog
 from gajim.gtk.dialogs import DialogButton
 
 from omemo.backend.util import Trust
@@ -293,7 +293,7 @@ class KeyRow(Gtk.ListBoxRow):
             self.get_parent().remove(self)
             self.destroy()
 
-        NewConfirmationDialog(
+        ConfirmationDialog(
             _('Delete'),
             _('Delete Fingerprint'),
             _('Doing so will permanently delete this Fingerprint'),

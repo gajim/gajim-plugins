@@ -45,7 +45,7 @@ from gajim.common import ged
 from gajim.common.connection_handlers_events import InformationEvent
 
 from gajim.gtk.dialogs import DialogButton
-from gajim.gtk.dialogs import NewConfirmationDialog
+from gajim.gtk.dialogs import ConfirmationDialog
 
 from gajim.plugins import GajimPlugin
 from gajim.plugins.helpers import log
@@ -160,7 +160,7 @@ class TictactoePlugin(GajimPlugin):
         else:
             name = obj.jid
 
-        NewConfirmationDialog(
+        ConfirmationDialog(
             _('Incoming Tictactoe'),
             _('Incoming Tictactoe Invitation'),
             _('%(name)s (%(jid)s) wants to play tictactoe with you.') % {

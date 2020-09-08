@@ -42,7 +42,7 @@ from gajim.common.jingle_transport import JingleTransport
 from gajim.common.jingle_transport import TransportType
 
 from gajim.gtk.dialogs import DialogButton
-from gajim.gtk.dialogs import NewConfirmationDialog
+from gajim.gtk.dialogs import ConfirmationDialog
 
 from gajim.plugins import GajimPlugin
 from gajim.plugins.gajimplugin import GajimPluginException
@@ -163,7 +163,7 @@ class WhiteboardPlugin(GajimPlugin):
         else:
             name = jid
 
-        NewConfirmationDialog(
+        ConfirmationDialog(
             _('Incoming Whiteboard'),
             _('Incoming Whiteboard Request'),
             _('%(name)s (%(jid)s) wants to start a whiteboard with '

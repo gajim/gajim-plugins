@@ -28,7 +28,7 @@ from gajim.plugins.plugins_i18n import _
 
 from gajim.gtk.dialogs import ErrorDialog
 from gajim.gtk.dialogs import DialogButton
-from gajim.gtk.dialogs import NewConfirmationCheckDialog
+from gajim.gtk.dialogs import ConfirmationCheckDialog
 
 from pgp.gtk.key import KeyDialog
 from pgp.gtk.config import PGPConfigDialog
@@ -136,7 +136,7 @@ class PGPPlugin(GajimPlugin):
 
     @staticmethod
     def _on_not_trusted(event):
-        NewConfirmationCheckDialog(
+        ConfirmationCheckDialog(
             _('Untrusted PGP key'),
             _('Untrusted PGP key'),
             _('The PGP key used to encrypt this chat is not '

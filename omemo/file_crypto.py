@@ -32,7 +32,7 @@ from gajim.common.const import FTState
 from gajim.common.filetransfer import FileTransfer
 from gajim.plugins.plugins_i18n import _
 from gajim.gtk.dialogs import DialogButton
-from gajim.gtk.dialogs import NewConfirmationDialog
+from gajim.gtk.dialogs import ConfirmationDialog
 
 from omemo.backend.aes import aes_decrypt_file
 
@@ -149,7 +149,7 @@ class FileDecryption:
         def _open_folder():
             open_file(file_path.parent)
 
-        NewConfirmationDialog(
+        ConfirmationDialog(
             _('Open File'),
             _('Open File?'),
             _('Do you want to open %s?') % file_path.name,
