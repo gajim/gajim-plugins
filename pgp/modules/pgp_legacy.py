@@ -78,7 +78,7 @@ class PGPLegacy(BaseModule):
         self._store = KeyStore(self._account, self.own_jid, self._log,
                                self._pgp.list_keys)
         self._always_trust = []
-        self._presence_key_id_store = {}
+        self._presence_fingerprint_store = {}
 
     @property
     def pgp_backend(self):
@@ -101,38 +101,42 @@ class PGPLegacy(BaseModule):
         if key_data is None:
             return False
         key_id = key_data['key_id']
-        announced_key_id = self._presence_key_id_store.get(jid)
-        if announced_key_id is None:
+
+        announced_fingerprint = self._presence_fingerprint_store.get(jid)
+        if announced_fingerprint is None:
             return True
-        if announced_key_id == key_id:
+
+        if announced_fingerprint == key_id:
             return True
-        raise KeyMismatch(announced_key_id)
+
+        raise KeyMismatch(announced_fingerprint)
 
     def _on_presence_received(self, _con, _stanza, properties):
         if properties.signed is None:
             return
         jid = properties.jid.getBare()
 
-        key_id = self._pgp.verify(properties.status, properties.signed)
-        self._log.info('Presence from %s was signed with key-id: %s',
-                       jid, key_id)
-        if key_id is None:
+        fingerprint = self._pgp.verify(properties.status, properties.signed)
+        if fingerprint is None:
+            self._log.info('Presence from %s was signed but no corresponding '
+                           'key was found', jid)
             return
 
-        self._presence_key_id_store[jid] = key_id
+        self._presence_fingerprint_store[jid] = fingerprint
+        self._log.info('Presence from %s was verified successfully, '
+                       'fingerprint: %s', jid, fingerprint)
 
         key_data = self.get_contact_key_data(jid)
-        if key_data is not None:
+        if key_data is None:
+            self._log.info('No key assigned for contact: %s', jid)
             return
 
-        key = self._pgp.get_key(key_id)
-        if not key:
-            self._log.info('Key-id %s not found in keyring, cant assign to %s',
-                           key_id, jid)
+        if key_data['key_id'] != fingerprint:
+            self._log.warning('Fingerprint mismatch, '
+                              'Presence was signed with fingerprint: %s, '
+                              'Assigned key fingerprint: %s',
+                              fingerprint, key_data['key_id'])
             return
-
-        self._log.info('Assign key-id: %s to %s', key_id, jid)
-        self.set_contact_key_data(jid, (key_id, key[0]['uids'][0]))
 
     def _message_received(self, _con, stanza, properties):
         if not properties.is_pgp_legacy or properties.from_muc:
