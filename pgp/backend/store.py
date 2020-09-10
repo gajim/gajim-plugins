@@ -114,7 +114,7 @@ class KeyStore:
             try:
                 key_data['key_id'] = self._resolve_short_id(key_data['key_id'])
             except KeyResolveError:
-                prune_list.append[dict_key]
+                prune_list.append(dict_key)
 
         for dict_key in prune_list:
             del self._store['contact_key_data'][dict_key]
