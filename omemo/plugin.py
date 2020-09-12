@@ -123,12 +123,6 @@ class OmemoPlugin(GajimPlugin):
         for account in self.config['DISABLED_ACCOUNTS']:
             self.disabled_accounts.append(account)
 
-        # add aesgcm:// uri scheme to config
-        schemes = app.config.get('uri_schemes')
-        if 'aesgcm://' not in schemes.split():
-            schemes += ' aesgcm://'
-            app.config.set('uri_schemes', schemes)
-
         self._load_css()
 
     def _is_enabled_account(self, account):
