@@ -1,6 +1,8 @@
 import logging
 import re
 import pygments
+from pygments.token import Comment
+from pygments.styles import get_style_by_name
 
 from gi.repository import Gtk
 
@@ -44,8 +46,7 @@ class ChatSyntaxHighlighter:
             self._hide_code_markup(buf, e_code, e_tag)
         else:
             comment_tag = GTKFormatter.create_tag_for_token(
-                pygments.token.Comment,
-                pygments.styles.get_style_by_name(style))
+                Comment, get_style_by_name(style))
             buf.get_tag_table().add(comment_tag)
             buf.apply_tag(comment_tag, s_tag, s_code)
             buf.apply_tag(comment_tag, e_tag, e_code)
@@ -151,7 +152,7 @@ class ChatSyntaxHighlighter:
             pos = selected[1]
 
             # Depending on the match type, we have to forward the iterators.
-            # Also, forward the other one, if regions overlap or we took over...
+            # Also, forward the other one, if regions overlap or we took over.
             if selected[2] == MatchType.INLINE:
                 if cur_multi[0] < cur_inline[1]:
                     cur_multi = _get_next(it_multi)
@@ -254,7 +255,7 @@ class ChatSyntaxHighlighter:
 
         # We have to make sure this is the last thing we do (i.e. no calls to
         # the other textview methods no more from here on), because the
-        # print_special_text method is resetting the plugin_modified variable...
+        # print_special_text method is resetting the plugin_modified variable.
         self.textview.plugin_modified = True
 
     def _insert_and_format_code(self, buf, insert_text, language, marker,
