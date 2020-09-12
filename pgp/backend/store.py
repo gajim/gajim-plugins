@@ -76,8 +76,8 @@ class KeyStore:
 
     def _migrate_v1_store(self):
         keys = {}
-        attached_keys = app.config.get_per(
-            'accounts', self._account, 'attached_gpg_keys')
+        attached_keys = app.settings.get_account_setting(
+            self._account, 'attached_gpg_keys')
         if not attached_keys:
             return
         attached_keys = attached_keys.split()
@@ -88,13 +88,14 @@ class KeyStore:
         for jid, key_id in keys.items():
             self._set_contact_key_data_nosync(jid, (key_id, ''))
 
-        own_key_id = app.config.get_per('accounts', self._account, 'keyid')
-        own_key_user = app.config.get_per('accounts', self._account, 'keyname')
+        own_key_id = app.settings.get_account_setting(self._account, 'keyid')
+        own_key_user = app.settings.get_account_setting(
+            self._account, 'keyname')
         if own_key_id:
             self._set_own_key_data_nosync((own_key_id, own_key_user))
 
-        attached_keys = app.config.set_per(
-            'accounts', self._account, 'attached_gpg_keys', '')
+        attached_keys = app.settings.set_account_setting(
+            self._account, 'attached_gpg_keys', '')
         self._log.info('Migration from store v1 was successful')
 
     def _migrate_v2_store(self):

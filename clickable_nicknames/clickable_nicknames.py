@@ -96,16 +96,16 @@ class ClickableNicknames(GajimPlugin):
 
         # Remove Space
         nickname = nickname[:-1]
-        nickname = nickname.rstrip(app.config.get('after_nickname'))
+        nickname = nickname.rstrip(app.settings.get('after_nickname'))
         # Remove direction mark
         nickname = nickname[:-1]
-        nickname = nickname.lstrip(app.config.get('before_nickname'))
+        nickname = nickname.lstrip(app.settings.get('before_nickname'))
 
         message_input.grab_focus()
         if not message_input.has_text():
             # There is no text add refer char
             nickname = '%s%s ' % (nickname,
-                                  app.config.get('gc_refer_to_nick_char'))
+                                  app.settings.get('gc_refer_to_nick_char'))
         else:
             input_buffer = message_input.get_buffer()
             start, end = input_buffer.get_bounds()

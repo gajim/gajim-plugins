@@ -140,7 +140,7 @@ class Whiteboard(object):
     def _on_export_button_clicked(self, widget):
         SvgSaveDialog(self.image.export_svg,
                       file_name=_('whiteboard.svg'),
-                      path=app.config.get('last_save_dir'),
+                      path=app.settings.get('last_save_dir'),
                       transient_for=app.app.get_active_window())
 
     def item_created(self, canvas, item, model):

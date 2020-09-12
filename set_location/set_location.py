@@ -99,11 +99,11 @@ class SetLocationPlugin(GajimPlugin):
         if account is None:
             # Set geo for all accounts
             for acct in app.connections:
-                if app.config.get_per('accounts', acct, 'publish_location'):
+                if app.settings.get_account_setting(acct, 'publish_location'):
                     app.connections[acct].get_module('UserLocation').set_location(
                         LocationData(**data))
 
-        elif app.config.get_per('accounts', account, 'publish_location'):
+        elif app.settings.get_account_setting(account, 'publish_location'):
             app.connections[account].get_module('UserLocation').set_location(
                 LocationData(**data))
 
