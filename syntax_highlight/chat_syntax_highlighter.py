@@ -5,6 +5,9 @@ from pygments.token import Comment
 from pygments.styles import get_style_by_name
 
 from gi.repository import Gtk
+from gi.repository import Gdk
+
+from gajim.plugins.plugins_i18n import _
 
 from syntax_highlight.gtkformatter import GTKFormatter
 from syntax_highlight.types import MatchType
@@ -16,13 +19,47 @@ log = logging.getLogger('gajim.p.syntax_highlight')
 
 
 class ChatSyntaxHighlighter:
-    def __init__(self, plugin_config, highlighter_config, textview):
-        self.textview = textview
+    def __init__(self, plugin_config, highlighter_config, chat_control):
+        self.textview = chat_control.conv_textview
         self._plugin_config = plugin_config
         self._highlighter_config = highlighter_config
+        self._chat_control = chat_control
+        self._chat_control.msg_textview.connect(
+            'populate-popup', self._on_msg_textview_populate_popup)
 
     def update_config(self, plugin_config):
         self._plugin_config = plugin_config
+
+    def _on_msg_textview_populate_popup(self, _textview, menu):
+        item = Gtk.MenuItem.new_with_mnemonic(_('_Paste as Code'))
+        menu.append(item)
+        id_ = item.connect('activate', self._paste_as_code)
+        self._chat_control.handlers[id_] = item
+
+        item = Gtk.MenuItem.new_with_mnemonic(_('Paste as Code _Block'))
+        menu.append(item)
+        id_ = item.connect('activate', self._paste_as_code_block)
+        self._chat_control.handlers[id_] = item
+
+        menu.show_all()
+
+    @staticmethod
+    def _get_clipboard_text():
+        clipboard = Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD)
+        return clipboard.wait_for_text()
+
+    def _insert_paste(self, text):
+        self._chat_control.msg_textview.remove_placeholder()
+        message_buffer = self._chat_control.msg_textview.get_buffer()
+        message_buffer.insert_at_cursor(text)
+
+    def _paste_as_code(self, _item):
+        text = self._get_clipboard_text()
+        self._insert_paste(f'`{text}`')
+
+    def _paste_as_code_block(self, _item):
+        text = self._get_clipboard_text()
+        self._insert_paste(f'```\n{text}\n```')
 
     @staticmethod
     def _hide_code_markup(buf, start, end):

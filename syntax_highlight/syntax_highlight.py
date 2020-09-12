@@ -68,7 +68,7 @@ class SyntaxHighlighterPlugin(GajimPlugin):
 
     def _connect_chat_control(self, chat_control):
         highlighter = ChatSyntaxHighlighter(
-            self.config, self.highlighter_config, chat_control.conv_textview)
+            self.config, self.highlighter_config, chat_control)
         self._highlighters[chat_control.control_id] = highlighter
 
     def _disconnect_chat_control(self, chat_control):
