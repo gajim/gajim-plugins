@@ -14,11 +14,11 @@ modules:
     buildsystem: simple
     build-commands:
       - install -d ${FLATPAK_DEST}/lib/python3.7/site-packages/
-      - pip3 install --prefix=${FLATPAK_DEST} --ignore-installed Pygments-2.6.1-py3-none-any.whl
+      - pip3 install --prefix=${FLATPAK_DEST} --ignore-installed Pygments-2.7.0-py3-none-any.whl
     sources:
       - type: file
-        url: https://files.pythonhosted.org/packages/2d/68/106af3ae51daf807e9cdcba6a90e518954eb8b70341cee52995540a53ead/Pygments-2.6.1-py3-none-any.whl
-        sha256: ff7a40b4860b727ab48fad6360eb351cc1b33cbf9b15a0f689ca5353e9463324
+        url: https://files.pythonhosted.org/packages/5e/ac/cc00398eccce66515a8acac52afa3e51bbe9a8080e9f232aa91cbb041856/Pygments-2.7.0-py3-none-any.whl
+        sha256: 2df50d16b45b977217e02cba6c8422aaddb859f3d0570a88e09b00eafae89c6e
 
   - name: gajim-syntax_highlight
     buildsystem: simple
@@ -29,8 +29,8 @@ modules:
       - appstream-compose --basename=org.gajim.Gajim.Devel.Plugin.syntax_highlight --prefix=${FLATPAK_DEST} --origin=flatpak org.gajim.Gajim.Plugin.syntax_highlight
     sources:
       - type: archive
-        url: https://ftp.gajim.org/plugins_releases/syntax_highlight_1.3.1.zip
-        sha256: 43bad99b2e0a90ca1d6c90a646c92f79eb56ba96652eebf8e41f10b99e5903a0
+        url: https://ftp.gajim.org/plugins_releases/syntax_highlight_1.3.2.zip
+        sha256: 7abf68db96839f9f1e7ebbcfa6e7794d7f504550c1edbb03f2f9c91b0eb3ee2e    
       - type: shell
         commands:
           - sed -i "s+org.gajim.Gajim+org.gajim.Gajim.Devel+" org.gajim.Gajim.Plugin.*.metainfo.xml
