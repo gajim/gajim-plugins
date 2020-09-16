@@ -1,0 +1,13 @@
+stages:
+  - test
+
+run-test:
+  stage: test
+  script:
+    - rm -rf civenv-plugins
+    - virtualenv -p python3 --system-site-packages civenv-plugins
+    - . ./civenv-plugins/bin/activate
+    - pip3 install -I pylint==2.4.4
+    - python3 -m pylint gajim-plugins
+    - deactivate
+    - rm -rf civenv-plugins
