@@ -6,7 +6,7 @@ separate-locales: false
 appstream-compose: false
 build-options:
   env:
-    PYTHONPATH: /app/plugins/openpgp/lib/python3.7/site-packages/
+    PIP_TARGET: /app/plugins/openpgp/site-packages
 
 modules:
   - modules/python3-python-gnupg.yaml

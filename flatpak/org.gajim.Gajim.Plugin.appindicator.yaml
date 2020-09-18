@@ -7,7 +7,7 @@ appstream-compose: false
 
 build-options:
   env:
-    PYTHONPATH: /app/plugins/appindicator/lib/python3.7/site-packages/
+    PIP_TARGET: /app/plugins/appindicator/site-packages
   prefix: /app/plugins/appindicator
   prepend-pkg-config-path: /app/plugins/appindicator/lib/pkgconfig
   prepend-path: /app/plugins/appindicator/bin

@@ -7,7 +7,7 @@ appstream-compose: false
 
 build-options:
   env:
-    PYTHONPATH: /app/plugins/url_image_preview/lib/python3.7/site-packages/
+    PIP_TARGET: /app/plugins/url_image_preview/site-packages
 
 modules:
   - modules/python3-pillow.yaml

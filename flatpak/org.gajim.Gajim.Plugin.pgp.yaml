@@ -7,7 +7,7 @@ appstream-compose: false
 
 build-options:
   env:
-    PYTHONPATH: /app/plugins/pgp/lib/python3.7/site-packages/
+    PIP_TARGET: /app/plugins/pgp/site-packages
 
 modules:
   - modules/python3-python-gnupg.yaml

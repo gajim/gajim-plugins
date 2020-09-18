@@ -7,7 +7,7 @@ appstream-compose: false
 
 build-options:
   env:
-    PYTHONPATH: /app/plugins/omemo/lib/python3.7/site-packages/
+    PIP_TARGET: /app/plugins/omemo/site-packages
 
 modules:
   - modules/python3-pillow.yaml
@@ -15,18 +15,16 @@ modules:
   - name: protobuf
     buildsystem: simple
     build-commands:
-      - install -d ${FLATPAK_DEST}/lib/python3.7/site-packages/
-      - pip3 install --prefix=${FLATPAK_DEST} protobuf-3.11.3-py2.py3-none-any.whl
+      - pip3 install --no-deps protobuf-3.13.0-py2.py3-none-any.whl
     sources:
       - type: file
-        url: https://files.pythonhosted.org/packages/27/9c/ef816295b4b40298fd0a17bf8f0ba6cf3e0c44cb2ce72257168e09996b8b/protobuf-3.11.3-py2.py3-none-any.whl
-        sha256: 24e3b6ad259544d717902777b33966a1a069208c885576254c112663e6a5bb0f
+        url: https://files.pythonhosted.org/packages/3b/ba/276d817d4b0184e544a9295e14e95f6148af5c5652033d30eb63d2c13bfa/protobuf-3.13.0-py2.py3-none-any.whl
+        sha256: d69697acac76d9f250ab745b46c725edf3e98ac24763990b24d58c16c642947a
 
   - name: python3-axolotl-curve25519
     buildsystem: simple
     build-commands:
-      - install -d ${FLATPAK_DEST}/lib/python3.7/site-packages/
-      - pip3 install --prefix=${FLATPAK_DEST} .
+      - pip3 install .
     sources:
       - type: archive
         url: https://files.pythonhosted.org/packages/59/ca/c8111718bcc8da18e9b9868e784293232a58c57159a5ea18f00ee967258f/python-axolotl-curve25519-0.4.1.post2.tar.gz
@@ -35,8 +33,7 @@ modules:
   - name: python3-axolotl
     buildsystem: simple
     build-commands:
-      - install -d ${FLATPAK_DEST}/lib/python3.7/site-packages/
-      - pip3 install --prefix=${FLATPAK_DEST} python_axolotl-0.2.3-py3-none-any.whl
+      - pip3 install --no-deps python_axolotl-0.2.3-py3-none-any.whl
     sources:
       - type: file
         url: https://files.pythonhosted.org/packages/0f/b3/4a0b0e664435691bba36fac6e366cece506d002294c293bd3dcb40c2b2ba/python_axolotl-0.2.3-py3-none-any.whl
@@ -45,8 +42,7 @@ modules:
   - name: python3-qrcode
     buildsystem: simple
     build-commands:
-      - install -d ${FLATPAK_DEST}/lib/python3.7/site-packages/
-      - pip3 install --prefix=${FLATPAK_DEST} qrcode-6.1-py2.py3-none-any.whl
+      - pip3 install --no-deps qrcode-6.1-py2.py3-none-any.whl
     sources:
       - type: file
         url: https://files.pythonhosted.org/packages/42/87/4a3a77e59ab7493d64da1f69bf1c2e899a4cf81e51b2baa855e8cc8115be/qrcode-6.1-py2.py3-none-any.whl
@@ -61,8 +57,8 @@ modules:
       - appstream-compose --basename=org.gajim.Gajim.Devel.Plugin.omemo --prefix=${FLATPAK_DEST} --origin=flatpak org.gajim.Gajim.Plugin.omemo
     sources:
       - type: archive
-        url: https://ftp.gajim.org/plugins_releases/omemo_2.7.7.zip
-        sha256: d08cb21cf7372c0e8c78a1e824da10c58c5957f8262b08de788a003ce922549e
+        url: https://ftp.gajim.org/plugins_releases/omemo_2.7.8.zip
+        sha256: 4f36407ace3f61ee462b754cb8c7a19a4600fcde1d89a5a2e6c90935f22e0793
       - type: shell
         commands:
           - sed -i "s+org.gajim.Gajim+org.gajim.Gajim.Devel+" org.gajim.Gajim.Plugin.*.metainfo.xml
