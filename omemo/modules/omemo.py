@@ -351,7 +351,7 @@ class OMEMO(BaseModule):
             self.get_affiliation_list(event.room_jid)
 
     def _check_if_omemo_capable(self, jid):
-        disco_info = app.logger.get_last_disco_info(jid)
+        disco_info = app.storage.cache.get_last_disco_info(jid)
         if disco_info.muc_is_members_only and disco_info.muc_is_nonanonymous:
             self._log.info('OMEMO room discovered: %s', jid)
             self._omemo_groupchats.add(jid)
