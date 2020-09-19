@@ -62,7 +62,8 @@ class ClientsIconsPlugin(GajimPlugin):
                 return identity.name
 
     def _get_image_and_client_name(self, contact, widget):
-        disco_info = app.logger.get_last_disco_info(contact.get_full_jid())
+        disco_info = app.storage.cache.get_last_disco_info(
+            contact.get_full_jid())
         if disco_info is None:
             return None
 
