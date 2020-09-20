@@ -1,4 +1,3 @@
-.openpgp-dark-success-color { color: darker(@success_color); }
 .openpgp-inactive-color { color: @unfocused_borders; }
 
 .openpgp-mono { font-size: 12px; font-family: monospace; }

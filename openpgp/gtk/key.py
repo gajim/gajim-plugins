@@ -38,10 +38,10 @@ TRUST_DATA = {
                     'warning-color'),
     Trust.BLIND: ('security-medium-symbolic',
                   _('Blind Trust'),
-                  'openpgp-dark-success-color'),
+                  'encrypted-color'),
     Trust.VERIFIED: ('security-high-symbolic',
                      _('Verified'),
-                     'success-color')
+                     'encrypted-color')
 }
 
 
@@ -231,7 +231,7 @@ class VerifiedOption(MenuOption):
     type_ = Trust.VERIFIED
     icon = 'security-high-symbolic'
     label = _('Verified')
-    color = 'success-color'
+    color = 'encrypted-color'
 
     def __init__(self):
         MenuOption.__init__(self)
