@@ -23,6 +23,7 @@ from functools import partial
 from urllib.parse import urlparse
 from urllib.parse import unquote
 
+import gi
 from gi.repository import Gtk
 from gi.repository import Gdk
 from gi.repository import GdkPixbuf
@@ -30,6 +31,8 @@ from gi.repository import Gio
 from gi.repository import GLib
 from gi.repository import Soup
 try:
+    gi.require_version('Gst', '1.0')
+    gi.require_version('GstPbutils', '1.0')
     from gi.repository import Gst
     from gi.repository import GstPbutils
 except Exception:
@@ -738,9 +741,14 @@ class UrlImagePreviewPlugin(GajimPlugin):
     @staticmethod
     def _contains_audio_streams(file_path):
         # Check if it is really an audio file
+        has_audio = False
         discoverer = GstPbutils.Discoverer()
-        info = discoverer.discover_uri(f'file://{str(file_path)}')
-        has_audio = bool(info.get_audio_streams())
+        try:
+            info = discoverer.discover_uri(f'file://{str(file_path)}')
+            has_audio = bool(info.get_audio_streams())
+        except GLib.Error as err:
+            log.error('Error while reading %s: %s', str(file_path), err)
+            return False
         if not has_audio:
             log.warning('File does not contain audio stream: %s',
                         str(file_path))
