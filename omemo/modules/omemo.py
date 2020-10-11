@@ -16,11 +16,9 @@
 
 # XEP-0384: OMEMO Encryption
 
-import os
 import time
 from pathlib import Path
 
-import nbxmpp
 from nbxmpp.namespaces import Namespace
 from nbxmpp.protocol import NodeProcessed
 from nbxmpp.protocol import JID
@@ -30,6 +28,7 @@ from nbxmpp.const import Affiliation
 from nbxmpp.structs import StanzaHandler
 from nbxmpp.modules.omemo import create_omemo_message
 from nbxmpp.modules.omemo import get_key_transport_message
+from nbxmpp.modules.util import is_error
 
 from gajim.common import app
 from gajim.common import configpaths
@@ -38,6 +37,7 @@ from gajim.common.const import EncryptionData
 from gajim.common.const import Trust as GajimTrust
 from gajim.common.modules.base import BaseModule
 from gajim.common.modules.util import event_node
+from gajim.common.modules.util import as_task
 
 from gajim.plugins.plugins_i18n import _
 
@@ -414,18 +414,17 @@ class OMEMO(BaseModule):
         self._nbxmpp('OMEMO').set_bundle(self.backend.bundle,
                                          self.backend.own_device)
 
+    @as_task
     def request_bundle(self, jid, device_id):
+        _task = yield
+
         self._log.info('Fetch device bundle %s %s', device_id, jid)
 
-        self._nbxmpp('OMEMO').request_bundle(
+        bundle = yield self._nbxmpp('OMEMO').request_bundle(
             jid,
-            device_id,
-            callback=self._bundle_received,
-            user_data=(jid, device_id))
+            device_id)
 
-    def _bundle_received(self, bundle, user_data):
-        jid, device_id = user_data
-        if is_error_result(bundle):
+        if is_error(bundle) or bundle is None:
             self._log.info('Bundle request failed: %s %s: %s',
                            jid, device_id, bundle)
             return
@@ -454,21 +453,20 @@ class OMEMO(BaseModule):
         self.backend.update_devicelist(self._own_jid, [self.backend.own_device])
         self.set_devicelist()
 
+    @as_task
     def request_devicelist(self, jid=None):
+        _task = yield
+
         if jid is None:
             jid = self._own_jid
 
         if jid in self._query_for_devicelists:
             return
 
-        self._nbxmpp('OMEMO').request_devicelist(
-            jid,
-            callback=self._devicelist_received,
-            user_data=jid)
         self._query_for_devicelists.append(jid)
 
-    def _devicelist_received(self, devicelist, jid):
-        if is_error_result(devicelist):
+        devicelist = yield self._nbxmpp('OMEMO').request_devicelist(jid=jid)
+        if is_error(devicelist) or devicelist is None:
             self._log.info('Devicelist request failed: %s %s', jid, devicelist)
             devicelist = []
 
