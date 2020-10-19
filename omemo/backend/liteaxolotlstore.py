@@ -80,7 +80,6 @@ class LiteAxolotlStore(AxolotlStore):
     @staticmethod
     def _is_blind_trust_enabled():
         plugin = app.plugin_manager.get_active_plugin('omemo')
-        print(plugin.config['BLIND_TRUST'])
         return plugin.config['BLIND_TRUST']
 
     @staticmethod
@@ -608,7 +607,6 @@ class LiteAxolotlStore(AxolotlStore):
                    VALUES(?, ?, ?, ?)'''
         if not self.containsIdentity(recipientId, identityKey):
             trust = self.getDefaultTrust(recipientId)
-            print('TRUST', trust)
             self._con.execute(query, (recipientId,
                                       identityKey.getPublicKey().serialize(),
                                       trust,
