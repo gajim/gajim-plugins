@@ -22,7 +22,7 @@ from pathlib import Path
 from nbxmpp.namespaces import Namespace
 from nbxmpp.protocol import NodeProcessed
 from nbxmpp.protocol import JID
-from nbxmpp.util import is_error_result
+from nbxmpp.errors import StanzaError
 from nbxmpp.const import PresenceType
 from nbxmpp.const import Affiliation
 from nbxmpp.structs import StanzaHandler
@@ -320,9 +320,12 @@ class OMEMO(BaseModule):
                 callback=self._on_affiliations_received,
                 user_data=room_jid)
 
-    def _on_affiliations_received(self, result, room_jid):
-        if is_error_result(result):
-            self._log.info('Affiliation request failed: %s', result)
+    def _on_affiliations_received(self, task):
+        room_jid = task.get_user_data()
+        try:
+            result = task.finish()
+        except StanzaError as error:
+            self._log.info('Affiliation request failed: %s', error)
             return
 
         for user_jid in result.users:
