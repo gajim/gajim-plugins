@@ -483,17 +483,18 @@ class UrlImagePreviewPlugin(GajimPlugin):
                                  preview.thumbnail,
                                  self._on_thumb_write_finished,
                                  preview)
-        else:
-            self._update_textview(preview, None)
 
-    @staticmethod
-    def _on_orig_write_finished(_result, error, preview):
+    def _on_orig_write_finished(self, _result, error, preview):
         if error is not None:
             log.error('%s: %s', preview.orig_path.name, error)
             return
 
         log.info('File stored: %s', preview.orig_path.name)
         preview.file_size = os.path.getsize(preview.orig_path)
+        if not preview.is_previewable:
+            # Don’t update preview if thumb is already displayed,
+            # but update preview for audio files
+            self._update_textview(preview, None)
 
     def _on_thumb_write_finished(self, _result, error, preview):
         if error is not None:
