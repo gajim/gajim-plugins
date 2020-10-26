@@ -21,8 +21,9 @@ from pathlib import Path
 from nbxmpp.namespaces import Namespace
 from nbxmpp import Node
 from nbxmpp import StanzaMalformed
-from nbxmpp.util import is_error_result
 from nbxmpp.structs import StanzaHandler
+from nbxmpp.errors import StanzaError
+from nbxmpp.errors import MalformedStanzaError
 from nbxmpp.modules.openpgp import PGPKeyMetadata
 from nbxmpp.modules.openpgp import parse_signcrypt
 from nbxmpp.modules.openpgp import create_signcrypt_node
@@ -117,10 +118,13 @@ class OpenPGP(BaseModule):
             callback=self._public_key_received,
             user_data=fingerprint)
 
-    def _public_key_received(self, result, fingerprint):
-        if is_error_result(result):
+    def _public_key_received(self, task):
+        fingerprint = task.get_user_data()
+        try:
+            result = task.finish()
+        except (StanzaError, MalformedStanzaError) as error:
             log.error('%s => Public Key not found: %s',
-                      self._account, result)
+                      self._account, error)
             return
 
         imported_key = self._pgp.import_key(result.key, result.jid)
@@ -152,16 +156,19 @@ class OpenPGP(BaseModule):
             callback=self._keylist_received,
             user_data=jid)
 
-    def _keylist_received(self, result, jid):
-        if is_error_result(result):
+    def _keylist_received(self, task):
+        jid = task.get_user_data()
+        try:
+            keylist = task.finish()
+        except (StanzaError, MalformedStanzaError) as error:
             log.error('%s => Keylist query failed: %s',
-                      self._account, result)
+                      self._account, error)
             if self.own_jid.bareMatch(jid) and self._fingerprint is not None:
                 self.set_keylist()
             return
 
         log.info('Keylist received from %s', jid)
-        self._process_keylist(result, jid)
+        self._process_keylist(keylist, jid)
 
     def _process_keylist(self, keylist, from_jid):
         if not keylist:
