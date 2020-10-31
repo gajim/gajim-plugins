@@ -13,11 +13,11 @@ modules:
   - name: python3-pygments
     buildsystem: simple
     build-commands:
-      - pip3 install --ignore-installed Pygments-2.7.0-py3-none-any.whl
+      - pip3 install --ignore-installed Pygments-2.7.2-py3-none-any.whl
     sources:
       - type: file
-        url: https://files.pythonhosted.org/packages/5e/ac/cc00398eccce66515a8acac52afa3e51bbe9a8080e9f232aa91cbb041856/Pygments-2.7.0-py3-none-any.whl
-        sha256: 2df50d16b45b977217e02cba6c8422aaddb859f3d0570a88e09b00eafae89c6e
+        url: https://files.pythonhosted.org/packages/d8/cf/d7e48846e10ac4f8b89d489cec3dc9c2804a825f812c851559cfbcc251cc/Pygments-2.7.2-py3-none-any.whl
+        sha256: 88a0bbcd659fcb9573703957c6b9cff9fab7295e6e76db54c9d00ae42df32773
 
   - name: python3-MarkupSafe
     buildsystem: simple
