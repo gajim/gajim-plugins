@@ -58,6 +58,7 @@ ALLOWED_TAGS = [
     ('inactive', Namespace.CHATSTATES),
     ('paused', Namespace.CHATSTATES),
     ('composing', Namespace.CHATSTATES),
+    ('markable', Namespace.CHATMARKERS),
     ('no-store', Namespace.HINTS),
     ('store', Namespace.HINTS),
     ('no-copy', Namespace.HINTS),
