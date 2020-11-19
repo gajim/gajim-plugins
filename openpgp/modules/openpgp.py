@@ -215,13 +215,13 @@ class OpenPGP(BaseModule):
         signcrypt = Node(node=payload)
 
         try:
-            payload, to, timestamp = parse_signcrypt(signcrypt)
+            payload, recipients, _timestamp = parse_signcrypt(signcrypt)
         except StanzaMalformed as error:
             log.warning('Decryption failed: %s', error)
             log.warning(payload)
             return
 
-        if not self.own_jid.bareMatch(to):
+        if not any(map(self.own_jid.bareMatch, recipients)):
             log.warning('to attr not valid')
             log.warning(payload)
             return
@@ -241,7 +241,9 @@ class OpenPGP(BaseModule):
         keys += self._contacts.get_keys(self.own_jid)
         keys += [Key(self._fingerprint, None)]
 
-        payload = create_signcrypt_node(obj.stanza, NOT_ENCRYPTED_TAGS)
+        payload = create_signcrypt_node(obj.stanza,
+                                        [obj.jid],
+                                        NOT_ENCRYPTED_TAGS)
 
         encrypted_payload, error = self._pgp.encrypt(payload, keys)
         if error:
