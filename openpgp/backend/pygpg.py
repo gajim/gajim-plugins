@@ -33,14 +33,13 @@ KeyringItem = namedtuple('KeyringItem', 'jid keyid fingerprint')
 
 class PythonGnuPG(gnupg.GPG):
     def __init__(self, jid, gnupghome):
-        gnupg.GPG.__init__(
-            self, gpgbinary='gpg', gnupghome=str(gnupghome))
+        gnupg.GPG.__init__(self, gpgbinary='gpg', gnupghome=str(gnupghome))
 
-        self._passphrase = 'gajimopenpgppassphrase'
         self._jid = jid.getBare()
         self._own_fingerprint = None
 
-    def _get_key_params(self, jid, passphrase):
+    @staticmethod
+    def _get_key_params(jid):
         '''
         Generate --gen-key input
         '''
@@ -49,17 +48,17 @@ class PythonGnuPG(gnupg.GPG):
             'Key-Type': 'RSA',
             'Key-Length': 2048,
             'Name-Real': 'xmpp:%s' % jid,
-            'Passphrase': passphrase,
         }
 
-        out = "Key-Type: %s\n" % params.pop('Key-Type')
+        out = 'Key-Type: %s\n' % params.pop('Key-Type')
         for key, val in list(params.items()):
-            out += "%s: %s\n" % (key, val)
-        out += "%commit\n"
+            out += '%s: %s\n' % (key, val)
+        out += '%no-protection\n'
+        out += '%commit\n'
         return out
 
     def generate_key(self):
-        super().gen_key(self._get_key_params(self._jid, self._passphrase))
+        super().gen_key(self._get_key_params(self._jid))
 
     def encrypt(self, payload, keys):
         recipients = [key.fingerprint for key in keys]
@@ -71,8 +70,7 @@ class PythonGnuPG(gnupg.GPG):
                                  recipients,
                                  armor=False,
                                  sign=self._own_fingerprint,
-                                 always_trust=True,
-                                 passphrase=self._passphrase)
+                                 always_trust=True)
 
         if result.ok:
             error = ''
@@ -82,9 +80,7 @@ class PythonGnuPG(gnupg.GPG):
         return result.data, error
 
     def decrypt(self, payload):
-        result = super().decrypt(payload,
-                                 always_trust=True,
-                                 passphrase=self._passphrase)
+        result = super().decrypt(payload, always_trust=True)
         if not result.ok:
             raise DecryptionFailed(result.status)
 
@@ -134,6 +130,7 @@ class PythonGnuPG(gnupg.GPG):
 
         result = self.scan_keys(temppath)
         if result:
+            key_found = False
             for uid in result.uids:
                 if uid.startswith('xmpp:'):
                     if uid[5:] == jid:
@@ -174,10 +171,9 @@ class PythonGnuPG(gnupg.GPG):
 
     def export_key(self, fingerprint):
         key = super().export_keys(
-            fingerprint, secret=False, armor=False, minimal=False,
-            passphrase=self._passphrase)
+            fingerprint, secret=False, armor=False, minimal=True)
         return key
 
     def delete_key(self, fingerprint):
         log.info('Delete Key: %s', fingerprint)
-        super().delete_keys(fingerprint, passphrase=self._passphrase)
+        super().delete_keys(fingerprint)
