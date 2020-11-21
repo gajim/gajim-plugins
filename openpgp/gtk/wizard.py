@@ -93,12 +93,6 @@ class KeyWizard(Gtk.Assistant):
         elif self.get_current_page() == Page.SUCCESS:
             self._activate_encryption()
 
-    def _on_error(self, error_text):
-        log.info('Show Error page')
-        page = self.get_nth_page(Page.ERROR)
-        page.set_text(error_text)
-        self.set_current_page(Page.ERROR)
-
     def _on_cancel(self, widget):
         self.destroy()
 
@@ -168,22 +162,23 @@ class NewKeyPage(RequestPage):
         thread.start()
 
     def worker(self):
-        error = None
+        text = None
         try:
             self._con.get_module('OpenPGP').generate_key()
-        except Exception as e:
-            error = e
-        else:
-            self._con.get_module('OpenPGP').get_own_key_details()
-            self._con.get_module('OpenPGP').set_public_key()
-            self._con.get_module('OpenPGP').request_keylist()
-        GLib.idle_add(self.finished, error)
+        except Exception as error:
+            text = str(error)
+
+        GLib.idle_add(self.finished, text)
 
     def finished(self, error):
         if error is None:
             self._assistant.set_current_page(Page.SUCCESS)
+            self._con.get_module('OpenPGP').get_own_key_details()
+            self._con.get_module('OpenPGP').set_public_key()
+            self._con.get_module('OpenPGP').request_keylist()
         else:
-            log.error(error)
+            error_page = self._assistant.get_nth_page(Page.ERROR)
+            error_page.set_text(error)
             self._assistant.set_current_page(Page.ERROR)
 
 
@@ -229,7 +224,7 @@ class SuccessfulPage(Gtk.Box):
 class ErrorPage(Gtk.Box):
 
     type_ = Gtk.AssistantPageType.SUMMARY
-    title = _('Registration failed')
+    title = _('Setup failed')
     complete = True
 
     def __init__(self):

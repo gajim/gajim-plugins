@@ -14,6 +14,7 @@
 # You should have received a copy of the GNU General Public License
 # along with OpenPGP Gajim Plugin. If not, see <http://www.gnu.org/licenses/>.
 
+import sys
 import time
 import logging
 from pathlib import Path
@@ -44,7 +45,11 @@ from openpgp.modules.util import DecryptionFailed
 from openpgp.modules.util import prepare_stanza
 from openpgp.modules.key_store import PGPContacts
 from openpgp.backend.sql import Storage
-from openpgp.backend.pygpg import PGPContext
+
+if sys.platform == 'win32':
+    from openpgp.backend.pygpg import PythonGnuPG as PGPBackend
+else:
+    from openpgp.backend.gpgme import GPGME as PGPBackend
 
 
 log = logging.getLogger('gajim.p.openpgp')
@@ -84,9 +89,9 @@ class OpenPGP(BaseModule):
         own_bare_jid = self.own_jid.getBare()
         path = Path(configpaths.get('MY_DATA')) / 'openpgp' / own_bare_jid
         if not path.exists():
-            path.mkdir(parents=True)
+            path.mkdir(mode=0o700, parents=True)
 
-        self._pgp = PGPContext(self.own_jid, path)
+        self._pgp = PGPBackend(self.own_jid, path)
         self._storage = Storage(path)
         self._contacts = PGPContacts(self._pgp, self._storage)
         self._fingerprint, self._date = self.get_own_key_details()
@@ -223,7 +228,14 @@ class OpenPGP(BaseModule):
 
         if not any(map(self.own_jid.bareMatch, recipients)):
             log.warning('to attr not valid')
-            log.warning(payload)
+            log.warning(str(payload))
+            return
+
+        keys = self._contacts.get_keys(properties.jid.bare)
+        fingerprints = [key.fingerprint for key in keys]
+        if fingerprint not in fingerprints:
+            log.warning('Invalid fingerprint on message: %s', fingerprint)
+            log.warning('Expected: %s', fingerprints)
             return
 
         log.info('Received OpenPGP message from: %s', properties.jid)
