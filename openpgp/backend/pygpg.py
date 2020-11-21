@@ -114,7 +114,7 @@ class PythonGnuPG(gnupg.GPG):
         result = super().import_keys(data)
         if not result:
             log.error('Could not import key')
-            log.error(result.results[0])
+            log.error(result)
             return
 
         if not self.validate_key(data, str(jid)):
