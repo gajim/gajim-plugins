@@ -9,7 +9,37 @@ build-options:
     PIP_TARGET: /app/plugins/openpgp/site-packages
 
 modules:
-  - modules/python3-python-gnupg.yaml
+  - name: swig
+    cleanup:
+      - "*"
+    build-options:
+      prefix: ${FLATPAK_DEST}
+    sources:
+      - type: archive
+        url: https://downloads.sourceforge.net/swig/swig-4.0.2.tar.gz
+        sha256: d53be9730d8d58a16bf0cbd1f8ac0c0c3e1090573168bfa151b01eb47fa906fc
+
+  - name: python3-gpgme
+    cleanup:
+      - /bin
+      - /include
+      - /lib
+      - /share
+    build-options:
+      config-opts:
+        - --enable-languages=python
+      env:
+         SWIG_LIB: "/app/plugins/openpgp/share/swig/4.0.2"
+      prepend-path: "/app/plugins/openpgp/bin:"
+      prefix: ${FLATPAK_DEST}
+    post-install:
+      - mv ${FLATPAK_DEST}/lib/python3.8/site-packages ${FLATPAK_DEST}/site-packages
+    sources:
+      # used version should match runtime version of gpgme
+      # so we don't have to ship libs
+      - type: archive
+        url: https://www.gnupg.org/ftp/gcrypt/gpgme/gpgme-1.14.0.tar.bz2
+        sha256: cef1f710a6b0d28f5b44242713ad373702d1466dcbe512eb4e754d7f35cd4307
 
   - name: gajim-openpgp
     buildsystem: simple
