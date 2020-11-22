@@ -228,7 +228,7 @@ class OpenPGP(BaseModule):
 
         if not any(map(self.own_jid.bareMatch, recipients)):
             log.warning('to attr not valid')
-            log.warning(str(payload))
+            log.warning(signcrypt)
             return
 
         keys = self._contacts.get_keys(properties.jid.bare)
