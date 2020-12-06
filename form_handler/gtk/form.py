@@ -22,7 +22,7 @@ from gi.repository import Gtk
 from gajim.common import app
 from gajim.common.structs import OutgoingMessage
 
-from gajim.gtk.dataform import DataFormWidget
+from gajim.gui.dataform import DataFormWidget
 
 from gajim.plugins.plugins_i18n import _
 

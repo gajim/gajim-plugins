@@ -47,11 +47,11 @@ from gajim.common.helpers import write_file_async
 from gajim.common.helpers import load_file_async
 from gajim.common.helpers import get_tls_error_phrase
 from gajim.common.helpers import get_user_proxy
-from gajim.gtk.dialogs import ErrorDialog
-from gajim.gtk.filechoosers import FileSaveDialog
-from gajim.gtk.util import get_cursor
-from gajim.gtk.util import get_monitor_scale_factor
-from gajim.gtk.util import load_icon
+from gajim.gui.dialogs import ErrorDialog
+from gajim.gui.filechoosers import FileSaveDialog
+from gajim.gui.util import get_cursor
+from gajim.gui.util import get_monitor_scale_factor
+from gajim.gui.util import load_icon
 
 from gajim.plugins import GajimPlugin
 from gajim.plugins.helpers import get_builder

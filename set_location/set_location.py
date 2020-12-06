@@ -16,9 +16,9 @@ from gajim.common import ged
 from gajim.common import configpaths
 from gajim.common.helpers import sanitize_filename
 
-from gajim.gtk.dialogs import DialogButton
-from gajim.gtk.dialogs import InputDialog
-from gajim.gtk.dialogs import WarningDialog
+from gajim.gui.dialogs import DialogButton
+from gajim.gui.dialogs import InputDialog
+from gajim.gui.dialogs import WarningDialog
 
 from gajim.plugins import GajimPlugin
 from gajim.plugins.helpers import get_builder

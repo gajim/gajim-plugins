@@ -21,8 +21,8 @@ from gi.repository import Gtk
 
 from gajim.common import app
 
-from gajim.gtk.filechoosers import NativeFileChooserDialog
-from gajim.gtk.filechoosers import Filter
+from gajim.gui.filechoosers import NativeFileChooserDialog
+from gajim.gui.filechoosers import Filter
 
 from gajim.plugins.helpers import get_builder
 from gajim.plugins.plugins_i18n import _

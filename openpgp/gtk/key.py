@@ -21,8 +21,8 @@ from gi.repository import Gtk
 
 from gajim.common import app
 
-from gajim.gtk.dialogs import ConfirmationDialog
-from gajim.gtk.dialogs import DialogButton
+from gajim.gui.dialogs import ConfirmationDialog
+from gajim.gui.dialogs import DialogButton
 from gajim.plugins.plugins_i18n import _
 
 from openpgp.modules.util import Trust

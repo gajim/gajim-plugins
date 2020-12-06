@@ -44,8 +44,8 @@ from gajim.common import app
 from gajim.common import ged
 from gajim.common.connection_handlers_events import InformationEvent
 
-from gajim.gtk.dialogs import DialogButton
-from gajim.gtk.dialogs import ConfirmationDialog
+from gajim.gui.dialogs import DialogButton
+from gajim.gui.dialogs import ConfirmationDialog
 
 from gajim.plugins import GajimPlugin
 from gajim.plugins.helpers import log

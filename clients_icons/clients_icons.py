@@ -20,7 +20,7 @@ from functools import partial
 from gi.repository import Gtk
 
 from gajim.common import app
-from gajim.gtk.util import load_icon
+from gajim.gui.util import load_icon
 
 from gajim.plugins import GajimPlugin
 from gajim.plugins.plugins_i18n import _

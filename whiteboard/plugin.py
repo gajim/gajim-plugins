@@ -41,8 +41,8 @@ from gajim.common.jingle_content import JingleContent
 from gajim.common.jingle_transport import JingleTransport
 from gajim.common.jingle_transport import TransportType
 
-from gajim.gtk.dialogs import DialogButton
-from gajim.gtk.dialogs import ConfirmationDialog
+from gajim.gui.dialogs import DialogButton
+from gajim.gui.dialogs import ConfirmationDialog
 
 from gajim.plugins import GajimPlugin
 from gajim.plugins.gajimplugin import GajimPluginException

@@ -6,7 +6,7 @@ from gajim.common import app
 from gajim.plugins import GajimPlugin
 from gajim.plugins.plugins_i18n import _
 
-from gajim.gtk.util import get_cursor
+from gajim.gui.util import get_cursor
 
 
 class ClickableNicknames(GajimPlugin):

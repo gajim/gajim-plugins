@@ -28,8 +28,8 @@ from gi.repository import GdkPixbuf
 from gajim.common import app
 from gajim.plugins.plugins_i18n import _
 from gajim.plugins.helpers import get_builder
-from gajim.gtk.dialogs import ConfirmationDialog
-from gajim.gtk.dialogs import DialogButton
+from gajim.gui.dialogs import ConfirmationDialog
+from gajim.gui.dialogs import DialogButton
 
 from omemo.backend.util import Trust
 from omemo.backend.util import IdentityKeyExtended

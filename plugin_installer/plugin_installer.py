@@ -29,9 +29,9 @@ from gajim.common import app
 from gajim.plugins import GajimPlugin
 from gajim.plugins.plugins_i18n import _
 
-from gajim.gtk.dialogs import DialogButton
-from gajim.gtk.dialogs import InformationDialog
-from gajim.gtk.dialogs import ConfirmationCheckDialog
+from gajim.gui.dialogs import DialogButton
+from gajim.gui.dialogs import InformationDialog
+from gajim.gui.dialogs import ConfirmationCheckDialog
 
 from plugin_installer.config_dialog import PluginInstallerConfigDialog
 from plugin_installer.widget import AvailablePage
