@@ -182,6 +182,7 @@ def create_thumbnail_with_pil(data, size):
         image.thumbnail((size, size))
         image.save(output_file,
                    format=image.format,
+                   exif=image.info.get('exif', b''),
                    optimize=True)
 
     bytes_ = output_file.getvalue()
@@ -232,7 +233,7 @@ def pixbuf_from_data(data):
         input_file.close()
         return pixbuf
 
-    return loader.get_pixbuf()
+    return loader.get_pixbuf().apply_embedded_orientation()
 
 
 def parse_fragment(fragment):
