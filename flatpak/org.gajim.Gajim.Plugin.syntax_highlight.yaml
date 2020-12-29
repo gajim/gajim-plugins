@@ -1,5 +1,5 @@
-id: org.gajim.Gajim.Devel.Plugin.syntax_highlight
-runtime: org.gajim.Gajim.Devel
+id: org.gajim.Gajim.Plugin.syntax_highlight
+runtime: org.gajim.Gajim
 sdk: org.gnome.Sdk//3.38
 build-extension: true
 separate-locales: false
@@ -34,11 +34,8 @@ modules:
       - 'cp -R -t ${FLATPAK_DEST} *'
     post-install:
       - install -Dm644 --target-directory=${FLATPAK_DEST}/share/metainfo org.gajim.Gajim.Plugin.syntax_highlight.metainfo.xml
-      - appstream-compose --basename=org.gajim.Gajim.Devel.Plugin.syntax_highlight --prefix=${FLATPAK_DEST} --origin=flatpak org.gajim.Gajim.Plugin.syntax_highlight
+      - appstream-compose --basename=org.gajim.Gajim.Plugin.syntax_highlight --prefix=${FLATPAK_DEST} --origin=flatpak org.gajim.Gajim.Plugin.syntax_highlight
     sources:
       - type: archive
         url: https://ftp.gajim.org/plugins_releases/syntax_highlight_1.3.2.zip
         sha256: 7abf68db96839f9f1e7ebbcfa6e7794d7f504550c1edbb03f2f9c91b0eb3ee2e
-      - type: shell
-        commands:
-          - sed -i "s+org.gajim.Gajim+org.gajim.Gajim.Devel+" org.gajim.Gajim.Plugin.*.metainfo.xml

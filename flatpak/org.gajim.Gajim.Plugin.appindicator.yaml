@@ -1,5 +1,5 @@
-id: org.gajim.Gajim.Devel.Plugin.appindicator
-runtime: org.gajim.Gajim.Devel
+id: org.gajim.Gajim.Plugin.appindicator
+runtime: org.gajim.Gajim
 sdk: org.gnome.Sdk//3.38
 build-extension: true
 separate-locales: false
@@ -21,7 +21,7 @@ modules:
       - 'cp -R -t ${FLATPAK_DEST} *'
     post-install:
       - install -Dm644 --target-directory=${FLATPAK_DEST}/share/metainfo org.gajim.Gajim.Plugin.appindicator.metainfo.xml
-      - appstream-compose --basename=org.gajim.Gajim.Devel.Plugin.appindicator --prefix=${FLATPAK_DEST} --origin=flatpak org.gajim.Gajim.Plugin.appindicator
+      - appstream-compose --basename=org.gajim.Gajim.Plugin.appindicator --prefix=${FLATPAK_DEST} --origin=flatpak org.gajim.Gajim.Plugin.appindicator
     sources:
       - type: archive
         url: https://ftp.gajim.org/plugins_releases/appindicator_integration_1.3.2.zip
@@ -29,6 +29,3 @@ modules:
       - type: file
         path: ../appindicator_integration/org.gajim.Gajim.Plugin.appindicator.metainfo.xml
         sha256: 8591662b70ac496a2411ced0e08fa630744416eb3f301c006e12207ee84cecbf
-      - type: shell
-        commands:
-          - sed -i "s+org.gajim.Gajim+org.gajim.Gajim.Devel+" org.gajim.Gajim.Plugin.*.metainfo.xml

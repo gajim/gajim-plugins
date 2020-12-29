@@ -1,5 +1,5 @@
-id: org.gajim.Gajim.Devel.Plugin.omemo
-runtime: org.gajim.Gajim.Devel
+id: org.gajim.Gajim.Plugin.omemo
+runtime: org.gajim.Gajim
 sdk: org.gnome.Sdk//3.38
 build-extension: true
 separate-locales: false
@@ -54,11 +54,8 @@ modules:
       - 'cp -R -t ${FLATPAK_DEST} *'
     post-install:
       - install -Dm644 --target-directory=${FLATPAK_DEST}/share/metainfo org.gajim.Gajim.Plugin.omemo.metainfo.xml
-      - appstream-compose --basename=org.gajim.Gajim.Devel.Plugin.omemo --prefix=${FLATPAK_DEST} --origin=flatpak org.gajim.Gajim.Plugin.omemo
+      - appstream-compose --basename=org.gajim.Gajim.Plugin.omemo --prefix=${FLATPAK_DEST} --origin=flatpak org.gajim.Gajim.Plugin.omemo
     sources:
       - type: archive
         url: https://ftp.gajim.org/plugins_releases/omemo_2.7.12.zip
         sha256: b645b9f812e76f52c10025f98fa8cfdaf7621a5a49c51ee864ceeb2a1038f35f
-      - type: shell
-        commands:
-          - sed -i "s+org.gajim.Gajim+org.gajim.Gajim.Devel+" org.gajim.Gajim.Plugin.*.metainfo.xml
