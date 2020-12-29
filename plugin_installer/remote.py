@@ -1,7 +1,7 @@
 # File which defines all remote URLs
 
 server = 'https://ftp.gajim.org'
-directory = 'plugins_master_zip'
+directory = 'plugins_1.3_zip'
 
 PLUGINS_DIR_URL = '%s/%s' % (server, directory)
 MANIFEST_URL = '%s/manifests.zip' % PLUGINS_DIR_URL
