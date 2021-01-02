@@ -24,8 +24,5 @@ modules:
       - appstream-compose --basename=org.gajim.Gajim.Plugin.appindicator --prefix=${FLATPAK_DEST} --origin=flatpak org.gajim.Gajim.Plugin.appindicator
     sources:
       - type: archive
-        url: https://ftp.gajim.org/plugins_releases/appindicator_integration_1.3.2.zip
-        sha256: d56e1af24cc462d2090b33c53c6dd9f2a00d38c6c35aaa616d021c5f069a2333
-      - type: file
-        path: ../appindicator_integration/org.gajim.Gajim.Plugin.appindicator.metainfo.xml
-        sha256: 8591662b70ac496a2411ced0e08fa630744416eb3f301c006e12207ee84cecbf
+        url: https://ftp.gajim.org/plugins_releases/appindicator_integration_1.3.3.zip
+        sha256: 70267bdb86c0122c946c7706b7e192755a7679fca726863eb153209db6c12df1
