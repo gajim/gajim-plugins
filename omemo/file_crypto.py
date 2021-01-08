@@ -23,7 +23,6 @@ from urllib.parse import urlparse, unquote
 from gi.repository import GLib
 from gi.repository import Soup
 
-from gajim.common import app
 from gajim.common import configpaths
 from gajim.common.helpers import write_file_async
 from gajim.common.helpers import open_file
@@ -33,6 +32,7 @@ from gajim.common.filetransfer import FileTransfer
 from gajim.plugins.plugins_i18n import _
 from gajim.gui.dialogs import DialogButton
 from gajim.gui.dialogs import ConfirmationDialog
+from gajim.gui.filetransfer_progress import FileTransferProgress
 
 from omemo.backend.aes import aes_decrypt_file
 
@@ -73,13 +73,13 @@ class FileDecryption:
         file_path.parent.mkdir(mode=0o700, exist_ok=True)
 
         transfer = OMEMODownload(instance.account,
-                                 self._cancel_download,
                                  urlparts,
                                  file_path,
                                  key,
                                  iv)
 
-        app.interface.show_httpupload_progress(transfer)
+        transfer.connect('cancel', self._cancel_download)
+        FileTransferProgress(transfer)
 
         self._download_content(transfer)
         instance.plugin_modified = True
@@ -93,9 +93,10 @@ class FileDecryption:
 
         self._session.queue_message(message, self._on_finished, transfer)
 
-    def _cancel_download(self, transfer):
+    def _cancel_download(self, transfer, _signalname):
         message = transfer.get_soup_message()
         self._session.cancel_message(message, Soup.Status.CANCELLED)
+        transfer.set_cancelled()
 
     @staticmethod
     def _on_got_headers(message, transfer):
@@ -212,8 +213,8 @@ class OMEMODownload(FileTransfer):
         FTState.STARTED: _('Downloading…'),
     }
 
-    def __init__(self, account, cancel_func, urlparts, path, key, iv):
-        FileTransfer.__init__(self, account, cancel_func=cancel_func)
+    def __init__(self, account, urlparts, path, key, iv):
+        FileTransfer.__init__(self, account)
 
         self._urlparts = urlparts
         self.path = path
