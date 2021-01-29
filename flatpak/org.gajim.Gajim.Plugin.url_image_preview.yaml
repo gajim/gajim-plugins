@@ -21,8 +21,8 @@ modules:
       - appstream-compose --basename=org.gajim.Gajim.Devel.Plugin.url_image_preview --prefix=${FLATPAK_DEST} --origin=flatpak org.gajim.Gajim.Plugin.url_image_preview
     sources:
       - type: archive
-        url: https://ftp.gajim.org/plugins_releases/url_image_preview_2.6.0.zip
-        sha256: 631228fa46cfd881f48cee43fb44c8377bce006f95e0b821f1d8a05dc25a4b99
+        url: https://ftp.gajim.org/plugins_releases/url_image_preview_2.6.1.zip
+        sha256: 9e3959742681e58bda6a8cfbad07846f32559e0a066a3e3c33e1bdf031956327
       - type: shell
         commands:
           - sed -i "s+org.gajim.Gajim+org.gajim.Gajim.Devel+" org.gajim.Gajim.Plugin.*.metainfo.xml
