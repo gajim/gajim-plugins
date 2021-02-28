@@ -150,9 +150,10 @@ def create_thumbnail_with_pixbuf(data, size):
     thumbnail = pixbuf.scale_simple(width,
                                     height,
                                     GdkPixbuf.InterpType.BILINEAR)
-    has_error, bytes_ = thumbnail.save_to_bufferv('png', [], [])
-    if has_error:
-        log.warning('saving pixbuf to buffer failed')
+    try:
+        _error, bytes_ = thumbnail.save_to_bufferv('png', [], [])
+    except GLib.Error as err:
+        log.warning('Saving pixbuf to buffer failed: %s', err)
         return None
     return bytes_
 
