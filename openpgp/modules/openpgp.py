@@ -86,7 +86,7 @@ class OpenPGP(BaseModule):
 
         self.own_jid = self._con.get_own_jid()
 
-        own_bare_jid = self.own_jid.getBare()
+        own_bare_jid = self.own_jid.bare
         path = Path(configpaths.get('MY_DATA')) / 'openpgp' / own_bare_jid
         if not path.exists():
             path.mkdir(mode=0o700, parents=True)
@@ -168,7 +168,7 @@ class OpenPGP(BaseModule):
         except (StanzaError, MalformedStanzaError) as error:
             log.error('%s => Keylist query failed: %s',
                       self._account, error)
-            if self.own_jid.bareMatch(jid) and self._fingerprint is not None:
+            if self.own_jid.bare_match(jid) and self._fingerprint is not None:
                 self.set_keylist()
             return
 
@@ -180,11 +180,11 @@ class OpenPGP(BaseModule):
             log.warning('%s => Empty keylist received from %s',
                         self._account, from_jid)
             self._contacts.process_keylist(self.own_jid, keylist)
-            if self.own_jid.bareMatch(from_jid) and self._fingerprint is not None:
+            if self.own_jid.bare_match(from_jid) and self._fingerprint is not None:
                 self.set_keylist()
             return
 
-        if self.own_jid.bareMatch(from_jid):
+        if self.own_jid.bare_match(from_jid):
             log.info('Received own keylist')
             for key in keylist:
                 log.info(key.fingerprint)
@@ -226,7 +226,7 @@ class OpenPGP(BaseModule):
             log.warning(payload)
             return
 
-        if not any(map(self.own_jid.bareMatch, recipients)):
+        if not any(map(self.own_jid.bare_match, recipients)):
             log.warning('to attr not valid')
             log.warning(signcrypt)
             return

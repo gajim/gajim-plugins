@@ -103,7 +103,7 @@ class OMEMO(BaseModule):
 
         self.available = True
 
-        self._own_jid = self._con.get_own_jid().getStripped()
+        self._own_jid = self._con.get_own_jid().bare
         self._backend = self._get_backend()
 
         self._omemo_groupchats = set()
@@ -114,7 +114,7 @@ class OMEMO(BaseModule):
 
     def get_own_jid(self, stripped=False):
         if stripped:
-            return self._con.get_own_jid().getStripped()
+            return self._con.get_own_jid().bare
         return self._con.get_own_jid()
 
     @property
@@ -211,7 +211,7 @@ class OMEMO(BaseModule):
             from_jid = self._process_muc_message(properties)
 
         else:
-            from_jid = properties.jid.getBare()
+            from_jid = properties.jid.bare
 
         if from_jid is None:
             return
@@ -259,15 +259,15 @@ class OMEMO(BaseModule):
                                                'trust': GajimTrust[trust.name]})
 
     def _process_muc_message(self, properties):
-        room_jid = properties.jid.getBare()
-        resource = properties.jid.getResource()
+        room_jid = properties.jid.bare
+        resource = properties.jid.resource()
         if properties.muc_ofrom is not None:
             # History Message from MUC
-            return properties.muc_ofrom.getBare()
+            return properties.muc_ofrom.bare
 
         contact = app.contacts.get_gc_contact(self._account, room_jid, resource)
         if contact is not None:
-            return JID(contact.jid).getBare()
+            return JID(contact.jid).bare
 
         self._log.info('Groupchat: Last resort trying to find SID in DB')
         from_jid = self.backend.storage.getJidFromDevice(properties.omemo.sid)
@@ -284,8 +284,8 @@ class OMEMO(BaseModule):
                 self._log.warning('Received MAM Message which can '
                                   'not be mapped to a real jid')
                 return
-            return properties.muc_user.jid.getBare()
-        return properties.from_.getBare()
+            return properties.muc_user.jid.bare
+        return properties.from_.bare
 
     def _on_muc_user_presence(self, _con, _stanza, properties):
         if properties.type == PresenceType.ERROR:
@@ -294,13 +294,13 @@ class OMEMO(BaseModule):
         if properties.is_muc_destroyed:
             return
 
-        room = properties.jid.getBare()
+        room = properties.jid.bare
 
         if properties.muc_user is None or properties.muc_user.jid is None:
             # No real jid found
             return
 
-        jid = properties.muc_user.jid.getBare()
+        jid = properties.muc_user.jid.bare
         if properties.muc_user.affiliation in (Affiliation.OUTCAST,
                                                Affiliation.NONE):
             self.backend.remove_muc_member(room, jid)
@@ -486,7 +486,7 @@ class OMEMO(BaseModule):
         self._process_devicelist_update(str(properties.jid), devicelist)
 
     def _process_devicelist_update(self, jid, devicelist):
-        own_devices = jid is None or self._con.get_own_jid().bareMatch(jid)
+        own_devices = jid is None or self._con.get_own_jid().bare_match(jid)
         if own_devices:
             jid = self._own_jid
 

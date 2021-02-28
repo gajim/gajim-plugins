@@ -35,7 +35,7 @@ class PythonGnuPG(gnupg.GPG):
     def __init__(self, jid, gnupghome):
         gnupg.GPG.__init__(self, gpgbinary='gpg', gnupghome=str(gnupghome))
 
-        self._jid = jid.getBare()
+        self._jid = jid.bare
         self._own_fingerprint = None
 
     @staticmethod

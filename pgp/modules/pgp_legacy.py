@@ -114,7 +114,7 @@ class PGPLegacy(BaseModule):
     def _on_presence_received(self, _con, _stanza, properties):
         if properties.signed is None:
             return
-        jid = properties.jid.getBare()
+        jid = properties.jid.bare
 
         fingerprint = self._pgp.verify(properties.status, properties.signed)
         if fingerprint is None:
@@ -142,7 +142,7 @@ class PGPLegacy(BaseModule):
         if not properties.is_pgp_legacy or properties.from_muc:
             return
 
-        from_jid = properties.jid.getBare()
+        from_jid = properties.jid.bare
         self._log.info('Message received from: %s', from_jid)
 
         payload = self._pgp.decrypt(properties.pgp_legacy)

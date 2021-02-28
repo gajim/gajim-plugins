@@ -33,7 +33,7 @@ class KeyStore:
         self._log = log
         self._account = account
 
-        own_bare_jid = own_jid.getBare()
+        own_bare_jid = own_jid.bare
         path = Path(configpaths.get('PLUGINS_DATA')) / 'pgplegacy' / own_bare_jid
         if not path.exists():
             path.mkdir(parents=True)

@@ -106,7 +106,7 @@ class AntiSpam(BaseModule):
                 properties.is_mam_message):
             return False
 
-        msg_from = properties.jid if is_muc_pm else properties.jid.getBare()
+        msg_from = properties.jid if is_muc_pm else properties.jid.bare
 
         if msg_from in self._contacted_jids:
             return False

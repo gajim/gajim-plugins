@@ -98,8 +98,8 @@ class LengthNotifierPlugin(GajimPlugin):
             except Exception as error:
                 log.debug('Error parsing JID: %s (%s)' % (error, allowed_jid))
                 continue
-            if address.isDomain:
-                if current_jid.getDomain() == address:
+            if address.is_domain:
+                if current_jid.domain == address:
                     log.debug('Add counter for Domain %s' % address)
                     return True
             if current_jid == address:
