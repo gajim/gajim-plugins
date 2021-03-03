@@ -260,7 +260,7 @@ class OMEMO(BaseModule):
 
     def _process_muc_message(self, properties):
         room_jid = properties.jid.bare
-        resource = properties.jid.resource()
+        resource = properties.jid.resource
         if properties.muc_ofrom is not None:
             # History Message from MUC
             return properties.muc_ofrom.bare
