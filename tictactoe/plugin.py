@@ -254,7 +254,7 @@ class TicTacToeSession():
         self.conn = conn
         self.jid = jid
         self.type_ = type_
-        self.resource = jid.resource()
+        self.resource = jid.resource
 
         if thread_id:
             self.received_thread_id = True

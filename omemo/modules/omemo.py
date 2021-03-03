@@ -267,7 +267,7 @@ class OMEMO(BaseModule):
 
         contact = app.contacts.get_gc_contact(self._account, room_jid, resource)
         if contact is not None:
-            return JID(contact.jid).bare
+            return JID.from_string(contact.jid).bare
 
         self._log.info('Groupchat: Last resort trying to find SID in DB')
         from_jid = self.backend.storage.getJidFromDevice(properties.omemo.sid)

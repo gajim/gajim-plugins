@@ -90,11 +90,11 @@ class LengthNotifierPlugin(GajimPlugin):
             # Not restricted to any JIDs
             return True
 
-        current_jid = JID(jid)
+        current_jid = JID.from_string(jid)
         allowed_jids = self.config['JIDS'].split(',')
         for allowed_jid in allowed_jids:
             try:
-                address = JID(allowed_jid.strip())
+                address = JID.from_string(allowed_jid.strip())
             except Exception as error:
                 log.debug('Error parsing JID: %s (%s)' % (error, allowed_jid))
                 continue
