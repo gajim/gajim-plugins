@@ -57,8 +57,8 @@ modules:
       - appstream-compose --basename=org.gajim.Gajim.Devel.Plugin.omemo --prefix=${FLATPAK_DEST} --origin=flatpak org.gajim.Gajim.Plugin.omemo
     sources:
       - type: archive
-        url: https://ftp.gajim.org/plugins_releases/omemo_2.8.2.zip
-        sha256: 68df3954cf2c5a8654c41aaee8be42bb79d9bc4439198c8e03ca13752db106bf
+        url: https://ftp.gajim.org/plugins_releases/omemo_2.8.3.zip
+        sha256: 43f0bd2f76d9e3b516e20d21e30f90e553b2b905b8ee38db9ac721bb3265fd2e
       - type: shell
         commands:
           - sed -i "s+org.gajim.Gajim+org.gajim.Gajim.Devel+" org.gajim.Gajim.Plugin.*.metainfo.xml
