@@ -84,7 +84,7 @@ class AcronymsExpanderPlugin(GajimPlugin):
         self.acronyms = acronyms
         self._save_acronyms(acronyms)
 
-    def _on_buffer_changed(self, _textview, buffer_, contact, account):
+    def _on_buffer_changed(self, buffer_, contact, account):
         if self._replace_in_progress:
             return
 
@@ -142,16 +142,16 @@ class AcronymsExpanderPlugin(GajimPlugin):
         self._replace_in_progress = False
 
     def _connect(self, chat_control):
-        textview = chat_control.msg_textview
-        handler_id = textview.connect('text-changed',
-                                      self._on_buffer_changed,
-                                      chat_control.contact,
-                                      chat_control.account)
-        self._handler_ids[id(textview)] = handler_id
+        text_buffer = chat_control.msg_textview.get_buffer()
+        handler_id = text_buffer.connect('changed',
+                                         self._on_buffer_changed,
+                                         chat_control.contact,
+                                         chat_control.account)
+        self._handler_ids[id(text_buffer)] = handler_id
 
     def _disconnect(self, chat_control):
-        textview = chat_control.msg_textview
-        handler_id = self._handler_ids.get(id(textview))
+        text_buffer = chat_control.msg_textview.get_buffer()
+        handler_id = self._handler_ids.get(id(text_buffer))
         if handler_id is not None:
-            textview.disconnect(handler_id)
-            del self._handler_ids[id(textview)]
+            text_buffer.disconnect(handler_id)
+            del self._handler_ids[id(text_buffer)]
