@@ -103,13 +103,6 @@ def get_previewable_mime_types():
     ))
 
 
-def change_cursor(widget, event):
-    if event.type == Gdk.EventType.ENTER_NOTIFY:
-        widget.get_window().set_cursor(get_cursor('default'))
-    else:
-        widget.get_window().set_cursor(get_cursor('text'))
-
-
 PREVIEWABLE_MIME_TYPES = get_previewable_mime_types()
 mime_types = set(MIME_TYPES)
 # Merge both: if it’s a previewable image, it should be allowed
@@ -557,33 +550,22 @@ class UrlImagePreviewPlugin(GajimPlugin):
             icon = self._get_icon_for_mime_type(preview.mime_type)
             image = Gtk.Image.new_from_gicon(icon, Gtk.IconSize.DIALOG)
 
-        def _on_realize(box):
-            box.get_window().set_cursor(get_cursor('pointer'))
-
         path = self.local_file_path('preview.ui')
         ui = get_builder(path)
+        ui.connect_signals(self)
 
-        ui.download_button.set_no_show_all(True)
-        ui.download_button.connect('enter-notify-event', change_cursor)
-        ui.download_button.connect('leave-notify-event', change_cursor)
         ui.download_button.connect('clicked', self._on_download, preview)
-
-        ui.save_as_button.set_no_show_all(True)
-        ui.save_as_button.connect('enter-notify-event', change_cursor)
-        ui.save_as_button.connect('leave-notify-event', change_cursor)
         ui.save_as_button.connect('clicked', self._on_save_as, preview)
-
-        ui.open_folder_button.set_no_show_all(True)
-        ui.open_folder_button.connect('enter-notify-event', change_cursor)
-        ui.open_folder_button.connect('leave-notify-event', change_cursor)
         ui.open_folder_button.connect('clicked', self._on_open_folder, preview)
 
-        ui.event_box.set_tooltip_text(preview.filename)
-        ui.event_box.add(image)
-        ui.event_box.connect('realize', _on_realize)
-        ui.event_box.connect('button-press-event',
-                             self._on_button_press_event,
-                             preview)
+        ui.image_button.add(image)
+        ui.image_button.set_tooltip_text(preview.filename)
+        ui.image_button.connect('clicked',
+                                self._on_image_button_clicked,
+                                preview)
+        ui.image_button.connect('button_press_event',
+                                self._on_button_press_event,
+                                preview)
 
         ui.preview_box.show_all()
 
@@ -595,14 +577,15 @@ class UrlImagePreviewPlugin(GajimPlugin):
             location = split_geo_uri(preview.uri)
             ui.file_size.set_text(_('Lat: %s Lon: %s') % (
                 location.lat, location.lon))
-            ui.event_box.set_tooltip_text(_('Location at Lat: %s Lon: %s') % (
-                location.lat, location.lon))
-            ui.event_box.set_halign(Gtk.Align.CENTER)
+            ui.image_button.set_tooltip_text(
+                _('Location at Lat: %s Lon: %s') % (
+                    location.lat, location.lon))
+            ui.image_event_box.set_halign(Gtk.Align.CENTER)
             ui.preview_box.set_size_request(160, -1)
             return ui.preview_box
 
         if preview.is_previewable and preview.orig_exists():
-            ui.event_box.set_halign(Gtk.Align.CENTER)
+            ui.image_event_box.set_halign(Gtk.Align.CENTER)
         else:
             image.set_property('pixel-size', 64)
 
@@ -727,14 +710,13 @@ class UrlImagePreviewPlugin(GajimPlugin):
         else:
             open_uri(preview.uri)
 
-    def _on_button_press_event(self, _image, event, preview):
-        if event.type == Gdk.EventType.BUTTON_PRESS and event.button == 1:
-            # Left click
-            action = self.config['LEFTCLICK_ACTION']
-            method = getattr(self, '_on_%s' % action)
-            method(event, preview)
+    def _on_image_button_clicked(self, _button, preview):
+        action = self.config['LEFTCLICK_ACTION']
+        method = getattr(self, '_on_%s' % action)
+        method(None, preview)
 
-        elif event.type == Gdk.EventType.BUTTON_PRESS and event.button == 3:
+    def _on_button_press_event(self, _button, event, preview):
+        if event.type == Gdk.EventType.BUTTON_PRESS and event.button == 3:
             # Right klick
             menu = self._get_context_menu(preview)
             menu.popup_at_pointer(event)
@@ -745,7 +727,7 @@ class UrlImagePreviewPlugin(GajimPlugin):
         has_audio = False
         discoverer = GstPbutils.Discoverer()
         try:
-            info = discoverer.discover_uri(f'file://{str(file_path)}')
+            info = discoverer.discover_uri(f'file://{file_path}')
             has_audio = bool(info.get_audio_streams())
         except GLib.Error as err:
             log.error('Error while reading %s: %s', str(file_path), err)
@@ -754,6 +736,10 @@ class UrlImagePreviewPlugin(GajimPlugin):
             log.warning('File does not contain audio stream: %s',
                         str(file_path))
         return has_audio
+
+    @staticmethod
+    def _on_realize(event_box):
+        event_box.get_window().set_cursor(get_cursor('pointer'))
 
 
 class Preview:
@@ -852,22 +838,25 @@ class AudioWidget(Gtk.Box):
             'media-playback-start-symbolic',
             Gtk.IconSize.BUTTON)
         play_button.add(self._play_icon)
+        play_button.connect('clicked', self._on_play_clicked)
+        event_box = Gtk.EventBox()
+        event_box.connect('realize', self._on_realize)
+        event_box.add(play_button)
+        self.add(event_box)
+
         self._seek_bar = Gtk.Scale(
             orientation=Gtk.Orientation.HORIZONTAL)
         self._seek_bar.set_range(0.0, 1.0)
         self._seek_bar.set_hexpand(True)
         self._seek_bar.set_value_pos(Gtk.PositionType.RIGHT)
-        self._seek_bar.connect('enter-notify-event', change_cursor)
-        self._seek_bar.connect('leave-notify-event', change_cursor)
         self._seek_bar.connect('change-value', self._on_seek)
         self._seek_bar.connect(
             'format-value', self._format_audio_timestamp)
-        play_button.connect('enter-notify-event', change_cursor)
-        play_button.connect('leave-notify-event', change_cursor)
-        play_button.connect('clicked', self._on_play_clicked)
+        event_box = Gtk.EventBox()
+        event_box.connect('realize', self._on_realize)
+        event_box.add(self._seek_bar)
+        self.add(event_box)
 
-        self.add(play_button)
-        self.add(self._seek_bar)
         self.connect('destroy', self._on_destroy)
         self.show_all()
 
@@ -876,7 +865,7 @@ class AudioWidget(Gtk.Box):
         if self._playbin is None:
             return
         self._playbin.set_property(
-            'uri', f'file://{str(file_path)}')
+            'uri', f'file://{file_path}')
         state_return = self._playbin.set_state(Gst.State.PAUSED)
         if state_return == Gst.StateChangeReturn.FAILURE:
             return
@@ -953,3 +942,7 @@ class AudioWidget(Gtk.Box):
         if i_hours > 0:
             return f'{i_hours:d}:{i_minutes:02d}:{i_seconds:02d}'
         return f'{i_minutes:d}:{i_seconds:02d}'
+
+    @staticmethod
+    def _on_realize(event_box):
+        event_box.get_window().set_cursor(get_cursor('pointer'))
