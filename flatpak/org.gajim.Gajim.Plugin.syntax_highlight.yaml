@@ -1,6 +1,6 @@
 id: org.gajim.Gajim.Devel.Plugin.syntax_highlight
 runtime: org.gajim.Gajim.Devel
-sdk: org.gnome.Sdk//3.38
+sdk: org.gnome.Sdk//40
 build-extension: true
 separate-locales: false
 appstream-compose: false
@@ -13,11 +13,11 @@ modules:
   - name: python3-pygments
     buildsystem: simple
     build-commands:
-      - pip3 install --ignore-installed Pygments-2.8.0-py3-none-any.whl
+      - pip3 install --ignore-installed Pygments-2.8.1-py3-none-any.whl
     sources:
       - type: file
-        url: https://files.pythonhosted.org/packages/d4/ef/881b14d3ad4d6a86384d63bfbb87205161e4fc46420526380ec209a12e17/Pygments-2.8.0-py3-none-any.whl
-        sha256: b21b072d0ccdf29297a82a2363359d99623597b8a265b8081760e4d0f7153c88
+        url: https://files.pythonhosted.org/packages/3a/80/a52c0a7c5939737c6dca75a831e89658ecb6f590fb7752ac777d221937b9/Pygments-2.8.1-py3-none-any.whl
+        sha256: 534ef71d539ae97d4c3a4cf7d6f110f214b0e687e92f9cb9d2a3b0d3101289c8
 
   - name: python3-MarkupSafe
     buildsystem: simple

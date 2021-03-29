@@ -1,6 +1,6 @@
 id: org.gajim.Gajim.Devel.Plugin.omemo
 runtime: org.gajim.Gajim.Devel
-sdk: org.gnome.Sdk//3.38
+sdk: org.gnome.Sdk//40
 build-extension: true
 separate-locales: false
 appstream-compose: false
@@ -15,11 +15,11 @@ modules:
   - name: protobuf
     buildsystem: simple
     build-commands:
-      - pip3 install --no-deps protobuf-3.15.3-py2.py3-none-any.whl
+      - pip3 install --no-deps protobuf-3.15.6-py2.py3-none-any.whl
     sources:
       - type: file
-        url: https://files.pythonhosted.org/packages/9f/9c/6309ca28a6d64eaa4af376bbf8d8d09a183a4288f31344d34c7485d12202/protobuf-3.15.3-py2.py3-none-any.whl
-        sha256: ad8e808b572e6ee38131e7b58d94aa5c438e3a3469d055e8989ea73a8e2308c0
+        url: https://files.pythonhosted.org/packages/14/a9/dd95de0539b60b2139fae55148948c39a00e4a4647247b2102d502dcd207/protobuf-3.15.6-py2.py3-none-any.whl
+        sha256: 1655fc0ba7402560d749de13edbfca1ac45d1753d8f4e5292989f18f5a00c215
 
   - name: python3-axolotl-curve25519
     buildsystem: simple
