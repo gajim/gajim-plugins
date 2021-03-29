@@ -554,8 +554,11 @@ class UrlImagePreviewPlugin(GajimPlugin):
         ui = get_builder(path)
         ui.connect_signals(self)
 
+        ui.download_button.set_no_show_all(True)
         ui.download_button.connect('clicked', self._on_download, preview)
+        ui.save_as_button.set_no_show_all(True)
         ui.save_as_button.connect('clicked', self._on_save_as, preview)
+        ui.open_folder_button.set_no_show_all(True)
         ui.open_folder_button.connect('clicked', self._on_open_folder, preview)
 
         ui.image_button.add(image)
