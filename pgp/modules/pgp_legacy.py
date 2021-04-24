@@ -281,8 +281,11 @@ class PGPLegacy(BaseModule):
             self._log.warning(error)
             return
 
-        encrypted = self._pgp.encrypt_file(file.get_data(),
+        stream = open(file.path, "rb")
+        encrypted = self._pgp.encrypt_file(stream,
                                            [key_id, own_key_id])
+        stream.close()
+
         if not encrypted:
             GLib.idle_add(self._on_file_encryption_error, encrypted.status)
             return
