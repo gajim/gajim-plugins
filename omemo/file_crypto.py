@@ -18,7 +18,8 @@ import hashlib
 import logging
 import binascii
 from pathlib import Path
-from urllib.parse import urlparse, unquote
+from urllib.parse import urlparse
+from urllib.parse import unquote
 
 from gi.repository import GLib
 from gi.repository import Soup
@@ -53,7 +54,7 @@ class FileDecryption:
             return
         self.window = window
 
-        urlparts = urlparse(unquote(uri.data))
+        urlparts = urlparse(uri.data)
         if urlparts.scheme != 'aesgcm':
             log.info('URL not encrypted: %s', uri.data)
             return
@@ -106,7 +107,11 @@ class FileDecryption:
 
     def _on_got_chunk(self, message, chunk, transfer):
         transfer.set_chunk(chunk.get_data())
-        transfer.update_progress()
+        if transfer.size:
+            # This gets called even when the requested file is not found
+            # So only update the progress if the file was actually found and
+            # we know the size 
+            transfer.update_progress()
 
         self._session.pause_message(message)
         GLib.idle_add(self._session.unpause_message, message)
@@ -119,6 +124,7 @@ class FileDecryption:
         if message.status_code != Soup.Status.OK:
             log.warning('Download failed: %s', transfer.request_uri)
             log.warning(Soup.Status.get_phrase(message.status_code))
+            transfer.set_error('http-error', 'Download failed: %s', transfer.request_uri)
             return
 
         data = message.props.response_body_data.get_data()
@@ -187,7 +193,7 @@ class FileDecryption:
 
     @staticmethod
     def _get_file_path(uri, urlparts):
-        path = Path(urlparts.path)
+        path = Path(unquote(urlparts.path))
         stem = path.stem
         extension = path.suffix
 
