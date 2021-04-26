@@ -1,6 +1,6 @@
 id: org.gajim.Gajim.Plugin.omemo
 runtime: org.gajim.Gajim
-sdk: org.gnome.Sdk//3.38
+sdk: org.gnome.Sdk//40
 build-extension: true
 separate-locales: false
 appstream-compose: false
@@ -57,5 +57,5 @@ modules:
       - appstream-compose --basename=org.gajim.Gajim.Plugin.omemo --prefix=${FLATPAK_DEST} --origin=flatpak org.gajim.Gajim.Plugin.omemo
     sources:
       - type: archive
-        url: https://ftp.gajim.org/plugins_releases/omemo_2.7.13.zip
-        sha256: 362f546f399fe59671e19ce18555cfa2a9d69a9ad746a1aee405ccb8733859d7
+        url: https://ftp.gajim.org/plugins_releases/omemo_2.7.14.zip
+        sha256: db2067b372e5a6622d46b45225125c4646dd8af85be3b60bde356ec21c96be4a
