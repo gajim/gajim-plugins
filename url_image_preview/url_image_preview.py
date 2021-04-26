@@ -21,7 +21,6 @@ import mimetypes
 from pathlib import Path
 from functools import partial
 from urllib.parse import urlparse
-from urllib.parse import unquote
 
 import gi
 from gi.repository import Gtk
@@ -232,7 +231,7 @@ class UrlImagePreviewPlugin(GajimPlugin):
             return
 
         uri = text
-        urlparts = urlparse(unquote(uri))
+        urlparts = urlparse(uri)
         if not self._accept_uri(urlparts, uri, additional_data):
             return
 

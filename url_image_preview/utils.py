@@ -257,7 +257,7 @@ def parse_fragment(fragment):
 
 
 def get_image_paths(uri, urlparts, size, orig_dir, thumb_dir):
-    path = Path(urlparts.path)
+    path = Path(unquote(urlparts.path))
     web_stem = path.stem
     extension = path.suffix
 
