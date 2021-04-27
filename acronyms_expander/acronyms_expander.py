@@ -21,6 +21,7 @@ from pathlib import Path
 from functools import partial
 
 from gi.repository import GLib
+from gi.repository import Gtk
 
 from gajim.common import app
 from gajim.common import configpaths
@@ -104,11 +105,19 @@ class AcronymsExpanderPlugin(GajimPlugin):
             return
 
         # Get to the start of the last word
-        word_start_iter = insert_iter.copy()
-        word_start_iter.backward_word_start()
+        # word_start_iter = insert_iter.copy()
+        result = insert_iter.backward_search(
+            self._invoker,
+            Gtk.TextSearchFlags.VISIBLE_ONLY,
+            None)
+
+        if result is None:
+            word_start_iter = buffer_.get_start_iter()
+        else:
+            _, word_start_iter = result
 
         # Get last word and cut invoker
-        last_word = word_start_iter.get_slice(insert_iter).strip()
+        last_word = word_start_iter.get_slice(insert_iter)
 
         if contact.is_groupchat:
             nick_list = app.contacts.get_nick_list(account, contact.jid)
@@ -126,13 +135,10 @@ class AcronymsExpanderPlugin(GajimPlugin):
             log.debug('%s not an acronym', last_word)
             return
 
-        # Replace
-        word_end_iter = word_start_iter.copy()
-        word_end_iter.forward_word_end()
         GLib.idle_add(self._replace_text,
                       buffer_,
                       word_start_iter,
-                      word_end_iter,
+                      insert_iter,
                       substitute)
 
     def _replace_text(self, buffer_, start, end, substitute):
