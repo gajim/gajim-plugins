@@ -1,5 +1,11 @@
-2.8.4 / 2021-03-03
+2.8.6 / 2021-05-01
 - Fix attribute access
+
+2.8.5 / 2021-04-26
+- Correctly decrypt encoded URIs
+
+2.8.4 / 2021-03-03
+- Adapt to nbxmpp changes
 
 2.8.3 / 2021-03-03
 - Fix attribute access
