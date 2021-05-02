@@ -34,12 +34,6 @@ from gajim.plugins import GajimPlugin
 from gajim.plugins.plugins_i18n import _
 from gajim.groupchat_control import GroupchatControl
 
-from omemo import file_crypto
-from omemo.gtk.key import KeyDialog
-from omemo.gtk.config import OMEMOConfigDialog
-from omemo.backend.aes import aes_encrypt_file
-
-
 AXOLOTL_MISSING = 'You are missing Python3-Axolotl or use an outdated version'
 PROTOBUF_MISSING = "OMEMO can't import Google Protobuf, you can find help in " \
                    "the GitLab Wiki"
@@ -68,6 +62,10 @@ except Exception as error:
 if not ERROR_MSG:
     try:
         from omemo.modules import omemo
+        from omemo import file_crypto
+        from omemo.gtk.key import KeyDialog
+        from omemo.gtk.config import OMEMOConfigDialog
+        from omemo.backend.aes import aes_encrypt_file
     except Exception as error:
         log.error(error)
         ERROR_MSG = 'Error: %s' % error
