@@ -63,7 +63,9 @@ MIME_TYPES = (
     'font/woff',
     'font/woff2',
     # image/*
+    'image/webp',
     'image/avif',
+    'image/jxl',
     'image/bmp',
     'image/x-bmp',
     'image/x-ms-bmp',
