@@ -464,6 +464,9 @@ class UrlImagePreviewPlugin(GajimPlugin):
         if preview.is_aes_encrypted:
             data = aes_decrypt(preview, data)
 
+        if preview.mime_type == 'application/octet-stream':
+            preview.mime_type = self._guess_mime_type(preview.orig_path, data)
+
         write_file_async(preview.orig_path,
                          data,
                          self._on_orig_write_finished,
@@ -505,11 +508,11 @@ class UrlImagePreviewPlugin(GajimPlugin):
         self._update_textview(preview, pixbuf)
 
     @staticmethod
-    def _guess_mime_type(file_path):
+    def _guess_mime_type(file_path, data=None):
         mime_type, _ = mimetypes.MimeTypes().guess_type(str(file_path))
         if mime_type is None:
             # Try to guess MIME type by file name
-            mime_type, _ = Gio.content_type_guess(str(file_path), None)
+            mime_type, _ = Gio.content_type_guess(str(file_path), data)
         log.debug('Guessed MIME type: %s', str(mime_type))
         return mime_type
 
