@@ -124,7 +124,8 @@ class FileDecryption:
         if message.status_code != Soup.Status.OK:
             log.warning('Download failed: %s', transfer.request_uri)
             log.warning(Soup.Status.get_phrase(message.status_code))
-            transfer.set_error('http-error', 'Download failed: %s', transfer.request_uri)
+            error_text = _('Download failed: %s') % transfer.request_uri
+            transfer.set_error('http-error', error_text)
             return
 
         data = message.props.response_body_data.get_data()
