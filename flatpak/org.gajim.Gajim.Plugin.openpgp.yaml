@@ -1,6 +1,6 @@
 id: org.gajim.Gajim.Devel.Plugin.openpgp
 runtime: org.gajim.Gajim.Devel
-sdk: org.gnome.Sdk//40
+sdk: org.gnome.Sdk//41
 build-extension: true
 separate-locales: false
 appstream-compose: false
@@ -33,13 +33,13 @@ modules:
       prepend-path: "/app/plugins/openpgp/bin:"
       prefix: ${FLATPAK_DEST}
     post-install:
-      - mv ${FLATPAK_DEST}/lib/python3.8/site-packages ${FLATPAK_DEST}/site-packages
+      - mv ${FLATPAK_DEST}/lib/python3.9/site-packages ${FLATPAK_DEST}/site-packages
     sources:
       # used version should match runtime version of gpgme
       # so we don't have to ship libs
       - type: archive
-        url: https://www.gnupg.org/ftp/gcrypt/gpgme/gpgme-1.14.0.tar.bz2
-        sha256: cef1f710a6b0d28f5b44242713ad373702d1466dcbe512eb4e754d7f35cd4307
+        url: https://www.gnupg.org/ftp/gcrypt/gpgme/gpgme-1.16.0.tar.bz2
+        sha256: 6c8cc4aedb10d5d4c905894ba1d850544619ee765606ac43df7405865de29ed0
 
   - name: gajim-openpgp
     buildsystem: simple

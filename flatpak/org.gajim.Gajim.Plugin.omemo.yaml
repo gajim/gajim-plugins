@@ -1,6 +1,6 @@
 id: org.gajim.Gajim.Devel.Plugin.omemo
 runtime: org.gajim.Gajim.Devel
-sdk: org.gnome.Sdk//40
+sdk: org.gnome.Sdk//41
 build-extension: true
 separate-locales: false
 appstream-compose: false
@@ -15,11 +15,11 @@ modules:
   - name: protobuf
     buildsystem: simple
     build-commands:
-      - pip3 install --no-deps protobuf-3.15.6-py2.py3-none-any.whl
+      - pip3 install --no-deps protobuf-3.18.0-py2.py3-none-any.whl
     sources:
       - type: file
-        url: https://files.pythonhosted.org/packages/14/a9/dd95de0539b60b2139fae55148948c39a00e4a4647247b2102d502dcd207/protobuf-3.15.6-py2.py3-none-any.whl
-        sha256: 1655fc0ba7402560d749de13edbfca1ac45d1753d8f4e5292989f18f5a00c215
+        url: https://files.pythonhosted.org/packages/py2.py3/p/protobuf/protobuf-3.18.0-py2.py3-none-any.whl
+        sha256: 615099e52e9fbc9fde00177267a94ca820ecf4e80093e390753568b7d8cb3c1a
 
   - name: python3-axolotl-curve25519
     buildsystem: simple
@@ -27,7 +27,7 @@ modules:
       - pip3 install .
     sources:
       - type: archive
-        url: https://files.pythonhosted.org/packages/59/ca/c8111718bcc8da18e9b9868e784293232a58c57159a5ea18f00ee967258f/python-axolotl-curve25519-0.4.1.post2.tar.gz
+        url: https://files.pythonhosted.org/packages/source/p/python-axolotl-curve25519/python-axolotl-curve25519-0.4.1.post2.tar.gz
         sha256: 0705a66297ebd2f508a60dc94e22881c754301eb81db93963322f6b3bdcb63a3
 
   - name: python3-axolotl
@@ -42,11 +42,11 @@ modules:
   - name: python3-qrcode
     buildsystem: simple
     build-commands:
-      - pip3 install --no-deps qrcode-6.1-py2.py3-none-any.whl
+      - pip3 install .
     sources:
-      - type: file
-        url: https://files.pythonhosted.org/packages/42/87/4a3a77e59ab7493d64da1f69bf1c2e899a4cf81e51b2baa855e8cc8115be/qrcode-6.1-py2.py3-none-any.whl
-        sha256: 3996ee560fc39532910603704c82980ff6d4d5d629f9c3f25f34174ce8606cf5
+      - type: archive
+        url: https://files.pythonhosted.org/packages/source/q/qrcode/qrcode-7.3.tar.gz
+        sha256: d72861b65e26b611609f0547f0febe58aed8ae229d6bf4e675834f40742915b3
 
   - name: gajim-omemo
     buildsystem: simple
@@ -57,8 +57,8 @@ modules:
       - appstream-compose --basename=org.gajim.Gajim.Devel.Plugin.omemo --prefix=${FLATPAK_DEST} --origin=flatpak org.gajim.Gajim.Plugin.omemo
     sources:
       - type: archive
-        url: https://ftp.gajim.org/plugins_releases/omemo_2.8.6.zip
-        sha256: 9795cdd686635573814063d3f1b834fdeaf950f2f64b922565b3c2c593d2815d
+        url: https://ftp.gajim.org/plugins_releases/omemo_2.8.7.zip
+        sha256: f5fc91d2359446c69d0d92272d9237ce1c45689d48551430f5508ca896255e44
       - type: shell
         commands:
           - sed -i "s+org.gajim.Gajim+org.gajim.Gajim.Devel+" org.gajim.Gajim.Plugin.*.metainfo.xml

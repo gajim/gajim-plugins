@@ -1,6 +1,6 @@
 id: org.gajim.Gajim.Devel.Plugin.pgp
 runtime: org.gajim.Gajim.Devel
-sdk: org.gnome.Sdk//40
+sdk: org.gnome.Sdk//41
 build-extension: true
 separate-locales: false
 appstream-compose: false
@@ -16,7 +16,7 @@ modules:
       - pip3 install python_gnupg-0.4.7-py2.py3-none-any.whl
     sources:
       - type: file
-        url: https://files.pythonhosted.org/packages/25/8e/51cf3cd74e7f2218e2d96ea5471bbe53f270912f92f4d18d0d8c84f5a765/python_gnupg-0.4.7-py2.py3-none-any.whl
+        url: https://files.pythonhosted.org/packages/py2.py3/p/python_gnupg/python_gnupg-0.4.7-py2.py3-none-any.whl
         sha256: 3ff5b1bf5e397de6e1fe41a7c0f403dad4e242ac92b345f440eaecfb72a7ebae
 
   - name: gajim-pgp

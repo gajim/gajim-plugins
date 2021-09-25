@@ -1,6 +1,6 @@
 id: org.gajim.Gajim.Devel.Plugin.syntax_highlight
 runtime: org.gajim.Gajim.Devel
-sdk: org.gnome.Sdk//40
+sdk: org.gnome.Sdk//41
 build-extension: true
 separate-locales: false
 appstream-compose: false
@@ -13,11 +13,11 @@ modules:
   - name: python3-pygments
     buildsystem: simple
     build-commands:
-      - pip3 install --ignore-installed Pygments-2.8.1-py3-none-any.whl
+      - pip3 install --ignore-installed Pygments-2.10.0-py3-none-any.whl
     sources:
       - type: file
-        url: https://files.pythonhosted.org/packages/3a/80/a52c0a7c5939737c6dca75a831e89658ecb6f590fb7752ac777d221937b9/Pygments-2.8.1-py3-none-any.whl
-        sha256: 534ef71d539ae97d4c3a4cf7d6f110f214b0e687e92f9cb9d2a3b0d3101289c8
+        url: https://files.pythonhosted.org/packages/py3/p/pygments/Pygments-2.10.0-py3-none-any.whl
+        sha256: b8e67fe6af78f492b3c4b3e2970c0624cbf08beb1e493b2c99b9fa1b67a20380
 
   - name: python3-MarkupSafe
     buildsystem: simple
@@ -25,8 +25,8 @@ modules:
       - pip3 install .
     sources:
       - type: archive
-        url: https://files.pythonhosted.org/packages/b9/2e/64db92e53b86efccfaea71321f597fa2e1b2bd3853d8ce658568f7a13094/MarkupSafe-1.1.1.tar.gz
-        sha256: 29872e92839765e546828bb7754a68c418d927cd064fd4708fab9fe9c8bb116b
+        url: https://files.pythonhosted.org/packages/source/m/markupsafe/MarkupSafe-2.0.1.tar.gz
+        sha256: 594c67807fb16238b30c44bdf74f36c02cdf22d1c8cda91ef8a0ed8dabf5620a
 
   - name: gajim-syntax_highlight
     buildsystem: simple
