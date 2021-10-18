@@ -110,7 +110,7 @@ class LengthNotifierPlugin(GajimPlugin):
         if not app.plugin_manager.get_active_plugin('length_notifier'):
             # Don’t update if the plugin is disabled
             return
-        for control in app.interface.msg_win_mgr.get_controls():
+        for control in app.window.get_controls():
             self._disconnect_chat_control(control)
             self._connect_chat_control(control)
 
