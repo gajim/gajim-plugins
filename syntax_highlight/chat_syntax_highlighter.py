@@ -1,11 +1,14 @@
 import logging
 import re
+from packaging.version import Version as V
 import pygments
 from pygments.token import Comment
 from pygments.styles import get_style_by_name
 
 from gi.repository import Gtk
 from gi.repository import Gdk
+
+import gajim
 
 from gajim.plugins.plugins_i18n import _
 
@@ -49,7 +52,8 @@ class ChatSyntaxHighlighter:
         return clipboard.wait_for_text()
 
     def _insert_paste(self, text):
-        self._chat_control.msg_textview.remove_placeholder()
+        if V(gajim.__version__) <= V('1.3.1'):
+            self._chat_control.msg_textview.remove_placeholder()
         message_buffer = self._chat_control.msg_textview.get_buffer()
         message_buffer.insert_at_cursor(text)
 
