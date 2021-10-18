@@ -49,7 +49,6 @@ class ChatSyntaxHighlighter:
         return clipboard.wait_for_text()
 
     def _insert_paste(self, text):
-        self._chat_control.msg_textview.remove_placeholder()
         message_buffer = self._chat_control.msg_textview.get_buffer()
         message_buffer.insert_at_cursor(text)
 
