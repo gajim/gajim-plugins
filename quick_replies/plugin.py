@@ -108,6 +108,5 @@ class QuickRepliesButton(Gtk.MenuButton):
 
     def _on_insert(self, _widget, text):
         message_buffer = self._chat_control.msg_textview.get_buffer()
-        self._chat_control.msg_textview.remove_placeholder()
         message_buffer.insert_at_cursor(text.rstrip() + ' ')
         self._chat_control.msg_textview.grab_focus()
