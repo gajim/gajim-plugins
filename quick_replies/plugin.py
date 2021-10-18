@@ -1,8 +1,11 @@
 import json
 from pathlib import Path
 from functools import partial
+from packaging.version import Version as V
 
 from gi.repository import Gtk
+
+import gajim
 
 from gajim.common import configpaths
 
@@ -108,6 +111,7 @@ class QuickRepliesButton(Gtk.MenuButton):
 
     def _on_insert(self, _widget, text):
         message_buffer = self._chat_control.msg_textview.get_buffer()
-        self._chat_control.msg_textview.remove_placeholder()
+        if V(gajim.__version__) <= V('1.3.1'):
+            self._chat_control.msg_textview.remove_placeholder()
         message_buffer.insert_at_cursor(text.rstrip() + ' ')
         self._chat_control.msg_textview.grab_focus()
