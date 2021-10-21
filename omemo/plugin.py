@@ -62,7 +62,6 @@ except Exception as error:
 if not ERROR_MSG:
     try:
         from omemo.modules import omemo
-        from omemo import file_crypto
         from omemo.gtk.key import KeyDialog
         from omemo.gtk.config import OMEMOConfigDialog
         from omemo.backend.aes import aes_encrypt_file
@@ -97,7 +96,6 @@ class OmemoPlugin(GajimPlugin):
         self.modules = [omemo]
         self.config_dialog = OMEMOConfigDialog(self)
         self.gui_extension_points = {
-            'hyperlink_handler': (self._file_decryption, None),
             'encrypt' + self.encryption_name: (self._encrypt_message, None),
             'gc_encrypt' + self.encryption_name: (
                 self._muc_encrypt_message, None),
@@ -206,10 +204,6 @@ class OmemoPlugin(GajimPlugin):
         if not self._is_enabled_account(account):
             return
         self.get_omemo(account).encrypt_message(conn, obj, callback, False)
-
-    def _file_decryption(self, uri, instance, window):
-        file_crypto.FileDecryption(self).hyperlink_handler(
-            uri, instance, window)
 
     def encrypt_file(self, file, _account, callback):
         thread = threading.Thread(target=self._encrypt_file_thread,
