@@ -69,7 +69,7 @@ class KeyDialog(Gtk.Dialog):
         self._groupchat = groupchat
         self._contact = contact
         self._windows = windows
-        self._account = self._contact.account.name
+        self._account = self._contact.account
         self._plugin = plugin
         self._omemo = self._plugin.get_omemo(self._account)
         self._own_jid = app.get_jid_from_account(self._account)

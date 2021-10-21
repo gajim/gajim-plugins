@@ -28,11 +28,12 @@ from gi.repository import Gdk
 
 from nbxmpp.namespaces import Namespace
 
-from gajim import dialogs
 from gajim.common import app, ged
+
+from gajim.gui.dialogs import ErrorDialog
+
 from gajim.plugins import GajimPlugin
 from gajim.plugins.plugins_i18n import _
-from gajim.groupchat_control import GroupchatControl
 
 AXOLOTL_MISSING = 'You are missing Python3-Axolotl or use an outdated version'
 PROTOBUF_MISSING = "OMEMO can't import Google Protobuf, you can find help in " \
@@ -91,7 +92,7 @@ class OmemoPlugin(GajimPlugin):
             'omemo-new-fingerprint': (ged.PRECORE, self._on_new_fingerprints),
             'signed-in': (ged.PRECORE, self._on_signed_in),
             'muc-disco-update': (ged.GUI1, self._on_muc_disco_update),
-            'muc-joined': (ged.GUI1, self._on_muc_joined),
+            'room-joined': (ged.GUI1, self._on_muc_joined),
         }
         self.modules = [omemo]
         self.config_dialog = OMEMOConfigDialog(self)
@@ -236,10 +237,10 @@ class OmemoPlugin(GajimPlugin):
         contact = chat_control.contact
         omemo = self.get_omemo(account)
         self.new_fingerprints_available(chat_control)
-        if isinstance(chat_control, GroupchatControl):
+        if chat_control.is_groupchat:
             room = chat_control.room_jid
             if not omemo.is_omemo_groupchat(room):
-                dialogs.ErrorDialog(
+                ErrorDialog(
                     _('Bad Configuration'),
                     _('To use OMEMO in a Groupchat, the Groupchat should be'
                       ' non-anonymous and members-only.'))
@@ -279,7 +280,7 @@ class OmemoPlugin(GajimPlugin):
         jid = chat_control.contact.jid
         account = chat_control.account
         omemo = self.get_omemo(account)
-        if isinstance(chat_control, GroupchatControl):
+        if chat_control.is_groupchat:
             for jid_ in omemo.backend.get_muc_members(chat_control.room_jid,
                                                       without_self=False):
                 fingerprints = omemo.backend.storage.getNewFingerprints(jid_)
@@ -287,7 +288,7 @@ class OmemoPlugin(GajimPlugin):
                     self._show_fingerprint_window(
                         chat_control, fingerprints)
                     break
-        elif not isinstance(chat_control, GroupchatControl):
+        else:
             fingerprints = omemo.backend.storage.getNewFingerprints(jid)
             if fingerprints:
                 self._show_fingerprint_window(
@@ -297,13 +298,11 @@ class OmemoPlugin(GajimPlugin):
         contact = chat_control.contact
         account = chat_control.account
         omemo = self.get_omemo(account)
-        transient = chat_control.parent_win.window
 
         if 'dialog' not in self._windows:
-            is_groupchat = isinstance(chat_control, GroupchatControl)
             self._windows['dialog'] = \
-                KeyDialog(self, contact, transient,
-                          self._windows, groupchat=is_groupchat)
+                KeyDialog(self, contact, app.window,
+                          self._windows, groupchat=chat_control.is_groupchat)
             if fingerprints:
                 log.debug('%s => Showing Fingerprint Prompt for %s',
                           account, contact.jid)
@@ -326,4 +325,4 @@ class OmemoPlugin(GajimPlugin):
             msg = _('You have undecided fingerprints')
         if msg is None:
             return
-        chat_control.add_status_message(msg)
+        chat_control.add_info_message(msg)

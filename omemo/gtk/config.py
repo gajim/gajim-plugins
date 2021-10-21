@@ -67,7 +67,7 @@ class OMEMOConfigDialog(GajimPluginConfigDialog):
         return False
 
     def update_account_store(self):
-        for account in sorted(app.contacts.get_accounts()):
+        for account in sorted(app.settings.get_active_accounts()):
             if account in self.disabled_accounts:
                 continue
             if account == 'Local':

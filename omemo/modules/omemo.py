@@ -156,9 +156,7 @@ class OMEMO(BaseModule):
             callback(event)
             return
 
-        to_jid = app.get_jid_without_resource(event.jid)
-
-        omemo_message = self.backend.encrypt(to_jid, event.message)
+        omemo_message = self.backend.encrypt(event.jid, event.message)
         if omemo_message is None:
             session = event.session if hasattr(event, 'session') else None
             app.nec.push_incoming_event(
@@ -265,6 +263,7 @@ class OMEMO(BaseModule):
             # History Message from MUC
             return properties.muc_ofrom.bare
 
+        # TODO:
         contact = app.contacts.get_gc_contact(self._account, room_jid, resource)
         if contact is not None:
             return JID.from_string(contact.jid).bare
@@ -341,13 +340,14 @@ class OMEMO(BaseModule):
     def is_contact_in_roster(self, jid):
         if jid == self._own_jid:
             return True
+        # TODO:
         contact = app.contacts.get_first_contact_from_jid(self._account, jid)
         if contact is None:
             return False
         return contact.sub == 'both'
 
     def on_muc_disco_update(self, event):
-        self._check_if_omemo_capable(event.room_jid)
+        self._check_if_omemo_capable(event.jid)
 
     def on_muc_joined(self, event):
         self._check_if_omemo_capable(event.room_jid)
@@ -440,8 +440,7 @@ class OMEMO(BaseModule):
 
         # Trigger dialog to trust new Fingerprints if
         # the Chat Window is Open
-        ctrl = app.interface.msg_win_mgr.get_control(
-            jid, self._account)
+        ctrl = app.window.get_control(self._account, jid)
         if ctrl:
             app.nec.push_incoming_event(
                 NetworkEvent('omemo-new-fingerprint', chat_control=ctrl))
