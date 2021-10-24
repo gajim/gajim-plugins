@@ -340,11 +340,13 @@ class OMEMO(BaseModule):
     def is_contact_in_roster(self, jid):
         if jid == self._own_jid:
             return True
-        # TODO:
-        contact = app.contacts.get_first_contact_from_jid(self._account, jid)
-        if contact is None:
+
+        roster_item = self._con.get_module('Roster').get_item(jid)
+        if roster_item is None:
             return False
-        return contact.sub == 'both'
+
+        contact = self._con.get_module('Contacts').get_contact(jid)
+        return contact.subscription == 'both'
 
     def on_muc_disco_update(self, event):
         self._check_if_omemo_capable(event.jid)
