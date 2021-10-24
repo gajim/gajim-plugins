@@ -117,9 +117,9 @@ class AntiSpam(BaseModule):
         if msg_from in whitelist:
             return False
 
-        is_contact = app.contacts.get_contacts(self._account, msg_from)
+        roster_item = self._con.get_module('Roster').get_item(msg_from)
 
-        if is_muc_pm or not is_contact:
+        if is_muc_pm or roster_item is None:
             if answer in properties.body.split('\n'):
                 if msg_from not in whitelist:
                     whitelist.append(msg_from)
@@ -140,8 +140,9 @@ class AntiSpam(BaseModule):
     def _subscribe_received(self, _con, _stanza, properties):
         msg_from = properties.jid
         block_sub = self._config['block_subscription_requests']
-        is_contact = app.contacts.get_contacts(self._account, msg_from)
-        if block_sub and not is_contact:
+        roster_item = self._con.get_module('Roster').get_item(msg_from)
+
+        if block_sub and roster_item is None:
             self._con.get_module('Presence').unsubscribed(msg_from)
             self._log.info('Denied subscription request from %s' % msg_from)
             raise NodeProcessed
