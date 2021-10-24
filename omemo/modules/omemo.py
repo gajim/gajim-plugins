@@ -21,7 +21,6 @@ from pathlib import Path
 
 from nbxmpp.namespaces import Namespace
 from nbxmpp.protocol import NodeProcessed
-from nbxmpp.protocol import JID
 from nbxmpp.errors import StanzaError
 from nbxmpp.const import PresenceType
 from nbxmpp.const import Affiliation
@@ -257,16 +256,14 @@ class OMEMO(BaseModule):
                                                'trust': GajimTrust[trust.name]})
 
     def _process_muc_message(self, properties):
-        room_jid = properties.jid.bare
         resource = properties.jid.resource
         if properties.muc_ofrom is not None:
             # History Message from MUC
             return properties.muc_ofrom.bare
 
-        # TODO:
-        contact = app.contacts.get_gc_contact(self._account, room_jid, resource)
-        if contact is not None:
-            return JID.from_string(contact.jid).bare
+        contact = self._con.get_module('Contacts').get_contact(properties.jid)
+        if contact.real_jid is not None:
+            return contact.real_jid.bare
 
         self._log.info('Groupchat: Last resort trying to find SID in DB')
         from_jid = self.backend.storage.getJidFromDevice(properties.omemo.sid)

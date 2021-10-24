@@ -82,8 +82,9 @@ class DeviceManager:
     def get_devices_for_encryption(self, jid):
         devices_for_encryption = []
 
-        # TODO:
-        if app.contacts.get_groupchat_contact(self._account, jid) is not None:
+        client = app.get_client(self._account)
+        contact = client.get_module('Contacts').get_contact(jid)
+        if contact.is_groupchat:
             devices_for_encryption = self._get_devices_for_muc_encryption(jid)
         else:
             devices_for_encryption = self._get_devices_for_encryption(jid)
