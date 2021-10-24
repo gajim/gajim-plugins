@@ -23,7 +23,6 @@ from functools import partial
 from gi.repository import GLib
 from gi.repository import Gtk
 
-from gajim.common import app
 from gajim.common import configpaths
 
 from gajim.plugins import GajimPlugin
@@ -120,13 +119,12 @@ class AcronymsExpanderPlugin(GajimPlugin):
         last_word = word_start_iter.get_slice(insert_iter)
 
         if contact.is_groupchat:
-            nick_list = app.contacts.get_nick_list(account, contact.jid)
-            if last_word in nick_list:
+            if last_word in contact.get_user_nicknames():
                 log.info('Groupchat participant has same nick as acronym')
                 return
 
         if contact.is_pm_contact:
-            if last_word == contact.get_shown_name():
+            if last_word == contact.name:
                 log.info('Contact name equals acronym')
                 return
 
