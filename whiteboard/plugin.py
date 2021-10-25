@@ -31,7 +31,6 @@ from gi.repository import GLib
 from nbxmpp import Message
 
 from gajim import common
-from gajim import chat_control
 
 from gajim.common import app
 from gajim.common import ged
@@ -110,7 +109,7 @@ class WhiteboardPlugin(GajimPlugin):
             if base.chat_control == control:
                 self.controls.remove(base)
 
-        if isinstance(control, chat_control.ChatControl):
+        if control.is_chat:
             base = Base(self, control)
             self.controls.append(base)
             self.update_button_state(control)
@@ -142,13 +141,13 @@ class WhiteboardPlugin(GajimPlugin):
             for content in content_types:
                 session.approve_content('xhtml')
             for _jid in (fjid, jid):
-                ctrl = app.interface.msg_win_mgr.get_control(_jid, account)
+                ctrl = app.window.get_control(account, _jid)
                 if ctrl:
                     break
             if not ctrl:
                 # Create it
-                app.interface.new_chat_from_jid(account, jid)
-                ctrl = app.interface.msg_win_mgr.get_control(jid, account)
+                app.interface.start_chat_from_jid(account, jid)
+                ctrl = app.window.get_control(account, jid)
             session = session.contents[('initiator', 'xhtml')]
             ctrl.draw_whiteboard(session)
 
@@ -157,24 +156,21 @@ class WhiteboardPlugin(GajimPlugin):
                 'Jingle').get_jingle_session(fjid, sid)
             session.decline_session()
 
-        contact = app.contacts.get_first_contact_from_jid(account, jid)
-        if contact:
-            name = contact.get_shown_name()
-        else:
-            name = jid
+        client = app.get_client(account)
+        contact = client.get_module('Contacts').get_contact(jid)
 
         ConfirmationDialog(
             _('Incoming Whiteboard'),
             _('Incoming Whiteboard Request'),
             _('%(name)s (%(jid)s) wants to start a whiteboard with '
-              'you.') % {'name': name, 'jid': jid},
+              'you.') % {'name': contact.name, 'jid': jid},
             [DialogButton.make('Cancel',
                                text=_('_Decline'),
                                callback=_on_decline),
              DialogButton.make('OK',
                                text=_('_Accept'),
                                callback=_on_accept)],
-            transient_for=app.app.get_active_window()).show()
+            transient_for=app.window).show()
 
     @log_calls('WhiteboardPlugin')
     def _nec_jingle_received(self, obj):
@@ -195,8 +191,7 @@ class WhiteboardPlugin(GajimPlugin):
         if not HAS_GOOCANVAS:
             return
         account = obj.conn.name
-        ctrl = (app.interface.msg_win_mgr.get_control(obj.fjid, account) or
-                app.interface.msg_win_mgr.get_control(obj.jid, account))
+        ctrl = app.window.get_control(account, obj.jid)
         if not ctrl:
             return
         session = app.connections[obj.conn.name].get_module(
@@ -229,8 +224,7 @@ class WhiteboardPlugin(GajimPlugin):
                                     'arrived. It has been ignored.')))
 
             jid = app.get_jid_without_resource(fjid)
-            ctrl = (app.interface.msg_win_mgr.get_control(fjid, account) or
-                    app.interface.msg_win_mgr.get_control(jid, account))
+            ctrl = app.window.get_control(account, jid)
             if not ctrl:
                 return
             sxe = obj.stanza.getTag('sxe')
@@ -284,7 +278,9 @@ class Base(object):
         self.chat_control.draw_whiteboard = self.draw_whiteboard
         self.contact = self.chat_control.contact
         self.account = self.chat_control.account
-        self.jid = self.contact.get_full_jid()
+
+        self.jid = self.contact.jid
+
         self.add_action()
         self.whiteboard = None
         self.sid = None
@@ -294,15 +290,14 @@ class Base(object):
         act = Gio.SimpleAction.new_stateful(
             action_name, None, GLib.Variant.new_boolean(False))
         act.connect('change-state', self.on_whiteboard_button_toggled)
-        self.chat_control.parent_win.window.add_action(act)
+        app.window.add_action(act)
 
         self.chat_control.control_menu.append(
             'WhiteBoard', 'win.' + action_name)
 
     def enable_action(self, state):
-        win = self.chat_control.parent_win.window
         action_name = 'toggle-whiteboard-' + self.chat_control.control_id
-        win.lookup_action(action_name).set_enabled(state)
+        app.window.lookup_action(action_name).set_enabled(state)
 
     def draw_whiteboard(self, content):
         hbox = self.chat_control.xml.get_object('chat_control_hbox')
@@ -349,7 +344,7 @@ class Base(object):
         self.enable_action(False)
         if reason:
             txt = _('Whiteboard stopped: %(reason)s') % {'reason': reason}
-            self.chat_control.add_status_message(txt)
+            self.chat_control.add_info_message(txt)
         if not self.whiteboard:
             return
         hbox = self.chat_control.xml.get_object('chat_control_hbox')
