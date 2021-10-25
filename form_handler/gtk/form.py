@@ -26,17 +26,15 @@ from gajim.gui.dataform import DataFormWidget
 
 from gajim.plugins.plugins_i18n import _
 
-from form_handler.gtk.util import find_control
-
 
 class FormDialog(Gtk.ApplicationWindow):
     def __init__(self, data):
-        transient = app.app.get_active_window()
         Gtk.ApplicationWindow.__init__(self, title=_('Data Form'))
-        self.set_transient_for(transient)
+        self.set_transient_for(app.window)
         self.set_default_size(600, 400)
 
         self._account = data['account']
+        self._client = app.get_client(self._account)
         self._jid = data['jid']
 
         self._form_widget = DataFormWidget(
@@ -55,9 +53,7 @@ class FormDialog(Gtk.ApplicationWindow):
     def _on_send_clicked(self, _button):
         form = self._form_widget.get_submit_form()
 
-        contact = app.contacts.get_contact(self._account, self._jid)
-        if contact is None:
-            return
+        contact = self._client.get_module('Contacts').get_contact(self._jid)
 
         message = OutgoingMessage(account=self._account,
                                   contact=contact,
@@ -69,8 +65,8 @@ class FormDialog(Gtk.ApplicationWindow):
 
         app.connections[self._account].send_message(message)
 
-        control = find_control(self._account, self._jid)
+        control = app.window.get_control(self._account, self._jid)
         if control is None:
             return
-        control.add_status_message(_('Form has successfully been sent'))
+        control.add_info_message(_('Form has successfully been sent'))
         self.destroy()

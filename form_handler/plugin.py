@@ -37,8 +37,7 @@ class FormHandlerPlugin(GajimPlugin):
         self.config_dialog = None
 
         self.events_handlers = {
-            'decrypted-message-received': (ged.CORE,
-                                           self._on_message_received),
+            'message-received': (ged.CORE, self._on_message_received),
         }
 
         self.gui_extension_points = {

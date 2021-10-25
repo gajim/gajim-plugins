@@ -16,14 +16,8 @@
 
 from gi.repository import Gtk
 
-from gajim.common import app
-
 
 def get_button(label, data, callback):
     button = Gtk.Button(label=label)
     button.connect('clicked', callback, data)
     return button
-
-
-def find_control(account, jid):
-    return app.interface.msg_win_mgr.get_control(jid, account)
