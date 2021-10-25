@@ -22,6 +22,7 @@ from gi.repository import GLib
 from gajim.common import configpaths
 from gajim.common import app
 from gajim.common import ged
+from gajim.common.nec import NetworkEvent
 
 from gajim.plugins import GajimPlugin
 from gajim.plugins.plugins_i18n import _
@@ -121,21 +122,24 @@ class BirthDayPlugin(GajimPlugin):
                         continue
                 else:
                     log.info('Issue notification for %s', jid)
-                    nick = contact.get_shown_name() or jid
-                    app.notification.popup(
-                        'reminder',
-                        jid,
-                        account,
-                        icon_name='trophy-gold',
-                        title=TITLE,
-                        text=TEXT % GLib.markup_escape_text(nick))
-
+                    name = GLib.markup_escape_text(contact.name)
+                    app.nec.push_incoming_event(
+                        NetworkEvent('notification',
+                                     account=account,
+                                     jid=jid,
+                                     notif_type='reminder',
+                                     icon_name='trophy-gold',
+                                     title=TITLE,
+                                     text=TEXT % name))
         return True
 
     @staticmethod
     def _find_contact(jid):
-        accounts = app.contacts.get_accounts()
+        accounts = app.settings.get_active_accounts()
         for account in accounts:
-            contact = app.contacts.get_contacts(account, jid)
-            if contact is not None:
-                return account, contact[0]
+            client = app.get_client(account)
+            item = client.get_module('Roster').get_item(jid)
+            if item is not None:
+                contact = client.get_module('Contacts').get_contact(jid)
+                return account, contact
+        return None, None
