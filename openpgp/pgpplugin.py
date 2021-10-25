@@ -15,7 +15,6 @@
 # along with OpenPGP Gajim Plugin. If not, see <http://www.gnu.org/licenses/>.
 
 import logging
-import os
 from pathlib import Path
 
 from gi.repository import Gtk
@@ -26,7 +25,6 @@ from nbxmpp import JID
 from gajim.common import app
 from gajim.common import ged
 from gajim.common import configpaths
-from gajim.common import helpers
 from gajim.common.const import CSSPriority
 
 from gajim.gui.dialogs import ErrorDialog
@@ -160,10 +158,9 @@ class OpenPGPPlugin(GajimPlugin):
     def on_encryption_button_clicked(chat_control):
         account = chat_control.account
         jid = chat_control.contact.jid
-        transient = chat_control.parent_win.window
 
         from openpgp.gtk.key import KeyDialog
-        KeyDialog(account, jid, transient)
+        KeyDialog(account, jid, app.window)
 
     def _before_sendmessage(self, chat_control):
         account = chat_control.account

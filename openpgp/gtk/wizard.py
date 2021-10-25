@@ -46,7 +46,7 @@ class KeyWizard(Gtk.Assistant):
         self._chat_control = chat_control
 
         self.set_application(app.app)
-        self.set_transient_for(chat_control.parent_win.window)
+        self.set_transient_for(app.window)
         self.set_resizable(True)
         self.set_position(Gtk.WindowPosition.CENTER)
 
@@ -79,8 +79,7 @@ class KeyWizard(Gtk.Assistant):
         main_box.remove(sidebar)
 
     def _activate_encryption(self):
-        win = self._chat_control.parent_win.window
-        action = win.lookup_action(
+        action = app.window.lookup_action(
             'set-encryption-%s' % self._chat_control.control_id)
         action.activate(GLib.Variant("s", self._plugin.encryption_name))
 
