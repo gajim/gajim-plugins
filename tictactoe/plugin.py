@@ -38,8 +38,6 @@ from gi.repository import GLib
 
 import nbxmpp
 
-from gajim import chat_control
-
 from gajim.common import app
 from gajim.common import ged
 from gajim.common.connection_handlers_events import InformationEvent
@@ -117,17 +115,19 @@ class TictactoePlugin(GajimPlugin):
 
     @log_calls('TictactoePlugin')
     def connect_with_chat_control(self, control):
-        if isinstance(control, chat_control.ChatControl):
-            base = Base(self, control)
-            self.controls.append(base)
-            # Already existing session?
-            conn = app.connections[control.account]
-            sessions = conn.get_sessions(control.contact.jid)
-            tictactoes = [s for s in sessions if isinstance(
-                s, TicTacToeSession)]
-            if tictactoes:
-                base.tictactoe = tictactoes[0]
-                base.enable_action(True)
+        if not control.is_chat:
+            return
+
+        base = Base(self, control)
+        self.controls.append(base)
+        # Already existing session?
+        conn = app.connections[control.account]
+        sessions = conn.get_sessions(control.contact.jid)
+        tictactoes = [s for s in sessions if isinstance(
+            s, TicTacToeSession)]
+        if tictactoes:
+            base.tictactoe = tictactoes[0]
+            base.enable_action(True)
 
     @log_calls('TictactoePlugin')
     def disconnect_from_chat_control(self, _chat_control):
@@ -154,17 +154,14 @@ class TictactoePlugin(GajimPlugin):
             session.decline_invitation()
 
         account = obj.conn.name
-        contact = app.contacts.get_first_contact_from_jid(account, obj.jid)
-        if contact:
-            name = contact.get_shown_name()
-        else:
-            name = obj.jid
+        client = app.get_client(account)
+        contact = client.get_module('Contacts').get_contact(obj.jid)
 
         ConfirmationDialog(
             _('Incoming Tictactoe'),
             _('Incoming Tictactoe Invitation'),
             _('%(name)s (%(jid)s) wants to play tictactoe with you.') % {
-                'name': name, 'jid': obj.jid},
+                'name': contact.name, 'jid': obj.jid},
             [DialogButton.make('Cancel',
                                text=_('_Decline'),
                                callback=_on_decline),
@@ -172,7 +169,7 @@ class TictactoePlugin(GajimPlugin):
                                text=_('_Accept'),
                                callback=_on_accept)],
             modal=False,
-            transient_for=app.app.get_active_window()).show()
+            transient_for=app.window).show()
 
     @log_calls('TictactoePlugin')
     def _on_message_received(self, event):
@@ -193,7 +190,7 @@ class Base():
         self.chat_control = chat_control
         self.contact = self.chat_control.contact
         self.account = self.chat_control.account
-        self.fjid = self.contact.get_full_jid()
+        self.fjid = self.contact.jid
         self.add_action()
         self.tictactoe = None
 
@@ -202,15 +199,14 @@ class Base():
         act = Gio.SimpleAction.new_stateful(
             action_name, None, GLib.Variant.new_boolean(False))
         act.connect('change-state', self.on_tictactoe_button_toggled)
-        self.chat_control.parent_win.window.add_action(act)
+        app.window.add_action(act)
 
         self.chat_control.control_menu.append(
             'Tic Tac Toe', 'win.' + action_name)
 
     def enable_action(self, state):
-        win = self.chat_control.parent_win.window
         action_name = 'toggle-tictactoe-' + self.chat_control.control_id
-        win.lookup_action(action_name).set_enabled(state)
+        app.window.lookup_action(action_name).set_enabled(state)
 
     def on_tictactoe_button_toggled(self, action, param):
         """
@@ -263,9 +259,9 @@ class TicTacToeSession():
             self.received_thread_id = False
             self.thread_id = self.generate_thread_id()
 
-        contact = app.contacts.get_contact(
-            conn.name, app.get_jid_without_resource(str(jid)))
-        self.name = contact.get_shown_name()
+        client = app.get_client(conn.name)
+        contact = client.get_module('Contacts').get_contact(jid)
+        self.name = contact.name
         self.base = None
         self.control = None
         self.enable_encryption = False
