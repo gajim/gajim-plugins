@@ -19,8 +19,6 @@ import logging
 from functools import partial
 from packaging.version import Version as V
 
-import nbxmpp
-
 from gajim.common import app
 from gajim.common import ged
 from gajim.plugins import GajimPlugin
@@ -127,7 +125,7 @@ class PGPPlugin(GajimPlugin):
     def _on_encryption_dialog(self, chat_control):
         account = chat_control.account
         jid = chat_control.contact.jid
-        transient = chat_control.parent_win.window
+        transient = app.window
         KeyDialog(self, account, jid, transient)
 
     def _on_send_presence(self, account, presence):
