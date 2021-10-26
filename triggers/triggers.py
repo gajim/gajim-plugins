@@ -51,6 +51,9 @@ class Triggers(GajimPlugin):
                         self._apply_rule)
 
     def _on_presence_received(self, event):
+        # TODO
+        return
+
         if event.old_show < 2 and event.new_show > 1:
             check_func = self._check_rule_apply_connected
         elif event.old_show > 1 and event.new_show < 2:
