@@ -16,8 +16,8 @@
 
 import logging
 
-import nbxmpp
 from nbxmpp.modules.dataforms import extend_form
+from nbxmpp.namespaces import Namespace
 
 from gajim.common import ged
 
@@ -45,7 +45,7 @@ class FormHandlerPlugin(GajimPlugin):
         }
 
     def _on_message_received(self, event):
-        form = event.stanza.getTag('x', namespace=nbxmpp.NS_DATA)
+        form = event.stanza.getTag('x', namespace=Namespace.DATA)
         if form is None:
             return
 
