@@ -28,24 +28,6 @@ from gajim.plugins.helpers import get_builder
 
 EVENTS = {
     'message_received': [],
-    'contact_connected': [
-        'use_systray_cb',
-        'disable_systray_cb',
-        'use_roster_cb',
-        'disable_roster_cb'
-    ],
-    'contact_disconnected': [
-        'use_systray_cb',
-        'disable_systray_cb',
-        'use_roster_cb',
-        'disable_roster_cb'
-    ],
-    'contact_status_change': [
-        'use_systray_cb',
-        'disable_systray_cb',
-        'use_roster_cb',
-        'disable_roster_cb'
-    ]
 }
 
 RECIPIENT_TYPES = [
@@ -63,7 +45,7 @@ class ConfigDialog(Gtk.ApplicationWindow):
         self.set_show_menubar(False)
         self.set_title(_('Triggers Configuration'))
         self.set_transient_for(transient)
-        self.set_default_size(600, 700)
+        self.set_default_size(600, 800)
         self.set_type_hint(Gdk.WindowTypeHint.DIALOG)
         self.set_modal(True)
         self.set_destroy_with_parent(True)
@@ -95,9 +77,7 @@ class ConfigDialog(Gtk.ApplicationWindow):
                 'recipient_type_combobox', 'recipient_list_entry',
                 'delete_button', 'online_cb', 'away_cb', 'xa_cb', 'dnd_cb',
                 'use_sound_cb', 'disable_sound_cb', 'use_popup_cb',
-                'disable_popup_cb', 'use_auto_open_cb',
-                'disable_auto_open_cb', 'use_systray_cb',
-                'disable_systray_cb', 'use_roster_cb', 'disable_roster_cb',
+                'disable_popup_cb',
                 'tab_opened_cb', 'not_tab_opened_cb', 'has_focus_cb',
                 'not_has_focus_cb', 'filechooser', 'sound_file_box',
                 'up_button', 'down_button', 'run_command_cb',
@@ -233,7 +213,7 @@ class ConfigDialog(Gtk.ApplicationWindow):
             self._ui.filechooser.set_filename(value)
 
         # sound, popup, auto_open, systray, roster
-        for option in ('sound', 'popup', 'auto_open', 'systray', 'roster'):
+        for option in ('sound', 'popup'):
             value = self._config[self._active_num][option]
             if value == 'yes':
                 self._ui.__dict__['use_' + option + '_cb'].set_active(True)
@@ -322,11 +302,8 @@ class ConfigDialog(Gtk.ApplicationWindow):
             'sound': '',
             'sound_file': '',
             'popup': '',
-            'auto_open': '',
             'run_command': False,
             'command': '',
-            'systray': '',
-            'roster': '',
             'one_shot': False,
         }
         iter_ = model.append((num, ''))
@@ -397,9 +374,6 @@ class ConfigDialog(Gtk.ApplicationWindow):
             return
         event = list(EVENTS.keys())[active]
         self._config[self._active_num]['event'] = event
-        for widget in ('use_systray_cb', 'disable_systray_cb', 'use_roster_cb',
-                       'disable_roster_cb'):
-            self._ui.__dict__[widget].set_sensitive(True)
         for widget in EVENTS[event]:
             self._ui.__dict__[widget].set_sensitive(False)
             self._ui.__dict__[widget].set_state(False)
@@ -555,14 +529,6 @@ class ConfigDialog(Gtk.ApplicationWindow):
     def _on_disable_popup_cb_toggled(self, widget):
         self._on_disable_it_toggled(widget, self._ui.use_popup_cb, 'popup')
 
-    def _on_use_auto_open_cb_toggled(self, widget):
-        self._on_use_it_toggled(widget, self._ui.disable_auto_open_cb,
-                                'auto_open')
-
-    def _on_disable_auto_open_cb_toggled(self, widget):
-        self._on_disable_it_toggled(widget, self._ui.use_auto_open_cb,
-                                    'auto_open')
-
     def _on_run_command_cb_toggled(self, widget):
         self._config[self._active_num]['run_command'] = widget.get_active()
         if widget.get_active():
@@ -572,18 +538,6 @@ class ConfigDialog(Gtk.ApplicationWindow):
 
     def _on_command_entry_changed(self, widget):
         self._config[self._active_num]['command'] = widget.get_text()
-
-    def _on_use_systray_cb_toggled(self, widget):
-        self._on_use_it_toggled(widget, self._ui.disable_systray_cb, 'systray')
-
-    def _on_disable_systray_cb_toggled(self, widget):
-        self._on_disable_it_toggled(widget, self._ui.use_systray_cb, 'systray')
-
-    def _on_use_roster_cb_toggled(self, widget):
-        self._on_use_it_toggled(widget, self._ui.disable_roster_cb, 'roster')
-
-    def _on_disable_roster_cb_toggled(self, widget):
-        self._on_disable_it_toggled(widget, self._ui.use_roster_cb, 'roster')
 
     def _on_one_shot_cb_toggled(self, widget):
         self._config[self._active_num]['one_shot'] = widget.get_active()
