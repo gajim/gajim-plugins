@@ -29,11 +29,13 @@ from gi.repository import GdkPixbuf
 from gi.repository import Gio
 from gi.repository import GLib
 from gi.repository import Soup
+HAS_GSTPBUTILS = False
 try:
     gi.require_version('Gst', '1.0')
     gi.require_version('GstPbutils', '1.0')
     from gi.repository import Gst
     from gi.repository import GstPbutils
+    HAS_GSTPBUTILS = True
 except Exception:
     pass
 
@@ -728,6 +730,9 @@ class UrlImagePreviewPlugin(GajimPlugin):
 
     @staticmethod
     def _contains_audio_streams(file_path):
+        if not HAS_GSTPBUTILS:
+            return False
+
         # Check if it is really an audio file
         has_audio = False
         discoverer = GstPbutils.Discoverer()
