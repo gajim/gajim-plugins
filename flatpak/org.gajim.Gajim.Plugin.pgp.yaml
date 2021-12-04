@@ -13,11 +13,11 @@ modules:
   - name: python3-python-gnupg
     buildsystem: simple
     build-commands:
-      - pip3 install python_gnupg-0.4.7-py2.py3-none-any.whl
+      - pip3 install python_gnupg-0.4.8-py2.py3-none-any.whl
     sources:
       - type: file
-        url: https://files.pythonhosted.org/packages/py2.py3/p/python_gnupg/python_gnupg-0.4.7-py2.py3-none-any.whl
-        sha256: 3ff5b1bf5e397de6e1fe41a7c0f403dad4e242ac92b345f440eaecfb72a7ebae
+        url: https://files.pythonhosted.org/packages/py2.py3/p/python_gnupg/python_gnupg-0.4.8-py2.py3-none-any.whl
+        sha256: 93a521501d6c2785d96b190aec7125ba89c1c2fe708b0c98af3fb32b59026ab8
 
   - name: gajim-pgp
     buildsystem: simple
@@ -28,8 +28,8 @@ modules:
       - appstream-compose --basename=org.gajim.Gajim.Devel.Plugin.pgp --prefix=${FLATPAK_DEST} --origin=flatpak org.gajim.Gajim.Plugin.pgp
     sources:
       - type: archive
-        url: https://ftp.gajim.org/plugins_releases/pgp_1.4.2.zip
-        sha256: 2bd991fd5b77a9e9508667c7ab7f3c5a9952cd49df7acda089c9c0a11878b0ea
+        url: https://ftp.gajim.org/plugins_releases/pgp_1.4.3.zip
+        sha256: eaa38cbee5cd891b795ceac9910266f7d068009e7707c2aa50bf1262bac4af81
       - type: shell
         commands:
           - sed -i "s+org.gajim.Gajim+org.gajim.Gajim.Devel+" org.gajim.Gajim.Plugin.*.metainfo.xml

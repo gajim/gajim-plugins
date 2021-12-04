@@ -10,16 +10,14 @@ build-options:
     PIP_TARGET: /app/plugins/omemo/site-packages
 
 modules:
-  - modules/python3-pillow.yaml
-
   - name: protobuf
     buildsystem: simple
     build-commands:
-      - pip3 install --no-deps protobuf-3.18.0-py2.py3-none-any.whl
+      - pip3 install --no-deps protobuf-3.19.1-py2.py3-none-any.whl
     sources:
       - type: file
-        url: https://files.pythonhosted.org/packages/py2.py3/p/protobuf/protobuf-3.18.0-py2.py3-none-any.whl
-        sha256: 615099e52e9fbc9fde00177267a94ca820ecf4e80093e390753568b7d8cb3c1a
+        url: https://files.pythonhosted.org/packages/py2.py3/p/protobuf/protobuf-3.19.1-py2.py3-none-any.whl
+        sha256: e813b1c9006b6399308e917ac5d298f345d95bb31f46f02b60cd92970a9afa17
 
   - name: python3-axolotl-curve25519
     buildsystem: simple
@@ -45,8 +43,8 @@ modules:
       - pip3 install .
     sources:
       - type: archive
-        url: https://files.pythonhosted.org/packages/source/q/qrcode/qrcode-7.3.tar.gz
-        sha256: d72861b65e26b611609f0547f0febe58aed8ae229d6bf4e675834f40742915b3
+        url: https://files.pythonhosted.org/packages/source/q/qrcode/qrcode-7.3.1.tar.gz
+        sha256: 375a6ff240ca9bd41adc070428b5dfc1dcfbb0f2507f1ac848f6cded38956578
 
   - name: gajim-omemo
     buildsystem: simple
@@ -57,8 +55,8 @@ modules:
       - appstream-compose --basename=org.gajim.Gajim.Devel.Plugin.omemo --prefix=${FLATPAK_DEST} --origin=flatpak org.gajim.Gajim.Plugin.omemo
     sources:
       - type: archive
-        url: https://ftp.gajim.org/plugins_releases/omemo_2.8.7.zip
-        sha256: f5fc91d2359446c69d0d92272d9237ce1c45689d48551430f5508ca896255e44
+        url: https://ftp.gajim.org/plugins_releases/omemo_2.8.8.zip
+        sha256: 3a68314ee12f0098bbc1e8c76d62e80703d65a7a5ee3671fd465f546a895c7bd
       - type: shell
         commands:
           - sed -i "s+org.gajim.Gajim+org.gajim.Gajim.Devel+" org.gajim.Gajim.Plugin.*.metainfo.xml

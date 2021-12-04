@@ -1,8 +1,0 @@
-name: python3-pillow
-buildsystem: simple
-build-commands:
-  - pip3 install .
-sources:
-  - type: archive
-    url: https://files.pythonhosted.org/packages/source/p/pillow/Pillow-8.3.2.tar.gz
-    sha256: dde3f3ed8d00c72631bc19cbfff8ad3b6215062a5eed402381ad365f82f0c18c
