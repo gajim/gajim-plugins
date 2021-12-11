@@ -71,6 +71,7 @@ CLIENTS = ClientsDict({
     ),
     'http://jabber.pix-art.de': ClientData(('Pix-Art Messenger', 'pixart')),
     'http://blabber.im': ClientData(('blabber.im', 'blabber')),
+    'http://monocles.de': ClientData(('monocles chat', 'monocles-chat')),
     'http://pidgin.im/': ClientData(('Pidgin', 'pidgin')),
     'https://poez.io': ClientData(('Poezio', 'poezio')),
     'https://yaxim.org/': ClientData(('yaxim', 'yaxim')),
