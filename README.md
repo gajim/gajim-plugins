@@ -4,6 +4,9 @@ In this place you will find all plugins that are written for [Gajim](https://gaj
 
 ## How to install plugins
 
+**Note:** Some plugins have external dependencies that need to be installed separately.
+Check the [plugin's wiki page](https://dev.gajim.org/gajim/gajim-plugins/-/wikis/home#plugins-list) for details.
+
 There are several ways to install a plugin:
 
 - You can browse / download / enable / configure plugins from within Gajim via 'Gajim' > 'Plugins' menu.
