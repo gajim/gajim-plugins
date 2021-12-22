@@ -20,7 +20,7 @@ from functools import partial
 from gi.repository import Gtk
 
 from gajim.common import app
-from gajim.gui.util import load_icon
+from gajim.gui.util import load_icon_surface
 
 from gajim.plugins import GajimPlugin
 from gajim.plugins.plugins_i18n import _
@@ -61,7 +61,7 @@ class ClientsIconsPlugin(GajimPlugin):
             if identity.category == 'client':
                 return identity.name
 
-    def _get_image_and_client_name(self, contact, widget):
+    def _get_image_and_client_name(self, contact, _widget):
         disco_info = app.storage.cache.get_last_disco_info(contact.jid)
         if disco_info is None:
             return None
@@ -74,7 +74,7 @@ class ClientsIconsPlugin(GajimPlugin):
 
         log.info('Lookup client: %s %s', client_name, node)
         client_name, icon_name = clients.get_data(client_name, node)
-        surface = load_icon(icon_name, widget=widget)
+        surface = load_icon_surface(icon_name)
         return Gtk.Image.new_from_surface(surface), client_name
 
     def _roster_tooltip_resource_populate(self, resource_box, resource):
