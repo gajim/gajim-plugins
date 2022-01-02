@@ -41,7 +41,7 @@ class AntiSpam(BaseModule):
         ]
 
         self.register_events([
-            ('message-sent', ged.OUT_PRECORE, self._on_message_sent),
+            ('message-sent', ged.GUI2, self._on_message_sent),
         ])
 
         for plugin in app.plugin_manager.plugins:
