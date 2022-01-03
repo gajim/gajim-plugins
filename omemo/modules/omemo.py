@@ -31,7 +31,7 @@ from nbxmpp.modules.util import is_error
 
 from gajim.common import app
 from gajim.common import configpaths
-from gajim.common.nec import NetworkEvent
+from gajim.common.events import MessageNotSent
 from gajim.common.const import EncryptionData
 from gajim.common.const import Trust as GajimTrust
 from gajim.common.modules.base import BaseModule
@@ -47,6 +47,7 @@ from omemo.backend.state import MessageNotForDevice
 from omemo.backend.state import DecryptionFailed
 from omemo.backend.state import DuplicateMessage
 from omemo.backend.util import Trust
+from omemo.modules.events import OMEMONewFingerprint
 from omemo.modules.util import prepare_stanza
 
 
@@ -157,15 +158,12 @@ class OMEMO(BaseModule):
 
         omemo_message = self.backend.encrypt(event.jid, event.message)
         if omemo_message is None:
-            session = event.session if hasattr(event, 'session') else None
-            app.nec.push_incoming_event(
-                NetworkEvent('message-not-sent',
-                             conn=conn,
-                             jid=event.jid,
-                             message=event.message,
-                             error=_('Encryption error'),
-                             time_=time.time(),
-                             session=session))
+            app.ged.raise_event(
+                MessageNotSent(client=conn,
+                               jid=event.jid,
+                               message=event.message,
+                               error=_('Encryption error'),
+                               time=time.time()))
             return
 
         create_omemo_message(event.stanza, omemo_message,
@@ -441,8 +439,7 @@ class OMEMO(BaseModule):
         # the Chat Window is Open
         ctrl = app.window.get_control(self._account, jid)
         if ctrl:
-            app.nec.push_incoming_event(
-                NetworkEvent('omemo-new-fingerprint', chat_control=ctrl))
+            app.ged.raise_event(OMEMONewFingerprint(chat_control=ctrl))
 
     def set_devicelist(self, devicelist=None):
         devicelist_ = set([self.backend.own_device])
