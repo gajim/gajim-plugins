@@ -24,13 +24,15 @@ from nbxmpp.structs import StanzaHandler
 from gi.repository import GLib
 
 from gajim.common import app
-from gajim.common.nec import NetworkEvent
+from gajim.common.events import MessageNotSent
 from gajim.common.const import EncryptionData
 from gajim.common.modules.base import BaseModule
 
 from gajim.plugins.plugins_i18n import _
 
 from pgp.backend.python_gnupg import PGP
+from pgp.modules.events import PGPFileEncryptionError
+from pgp.modules.events import PGPNotTrusted
 from pgp.modules.util import prepare_stanza
 from pgp.backend.store import KeyStore
 from pgp.exceptions import SignError
@@ -191,23 +193,19 @@ class PGPLegacy(BaseModule):
             def on_no():
                 self._raise_message_not_sent(con, event, error)
 
-            app.nec.push_incoming_event(
-                NetworkEvent('pgp-not-trusted', on_yes=on_yes, on_no=on_no))
+            app.ged.raise_event(PGPNotTrusted(on_yes=on_yes, on_no=on_no))
 
         else:
             self._raise_message_not_sent(con, event, error)
 
     @staticmethod
     def _raise_message_not_sent(con, event, error):
-        session = event.session if hasattr(event, 'session') else None
-        app.nec.push_incoming_event(
-            NetworkEvent('message-not-sent',
-                         conn=con,
-                         jid=event.jid,
-                         message=event.message,
-                         error=_('Encryption error: %s') % error,
-                         time_=time.time(),
-                         session=session))
+        app.ged.raise_event(
+            MessageNotSent(client=con,
+                           jid=event.jid,
+                           message=event.message,
+                           error=_('Encryption error: %s') % error,
+                           time=time.time()))
 
     def _create_pgp_legacy_message(self, stanza, payload):
         stanza.setBody(self._get_info_message())
@@ -297,8 +295,7 @@ class PGPLegacy(BaseModule):
 
     @staticmethod
     def _on_file_encryption_error(error):
-        app.nec.push_incoming_event(
-            NetworkEvent('pgp-file-encryption-error', error=error))
+        app.ged.raise_event(PGPFileEncryptionError(error=error))
 
 def get_instance(*args, **kwargs):
     return PGPLegacy(*args, **kwargs), 'PGPLegacy'
