@@ -32,7 +32,7 @@ from nbxmpp.modules.openpgp import create_message_stanza
 
 from gajim.common import app
 from gajim.common import configpaths
-from gajim.common.nec import NetworkEvent
+from gajim.common.events import MessageNotSent
 from gajim.common.const import EncryptionData
 from gajim.common.modules.base import BaseModule
 from gajim.common.modules.util import event_node
@@ -260,14 +260,12 @@ class OpenPGP(BaseModule):
         encrypted_payload, error = self._pgp.encrypt(payload, keys)
         if error:
             log.error('Error: %s', error)
-            app.nec.push_incoming_event(
-                NetworkEvent('message-not-sent',
-                             conn=self._con,
-                             jid=obj.jid,
-                             message=obj.message,
-                             error=error,
-                             time_=time.time(),
-                             session=None))
+            app.ged.raise_event(
+                MessageNotSent(client=self._con,
+                               jid=obj.jid,
+                               message=obj.message,
+                               error=error,
+                               time=time.time()))
             return
 
         create_message_stanza(obj.stanza, encrypted_payload, bool(obj.message))
