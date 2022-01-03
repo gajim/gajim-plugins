@@ -22,7 +22,7 @@ from gi.repository import GLib
 from gajim.common import configpaths
 from gajim.common import app
 from gajim.common import ged
-from gajim.common.nec import NetworkEvent
+from gajim.common.events import Notification
 
 from gajim.plugins import GajimPlugin
 from gajim.plugins.plugins_i18n import _
@@ -123,9 +123,8 @@ class BirthDayPlugin(GajimPlugin):
                 else:
                     log.info('Issue notification for %s', jid)
                     name = GLib.markup_escape_text(contact.name)
-                    app.nec.push_incoming_event(
-                        NetworkEvent('notification',
-                                     account=account,
+                    app.ged.raise_event(
+                        Notification(account=account,
                                      jid=jid,
                                      notif_type='reminder',
                                      icon_name='trophy-gold',
