@@ -16,13 +16,10 @@
 #
 
 from typing import Optional
-from typing import Union
 
 from dataclasses import dataclass
 from dataclasses import asdict
 from functools import partial
-
-from nbxmpp.protocol import JID
 
 from gajim.common import app
 from gajim.common import ged
@@ -47,8 +44,8 @@ class ExtendedEvent(Notification):
 
 class Triggers(GajimPlugin):
     def init(self):
-        self.description = _('Configure Gajim’s behaviour with triggers '
-                             'for each contact')
+        self.description = _(
+            'Configure Gajim’s behaviour with triggers for each contact')
         self.config_dialog = partial(ConfigDialog, self)
         self.config_default_values = {}
 
