@@ -15,15 +15,29 @@
 # along with Gajim. If not, see <http://www.gnu.org/licenses/>.
 #
 
+from dataclasses import dataclass
 from functools import partial
+from typing import Optional
 
 from gajim.common import app
 from gajim.common import ged
+from gajim.common.events import ApplicationEvent
+from gajim.common.events import Notification
+from gajim.common.helpers import exec_command
+from gajim.common.helpers import play_sound_file
 
 from gajim.plugins import GajimPlugin
 from gajim.plugins.plugins_i18n import _
 
 from triggers.gtk.config import ConfigDialog
+
+
+@dataclass
+class ExtendedEvent:
+    origin: ApplicationEvent
+    show_notification: bool = True
+    command: Optional[str] = None
+    sound_file: Optional[str] = None
 
 
 class Triggers(GajimPlugin):
@@ -40,15 +54,36 @@ class Triggers(GajimPlugin):
             'presence-received': (ged.PREGUI, self._on_presence_received),
         }
 
-    def _on_notification(self, event):
-        self._check_all(event,
+    def _excecute(self, event) -> bool:
+        if event.command is not None:
+            # Used by Triggers plugin
+            try:
+                exec_command(event.command, use_shell=True)
+            except Exception:
+                pass
+
+        if event.sound_file is not None:
+            play_sound_file(event.sound_file)
+
+        if not event.show_notification:
+            # This aborts the event excecution
+            return True
+        return False
+
+
+    def _on_notification(self, event: Notification):
+        extended_event = ExtendedEvent(event)
+        self._check_all(extended_event,
                         self._check_rule_apply_notification,
                         self._apply_rule)
+        return self._excecute(extended_event)
 
     def _on_message_received(self, event):
+        event = ExtendedEvent(event)
         self._check_all(event,
                         self._check_rule_apply_msg_received,
                         self._apply_rule)
+        return self._excecute(event)
 
     def _on_presence_received(self, event):
         # TODO
@@ -206,10 +241,11 @@ class Triggers(GajimPlugin):
 
     def _apply_rule(self, event, rule):
         if rule['sound'] == 'no':
-            event.sound = None
+            event.origin.sound = None
             event.sound_file = None
+
         elif rule['sound'] == 'yes':
-            event.sound = None
+            event.origin.sound = None
             event.sound_file = rule['sound_file']
 
         if rule['run_command']:
