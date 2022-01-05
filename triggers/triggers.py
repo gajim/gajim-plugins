@@ -15,9 +15,14 @@
 # along with Gajim. If not, see <http://www.gnu.org/licenses/>.
 #
 
-from dataclasses import dataclass
-from functools import partial
 from typing import Optional
+from typing import Union
+
+from dataclasses import dataclass
+from dataclasses import asdict
+from functools import partial
+
+from nbxmpp.protocol import JID
 
 from gajim.common import app
 from gajim.common import ged
@@ -33,8 +38,8 @@ from triggers.gtk.config import ConfigDialog
 
 
 @dataclass
-class ExtendedEvent:
-    origin: ApplicationEvent
+class ExtendedEvent(Notification):
+    origin: Optional[ApplicationEvent] = None
     show_notification: bool = True
     command: Optional[str] = None
     sound_file: Optional[str] = None
@@ -72,14 +77,14 @@ class Triggers(GajimPlugin):
 
 
     def _on_notification(self, event: Notification):
-        extended_event = ExtendedEvent(event)
+        extended_event = ExtendedEvent(**asdict(asdict), origin=event)
         self._check_all(extended_event,
                         self._check_rule_apply_notification,
                         self._apply_rule)
         return self._excecute(extended_event)
 
     def _on_message_received(self, event):
-        event = ExtendedEvent(event)
+        event = ExtendedEvent(**asdict(asdict), origin=event)
         self._check_all(event,
                         self._check_rule_apply_msg_received,
                         self._apply_rule)
