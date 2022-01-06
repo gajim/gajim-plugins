@@ -15,6 +15,8 @@
 # along with Gajim. If not, see <http://www.gnu.org/licenses/>.
 #
 
+from __future__ import annotations
+
 from typing import Optional
 
 from dataclasses import dataclass
@@ -40,6 +42,12 @@ class ExtendedEvent(Notification):
     show_notification: bool = True
     command: Optional[str] = None
     sound_file: Optional[str] = None
+
+    @classmethod
+    def from_event(cls, event) -> ExtendedEvent:
+        attr_dict = asdict(event)
+        attr_dict.pop('name')
+        return cls(**attr_dict, origin=event)
 
 
 class Triggers(GajimPlugin):
@@ -72,20 +80,19 @@ class Triggers(GajimPlugin):
             return True
         return False
 
-
-    def _on_notification(self, event: Notification):
-        extended_event = ExtendedEvent(**asdict(event), origin=event)
+    def _on_notification(self, event: Notification) -> bool:
+        extended_event = ExtendedEvent.from_event(event)
         self._check_all(extended_event,
                         self._check_rule_apply_notification,
                         self._apply_rule)
         return self._excecute(extended_event)
 
-    def _on_message_received(self, event):
-        event = ExtendedEvent(**asdict(event), origin=event)
-        self._check_all(event,
+    def _on_message_received(self, event: Notification) -> bool:
+        extended_event = ExtendedEvent.from_event(event)
+        self._check_all(extended_event,
                         self._check_rule_apply_msg_received,
                         self._apply_rule)
-        return self._excecute(event)
+        return self._excecute(extended_event)
 
     def _on_presence_received(self, event):
         # TODO
