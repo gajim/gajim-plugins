@@ -74,14 +74,14 @@ class Triggers(GajimPlugin):
 
 
     def _on_notification(self, event: Notification):
-        extended_event = ExtendedEvent(**asdict(asdict), origin=event)
+        extended_event = ExtendedEvent(**asdict(event), origin=event)
         self._check_all(extended_event,
                         self._check_rule_apply_notification,
                         self._apply_rule)
         return self._excecute(extended_event)
 
     def _on_message_received(self, event):
-        event = ExtendedEvent(**asdict(asdict), origin=event)
+        event = ExtendedEvent(**asdict(event), origin=event)
         self._check_all(event,
                         self._check_rule_apply_msg_received,
                         self._apply_rule)
