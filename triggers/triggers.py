@@ -1,4 +1,5 @@
 # Copyright (C) 2011-2017 Yann Leboulanger <asterix AT lagaule.org>
+# Copyright (C) 2022 Philipp Hörist <philipp AT hoerist.com>
 #
 # This file is part of Gajim.
 #
@@ -17,15 +18,21 @@
 
 from __future__ import annotations
 
+from typing import Any
 from typing import Optional
+from typing import Union
 
+import logging
 from dataclasses import dataclass
-from dataclasses import asdict
 from functools import partial
 
 from gajim.common import app
 from gajim.common import ged
-from gajim.common.events import ApplicationEvent
+from gajim.common.const import PROPAGATE_EVENT
+from gajim.common.const import STOP_EVENT
+from gajim.common.events import Notification
+from gajim.common.events import GcMessageReceived
+from gajim.common.events import MessageReceived
 from gajim.common.events import Notification
 from gajim.common.helpers import exec_command
 from gajim.common.helpers import play_sound_file
@@ -33,21 +40,14 @@ from gajim.common.helpers import play_sound_file
 from gajim.plugins import GajimPlugin
 from gajim.plugins.plugins_i18n import _
 
+from triggers.util import log_result
+from triggers.util import RuleResult
 from triggers.gtk.config import ConfigDialog
 
+log = logging.getLogger('gajim.p.triggers')
 
-@dataclass
-class ExtendedEvent(Notification):
-    origin: Optional[ApplicationEvent] = None
-    show_notification: bool = True
-    command: Optional[str] = None
-    sound_file: Optional[str] = None
-
-    @classmethod
-    def from_event(cls, event) -> ExtendedEvent:
-        attr_dict = asdict(event)
-        attr_dict.pop('name')
-        return cls(**attr_dict, origin=event)
+MessageEventsT = Union[GcMessageReceived, MessageReceived]
+RuleT = dict[str, Any]
 
 
 class Triggers(GajimPlugin):
@@ -61,38 +61,24 @@ class Triggers(GajimPlugin):
             'notification': (ged.PREGUI, self._on_notification),
             'message-received': (ged.PREGUI2, self._on_message_received),
             'gc-message-received': (ged.PREGUI2, self._on_message_received),
-            'presence-received': (ged.PREGUI, self._on_presence_received),
+            # 'presence-received': (ged.PREGUI, self._on_presence_received),
         }
 
-    def _excecute(self, event) -> bool:
-        if event.command is not None:
-            # Used by Triggers plugin
-            try:
-                exec_command(event.command, use_shell=True)
-            except Exception:
-                pass
-
-        if event.sound_file is not None:
-            play_sound_file(event.sound_file)
-
-        if not event.show_notification:
-            # This aborts the event excecution
-            return True
-        return False
-
     def _on_notification(self, event: Notification) -> bool:
-        extended_event = ExtendedEvent.from_event(event)
-        self._check_all(extended_event,
-                        self._check_rule_apply_notification,
-                        self._apply_rule)
-        return self._excecute(extended_event)
+        log.info('Process %s, %s', event.name, event.type)
+        result = self._check_all(event,
+                                 self._check_rule_apply_notification,
+                                 self._apply_rule)
+        log.info('Result: %s', result)
+        return self._excecute_notification_rules(result, event)
 
-    def _on_message_received(self, event: Notification) -> bool:
-        extended_event = ExtendedEvent.from_event(event)
-        self._check_all(extended_event,
-                        self._check_rule_apply_msg_received,
-                        self._apply_rule)
-        return self._excecute(extended_event)
+    def _on_message_received(self, event: MessageEventsT) -> bool:
+        log.info('Process %s', event.name)
+        result = self._check_all(event,
+                                 self._check_rule_apply_msg_received,
+                                 self._apply_rule)
+        log.info('Result: %s', result)
+        return self._excecute_message_rules(result)
 
     def _on_presence_received(self, event):
         # TODO
@@ -106,19 +92,18 @@ class Triggers(GajimPlugin):
             check_func = self._check_rule_apply_status_changed
         self._check_all(event, check_func, self._apply_rule)
 
-    def _check_all(self, event, check_func, apply_func):
-        # check rules in order
+    def _check_all(self, event, check_func, apply_func) -> RuleResult:
+        result = RuleResult()
+
         rules_num = [int(item) for item in self.config.keys()]
         rules_num.sort()
         to_remove = []
         for num in rules_num:
             rule = self.config[str(num)]
             if check_func(event, rule):
-                apply_func(event, rule)
+                apply_func(result, rule)
                 if 'one_shot' in rule and rule['one_shot']:
                     to_remove.append(num)
-                # Should we stop after first valid rule ?
-                # break
 
         decal = 0
         num = 0
@@ -133,24 +118,35 @@ class Triggers(GajimPlugin):
             else:
                 num += 1
 
-    def _check_rule_apply_msg_received(self, event, rule):
+        return result
+
+    @log_result
+    def _check_rule_apply_msg_received(self,
+                                       event: MessageEventsT,
+                                       rule: RuleT) -> bool:
         return self._check_rule_all('message_received', event, rule)
 
-    def _check_rule_apply_connected(self, event, rule):
+    @log_result
+    def _check_rule_apply_connected(self, event, rule: RuleT) -> bool:
         return self._check_rule_all('contact_connected', event, rule)
 
-    def _check_rule_apply_disconnected(self, event, rule):
+    @log_result
+    def _check_rule_apply_disconnected(self, event, rule: RuleT) -> bool:
         return self._check_rule_all('contact_disconnected', event, rule)
 
-    def _check_rule_apply_status_changed(self, event, rule):
+    @log_result
+    def _check_rule_apply_status_changed(self, event, rule: RuleT) -> bool:
         return self._check_rule_all('contact_status_change', event, rule)
 
-    def _check_rule_apply_notification(self, event, rule):
+    @log_result
+    def _check_rule_apply_notification(self,
+                                       event: Notification,
+                                       rule: RuleT) -> bool:
         # Check notification type
         notif_type = ''
-        if event.notif_type == 'incoming-message':
+        if event.type == 'incoming-message':
             notif_type = 'message_received'
-        if event.notif_type == 'pres':
+        if event.type == 'pres':
             # TODO:
             if (event.base_event.old_show < 2 and
                     event.base_event.new_show > 1):
@@ -163,7 +159,7 @@ class Triggers(GajimPlugin):
 
         return self._check_rule_all(notif_type, event, rule)
 
-    def _check_rule_all(self, notif_type, event, rule):
+    def _check_rule_all(self, notif_type: str, event: Any, rule: RuleT) -> bool:
         # Check notification type
         if rule['event'] != notif_type:
             return False
@@ -187,7 +183,8 @@ class Triggers(GajimPlugin):
         # All is ok
         return True
 
-    def _check_rule_recipients(self, event, rule):
+    @log_result
+    def _check_rule_recipients(self, event, rule: RuleT) -> bool:
         rule_recipients = [t.strip() for t in rule['recipients'].split(',')]
         if rule['recipient_type'] == 'groupchat':
             if event.jid in rule_recipients:
@@ -209,7 +206,8 @@ class Triggers(GajimPlugin):
 
         return True
 
-    def _check_rule_status(self, event, rule):
+    @log_result
+    def _check_rule_status(self, event, rule: RuleT) -> bool:
         rule_statuses = rule['status'].split()
         our_status = app.connections[event.account].status
         if rule['status'] != 'all' and our_status not in rule_statuses:
@@ -217,7 +215,8 @@ class Triggers(GajimPlugin):
 
         return True
 
-    def _check_rule_tab_opened(self, event, rule):
+    @log_result
+    def _check_rule_tab_opened(self, event, rule: RuleT) -> bool:
         if rule['tab_opened'] == 'both':
             return True
         tab_opened = False
@@ -230,7 +229,8 @@ class Triggers(GajimPlugin):
 
         return True
 
-    def _check_rule_has_focus(self, event, rule):
+    @log_result
+    def _check_rule_has_focus(self, event, rule: RuleT) -> bool:
         if rule['has_focus'] == 'both':
             return True
         if rule['tab_opened'] == 'no':
@@ -248,19 +248,42 @@ class Triggers(GajimPlugin):
 
         return True
 
-    def _apply_rule(self, event, rule):
+    def _apply_rule(self, result: RuleResult, rule: RuleT) -> None:
         if rule['sound'] == 'no':
-            event.origin.sound = None
-            event.sound_file = None
+            result.sound = False
+            result.sound_file = None
 
         elif rule['sound'] == 'yes':
-            event.origin.sound = None
-            event.sound_file = rule['sound_file']
+            result.sound = False
+            result.sound_file = rule['sound_file']
 
         if rule['run_command']:
-            event.command = rule['command']
+            result.command = rule['command']
 
         if rule['popup'] == 'no':
-            event.show_notification = False
+            result.show_notification = False
         elif rule['popup'] == 'yes':
-            event.show_notification = True
+            result.show_notification = True
+
+    def _excecute_notification_rules(self,
+                                     result: RuleResult,
+                                     event: Notification) -> bool:
+        if result.sound is False:
+            event.sound = None
+
+        if result.sound_file is not None:
+            play_sound_file(result.sound_file)
+
+        if result.show_notification is False:
+            return STOP_EVENT
+        return PROPAGATE_EVENT
+
+    def _excecute_message_rules(self, result: RuleResult) -> bool:
+
+        if result.command is not None:
+            try:
+                exec_command(result.command, use_shell=True)
+            except Exception:
+                pass
+
+        return PROPAGATE_EVENT
