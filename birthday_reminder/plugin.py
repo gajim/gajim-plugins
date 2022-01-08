@@ -126,10 +126,10 @@ class BirthDayPlugin(GajimPlugin):
                     app.ged.raise_event(
                         Notification(account=account,
                                      jid=jid,
-                                     notif_type='reminder',
-                                     icon_name='trophy-gold',
+                                     type='reminder',
                                      title=TITLE,
-                                     text=TEXT % name))
+                                     text=TEXT % name,
+                                     icon_name='trophy-gold'))
         return True
 
     @staticmethod
