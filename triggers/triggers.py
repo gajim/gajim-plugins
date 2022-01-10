@@ -19,11 +19,9 @@
 from __future__ import annotations
 
 from typing import Any
-from typing import Optional
 from typing import Union
 
 import logging
-from dataclasses import dataclass
 from functools import partial
 
 from gajim.common import app
@@ -195,6 +193,9 @@ class Triggers(GajimPlugin):
             return False
         client = app.get_client(event.account)
         contact = client.get_module('Contacts').get_contact(event.jid)
+
+        if contact.is_groupchat or not contact.is_in_roster:
+            return False
 
         group_found = False
         for group in contact.groups:
