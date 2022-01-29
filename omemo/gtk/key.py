@@ -194,9 +194,7 @@ class KeyDialog(Gtk.Dialog):
         qr.make()
 
         fill_color = 'black'
-        back_color = 'transparent'
-        if app.css_config.prefer_dark:
-            back_color = 'white'
+        back_color = 'white'
         if V(get_distribution('qrcode').version) < V('6.0'):
             # meaning of fill_color and back_color were switched
             # before this commit in qrcode between versions 5.3
