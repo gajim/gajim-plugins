@@ -187,8 +187,10 @@ class KeyDialog(Gtk.Dialog):
         log.debug('Verification String: %s', ver_string)
 
         import qrcode
-        qr = qrcode.QRCode(version=None, error_correction=2,
-                           box_size=4, border=1)
+        qr = qrcode.QRCode(version=None,
+                           error_correction=2,
+                           box_size=4,
+                           border=4)
         qr.add_data(ver_string)
         qr.make(fit=True)
         qr.make()
