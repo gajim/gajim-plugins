@@ -188,12 +188,11 @@ class KeyDialog(Gtk.Dialog):
 
         import qrcode
         qr = qrcode.QRCode(version=None,
-                           error_correction=2,
-                           box_size=4,
+                           error_correction=qrcode.constants.ERROR_CORRECT_L,
+                           box_size=6,
                            border=4)
         qr.add_data(ver_string)
         qr.make(fit=True)
-        qr.make()
 
         fill_color = 'black'
         back_color = 'white'
