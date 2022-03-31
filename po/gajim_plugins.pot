@@ -1,0 +1,768 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the Gajim Plugins package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: Gajim Plugins\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2022-03-31 21:06+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#. #' Means number
+msgid "#"
+msgstr ""
+
+#, python-format
+msgid "%(event)s (%(recipient_type)s) %(recipient)s %(status)s"
+msgstr ""
+
+#, python-format
+msgid "%(num)s: %(search)s -> %(replace)s"
+msgstr ""
+
+msgid "<Description>"
+msgstr ""
+
+msgid "<Plugin Name>"
+msgstr ""
+
+msgid "<empty>"
+msgstr ""
+
+#. label for account selector
+msgid "Acc_ount"
+msgstr ""
+
+msgid "Acronym"
+msgstr ""
+
+msgid "Acronyms Configuration"
+msgstr ""
+
+msgid "Actions"
+msgstr ""
+
+msgid "Active Accounts"
+msgstr ""
+
+msgid "Add"
+msgstr ""
+
+msgid ""
+"Add an incoming filter. First argument is the search regex, second argument "
+"is the replace regex."
+msgstr ""
+
+#, python-format
+msgid "Added rule to replace %(search)s by %(replace)s"
+msgstr ""
+
+msgid "Adds a menu with customizable quick replies"
+msgstr ""
+
+msgid "Advanced"
+msgstr ""
+
+msgid "All Files"
+msgstr ""
+
+msgid "All statuses"
+msgstr ""
+
+msgid "Allows you to adjust the height of the message input."
+msgstr ""
+
+msgid ""
+"Allows you to block various kinds of incoming messages (Spam, XHTML "
+"formatting, etc.)"
+msgstr ""
+
+msgid "Anti Spam Answer"
+msgstr ""
+
+msgid "Anti Spam Configuration"
+msgstr ""
+
+msgid "Anti Spam Question"
+msgstr ""
+
+msgid "Anti Spam Question in Group Chats"
+msgstr ""
+
+msgid "Assign Key"
+msgstr ""
+
+msgid "Assign PGP Key"
+msgstr ""
+
+#, python-format
+msgid "Assign key for %s"
+msgstr ""
+
+msgid "Authors"
+msgstr ""
+
+msgid "Available"
+msgstr ""
+
+msgid "Away"
+msgstr ""
+
+msgid "Bad Configuration"
+msgstr ""
+
+msgid "Birthday Reminder"
+msgstr ""
+
+msgid "Blind Trust"
+msgstr ""
+
+msgid "Blind Trust Before Verification"
+msgstr ""
+
+msgid "Busy"
+msgstr ""
+
+msgid "Cancel"
+msgstr ""
+
+msgid "Category"
+msgstr ""
+
+msgid "Certain status"
+msgstr ""
+
+msgid "Chat Window"
+msgstr ""
+
+msgid "Check for updates"
+msgstr ""
+
+msgid "Check for updates after start"
+msgstr ""
+
+msgid ""
+"Checks vCards of your contacts for upcoming birthdays and reminds you on "
+"that day."
+msgstr ""
+
+msgid "Clear Devices"
+msgstr ""
+
+msgid "Click the shield icon to manage trust for each fingerprint."
+msgstr ""
+
+msgid "Clients Icons Configuration"
+msgstr ""
+
+msgid "Color"
+msgstr ""
+
+msgid "Command..."
+msgstr ""
+
+msgid "Condition"
+msgstr ""
+
+msgid "Conditions"
+msgstr ""
+
+msgid "Configure Gajim’s behaviour with triggers for each contact"
+msgstr ""
+
+msgid "Contact"
+msgstr ""
+
+msgid "Contact Changes Status"
+msgstr ""
+
+msgid "Contact Connects"
+msgstr ""
+
+msgid "Contact Disconnects"
+msgstr ""
+
+msgid "Contact Name"
+msgstr ""
+
+msgid ""
+"Copy tune info of playing music to conversation input box at cursor position "
+"(Alt + N)"
+msgstr ""
+
+msgid ""
+"Correct answer to your Anti Spam Question (leave empty to disable question)"
+msgstr ""
+
+msgid "Data Form"
+msgstr ""
+
+msgid "Delete"
+msgstr ""
+
+msgid "Delete Fingerprint"
+msgstr ""
+
+msgid "Delete Public Key"
+msgstr ""
+
+msgid "Delete rule"
+msgstr ""
+
+msgid "Delete this rule once applied"
+msgstr ""
+
+msgid "Deny Subscription Requests"
+msgstr ""
+
+msgid "Device ID"
+msgstr ""
+
+msgid "Disable Accounts"
+msgstr ""
+
+msgid "Disable XHTML for Group Chats"
+msgstr ""
+
+msgid "Disable XHTML for PMs"
+msgstr ""
+
+msgid "Disabled Accounts"
+msgstr ""
+
+msgid "Do not show this message again"
+msgstr ""
+
+msgid "Does not have focus"
+msgstr ""
+
+msgid "Doing so will permanently delete this Fingerprint"
+msgstr ""
+
+msgid "Down"
+msgstr ""
+
+msgid "Download"
+msgstr ""
+
+msgid "Enable the plugin for selected XMPP addresses only (comma separated)"
+msgstr ""
+
+msgid "Enables anti spam question for private messages in group chats"
+msgstr ""
+
+msgid "Encryption error"
+msgstr ""
+
+#, python-format
+msgid "Encryption error: %s"
+msgstr ""
+
+msgid "Error"
+msgstr ""
+
+msgid "Event"
+msgstr ""
+
+msgid "Everybody"
+msgstr ""
+
+msgid "Filter messages with regex"
+msgstr ""
+
+#, python-format
+msgid "Fingerprints for %s"
+msgstr ""
+
+msgid "Focus"
+msgstr ""
+
+msgid ""
+"For verification via QR-Code\n"
+"you have to install python-qrcode"
+msgstr ""
+
+msgid "Form has successfully been sent"
+msgstr ""
+
+msgid "Form sent"
+msgstr ""
+
+msgid "Format string"
+msgstr ""
+
+msgid "Gajim will now try to setup OpenPGP for you"
+msgstr ""
+
+msgid "General"
+msgstr ""
+
+msgid "Generating new Key"
+msgstr ""
+
+msgid "Group"
+msgstr ""
+
+msgid "Groupchat participant"
+msgstr ""
+
+msgid "Has focus"
+msgstr ""
+
+msgid "Height in pixels"
+msgstr ""
+
+msgid "Highlight color for the message input"
+msgstr ""
+
+msgid ""
+"Highlights the chat window’s message input if a specified message length is "
+"exceeded."
+msgstr ""
+
+msgid "Homepage"
+msgstr ""
+
+msgid "Inactive"
+msgstr ""
+
+msgid "Install"
+msgstr ""
+
+msgid "Install / Upda_te"
+msgstr ""
+
+msgid "Install and upgrade plugins for Gajim"
+msgstr ""
+
+msgid "Installed"
+msgstr ""
+
+msgid "Key ID"
+msgstr ""
+
+#, python-format
+msgid "Last seen: %s"
+msgstr ""
+
+msgid "Launch command"
+msgstr ""
+
+msgid "Length Notifier Configuration"
+msgstr ""
+
+msgid "Lets the user display and answer forms attached to messages."
+msgstr ""
+
+msgid "Limit Message Length"
+msgstr ""
+
+msgid "Limits maximum message length (leave empty to disable)"
+msgstr ""
+
+msgid "List"
+msgstr ""
+
+msgid "List incoming filters."
+msgstr ""
+
+msgid "Message Box Size Configuration"
+msgstr ""
+
+msgid "Message Length"
+msgstr ""
+
+msgid "Message length at which the highlight is shown"
+msgstr ""
+
+msgid "My status"
+msgstr ""
+
+msgid "Never"
+msgstr ""
+
+msgid "New Quick Reply"
+msgstr ""
+
+msgid "New rule"
+msgstr ""
+
+msgid "No OpenPGP key"
+msgstr ""
+
+msgid "No OpenPGP key assigned"
+msgstr ""
+
+msgid "No OpenPGP key is assigned to this contact."
+msgstr ""
+
+msgid "No OpenPGP key is assigned to your account."
+msgstr ""
+
+msgid "No devices found. Query in progress..."
+msgstr ""
+
+msgid "No key assigned"
+msgstr ""
+
+msgid "No rule defined"
+msgstr ""
+
+msgid "None"
+msgstr ""
+
+msgid "Not Available"
+msgstr ""
+
+msgid "Not Decided"
+msgstr ""
+
+msgid "Not Trusted"
+msgstr ""
+
+msgid "Not opened"
+msgstr ""
+
+msgid "Not_ify me with a popup"
+msgstr ""
+
+msgid "Note: Fingerprints of your contacts are managed in the message window."
+msgstr ""
+
+msgid "Notifications"
+msgstr ""
+
+msgid "Notify after update"
+msgstr ""
+
+msgid "Now Listen Configuration"
+msgstr ""
+
+msgid "Now listening to: \"%title\" by %artist"
+msgstr ""
+
+msgid "Number of typed characters"
+msgstr ""
+
+msgid "OK"
+msgstr ""
+
+msgid "OMEMO Fingerprints"
+msgstr ""
+
+msgid "Online"
+msgstr ""
+
+msgid "Open"
+msgstr ""
+
+msgid "Opened"
+msgstr ""
+
+msgid "Own Fingerprint"
+msgstr ""
+
+#. tab label
+msgid "Own Fingerprints"
+msgstr ""
+
+msgid "Own _Device ID"
+msgstr ""
+
+#. Descriptive label
+msgid "Own _Fingerprint"
+msgstr ""
+
+msgid "PGP Configuration"
+msgstr ""
+
+msgid "PGP Key mismatch"
+msgstr ""
+
+msgid "PGP encryption as per XEP-0027"
+msgstr ""
+
+msgid "Play sound"
+msgstr ""
+
+msgid "Please install GnuPG / Gpg4win"
+msgstr ""
+
+msgid "Please install python-gnupg and gnupg"
+msgstr ""
+
+msgid "Plugin"
+msgstr ""
+
+msgid "Plugin Installer Configuration"
+msgstr ""
+
+msgid "Plugin Updates"
+msgstr ""
+
+msgid "Plugin Updates Available"
+msgstr ""
+
+msgid "Plugin only available for Linux"
+msgstr ""
+
+msgid ""
+"Plugin updates have successfully been downloaded.\n"
+"Updates will be installed next time Gajim is started."
+msgstr ""
+
+msgid "Plugins Downloaded"
+msgstr ""
+
+msgid "Plugins Updated"
+msgstr ""
+
+#, python-format
+msgid "Public Keys for %s"
+msgstr ""
+
+msgid "Published Devices"
+msgstr ""
+
+msgid "Question has to be answered in order to contact you"
+msgstr ""
+
+msgid "Quick Replies"
+msgstr ""
+
+msgid "Quick Replies Configuration"
+msgstr ""
+
+msgid "Quick Reply"
+msgstr ""
+
+msgid "Read more about blind trust."
+msgstr ""
+
+msgid "Read more on blind trust."
+msgstr ""
+
+msgid "Receive a Message"
+msgstr ""
+
+msgid "Remove"
+msgstr ""
+
+msgid ""
+"Remove an incoming filter. Argument is the rule number. See /list_rules "
+"command."
+msgstr ""
+
+msgid "Removes XHTML formatting from group chat messages"
+msgstr ""
+
+msgid "Removes XHTML formatting from private messages in group chats"
+msgstr ""
+
+msgid "Replaces acronyms (or other strings) with given expansions/substitutes."
+msgstr ""
+
+msgid "Request OpenPGP Key"
+msgstr ""
+
+#, python-format
+msgid "Rule number %s does not exist"
+msgstr ""
+
+#, python-format
+msgid "Rule number %s removed"
+msgstr ""
+
+msgid "Select Sound"
+msgstr ""
+
+msgid "Selected Addresses"
+msgstr ""
+
+#, python-format
+msgid "Send your best wishes to %s"
+msgstr ""
+
+msgid "Settings"
+msgstr ""
+
+msgid "Setup OpenPGP"
+msgstr ""
+
+msgid "Setup failed"
+msgstr ""
+
+msgid "Setup successful"
+msgstr ""
+
+msgid "Show Icon for Unknown Clients"
+msgstr ""
+
+msgid "Show Icons in Tooltip"
+msgstr ""
+
+msgid "Show inactive"
+msgstr ""
+
+msgid "Show message when automatic update was successful"
+msgstr ""
+
+msgid ""
+"Shows client icons in your contact list and in the groupchat participants "
+"list."
+msgstr ""
+
+msgid "Size of message input in pixels"
+msgstr ""
+
+msgid "Sounds"
+msgstr ""
+
+msgid "Status"
+msgstr ""
+
+msgid "Submit"
+msgstr ""
+
+msgid "Substitute"
+msgstr ""
+
+msgid ""
+"The PGP key used to encrypt this chat is not trusted. Do you really want to "
+"encrypt this message?"
+msgstr ""
+
+#, python-format
+msgid "The contact's key (%s) <b>does not match</b> the key assigned in Gajim."
+msgstr ""
+
+#, python-format
+msgid ""
+"There are updates for your plugins:\n"
+"<b>%s</b>"
+msgstr ""
+
+msgid "There was no trusted and active key found"
+msgstr ""
+
+msgid ""
+"This clears your device list from the server.\n"
+"Clearing the device list helps you to remove unused devices from the "
+"encryption process.\n"
+"It is advised to go online with all of your actively used devices after "
+"clearing."
+msgstr ""
+
+msgid "This message was encrypted with OMEMO, but not for your device."
+msgstr ""
+
+msgid ""
+"This plugin contains translations for other Gajim plugins. Please restart "
+"Gajim after enabling this plugin."
+msgstr ""
+
+msgid "This will permanently delete this public key"
+msgstr ""
+
+msgid ""
+"To send an encrypted message, you have to first trust the fingerprint of "
+"your contact!"
+msgstr ""
+
+msgid ""
+"To use OMEMO in a Groupchat, the Groupchat should be non-anonymous and "
+"members-only."
+msgstr ""
+
+msgid "Triggers Configuration"
+msgstr ""
+
+msgid "Unknown"
+msgstr ""
+
+msgid "Untrusted"
+msgstr ""
+
+msgid "Untrusted PGP key"
+msgstr ""
+
+msgid "Up"
+msgstr ""
+
+msgid "Update automatically"
+msgstr ""
+
+msgid "Update plugins automatically"
+msgstr ""
+
+msgid "Update plugins automatically next time"
+msgstr ""
+
+msgid "Updates will be installed next time Gajim is started."
+msgstr ""
+
+msgid "Verified"
+msgstr ""
+
+msgid "Version"
+msgstr ""
+
+msgid "Wav Sounds"
+msgstr ""
+
+msgid "We didnt receive a OpenPGP key from this contact."
+msgstr ""
+
+msgid "Welcome"
+msgstr ""
+
+msgid "You have to restart Gajim for changes to take effect !"
+msgstr ""
+
+msgid "You have undecided fingerprints"
+msgstr ""
+
+msgid "[This message is *encrypted* (See :XEP:`27`]"
+msgstr ""
+
+msgid "_Clear Devices"
+msgstr ""
+
+msgid "_Disable Account"
+msgstr ""
+
+msgid "_Disable existing notification"
+msgstr ""
+
+msgid "_Disable existing sound for this event"
+msgstr ""
+
+msgid "_Do not ask me again"
+msgstr ""
+
+msgid "_Enable Account"
+msgstr ""
+
+msgid "_Encrypt Anyway"
+msgstr ""
+
+msgid "_No"
+msgstr ""
+
+msgid "_Update"
+msgstr ""
+
+msgid "and I am "
+msgstr ""
+
+msgid "comma separated list"
+msgstr ""

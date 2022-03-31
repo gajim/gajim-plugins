@@ -1,0 +1,1193 @@
+# Copyright (C) Gajim Team
+# This file is distributed under the same license as the Gajim Plugins package.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Gajim Plugins\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2022-03-31 21:05+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: French <https://translate.gajim.org/projects/gajim-plugins/"
+"master/fr/>\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n > 1;\n"
+"X-Generator: Weblate 4.1.1\n"
+
+#. #' Means number
+msgid "#"
+msgstr "#"
+
+#, python-format
+msgid "%(event)s (%(recipient_type)s) %(recipient)s %(status)s"
+msgstr "%(event)s (%(recipient_type)s) %(recipient)s %(status)s"
+
+#, python-format
+msgid "%(num)s: %(search)s -> %(replace)s"
+msgstr "%(num)s : %(search)s -> %(replace)s"
+
+msgid "<Description>"
+msgstr ""
+
+#, fuzzy
+msgid "<Plugin Name>"
+msgstr "Mises à jour des extensions"
+
+msgid "<empty>"
+msgstr ""
+
+#. label for account selector
+msgid "Acc_ount"
+msgstr ""
+
+msgid "Acronym"
+msgstr ""
+
+msgid "Acronyms Configuration"
+msgstr "Configuration de Acronyms"
+
+msgid "Actions"
+msgstr ""
+
+msgid "Active Accounts"
+msgstr ""
+
+msgid "Add"
+msgstr ""
+
+msgid ""
+"Add an incoming filter. First argument is the search regex, second argument "
+"is the replace regex."
+msgstr ""
+"Ajouter un filtre entrant. Le premier argument est la regex de recherche, le "
+"second est la regex de remplacement."
+
+#, python-format
+msgid "Added rule to replace %(search)s by %(replace)s"
+msgstr "règle ajoutée pour remplacer %(search)s par %(replace)s"
+
+msgid "Adds a menu with customizable quick replies"
+msgstr "Ajoute un menu avec des réponses rapides personnalisables"
+
+msgid "Advanced"
+msgstr ""
+
+msgid "All Files"
+msgstr "Tous les fichiers"
+
+msgid "All statuses"
+msgstr ""
+
+msgid "Allows you to adjust the height of the message input."
+msgstr "Permet d'ajuster la hauteur du champ de saisie de message."
+
+msgid ""
+"Allows you to block various kinds of incoming messages (Spam, XHTML "
+"formatting, etc.)"
+msgstr ""
+"Permet de bloquer certains types de messages entrants (Spam, formatage "
+"XHTML, etc.)"
+
+msgid "Anti Spam Answer"
+msgstr "Réponse Anti Spam"
+
+msgid "Anti Spam Configuration"
+msgstr "Configuration de Anti Spam"
+
+msgid "Anti Spam Question"
+msgstr "Question Anti Spam"
+
+msgid "Anti Spam Question in Group Chats"
+msgstr "Question Anti Spam dans les salons de discussion"
+
+msgid "Assign Key"
+msgstr "Associer la clef"
+
+msgid "Assign PGP Key"
+msgstr "Assigner une clé PGP"
+
+#, python-format
+msgid "Assign key for %s"
+msgstr "Associer la clef pour %s"
+
+msgid "Authors"
+msgstr ""
+
+msgid "Available"
+msgstr "Disponible"
+
+msgid "Away"
+msgstr ""
+
+msgid "Bad Configuration"
+msgstr "Mauvaise configuration"
+
+msgid "Birthday Reminder"
+msgstr "Rappel d'anniversaire"
+
+msgid "Blind Trust"
+msgstr "Confiance aveugle"
+
+msgid "Blind Trust Before Verification"
+msgstr ""
+
+msgid "Busy"
+msgstr ""
+
+msgid "Cancel"
+msgstr "Annuler"
+
+msgid "Category"
+msgstr ""
+
+msgid "Certain status"
+msgstr ""
+
+msgid "Chat Window"
+msgstr ""
+
+msgid "Check for updates"
+msgstr "Vérifier les mises à jour"
+
+msgid "Check for updates after start"
+msgstr "Vérifier les mises à jour au démarrage"
+
+msgid ""
+"Checks vCards of your contacts for upcoming birthdays and reminds you on "
+"that day."
+msgstr ""
+"Vérifie les vCards de vos contacts à la recherche de dates d'anniversaire "
+"imminentes et vous informe le jour venu."
+
+msgid "Clear Devices"
+msgstr ""
+
+msgid "Click the shield icon to manage trust for each fingerprint."
+msgstr ""
+
+msgid "Clients Icons Configuration"
+msgstr "Configuration de Client Icons"
+
+msgid "Color"
+msgstr "Couleur"
+
+msgid "Command..."
+msgstr ""
+
+msgid "Condition"
+msgstr "Condition"
+
+#, fuzzy
+msgid "Conditions"
+msgstr "Condition"
+
+msgid "Configure Gajim’s behaviour with triggers for each contact"
+msgstr ""
+"Modifier le comportement de Gajim grâce à des déclencheurs pour chaque "
+"contact"
+
+msgid "Contact"
+msgstr ""
+
+msgid "Contact Changes Status"
+msgstr ""
+
+#, fuzzy
+msgid "Contact Connects"
+msgstr "Se connecter"
+
+msgid "Contact Disconnects"
+msgstr ""
+
+msgid "Contact Name"
+msgstr ""
+
+msgid ""
+"Copy tune info of playing music to conversation input box at cursor position "
+"(Alt + N)"
+msgstr ""
+"Copier les informations de musique dans la zone de saisie de message (Alt + "
+"N) à la position du curseur"
+
+msgid ""
+"Correct answer to your Anti Spam Question (leave empty to disable question)"
+msgstr ""
+"La bonne réponse à la question Anti Spam (laisser vide pour désactiver la "
+"question)"
+
+msgid "Data Form"
+msgstr "Formulaire de données"
+
+msgid "Delete"
+msgstr "Supprimer"
+
+msgid "Delete Fingerprint"
+msgstr "Supprimer l'empreinte"
+
+msgid "Delete Public Key"
+msgstr "Supprimer la clé publique"
+
+#, fuzzy
+msgid "Delete rule"
+msgstr "Supprimer la clé publique"
+
+msgid "Delete this rule once applied"
+msgstr ""
+
+msgid "Deny Subscription Requests"
+msgstr "Refuser les demandes d'inscription à votre présence"
+
+msgid "Device ID"
+msgstr ""
+
+msgid "Disable Accounts"
+msgstr ""
+
+msgid "Disable XHTML for Group Chats"
+msgstr "Désactiver XHTML dans les salons de discussion"
+
+msgid "Disable XHTML for PMs"
+msgstr "Désactive XHTML pour les messages privés"
+
+msgid "Disabled Accounts"
+msgstr ""
+
+msgid "Do not show this message again"
+msgstr "Ne plus afficher ce message"
+
+msgid "Does not have focus"
+msgstr ""
+
+msgid "Doing so will permanently delete this Fingerprint"
+msgstr "Cela va supprimer définitivement cette empreinte"
+
+msgid "Down"
+msgstr ""
+
+#, fuzzy
+msgid "Download"
+msgstr "Télécharge…"
+
+msgid "Enable the plugin for selected XMPP addresses only (comma separated)"
+msgstr ""
+"Activer l'extension uniquement pour les adresses XMPP sélectionnées "
+"(séparées par des virgules)"
+
+msgid "Enables anti spam question for private messages in group chats"
+msgstr "Active la question anti spam pour les messages privés dans les salons"
+
+msgid "Encryption error"
+msgstr "Erreur de chiffrement"
+
+#, python-format
+msgid "Encryption error: %s"
+msgstr "Erreur de chiffrement : %s"
+
+msgid "Error"
+msgstr "Erreur"
+
+msgid "Event"
+msgstr ""
+
+msgid "Everybody"
+msgstr ""
+
+msgid "Filter messages with regex"
+msgstr ""
+
+#, python-format
+msgid "Fingerprints for %s"
+msgstr "Empreinte pour %s"
+
+msgid "Focus"
+msgstr ""
+
+msgid ""
+"For verification via QR-Code\n"
+"you have to install python-qrcode"
+msgstr ""
+
+msgid "Form has successfully been sent"
+msgstr "Le formulaire a été envoyé avec succès"
+
+msgid "Form sent"
+msgstr "Formulaire envoyé"
+
+msgid "Format string"
+msgstr "Chaîne de formatage"
+
+msgid "Gajim will now try to setup OpenPGP for you"
+msgstr "Gajim va maintenant essayer de paramétrer OpenPGP pour vous"
+
+msgid "General"
+msgstr ""
+
+msgid "Generating new Key"
+msgstr "Génération d'une nouvelle clé"
+
+msgid "Group"
+msgstr ""
+
+msgid "Groupchat participant"
+msgstr ""
+
+msgid "Has focus"
+msgstr ""
+
+msgid "Height in pixels"
+msgstr "Hauteur en pixels"
+
+msgid "Highlight color for the message input"
+msgstr "Couleur de surbrillance pour le message saisi"
+
+msgid ""
+"Highlights the chat window’s message input if a specified message length is "
+"exceeded."
+msgstr ""
+"Met en surbrillance le champ texte dans la fenêtre de discussion lorsque la "
+"longueur du message dépasse un seuil spécifié."
+
+msgid "Homepage"
+msgstr ""
+
+msgid "Inactive"
+msgstr "Inactive"
+
+#, fuzzy
+msgid "Install"
+msgstr ". Installer %s"
+
+msgid "Install / Upda_te"
+msgstr ""
+
+msgid "Install and upgrade plugins for Gajim"
+msgstr "Installer et mettre à jour les extensions pour Gajim"
+
+#, fuzzy
+msgid "Installed"
+msgstr ". Installer %s"
+
+msgid "Key ID"
+msgstr ""
+
+#, python-format
+msgid "Last seen: %s"
+msgstr "Vue pour la dernière fois : %s"
+
+msgid "Launch command"
+msgstr ""
+
+msgid "Length Notifier Configuration"
+msgstr "Configuration de Length Notifier"
+
+msgid "Lets the user display and answer forms attached to messages."
+msgstr ""
+"Permet à l'utilisateur d'afficher et de répondre à des formulaires joints à "
+"des messages."
+
+msgid "Limit Message Length"
+msgstr "Limiter la longueur de message"
+
+msgid "Limits maximum message length (leave empty to disable)"
+msgstr "Limite la taille maximale des messages (laisser vide pour désactiver)"
+
+msgid "List"
+msgstr ""
+
+msgid "List incoming filters."
+msgstr "Liste les filtres entrants."
+
+msgid "Message Box Size Configuration"
+msgstr "Configuration de Message Box Size"
+
+msgid "Message Length"
+msgstr "Longueur du message"
+
+msgid "Message length at which the highlight is shown"
+msgstr "Longueur de message à partir de laquelle il sera mis en surbrillance"
+
+msgid "My status"
+msgstr ""
+
+msgid "Never"
+msgstr "Jamais"
+
+msgid "New Quick Reply"
+msgstr "Nouvelle réponse rapide"
+
+msgid "New rule"
+msgstr ""
+
+msgid "No OpenPGP key"
+msgstr "Pas de clé OpenPGP"
+
+msgid "No OpenPGP key assigned"
+msgstr "Pas de clé OpenPGP assignée"
+
+msgid "No OpenPGP key is assigned to this contact."
+msgstr "Aucune de clé OpenPGP n'est associée à ce contact."
+
+msgid "No OpenPGP key is assigned to your account."
+msgstr "Aucune clé OpenPGP n'est associée à votre compte."
+
+msgid "No devices found. Query in progress..."
+msgstr "Aucun appareil trouvé. Interrogation en cours..."
+
+msgid "No key assigned"
+msgstr "Aucune clé assignée"
+
+msgid "No rule defined"
+msgstr "Aucune règle définie"
+
+msgid "None"
+msgstr "Aucune"
+
+#, fuzzy
+msgid "Not Available"
+msgstr "Disponible"
+
+msgid "Not Decided"
+msgstr "Non décidé"
+
+msgid "Not Trusted"
+msgstr "Non approuvé"
+
+#, fuzzy
+msgid "Not opened"
+msgstr "Non décidé"
+
+msgid "Not_ify me with a popup"
+msgstr ""
+
+msgid "Note: Fingerprints of your contacts are managed in the message window."
+msgstr ""
+
+msgid "Notifications"
+msgstr ""
+
+msgid "Notify after update"
+msgstr "Notifier après mise à jour"
+
+msgid "Now Listen Configuration"
+msgstr "Configuration de Now Listen"
+
+msgid "Now listening to: \"%title\" by %artist"
+msgstr "En train d'écouter : \"%title\" par %artist"
+
+msgid "Number of typed characters"
+msgstr "Nombre de caractères tapés"
+
+msgid "OK"
+msgstr "OK"
+
+msgid "OMEMO Fingerprints"
+msgstr "Empreintes OMEMO"
+
+msgid "Online"
+msgstr "Connecté"
+
+msgid "Open"
+msgstr "Ouvrir"
+
+#, fuzzy
+msgid "Opened"
+msgstr "Ouvrir"
+
+#, fuzzy
+msgid "Own Fingerprint"
+msgstr "Empreintes OMEMO"
+
+#. tab label
+#, fuzzy
+msgid "Own Fingerprints"
+msgstr "Empreintes OMEMO"
+
+msgid "Own _Device ID"
+msgstr ""
+
+#. Descriptive label
+#, fuzzy
+msgid "Own _Fingerprint"
+msgstr "Empreintes OMEMO"
+
+msgid "PGP Configuration"
+msgstr "Configuration de PGP"
+
+msgid "PGP Key mismatch"
+msgstr "Problème de correspondance de clef PGP"
+
+msgid "PGP encryption as per XEP-0027"
+msgstr "Chiffrement PGP par la XEP-0027"
+
+#, fuzzy
+msgid "Play sound"
+msgstr "Sons Wav"
+
+msgid "Please install GnuPG / Gpg4win"
+msgstr "Veuillez installer GnuPG / Gpg4win"
+
+msgid "Please install python-gnupg and gnupg"
+msgstr "Veuillez installer python-gnupg et gnupg"
+
+#, fuzzy
+msgid "Plugin"
+msgstr "Mises à jour des extensions"
+
+msgid "Plugin Installer Configuration"
+msgstr "Configuration de l'installeur d'extensions"
+
+msgid "Plugin Updates"
+msgstr "Mises à jour des extensions"
+
+msgid "Plugin Updates Available"
+msgstr "Mises à jour d'extensions disponibles"
+
+msgid "Plugin only available for Linux"
+msgstr "Extension disponible uniquement pour Linux"
+
+msgid ""
+"Plugin updates have successfully been downloaded.\n"
+"Updates will be installed next time Gajim is started."
+msgstr ""
+"Les mises à jour des extensions ont été téléchargées avec succès.\n"
+"Ces mises à jour seront installées lors du prochain démarrage de Gajim."
+
+msgid "Plugins Downloaded"
+msgstr "Extensions téléchargées"
+
+msgid "Plugins Updated"
+msgstr "Extensions mises à jour"
+
+#, python-format
+msgid "Public Keys for %s"
+msgstr "Clés publiques pour %s"
+
+msgid "Published Devices"
+msgstr ""
+
+msgid "Question has to be answered in order to contact you"
+msgstr "La question à laquelle il faut répondre pour pouvoir vous contacter"
+
+msgid "Quick Replies"
+msgstr "Réponses rapides"
+
+msgid "Quick Replies Configuration"
+msgstr "Configuration de Quick Replies"
+
+#, fuzzy
+msgid "Quick Reply"
+msgstr "Nouvelle réponse rapide"
+
+msgid "Read more about blind trust."
+msgstr "Lire davantage à propos de Confiance Aveugle."
+
+#, fuzzy
+msgid "Read more on blind trust."
+msgstr "Lire davantage à propos de Confiance Aveugle."
+
+msgid "Receive a Message"
+msgstr ""
+
+msgid "Remove"
+msgstr ""
+
+msgid ""
+"Remove an incoming filter. Argument is the rule number. See /list_rules "
+"command."
+msgstr ""
+"Supprime un filtre entrant. L'argument est le numéro de la règle. Voir la "
+"commande /list_rules."
+
+msgid "Removes XHTML formatting from group chat messages"
+msgstr "Retire le formatage XHTML des messages de salon"
+
+msgid "Removes XHTML formatting from private messages in group chats"
+msgstr "Retire le formatage XHTML des messages privés dans les salons"
+
+msgid "Replaces acronyms (or other strings) with given expansions/substitutes."
+msgstr ""
+"Remplace les acronymes (ou autres chaînes de caractères) par les expressions "
+"données."
+
+msgid "Request OpenPGP Key"
+msgstr "Récupérer la clé OpenPGP"
+
+#, python-format
+msgid "Rule number %s does not exist"
+msgstr "La règle numéro %s n'existe pas"
+
+#, python-format
+msgid "Rule number %s removed"
+msgstr "Règle numéro %s supprimée"
+
+msgid "Select Sound"
+msgstr ""
+
+msgid "Selected Addresses"
+msgstr "Adresses sélectionnées"
+
+#, python-format
+msgid "Send your best wishes to %s"
+msgstr "Envoyez vos meilleurs vœux à %s"
+
+msgid "Settings"
+msgstr ""
+
+msgid "Setup OpenPGP"
+msgstr "Paramétrer OpenPGP"
+
+msgid "Setup failed"
+msgstr "Installation échouée"
+
+msgid "Setup successful"
+msgstr "Paramétrage terminé avec succès"
+
+msgid "Show Icon for Unknown Clients"
+msgstr "Montrer une icône pour les clients inconnus"
+
+msgid "Show Icons in Tooltip"
+msgstr "Afficher les icônes dans les info-bulles"
+
+#, fuzzy
+msgid "Show inactive"
+msgstr "Inactive"
+
+msgid "Show message when automatic update was successful"
+msgstr "Afficher un message quand une mise à jour automatique a réussi"
+
+#, fuzzy
+msgid ""
+"Shows client icons in your contact list and in the groupchat participants "
+"list."
+msgstr ""
+"Montrer l'icône du client dans la liste de contact et dans les salons de "
+"discussion."
+
+msgid "Size of message input in pixels"
+msgstr "Taille de la boite de saisie en pixels"
+
+#, fuzzy
+msgid "Sounds"
+msgstr "Sons Wav"
+
+msgid "Status"
+msgstr ""
+
+msgid "Submit"
+msgstr "Soumettre"
+
+msgid "Substitute"
+msgstr ""
+
+msgid ""
+"The PGP key used to encrypt this chat is not trusted. Do you really want to "
+"encrypt this message?"
+msgstr ""
+"La clé PGP utilisée pour chiffrer cette discussion n'est pas approuvée. "
+"Voulez-vous vraiment chiffrer ce message ?"
+
+#, python-format
+msgid "The contact's key (%s) <b>does not match</b> the key assigned in Gajim."
+msgstr ""
+"La clé du contact (%s) <b>ne correspond pas</b> à la clé assignée dans Gajim."
+
+#, python-format
+msgid ""
+"There are updates for your plugins:\n"
+"<b>%s</b>"
+msgstr ""
+"Il y a des mises à jour pour vos extensions :\n"
+"<b>%s</b>"
+
+msgid "There was no trusted and active key found"
+msgstr "Aucune clé de confiance activée n'a été trouvée"
+
+msgid ""
+"This clears your device list from the server.\n"
+"Clearing the device list helps you to remove unused devices from the "
+"encryption process.\n"
+"It is advised to go online with all of your actively used devices after "
+"clearing."
+msgstr ""
+
+msgid "This message was encrypted with OMEMO, but not for your device."
+msgstr ""
+"Ce message a été chiffré avec OMEMO, mais pas à l'attention de votre "
+"appareil."
+
+msgid ""
+"This plugin contains translations for other Gajim plugins. Please restart "
+"Gajim after enabling this plugin."
+msgstr ""
+"Cette extension contient les traductions des autres extensions de Gajim. "
+"Veuillez relancer Gajim après avoir activé cette extension."
+
+msgid "This will permanently delete this public key"
+msgstr "Cela va supprimer définitivement cette clé publique"
+
+msgid ""
+"To send an encrypted message, you have to first trust the fingerprint of "
+"your contact!"
+msgstr ""
+"Pour envoyer un message crypté, vous devez d'abord faire confiance à "
+"l'empreinte de votre contact !"
+
+msgid ""
+"To use OMEMO in a Groupchat, the Groupchat should be non-anonymous and "
+"members-only."
+msgstr ""
+"Pour utiliser OMEMO dans un salon de discussion, le salon devrait être non "
+"anonyme et accessible uniquement aux membres."
+
+msgid "Triggers Configuration"
+msgstr "Configuration de Triggers"
+
+msgid "Unknown"
+msgstr "Inconnu"
+
+msgid "Untrusted"
+msgstr "Non approuvée"
+
+msgid "Untrusted PGP key"
+msgstr "Clé PGP non approuvée"
+
+msgid "Up"
+msgstr ""
+
+msgid "Update automatically"
+msgstr "Mettre à jour automatiquement"
+
+msgid "Update plugins automatically"
+msgstr "Mettre à jour les extensions automatiquement"
+
+msgid "Update plugins automatically next time"
+msgstr "Mettre à jour les extensions automatiquement la prochaine fois"
+
+msgid "Updates will be installed next time Gajim is started."
+msgstr ""
+"Les mises à jour seront installées la prochaine fois que Gajim sera démarré."
+
+msgid "Verified"
+msgstr "Vérifiée"
+
+msgid "Version"
+msgstr ""
+
+msgid "Wav Sounds"
+msgstr "Sons Wav"
+
+msgid "We didnt receive a OpenPGP key from this contact."
+msgstr "Aucune clé OpenPGP reçue pour ce contact."
+
+msgid "Welcome"
+msgstr "Bienvenue"
+
+msgid "You have to restart Gajim for changes to take effect !"
+msgstr ""
+
+msgid "You have undecided fingerprints"
+msgstr "Il y a des empreintes pour lesquelles vous n'avez encore rien décidé"
+
+msgid "[This message is *encrypted* (See :XEP:`27`]"
+msgstr "[Ce message est *chiffré* (Voir :XEP:`27`]"
+
+msgid "_Clear Devices"
+msgstr ""
+
+msgid "_Disable Account"
+msgstr ""
+
+msgid "_Disable existing notification"
+msgstr ""
+
+msgid "_Disable existing sound for this event"
+msgstr ""
+
+msgid "_Do not ask me again"
+msgstr "_Ne plus poser la question"
+
+msgid "_Enable Account"
+msgstr ""
+
+msgid "_Encrypt Anyway"
+msgstr "_Chiffrer malgré tout"
+
+msgid "_No"
+msgstr "_Non"
+
+msgid "_Update"
+msgstr "Mettre à _jour"
+
+msgid "and I am "
+msgstr "et je suis "
+
+msgid "comma separated list"
+msgstr ""
+
+#~ msgid " and "
+#~ msgstr " et "
+
+#, python-format
+#~ msgid "%(name)s (%(jid)s) wants to play tictactoe with you."
+#~ msgstr "%(name)s (%(jid)s) souhaite jouer au morpion avec vous."
+
+#, python-format
+#~ msgid "%(name)s (%(jid)s) wants to start a whiteboard with you."
+#~ msgstr "%(name)s (%(jid)s) souhaite démarrer un tableau blanc avec vous."
+
+#, python-format
+#~ msgid "%(name)s capitulated"
+#~ msgstr "%(name)s a capitulé"
+
+#, python-format
+#~ msgid "%(name)s cheated"
+#~ msgstr "%(name)s a triché"
+
+#, python-format
+#~ msgid "%(name)s declined your invitation to play Tic Tac Toe."
+#~ msgstr "%(name)s a refusé votre invitation à jouer au morpion."
+
+#, python-format
+#~ msgid "%s: it’s a draw."
+#~ msgstr "%s : match nul."
+
+#~ msgid ""
+#~ "A message from a non-valid XMPP address arrived. It has been ignored."
+#~ msgstr ""
+#~ "Un message venant d'un identifiant XMPP non valide est arrivé, il a été "
+#~ "ignoré."
+
+#~ msgid "Action when left clicking a preview"
+#~ msgstr "Action à effectuer lors d'un clic gauche sur un aperçu"
+
+#~ msgid "All files"
+#~ msgstr "Tous les fichiers"
+
+#~ msgid "Board Size"
+#~ msgstr "Taille de la grille de jeu"
+
+#, python-format
+#~ msgid "Cannot open %s for reading"
+#~ msgstr "Impossible d'ouvrir %s en lecture"
+
+#~ msgid "Click to view location"
+#~ msgstr "Cliquer pour voir l'emplacement géographique"
+
+#~ msgid "Clickable nicknames in the conversation textview."
+#~ msgstr "Surnoms cliquables dans la fenêtre de discussion."
+
+#~ msgid "Client:"
+#~ msgstr "Client :"
+
+#~ msgid "Clients:"
+#~ msgstr "Clients :"
+
+#, python-format
+#~ msgid ""
+#~ "Convertion to image failed\n"
+#~ "===ORIGINAL CODE====\n"
+#~ "%s"
+#~ msgstr ""
+#~ "Conversion en image échoué\n"
+#~ "===CODE ORIGINAL===\n"
+#~ "%s"
+
+#~ msgid "Copy Link Location"
+#~ msgstr "Copier l'adresse du lien"
+
+#~ msgid "Decrypting file…"
+#~ msgstr "Déchiffre…"
+
+#, python-format
+#~ msgid "Directory '%s' is not writable"
+#~ msgstr "Le répertoire « %s » est protégé en écriture"
+
+#~ msgid "Displays a preview of image links."
+#~ msgstr "Affiche un aperçu des images provenant de liens."
+
+#, python-format
+#~ msgid "Do you want to open %s?"
+#~ msgstr "Voulez-vous ouvrir %s ?"
+
+#, python-format
+#~ msgid "Error executing \"%(command)s\": %(error)s"
+#~ msgstr "Erreur en exécutant \"%(command)s\" : %(error)s"
+
+#, python-format
+#~ msgid "Error processing LaTeX: %s"
+#~ msgstr "Erreur en traitant le LaTeX : %s"
+
+#~ msgid "File Size"
+#~ msgstr "Taille de fichier"
+
+#~ msgid "File size unknown"
+#~ msgstr "Taille du fichier inconnue"
+
+#~ msgid "Generate preview for any URL containing images (may be unsafe)"
+#~ msgstr ""
+#~ "Générer un aperçu pour n'importe quel URL contenant une image (pourrait "
+#~ "être dangereux)"
+
+#~ msgid "HTTPS Verification"
+#~ msgstr "Vérification HTTPS"
+
+#~ msgid "Incoming Tictactoe"
+#~ msgstr "Invitation à jouer à Tictactoe reçue"
+
+#~ msgid "Incoming Tictactoe Invitation"
+#~ msgstr "Invitation à jouer au morpion reçue"
+
+#~ msgid "Incoming Whiteboard"
+#~ msgstr "Arrivée d'un tableau blanc"
+
+#~ msgid "Incoming Whiteboard Request"
+#~ msgstr "Invitation à un tableau blanc reçue"
+
+#~ msgid "Invalid XMPP Address"
+#~ msgstr "Adresse XMPP invalide"
+
+#~ msgid "Invitation Declined"
+#~ msgstr "Invitation rejetée"
+
+#, python-format
+#~ msgid "It’s %(name)s's turn"
+#~ msgstr "C'est au tour de %(name)s"
+
+#~ msgid "It’s a draw"
+#~ msgstr "Match nul"
+
+#~ msgid "It’s your turn"
+#~ msgstr "C'est votre tour"
+
+#~ msgid "LaTeX is not available"
+#~ msgstr "LaTeX n'est pas disponible"
+
+#, python-format
+#~ msgid "Lat: %s Lon: %s"
+#~ msgstr "Lat : %s Lon : %s"
+
+#~ msgid "Latex Configuration"
+#~ msgstr "Configuration de Latex"
+
+#~ msgid "Latitude or Longitude field contains an invalid value"
+#~ msgstr "Le champ de Latitude ou de Longitude contient une valeur invalide"
+
+#~ msgid "Left Click"
+#~ msgstr "Clic gauche"
+
+#, python-format
+#~ msgid "Location at Lat: %s Lon: %s"
+#~ msgstr "Emplacement à Lat : %s Lon : %s"
+
+#~ msgid "Maximum file size for preview generation"
+#~ msgstr "Taille de fichier maximale pour la génération d'aperçu"
+
+#~ msgid "Offline"
+#~ msgstr "Déconnecté"
+
+#~ msgid "Open File"
+#~ msgstr "Ouvrir un fichier"
+
+#~ msgid "Open File?"
+#~ msgstr "Ouvrir le fichier ?"
+
+#~ msgid "Open Folder"
+#~ msgstr "Ouvrir le répertoire"
+
+#~ msgid "Open Link in Browser"
+#~ msgstr "Ouvrir le lien dans le navigateur"
+
+#~ msgid "Open _Folder"
+#~ msgstr "Ouvrir le _dossier"
+
+#~ msgid "PNG DPI"
+#~ msgstr "PNG PPP (points par pouce)"
+
+#~ msgid "Paste as Code _Block"
+#~ msgstr "Coller en tant que _bloc de code"
+
+#~ msgid "Play Tictactoe."
+#~ msgstr "Jouer au morpion."
+
+#~ msgid "Please enter a name for this preset"
+#~ msgstr "Veuillez saisir un nom pour ce préréglage"
+
+#~ msgid "Please install libappindicator3"
+#~ msgstr "Veuillez installer libappindicator3"
+
+#~ msgid "Please install python-cryptography"
+#~ msgstr "Veuillez installer python-cryptography"
+
+#~ msgid "Please install python-pillow"
+#~ msgstr "Veuillez installer python-pillow"
+
+#~ msgid "Preview Size"
+#~ msgstr "Taille de l'aperçu"
+
+#~ msgid "Preview all Image URLs"
+#~ msgstr "Prévisualiser toutes le URLs d'image"
+
+#~ msgid "Processing LaTeX"
+#~ msgstr "Traitement du LaTeX"
+
+#~ msgid "Quit"
+#~ msgstr "Quitter"
+
+#~ msgid "Regex Filter Plugin."
+#~ msgstr "Plugin de filtre Regex."
+
+#~ msgid "Render LaTeX markup for $$foobar$$ sourrounded LaTeX equations."
+#~ msgstr ""
+#~ "Effectue le rendu LaTeX pour des équations LaTeX balisées par $$foobar$$."
+
+#~ msgid "SVG files"
+#~ msgstr "Fichiers SVG"
+
+#~ msgid "Save"
+#~ msgstr "Enregistrer"
+
+#~ msgid "Save File as…"
+#~ msgstr "Enregistrer le fichier sous…"
+
+#~ msgid "Save as"
+#~ msgstr "Enregistrer sous"
+
+#~ msgid "Save as Preset"
+#~ msgstr "Enregistrer en tant que préréglage"
+
+#~ msgid "Scale of the rendered PNG file"
+#~ msgstr "Échelle de l'image PNG de rendu"
+
+#~ msgid "Set Location Configuration"
+#~ msgstr "Configuration de Set Location"
+
+#~ msgid ""
+#~ "Set information about your current geographical or physical location. \n"
+#~ "To be able to set your location on the built-in map, you need to have "
+#~ "gir1.2-gtkchamplain and gir1.2-gtkclutter-1.0 installed"
+#~ msgstr ""
+#~ "Fixe l'information sur la position géographique ou physique actuelle.\n"
+#~ "Pour pouvoir fixer une position sur la carte, vous devez installer gir1.2-"
+#~ "gtkchamplain et gir1.2-gtkclutter-1.0"
+
+#~ msgid "Show/hide contact list"
+#~ msgstr "Afficher/masquer la liste de contacts"
+
+#~ msgid "Size of preview image"
+#~ msgstr "Taille de l'aperçu d'image"
+
+#~ msgid "Size of the board"
+#~ msgstr "Taille du plateau"
+
+#~ msgid ""
+#~ "Source code syntax highlighting in the chat window.\n"
+#~ "\n"
+#~ "Markdown-style syntax is supported, i.e. text inbetween `single "
+#~ "backticks` is rendered as inline code.\n"
+#~ "```language\n"
+#~ "selection is possible in multi-line code snippets inbetween triple-"
+#~ "backticks\n"
+#~ "Note the newlines in this case…\n"
+#~ "```\n"
+#~ "\n"
+#~ "Changed settings will take effect after re-opening the message tab/window."
+#~ msgstr ""
+#~ "Coloration syntaxique de code dans la fenêtre de discussion.\n"
+#~ "\n"
+#~ "Syntaxe de type Markdown prise en charge, par exemple, du texte entre "
+#~ "`apostrophes inversées` sera affiché comme du code en ligne.\n"
+#~ "```language\n"
+#~ "la sélection est possible pour des extraits de code entre triple "
+#~ "apostrophes inversées\n"
+#~ "Remarquez les retours à la ligne dans ce cas de figure...\n"
+#~ "```\n"
+#~ "\n"
+#~ "Les paramètres modifiés prendront effet après avoir rouvert l'onglet ou "
+#~ "la fenêtre du message."
+
+#~ msgid "Start/stop playback"
+#~ msgstr "Démarrer/arrêter la lecture"
+
+#~ msgid "Syntax Highlighter Configuration"
+#~ msgstr "Configuration de Syntax Highlighter"
+
+#~ msgid "There are bad commands!"
+#~ msgstr "Il y a des commandes dangereuses !"
+
+#~ msgid "This plugin integrates Gajim with the Ayatana AppIndicator."
+#~ msgstr "Cette extension intègre Gajim avec Ayatana AppIndicator."
+
+#, python-format
+#~ msgid "Tic Tac Toe with %s"
+#~ msgstr "Jouer au morpion avec %s"
+
+#~ msgid "TicTacToe Configuration"
+#~ msgstr "Configuration de TicTacToe"
+
+#~ msgid "TicTacToe requires PangoCairo to run"
+#~ msgstr "TicTacToe nécessite PangoCairo pour fonctionner"
+
+#~ msgid "UrlImagePreview Configuration"
+#~ msgstr "Configuration de URL Image Preview"
+
+#~ msgid "Whether to check for a valid certificate"
+#~ msgstr "S'il faut vérifier la validité du certificat"
+
+#, python-format
+#~ msgid "Whiteboard stopped: %(reason)s"
+#~ msgstr "Tableau blanc arrêté : %(reason)s"
+
+#~ msgid "Wrong coordinates"
+#~ msgstr "Mauvaises coordonnées"
+
+#~ msgid "You are missing python-pygments."
+#~ msgstr "Il vous manque python-pygments."
+
+#~ msgid ""
+#~ "You do not have the proper permissions to create files in this directory."
+#~ msgstr ""
+#~ "Vous n'avez pas les permissions suffisantes pour créer des fichiers dans "
+#~ "ce répertoire."
+
+#~ msgid "You lost!"
+#~ msgstr "Vous avez perdu !"
+
+#~ msgid "You won!"
+#~ msgstr "Vous avez gagné !"
+
+#~ msgid "Your location"
+#~ msgstr "Votre position"
+
+#~ msgid "You’ve lost."
+#~ msgstr "Vous avez perdu."
+
+#~ msgid "_Accept"
+#~ msgstr "_Accepter"
+
+#~ msgid "_Decline"
+#~ msgstr "_Refuser"
+
+#~ msgid "_Open"
+#~ msgstr "_Ouvrir"
+
+#~ msgid "_Paste as Code"
+#~ msgstr "_Coller en tant que code"
+
+#~ msgid "dvipng and Imagemagick are not available"
+#~ msgstr "dvipng et ImageMagick ne sont pas disponibles"
+
+#, python-format
+#~ msgid ""
+#~ "latex error: %(error)s\n"
+#~ "===ORIGINAL CODE====\n"
+#~ "%(code)s"
+#~ msgstr ""
+#~ "Erreur LaTeX : %(error)s\n"
+#~ "===CODE ORIGINAL===\n"
+#~ "%(code)s"
+
+#~ msgid "whiteboard.svg"
+#~ msgstr "tableau_blanc.svg"
