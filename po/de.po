@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Gajim Plugins\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-03-31 21:05+0200\n"
+"POT-Creation-Date: 2022-04-01 18:57+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: German <https://translate.gajim.org/projects/gajim-plugins/"
@@ -28,16 +28,6 @@ msgstr "%(event)s (%(recipient_type)s) %(recipient)s %(status)s"
 #, python-format
 msgid "%(num)s: %(search)s -> %(replace)s"
 msgstr "%(num)s: %(search)s -> %(replace)s"
-
-msgid "<Description>"
-msgstr ""
-
-#, fuzzy
-msgid "<Plugin Name>"
-msgstr "Plugin-Aktualisierungen"
-
-msgid "<empty>"
-msgstr ""
 
 #. label for account selector
 msgid "Acc_ount"
@@ -852,6 +842,10 @@ msgstr ""
 #, python-format
 #~ msgid "%s: it’s a draw."
 #~ msgstr "%s: unentschieden."
+
+#, fuzzy
+#~ msgid "<Plugin Name>"
+#~ msgstr "Plugin-Aktualisierungen"
 
 #~ msgid ""
 #~ "A message from a non-valid XMPP address arrived. It has been ignored."
