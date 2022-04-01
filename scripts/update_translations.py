@@ -3,19 +3,17 @@
 import re
 import subprocess
 from pathlib import Path
+import sys
 
 
-TRANS_DIR = Path('po')
+REPO_DIR = Path(__file__).parent.parent
+TRANS_DIR = REPO_DIR / 'po'
 TRANS_TEMPLATE = TRANS_DIR / 'gajim_plugins.pot'
-REPO_DIR = Path.cwd()
+BUILD_DIR = REPO_DIR / 'plugins_translations'
 TRANSLATABLE_FILES = [
     '*.py',
     '*.ui',
 ]
-
-
-if not TRANS_DIR.exists():
-    exit('Execute this script from the root dir')
 
 
 def template_is_equal(old_template_path: Path, new_template: str) -> bool:
@@ -78,5 +76,31 @@ def update_translation_files() -> None:
                        check=True)
 
 
-update_translation_template()
-update_translation_files()
+def build_translations() -> None:
+    for po_file in TRANS_DIR.glob('*.po'):
+        lang = po_file.stem
+        po_file = TRANS_DIR / f'{lang}.po'
+        mo_file = BUILD_DIR / f'{po_file.stem}.mo'
+
+        subprocess.run(['msgfmt',
+                        str(po_file),
+                        '-o',
+                        str(mo_file)],
+                       cwd=REPO_DIR,
+                       check=True)
+
+
+if __name__ == '__main__':
+
+    build = False
+    if len(sys.argv) > 1:
+        cmd = sys.argv[1]
+        if cmd == 'build':
+            build = True
+        else:
+            exit('Unknown commands found: %s' % sys.argv)
+
+    update_translation_template()
+    update_translation_files()
+    if build:
+        build_translations()
