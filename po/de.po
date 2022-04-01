@@ -1,13 +1,14 @@
 # Copyright (C) Gajim Team
 # This file is distributed under the same license as the Gajim Plugins package.
 #
+# lovetox <philipp@hoerist.com>, 2022.
 msgid ""
 msgstr ""
 "Project-Id-Version: Gajim Plugins\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-04-01 18:57+0200\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"POT-Creation-Date: 2022-03-31 21:05+0200\n"
+"PO-Revision-Date: 2022-03-31 19:42+0000\n"
+"Last-Translator: lovetox <philipp@hoerist.com>\n"
 "Language-Team: German <https://translate.gajim.org/projects/gajim-plugins/"
 "master/de/>\n"
 "Language: de\n"
@@ -43,7 +44,7 @@ msgid "Actions"
 msgstr ""
 
 msgid "Active Accounts"
-msgstr ""
+msgstr "Aktive Konten"
 
 msgid "Add"
 msgstr ""
@@ -63,13 +64,13 @@ msgid "Adds a menu with customizable quick replies"
 msgstr "Fügt ein Menü mit anpassbaren Schnellantworten hinzu"
 
 msgid "Advanced"
-msgstr ""
+msgstr "Erweitert"
 
 msgid "All Files"
 msgstr "Alle Dateien"
 
 msgid "All statuses"
-msgstr ""
+msgstr "Alle status"
 
 msgid "Allows you to adjust the height of the message input."
 msgstr ""
@@ -105,13 +106,13 @@ msgid "Assign key for %s"
 msgstr "Schlüssel zuweisen für %s"
 
 msgid "Authors"
-msgstr ""
+msgstr "Autoren"
 
 msgid "Available"
 msgstr "Verfügbar"
 
 msgid "Away"
-msgstr ""
+msgstr "Abwesend"
 
 msgid "Bad Configuration"
 msgstr "Konfigurationsfehler"
@@ -132,13 +133,13 @@ msgid "Cancel"
 msgstr "Abbrechen"
 
 msgid "Category"
-msgstr ""
+msgstr "Kategorie"
 
 msgid "Certain status"
-msgstr ""
+msgstr "Bestimmter status"
 
 msgid "Chat Window"
-msgstr ""
+msgstr "Chat Fenster"
 
 msgid "Check for updates"
 msgstr "Nach Aktualisierungen suchen"
@@ -154,7 +155,7 @@ msgstr ""
 "dich am entsprechenden Tag."
 
 msgid "Clear Devices"
-msgstr ""
+msgstr "Geräte bereinigen"
 
 msgid "Click the shield icon to manage trust for each fingerprint."
 msgstr ""
@@ -166,7 +167,7 @@ msgid "Color"
 msgstr "Farbe"
 
 msgid "Command..."
-msgstr ""
+msgstr "Befehl..."
 
 msgid "Condition"
 msgstr "Bedingung"
@@ -180,7 +181,7 @@ msgstr ""
 "Gajims Verhalten mithilfe von Bedingungen für jeden Kontakt konfigurieren"
 
 msgid "Contact"
-msgstr ""
+msgstr "Kontakt"
 
 msgid "Contact Changes Status"
 msgstr ""
@@ -435,9 +436,8 @@ msgstr "Keine Regel festgelegt"
 msgid "None"
 msgstr "Keiner"
 
-#, fuzzy
 msgid "Not Available"
-msgstr "Verfügbar"
+msgstr "Nicht verfügbar"
 
 msgid "Not Decided"
 msgstr "Nicht entschieden"
@@ -445,9 +445,8 @@ msgstr "Nicht entschieden"
 msgid "Not Trusted"
 msgstr "Nicht vertraut"
 
-#, fuzzy
 msgid "Not opened"
-msgstr "Nicht entschieden"
+msgstr "Nicht geöffnet"
 
 msgid "Not_ify me with a popup"
 msgstr ""
@@ -482,13 +481,11 @@ msgstr "Verfügbar"
 msgid "Open"
 msgstr "Öffnen"
 
-#, fuzzy
 msgid "Opened"
-msgstr "Öffnen"
+msgstr "Geöffnet"
 
-#, fuzzy
 msgid "Own Fingerprint"
-msgstr "OMEMO-Fingerabdrücke"
+msgstr "Eigener Fingerabdruck"
 
 #. tab label
 #, fuzzy
@@ -669,7 +666,7 @@ msgid "Submit"
 msgstr "Absenden"
 
 msgid "Substitute"
-msgstr ""
+msgstr "Ersetzen"
 
 msgid ""
 "The PGP key used to encrypt this chat is not trusted. Do you really want to "
@@ -763,7 +760,7 @@ msgid "Verified"
 msgstr "Überprüft"
 
 msgid "Version"
-msgstr ""
+msgstr "Version"
 
 msgid "Wav Sounds"
 msgstr "Wav-Dateien"
@@ -784,10 +781,10 @@ msgid "[This message is *encrypted* (See :XEP:`27`]"
 msgstr "[Diese Nachricht ist *verschlüsselt* (Siehe :XEP:`27`]"
 
 msgid "_Clear Devices"
-msgstr ""
+msgstr "Geräte _bereinigen"
 
 msgid "_Disable Account"
-msgstr ""
+msgstr "Konto _deaktivieren"
 
 msgid "_Disable existing notification"
 msgstr ""
@@ -799,7 +796,7 @@ msgid "_Do not ask me again"
 msgstr "_Nicht erneut fragen"
 
 msgid "_Enable Account"
-msgstr ""
+msgstr "_Konto aktivieren"
 
 msgid "_Encrypt Anyway"
 msgstr "_Trotzdem verschlüsseln"
