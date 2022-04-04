@@ -2,13 +2,14 @@
 # This file is distributed under the same license as the Gajim Plugins package.
 #
 # lovetox <philipp@hoerist.com>, 2022.
+# Daniel Brötzmann <mailtrash@posteo.de>, 2022.
 msgid ""
 msgstr ""
 "Project-Id-Version: Gajim Plugins\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2022-03-31 21:05+0200\n"
-"PO-Revision-Date: 2022-03-31 19:42+0000\n"
-"Last-Translator: lovetox <philipp@hoerist.com>\n"
+"PO-Revision-Date: 2022-04-04 18:47+0000\n"
+"Last-Translator: Daniel Brötzmann <mailtrash@posteo.de>\n"
 "Language-Team: German <https://translate.gajim.org/projects/gajim-plugins/"
 "master/de/>\n"
 "Language: de\n"
@@ -16,7 +17,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 4.1.1\n"
+"X-Generator: Weblate 4.11.2\n"
 
 #. #' Means number
 msgid "#"
@@ -32,22 +33,22 @@ msgstr "%(num)s: %(search)s -> %(replace)s"
 
 #. label for account selector
 msgid "Acc_ount"
-msgstr ""
+msgstr "K_onto"
 
 msgid "Acronym"
-msgstr ""
+msgstr "Akronym"
 
 msgid "Acronyms Configuration"
 msgstr "Acronyms-Konfiguration"
 
 msgid "Actions"
-msgstr ""
+msgstr "Aktionen"
 
 msgid "Active Accounts"
 msgstr "Aktive Konten"
 
 msgid "Add"
-msgstr ""
+msgstr "Hinzufügen"
 
 msgid ""
 "Add an incoming filter. First argument is the search regex, second argument "
@@ -124,10 +125,10 @@ msgid "Blind Trust"
 msgstr "Blind vertraut"
 
 msgid "Blind Trust Before Verification"
-msgstr ""
+msgstr "Blind vertrauen vor Verifizierung"
 
 msgid "Busy"
-msgstr ""
+msgstr "Beschäftigt"
 
 msgid "Cancel"
 msgstr "Abbrechen"
@@ -159,6 +160,8 @@ msgstr "Geräte bereinigen"
 
 msgid "Click the shield icon to manage trust for each fingerprint."
 msgstr ""
+"Klicke auf das Schild-Icon, um das Vertrauen für jeden Fingerabdruck "
+"festzulegen."
 
 msgid "Clients Icons Configuration"
 msgstr "Clients Icons-Konfiguration"
@@ -172,9 +175,8 @@ msgstr "Befehl..."
 msgid "Condition"
 msgstr "Bedingung"
 
-#, fuzzy
 msgid "Conditions"
-msgstr "Bedingung"
+msgstr "Bedingungen"
 
 msgid "Configure Gajim’s behaviour with triggers for each contact"
 msgstr ""
@@ -184,17 +186,16 @@ msgid "Contact"
 msgstr "Kontakt"
 
 msgid "Contact Changes Status"
-msgstr ""
+msgstr "Kontakt verändert Status"
 
-#, fuzzy
 msgid "Contact Connects"
-msgstr "Verbinden"
+msgstr "Kontakt verbindet sich"
 
 msgid "Contact Disconnects"
-msgstr ""
+msgstr "Kontakt trennt Verbindung"
 
 msgid "Contact Name"
-msgstr ""
+msgstr "Name des Kontakts"
 
 msgid ""
 "Copy tune info of playing music to conversation input box at cursor position "
@@ -220,21 +221,20 @@ msgstr "Fingerabdruck löschen"
 msgid "Delete Public Key"
 msgstr "Öffentlichen Schlüssel löschen"
 
-#, fuzzy
 msgid "Delete rule"
-msgstr "Öffentlichen Schlüssel löschen"
+msgstr "Regel löschen"
 
 msgid "Delete this rule once applied"
-msgstr ""
+msgstr "Diese Regel löschen, sobald sie angewendet wurde"
 
 msgid "Deny Subscription Requests"
 msgstr "Kontaktanfragen ablehnen"
 
 msgid "Device ID"
-msgstr ""
+msgstr "Geräte-ID"
 
 msgid "Disable Accounts"
-msgstr ""
+msgstr "Konten deaktivieren"
 
 msgid "Disable XHTML for Group Chats"
 msgstr "XHTML in Gruppenchats deaktivieren"
@@ -243,23 +243,22 @@ msgid "Disable XHTML for PMs"
 msgstr "XHTML in PMs deaktivieren"
 
 msgid "Disabled Accounts"
-msgstr ""
+msgstr "Deaktivierte Konten"
 
 msgid "Do not show this message again"
 msgstr "Diese Nachricht nicht noch einmal anzeigen"
 
 msgid "Does not have focus"
-msgstr ""
+msgstr "Hat keinen Fokus"
 
 msgid "Doing so will permanently delete this Fingerprint"
 msgstr "Hierdurch wird dieser Fingerabdruck dauerhaft gelöscht"
 
 msgid "Down"
-msgstr ""
+msgstr "Runter"
 
-#, fuzzy
 msgid "Download"
-msgstr "Wird heruntergeladen…"
+msgstr "Herunterladen"
 
 msgid "Enable the plugin for selected XMPP addresses only (comma separated)"
 msgstr ""
@@ -280,25 +279,27 @@ msgid "Error"
 msgstr "Fehler"
 
 msgid "Event"
-msgstr ""
+msgstr "Ereignis"
 
 msgid "Everybody"
-msgstr ""
+msgstr "Jeder"
 
 msgid "Filter messages with regex"
-msgstr ""
+msgstr "Nachrichten per Regex filtern"
 
 #, python-format
 msgid "Fingerprints for %s"
 msgstr "Fingerabdrücke von %s"
 
 msgid "Focus"
-msgstr ""
+msgstr "Fokus"
 
 msgid ""
 "For verification via QR-Code\n"
 "you have to install python-qrcode"
 msgstr ""
+"Für die Verifizierung mittels QR-Code\n"
+"installiere bitte python-qrcode"
 
 msgid "Form has successfully been sent"
 msgstr "Formular wurde erfolgreich gesendet"
@@ -313,19 +314,19 @@ msgid "Gajim will now try to setup OpenPGP for you"
 msgstr "Gajim wird jetzt versuchen OpenPGP für Sie einzurichten"
 
 msgid "General"
-msgstr ""
+msgstr "Allgemein"
 
 msgid "Generating new Key"
 msgstr "Neuen Schlüssel erstellen"
 
 msgid "Group"
-msgstr ""
+msgstr "Gruppe"
 
 msgid "Groupchat participant"
-msgstr ""
+msgstr "Gruppenchat-Teilnehmer"
 
 msgid "Has focus"
-msgstr ""
+msgstr "Hat Fokus"
 
 msgid "Height in pixels"
 msgstr "Höhe in Pixel"
@@ -341,34 +342,32 @@ msgstr ""
 "Zeichenanzahl überschritten wird."
 
 msgid "Homepage"
-msgstr ""
+msgstr "Website"
 
 msgid "Inactive"
 msgstr "Inaktiv"
 
-#, fuzzy
 msgid "Install"
-msgstr ". Installiere %s"
+msgstr "Installieren"
 
 msgid "Install / Upda_te"
-msgstr ""
+msgstr "Ins_tallieren / aktualisieren"
 
 msgid "Install and upgrade plugins for Gajim"
 msgstr "Gajim-Plugins installieren und aktualisieren"
 
-#, fuzzy
 msgid "Installed"
-msgstr ". Installiere %s"
+msgstr "Installiert"
 
 msgid "Key ID"
-msgstr ""
+msgstr "Schlüssel-ID"
 
 #, python-format
 msgid "Last seen: %s"
 msgstr "Zuletzt gesehen: %s"
 
 msgid "Launch command"
-msgstr ""
+msgstr "Befehl ausführen"
 
 msgid "Length Notifier Configuration"
 msgstr "Length Notifier Konfiguration"
@@ -386,7 +385,7 @@ msgstr ""
 "Beschränkt die maximale Nachrichtenlänge (leer lassen zum Deaktivieren)"
 
 msgid "List"
-msgstr ""
+msgstr "Liste"
 
 msgid "List incoming filters."
 msgstr "Liste der eingehenden Filter."
@@ -401,7 +400,7 @@ msgid "Message length at which the highlight is shown"
 msgstr "Nachrichtenlänge, ab der die Hervorhebung angezeigt wird"
 
 msgid "My status"
-msgstr ""
+msgstr "Mein Status"
 
 msgid "Never"
 msgstr "Niemals"
@@ -410,7 +409,7 @@ msgid "New Quick Reply"
 msgstr "Neue Schnellantwort"
 
 msgid "New rule"
-msgstr ""
+msgstr "Neue Regel"
 
 msgid "No OpenPGP key"
 msgstr "Kein OpenPGP-Schlüssel"
@@ -449,13 +448,14 @@ msgid "Not opened"
 msgstr "Nicht geöffnet"
 
 msgid "Not_ify me with a popup"
-msgstr ""
+msgstr "_Benachrichtige mich per Popupfenster"
 
 msgid "Note: Fingerprints of your contacts are managed in the message window."
 msgstr ""
+"Hinweis: Fingerabdrücke deiner Kontakte werden im Chatfenster verwaltet."
 
 msgid "Notifications"
-msgstr ""
+msgstr "Benachrichtigungen"
 
 msgid "Notify after update"
 msgstr "Nach Update benachrichtigen"
@@ -488,17 +488,15 @@ msgid "Own Fingerprint"
 msgstr "Eigener Fingerabdruck"
 
 #. tab label
-#, fuzzy
 msgid "Own Fingerprints"
-msgstr "OMEMO-Fingerabdrücke"
+msgstr "Eigene Fingerabdrücke"
 
 msgid "Own _Device ID"
-msgstr ""
+msgstr "Eigene Geräte-I_D"
 
 #. Descriptive label
-#, fuzzy
 msgid "Own _Fingerprint"
-msgstr "OMEMO-Fingerabdrücke"
+msgstr "Eigener _Fingerabdruck"
 
 msgid "PGP Configuration"
 msgstr "PGP Konfiguration"
@@ -509,9 +507,8 @@ msgstr "OpenPGP-Schlüssel stimmt nicht überein"
 msgid "PGP encryption as per XEP-0027"
 msgstr "PGP-Verschlüsselung nach XEP-0027"
 
-#, fuzzy
 msgid "Play sound"
-msgstr "Wav-Dateien"
+msgstr "Klang abspielen"
 
 msgid "Please install GnuPG / Gpg4win"
 msgstr "Bitte installiere GnuPG / Gpg4win"
@@ -519,9 +516,8 @@ msgstr "Bitte installiere GnuPG / Gpg4win"
 msgid "Please install python-gnupg and gnupg"
 msgstr "Bitte installiere python-gnupg und gnupg"
 
-#, fuzzy
 msgid "Plugin"
-msgstr "Plugin-Aktualisierungen"
+msgstr "Plugin"
 
 msgid "Plugin Installer Configuration"
 msgstr "Konfiguration der Plugin-Verwaltung"
@@ -553,33 +549,31 @@ msgid "Public Keys for %s"
 msgstr "Öffentliche Schlüssel für %s"
 
 msgid "Published Devices"
-msgstr ""
+msgstr "Veröffentlichte Geräte"
 
 msgid "Question has to be answered in order to contact you"
 msgstr "Frage muss beantwortet werden, um dich zu kontaktieren"
 
 msgid "Quick Replies"
-msgstr "Quick Replies"
+msgstr "Schnellantworten"
 
 msgid "Quick Replies Configuration"
 msgstr "Quick Replies Konfiguration"
 
-#, fuzzy
 msgid "Quick Reply"
-msgstr "Neue Schnellantwort"
+msgstr "Schnellantwort"
 
 msgid "Read more about blind trust."
 msgstr "Mehr zum Thema blindes Vertrauen lesen."
 
-#, fuzzy
 msgid "Read more on blind trust."
 msgstr "Mehr zum Thema blindes Vertrauen lesen."
 
 msgid "Receive a Message"
-msgstr ""
+msgstr "Nachricht empfangen"
 
 msgid "Remove"
-msgstr ""
+msgstr "Entfernen"
 
 msgid ""
 "Remove an incoming filter. Argument is the rule number. See /list_rules "
@@ -611,7 +605,7 @@ msgid "Rule number %s removed"
 msgstr "Regel Nummer %s entfernt"
 
 msgid "Select Sound"
-msgstr ""
+msgstr "Klang auswählen"
 
 msgid "Selected Addresses"
 msgstr "Ausgewählte Adressen"
@@ -621,7 +615,7 @@ msgid "Send your best wishes to %s"
 msgstr "Sende deine Glückwünsche an %s"
 
 msgid "Settings"
-msgstr ""
+msgstr "Einstellungen"
 
 msgid "Setup OpenPGP"
 msgstr "OpenPGP einrichten"
@@ -638,15 +632,13 @@ msgstr "Icons für unbekannte Clients anzeigen"
 msgid "Show Icons in Tooltip"
 msgstr "Icons in Tooltips anzeigen"
 
-#, fuzzy
 msgid "Show inactive"
-msgstr "Inaktiv"
+msgstr "Inaktive anzeigen"
 
 msgid "Show message when automatic update was successful"
 msgstr ""
 "Benachrichtigung zeigen, wenn die automatische Aktualisierung erfolgreich war"
 
-#, fuzzy
 msgid ""
 "Shows client icons in your contact list and in the groupchat participants "
 "list."
@@ -655,12 +647,11 @@ msgstr "Zeigt Client-Icons in der Kontaktliste und in Gruppenchats."
 msgid "Size of message input in pixels"
 msgstr "Höhe des Texteingabefelds in Pixel"
 
-#, fuzzy
 msgid "Sounds"
-msgstr "Wav-Dateien"
+msgstr "Klänge"
 
 msgid "Status"
-msgstr ""
+msgstr "Status"
 
 msgid "Submit"
 msgstr "Absenden"
@@ -699,6 +690,11 @@ msgid ""
 "It is advised to go online with all of your actively used devices after "
 "clearing."
 msgstr ""
+"Hierdurch wird deine Geräteliste von dem Server gelöscht.\n"
+"Die Geräteliste zu löschen hilft dabei, alte und ungenutzte Geräte vom "
+"Verschlüsselungsprozess zu entfernen.\n"
+"Es wird empfohlen, nach dem Löschen der Geräteliste mit allen aktiv "
+"genutzten Geräten online zu gehen."
 
 msgid "This message was encrypted with OMEMO, but not for your device."
 msgstr ""
@@ -742,7 +738,7 @@ msgid "Untrusted PGP key"
 msgstr "Nicht vertrauter OpenPGP-Schlüssel"
 
 msgid "Up"
-msgstr ""
+msgstr "Hoch"
 
 msgid "Update automatically"
 msgstr "Automatisch aktualisieren"
@@ -772,7 +768,7 @@ msgid "Welcome"
 msgstr "Wilkommen"
 
 msgid "You have to restart Gajim for changes to take effect !"
-msgstr ""
+msgstr "Du musst Gajim neu starten, damit die Änderungen wirksam werden!"
 
 msgid "You have undecided fingerprints"
 msgstr "Du hast noch nicht alle Fingerabdrücke überprüft"
@@ -787,10 +783,10 @@ msgid "_Disable Account"
 msgstr "Konto _deaktivieren"
 
 msgid "_Disable existing notification"
-msgstr ""
+msgstr "_Benachrichtigung deaktivieren"
 
 msgid "_Disable existing sound for this event"
-msgstr ""
+msgstr "_Bestehenden Klang für dieses Ereignis deaktivieren"
 
 msgid "_Do not ask me again"
 msgstr "_Nicht erneut fragen"
@@ -811,7 +807,7 @@ msgid "and I am "
 msgstr "und ich bin: "
 
 msgid "comma separated list"
-msgstr ""
+msgstr "kommagetrennte Liste"
 
 #~ msgid " and "
 #~ msgstr " und "
