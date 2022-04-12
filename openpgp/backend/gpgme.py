@@ -181,3 +181,8 @@ class GPGME:
             key = self.get_key(fingerprint)
 
         return KeyringItem(key)
+
+    def delete_key(self, fingerprint):
+        key = self.get_key(fingerprint)
+        with gpg.Context(**self._context_args) as context:
+            context.op_delete(key, True)
