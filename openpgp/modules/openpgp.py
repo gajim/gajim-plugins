@@ -40,6 +40,7 @@ from gajim.common.modules.util import event_node
 from openpgp.modules.util import ENCRYPTION_NAME
 from openpgp.modules.util import NOT_ENCRYPTED_TAGS
 from openpgp.modules.util import Key
+from openpgp.modules.util import Trust
 from openpgp.modules.util import add_additional_data
 from openpgp.modules.util import DecryptionFailed
 from openpgp.modules.util import prepare_stanza
@@ -241,8 +242,11 @@ class OpenPGP(BaseModule):
         log.info('Received OpenPGP message from: %s', properties.jid)
         prepare_stanza(stanza, payload)
 
+        trust = self._contacts.get_trust(properties.jid.bare, fingerprint)
+
         properties.encrypted = EncryptionData({'name': ENCRYPTION_NAME,
-                                               'fingerprint': fingerprint})
+                                               'fingerprint': fingerprint,
+                                               'trust': trust})
 
     def encrypt_message(self, obj, callback):
         keys = self._contacts.get_keys(obj.jid)
@@ -273,6 +277,9 @@ class OpenPGP(BaseModule):
                             self._fingerprint)
 
         obj.encrypted = ENCRYPTION_NAME
+        obj.additional_data['encrypted'] = {
+            'name': ENCRYPTION_NAME,
+            'trust': Trust.VERIFIED}
         callback(obj)
 
     @staticmethod
