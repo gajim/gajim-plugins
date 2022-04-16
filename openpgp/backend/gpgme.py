@@ -32,6 +32,13 @@ class KeyringItem:
         self._key = key
         self._uid = self._get_uid()
 
+    @property
+    def is_xmpp_key(self) -> bool:
+        try:
+            return self.jid is not None
+        except Exception:
+            return False
+
     def _get_uid(self):
         for uid in self._key.uids:
             if uid.uid.startswith('xmpp:'):
@@ -53,7 +60,6 @@ class KeyringItem:
 
     def __hash__(self):
         return hash(self.fingerprint)
-
 
 
 class GPGME:
@@ -109,7 +115,13 @@ class GPGME:
         keys = []
         with gpg.Context(**self._context_args) as context:
             for key in context.keylist():
-                keys.append(KeyringItem(key))
+                keyring_item = KeyringItem(key)
+                if not keyring_item.is_xmpp_key:
+                    log.warning('Key not suited for xmpp: %s', key.fpr)
+                    continue
+
+                keys.append(keyring_item)
+
         return keys
 
     def export_key(self, fingerprint):
