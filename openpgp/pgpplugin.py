@@ -139,10 +139,6 @@ class OpenPGPPlugin(GajimPlugin):
                 jid, only_trusted=False)
             if not keys:
                 con.get_module('OpenPGP').request_keylist(JID.from_string(jid))
-                ErrorDialog(
-                    _('No OpenPGP key'),
-                    _('We didnt receive a OpenPGP key from this contact.'))
-                return
             return True
 
         from openpgp.gtk.wizard import KeyWizard
