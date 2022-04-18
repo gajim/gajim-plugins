@@ -171,10 +171,10 @@ class NewKeyPage(RequestPage):
 
     def finished(self, error):
         if error is None:
-            self._assistant.set_current_page(Page.SUCCESS)
             self._con.get_module('OpenPGP').get_own_key_details()
             self._con.get_module('OpenPGP').set_public_key()
             self._con.get_module('OpenPGP').request_keylist()
+            self._assistant.set_current_page(Page.SUCCESS)
         else:
             error_page = self._assistant.get_nth_page(Page.ERROR)
             error_page.set_text(error)
