@@ -14,6 +14,7 @@
 # You should have received a copy of the GNU General Public License
 # along with OpenPGP Gajim Plugin. If not, see <http://www.gnu.org/licenses/>.
 
+from typing import Optional
 
 import logging
 
@@ -22,6 +23,7 @@ from nbxmpp.protocol import JID
 import gpg
 from gpg.results import ImportResult
 
+from openpgp.backend.util import parse_uid
 from openpgp.modules.util import DecryptionFailed
 
 log = logging.getLogger('gajim.p.openpgp.gpgme')
@@ -39,10 +41,17 @@ class KeyringItem:
         except Exception:
             return False
 
-    def _get_uid(self):
+    def is_valid(self, jid: JID) -> bool:
+        if not self.is_xmpp_key:
+            return False
+        return jid == self.jid
+
+    def _get_uid(self) -> Optional[str]:
         for uid in self._key.uids:
-            if uid.uid.startswith('xmpp:'):
-                return uid.uid
+            try:
+                return parse_uid(uid.uid)
+            except Exception:
+                pass
 
     @property
     def fingerprint(self):
@@ -56,7 +65,7 @@ class KeyringItem:
     @property
     def jid(self):
         if self._uid is not None:
-            return JID.from_string(self._uid[5:])
+            return JID.from_string(self._uid)
 
     def __hash__(self):
         return hash(self.fingerprint)
@@ -118,6 +127,7 @@ class GPGME:
                 keyring_item = KeyringItem(key)
                 if not keyring_item.is_xmpp_key:
                     log.warning('Key not suited for xmpp: %s', key.fpr)
+                    self.delete_key(keyring_item.fingerprint)
                     continue
 
                 keys.append(keyring_item)
@@ -191,10 +201,17 @@ class GPGME:
 
             fingerprint = result.imports[0].fpr
             key = self.get_key(fingerprint)
+            item = KeyringItem(key)
+            if not item.is_valid(jid):
+                log.warning('Invalid key found')
+                log.warning(key)
+                self.delete_key(item.fingerprint)
+                return
 
-        return KeyringItem(key)
+        return item
 
     def delete_key(self, fingerprint):
+        log.info('Delete Key: %s', fingerprint)
         key = self.get_key(fingerprint)
         with gpg.Context(**self._context_args) as context:
             context.op_delete(key, True)
