@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Gajim Plugins\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-04-01 18:57+0200\n"
+"POT-Creation-Date: 2022-04-19 18:43+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: Romanian <https://translate.gajim.org/projects/gajim-plugins/"
@@ -412,9 +412,6 @@ msgstr "Nou Răspuns rapid"
 msgid "New rule"
 msgstr ""
 
-msgid "No OpenPGP key"
-msgstr "Fără cheie OpenPGP"
-
 msgid "No OpenPGP key assigned"
 msgstr "Nu a fost atribuită nicio cheie OpenPGP"
 
@@ -768,9 +765,6 @@ msgstr ""
 msgid "Wav Sounds"
 msgstr "Sunete Wav"
 
-msgid "We didnt receive a OpenPGP key from this contact."
-msgstr "Nu am primit o cheie OpenPGP de la această persoană de contact."
-
 msgid "Welcome"
 msgstr "Bine ați venit"
 
@@ -819,27 +813,21 @@ msgstr ""
 #~ msgid " and "
 #~ msgstr " și "
 
-#, python-format
 #~ msgid "%(name)s (%(jid)s) wants to play tictactoe with you."
 #~ msgstr "%(name)s (%(jid)s) vrea să se joace tictactoe cu tine."
 
-#, python-format
 #~ msgid "%(name)s (%(jid)s) wants to start a whiteboard with you."
 #~ msgstr "%(name)s (%(jid)s) dorește să înceapă o tablă albă cu tine."
 
-#, python-format
 #~ msgid "%(name)s capitulated"
 #~ msgstr "%(name)s a capitulat"
 
-#, python-format
 #~ msgid "%(name)s cheated"
 #~ msgstr "%(name)s a trișat"
 
-#, python-format
 #~ msgid "%(name)s declined your invitation to play Tic Tac Toe."
 #~ msgstr "%(name)s a refuzat invitația ta de a juca Tic Tac Toe."
 
-#, python-format
 #~ msgid "%s: it’s a draw."
 #~ msgstr "%s: este o remiză."
 
@@ -861,7 +849,6 @@ msgstr ""
 #~ msgid "Board Size"
 #~ msgstr "Dimensiunea plăcii"
 
-#, python-format
 #~ msgid "Cannot open %s for reading"
 #~ msgstr "Nu se poate deschide %s pentru citire"
 
@@ -878,7 +865,6 @@ msgstr ""
 #~ msgid "Clients:"
 #~ msgstr "Clienți:"
 
-#, python-format
 #~ msgid ""
 #~ "Convertion to image failed\n"
 #~ "===ORIGINAL CODE====\n"
@@ -894,22 +880,18 @@ msgstr ""
 #~ msgid "Decrypting file…"
 #~ msgstr "Decriptarea fișierului…"
 
-#, python-format
 #~ msgid "Directory '%s' is not writable"
 #~ msgstr "Directorul '%s' nu este inscriptibil"
 
 #~ msgid "Displays a preview of image links."
 #~ msgstr "Afișează o previzualizare a legăturilor de imagine."
 
-#, python-format
 #~ msgid "Do you want to open %s?"
 #~ msgstr "Doriți să deschideți %s?"
 
-#, python-format
 #~ msgid "Error executing \"%(command)s\": %(error)s"
 #~ msgstr "Eroare la executarea \"%(command)s\": %(error)s"
 
-#, python-format
 #~ msgid "Error processing LaTeX: %s"
 #~ msgstr "Eroare la procesarea LaTeX: %s"
 
@@ -945,7 +927,6 @@ msgstr ""
 #~ msgid "Invitation Declined"
 #~ msgstr "Invitație refuzată"
 
-#, python-format
 #~ msgid "It’s %(name)s's turn"
 #~ msgstr "E rândul lui %(name)s"
 
@@ -958,7 +939,6 @@ msgstr ""
 #~ msgid "LaTeX is not available"
 #~ msgstr "LaTeX nu este disponibil"
 
-#, python-format
 #~ msgid "Lat: %s Lon: %s"
 #~ msgstr "Lat: %s Lon: %s"
 
@@ -971,12 +951,14 @@ msgstr ""
 #~ msgid "Left Click"
 #~ msgstr "Faceți clic stânga"
 
-#, python-format
 #~ msgid "Location at Lat: %s Lon: %s"
 #~ msgstr "Locație la Lat: %s Lon: %s"
 
 #~ msgid "Maximum file size for preview generation"
 #~ msgstr "Dimensiunea maximă a fișierului pentru generarea previzualizării"
+
+#~ msgid "No OpenPGP key"
+#~ msgstr "Fără cheie OpenPGP"
 
 #~ msgid "Offline"
 #~ msgstr "Offline"
@@ -1114,7 +1096,6 @@ msgstr ""
 #~ msgid "This plugin integrates Gajim with the Ayatana AppIndicator."
 #~ msgstr "Acest plugin integrează Gajim cu Ayatana AppIndicator."
 
-#, python-format
 #~ msgid "Tic Tac Toe with %s"
 #~ msgstr "Tic Tac Toe cu %s"
 
@@ -1127,10 +1108,12 @@ msgstr ""
 #~ msgid "UrlImagePreview Configuration"
 #~ msgstr "UrlImagePreview Configurație"
 
+#~ msgid "We didnt receive a OpenPGP key from this contact."
+#~ msgstr "Nu am primit o cheie OpenPGP de la această persoană de contact."
+
 #~ msgid "Whether to check for a valid certificate"
 #~ msgstr "Dacă trebuie să se verifice existența un certificat valabil"
 
-#, python-format
 #~ msgid "Whiteboard stopped: %(reason)s"
 #~ msgstr "Tablă albă oprită: %(reason)s"
 
@@ -1172,7 +1155,6 @@ msgstr ""
 #~ msgid "dvipng and Imagemagick are not available"
 #~ msgstr "dvipng și Imagemagick nu sunt disponibile"
 
-#, python-format
 #~ msgid ""
 #~ "latex error: %(error)s\n"
 #~ "===ORIGINAL CODE====\n"

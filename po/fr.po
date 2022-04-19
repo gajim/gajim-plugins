@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Gajim Plugins\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-04-01 18:57+0200\n"
+"POT-Creation-Date: 2022-04-19 18:43+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: French <https://translate.gajim.org/projects/gajim-plugins/"
@@ -411,9 +411,6 @@ msgstr "Nouvelle réponse rapide"
 msgid "New rule"
 msgstr ""
 
-msgid "No OpenPGP key"
-msgstr "Pas de clé OpenPGP"
-
 msgid "No OpenPGP key assigned"
 msgstr "Pas de clé OpenPGP assignée"
 
@@ -769,9 +766,6 @@ msgstr ""
 msgid "Wav Sounds"
 msgstr "Sons Wav"
 
-msgid "We didnt receive a OpenPGP key from this contact."
-msgstr "Aucune clé OpenPGP reçue pour ce contact."
-
 msgid "Welcome"
 msgstr "Bienvenue"
 
@@ -820,27 +814,21 @@ msgstr ""
 #~ msgid " and "
 #~ msgstr " et "
 
-#, python-format
 #~ msgid "%(name)s (%(jid)s) wants to play tictactoe with you."
 #~ msgstr "%(name)s (%(jid)s) souhaite jouer au morpion avec vous."
 
-#, python-format
 #~ msgid "%(name)s (%(jid)s) wants to start a whiteboard with you."
 #~ msgstr "%(name)s (%(jid)s) souhaite démarrer un tableau blanc avec vous."
 
-#, python-format
 #~ msgid "%(name)s capitulated"
 #~ msgstr "%(name)s a capitulé"
 
-#, python-format
 #~ msgid "%(name)s cheated"
 #~ msgstr "%(name)s a triché"
 
-#, python-format
 #~ msgid "%(name)s declined your invitation to play Tic Tac Toe."
 #~ msgstr "%(name)s a refusé votre invitation à jouer au morpion."
 
-#, python-format
 #~ msgid "%s: it’s a draw."
 #~ msgstr "%s : match nul."
 
@@ -863,7 +851,6 @@ msgstr ""
 #~ msgid "Board Size"
 #~ msgstr "Taille de la grille de jeu"
 
-#, python-format
 #~ msgid "Cannot open %s for reading"
 #~ msgstr "Impossible d'ouvrir %s en lecture"
 
@@ -879,7 +866,6 @@ msgstr ""
 #~ msgid "Clients:"
 #~ msgstr "Clients :"
 
-#, python-format
 #~ msgid ""
 #~ "Convertion to image failed\n"
 #~ "===ORIGINAL CODE====\n"
@@ -895,22 +881,18 @@ msgstr ""
 #~ msgid "Decrypting file…"
 #~ msgstr "Déchiffre…"
 
-#, python-format
 #~ msgid "Directory '%s' is not writable"
 #~ msgstr "Le répertoire « %s » est protégé en écriture"
 
 #~ msgid "Displays a preview of image links."
 #~ msgstr "Affiche un aperçu des images provenant de liens."
 
-#, python-format
 #~ msgid "Do you want to open %s?"
 #~ msgstr "Voulez-vous ouvrir %s ?"
 
-#, python-format
 #~ msgid "Error executing \"%(command)s\": %(error)s"
 #~ msgstr "Erreur en exécutant \"%(command)s\" : %(error)s"
 
-#, python-format
 #~ msgid "Error processing LaTeX: %s"
 #~ msgstr "Erreur en traitant le LaTeX : %s"
 
@@ -946,7 +928,6 @@ msgstr ""
 #~ msgid "Invitation Declined"
 #~ msgstr "Invitation rejetée"
 
-#, python-format
 #~ msgid "It’s %(name)s's turn"
 #~ msgstr "C'est au tour de %(name)s"
 
@@ -959,7 +940,6 @@ msgstr ""
 #~ msgid "LaTeX is not available"
 #~ msgstr "LaTeX n'est pas disponible"
 
-#, python-format
 #~ msgid "Lat: %s Lon: %s"
 #~ msgstr "Lat : %s Lon : %s"
 
@@ -972,12 +952,14 @@ msgstr ""
 #~ msgid "Left Click"
 #~ msgstr "Clic gauche"
 
-#, python-format
 #~ msgid "Location at Lat: %s Lon: %s"
 #~ msgstr "Emplacement à Lat : %s Lon : %s"
 
 #~ msgid "Maximum file size for preview generation"
 #~ msgstr "Taille de fichier maximale pour la génération d'aperçu"
+
+#~ msgid "No OpenPGP key"
+#~ msgstr "Pas de clé OpenPGP"
 
 #~ msgid "Offline"
 #~ msgstr "Déconnecté"
@@ -1114,7 +1096,6 @@ msgstr ""
 #~ msgid "This plugin integrates Gajim with the Ayatana AppIndicator."
 #~ msgstr "Cette extension intègre Gajim avec Ayatana AppIndicator."
 
-#, python-format
 #~ msgid "Tic Tac Toe with %s"
 #~ msgstr "Jouer au morpion avec %s"
 
@@ -1127,10 +1108,12 @@ msgstr ""
 #~ msgid "UrlImagePreview Configuration"
 #~ msgstr "Configuration de URL Image Preview"
 
+#~ msgid "We didnt receive a OpenPGP key from this contact."
+#~ msgstr "Aucune clé OpenPGP reçue pour ce contact."
+
 #~ msgid "Whether to check for a valid certificate"
 #~ msgstr "S'il faut vérifier la validité du certificat"
 
-#, python-format
 #~ msgid "Whiteboard stopped: %(reason)s"
 #~ msgstr "Tableau blanc arrêté : %(reason)s"
 
@@ -1173,7 +1156,6 @@ msgstr ""
 #~ msgid "dvipng and Imagemagick are not available"
 #~ msgstr "dvipng et ImageMagick ne sont pas disponibles"
 
-#, python-format
 #~ msgid ""
 #~ "latex error: %(error)s\n"
 #~ "===ORIGINAL CODE====\n"

@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Gajim Plugins\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-03-31 21:05+0200\n"
+"POT-Creation-Date: 2022-04-19 18:43+0000\n"
 "PO-Revision-Date: 2022-04-01 18:37+0000\n"
 "Last-Translator: El gran Pirujo <boina@disroot.org>\n"
 "Language-Team: Spanish <https://translate.gajim.org/projects/gajim-plugins/"
@@ -408,9 +408,6 @@ msgstr "Nueva respuesta rápida"
 msgid "New rule"
 msgstr "Nueva regla"
 
-msgid "No OpenPGP key"
-msgstr "No hay clave OpenPGP"
-
 msgid "No OpenPGP key assigned"
 msgstr "No hay clave OpenPGP asignada"
 
@@ -755,9 +752,6 @@ msgstr "Versión"
 msgid "Wav Sounds"
 msgstr "Sonidos Wav"
 
-msgid "We didnt receive a OpenPGP key from this contact."
-msgstr "No hemos recibido una clave OpenPGP de este contacto."
-
 msgid "Welcome"
 msgstr "Bienvenido"
 
@@ -806,27 +800,21 @@ msgstr "lista separada con comas"
 #~ msgid " and "
 #~ msgstr " y "
 
-#, python-format
 #~ msgid "%(name)s (%(jid)s) wants to play tictactoe with you."
 #~ msgstr "%(name)s (%(jid)s) quiere jugar al tictactoe contigo."
 
-#, python-format
 #~ msgid "%(name)s (%(jid)s) wants to start a whiteboard with you."
 #~ msgstr "%(name)s%(jid)s quiere empezar una pizarra contigo."
 
-#, python-format
 #~ msgid "%(name)s capitulated"
 #~ msgstr "%(name)s se ha rendido"
 
-#, python-format
 #~ msgid "%(name)s cheated"
 #~ msgstr "%(name)s estafado"
 
-#, python-format
 #~ msgid "%(name)s declined your invitation to play Tic Tac Toe."
 #~ msgstr "%(name)s ha rechazado tu invitación a jugar Tic Tac Toe."
 
-#, python-format
 #~ msgid "%s: it’s a draw."
 #~ msgstr "%s: es empate."
 
@@ -849,7 +837,6 @@ msgstr "lista separada con comas"
 #~ msgid "Board Size"
 #~ msgstr "Tamaño del tablero"
 
-#, python-format
 #~ msgid "Cannot open %s for reading"
 #~ msgstr "No puedo abrir %s para lectura"
 
@@ -865,7 +852,6 @@ msgstr "lista separada con comas"
 #~ msgid "Clients:"
 #~ msgstr "Clientes:"
 
-#, python-format
 #~ msgid ""
 #~ "Convertion to image failed\n"
 #~ "===ORIGINAL CODE====\n"
@@ -881,22 +867,18 @@ msgstr "lista separada con comas"
 #~ msgid "Decrypting file…"
 #~ msgstr "Descifrando fichero…"
 
-#, python-format
 #~ msgid "Directory '%s' is not writable"
 #~ msgstr "No se puede escribir en el directorio '%s'"
 
 #~ msgid "Displays a preview of image links."
 #~ msgstr "Muestra una vista previa de los enlaces de imágenes."
 
-#, python-format
 #~ msgid "Do you want to open %s?"
 #~ msgstr "¿Quieres abrir %s?"
 
-#, python-format
 #~ msgid "Error executing \"%(command)s\": %(error)s"
 #~ msgstr "Error ejecutando \"%(command)s\": %(error)s"
 
-#, python-format
 #~ msgid "Error processing LaTeX: %s"
 #~ msgstr "Error procesando LaTeX: %s"
 
@@ -932,7 +914,6 @@ msgstr "lista separada con comas"
 #~ msgid "Invitation Declined"
 #~ msgstr "Invitación rechazada"
 
-#, python-format
 #~ msgid "It’s %(name)s's turn"
 #~ msgstr "Es el turno de %(name)s"
 
@@ -945,7 +926,6 @@ msgstr "lista separada con comas"
 #~ msgid "LaTeX is not available"
 #~ msgstr "LaTeX no está disponible"
 
-#, python-format
 #~ msgid "Lat: %s Lon: %s"
 #~ msgstr "Lat: %s Lon: %s"
 
@@ -958,12 +938,14 @@ msgstr "lista separada con comas"
 #~ msgid "Left Click"
 #~ msgstr "Botón izquierdo"
 
-#, python-format
 #~ msgid "Location at Lat: %s Lon: %s"
 #~ msgstr "Ubicación en lat: %s lon: %s"
 
 #~ msgid "Maximum file size for preview generation"
 #~ msgstr "Tamaño máximo de fichero para generar previsualización"
+
+#~ msgid "No OpenPGP key"
+#~ msgstr "No hay clave OpenPGP"
 
 #~ msgid "Offline"
 #~ msgstr "Desconectado"
@@ -1100,7 +1082,6 @@ msgstr "lista separada con comas"
 #~ msgid "This plugin integrates Gajim with the Ayatana AppIndicator."
 #~ msgstr "Este complemento integra Gajim con Ayatana AppIndicator."
 
-#, python-format
 #~ msgid "Tic Tac Toe with %s"
 #~ msgstr "Tic Tac Toe con %s"
 
@@ -1113,10 +1094,12 @@ msgstr "lista separada con comas"
 #~ msgid "UrlImagePreview Configuration"
 #~ msgstr "Configuración de UrlImagePreview"
 
+#~ msgid "We didnt receive a OpenPGP key from this contact."
+#~ msgstr "No hemos recibido una clave OpenPGP de este contacto."
+
 #~ msgid "Whether to check for a valid certificate"
 #~ msgstr "Si se debe verificar un certificado válido"
 
-#, python-format
 #~ msgid "Whiteboard stopped: %(reason)s"
 #~ msgstr "La pizarra se ha detenido: %(reason)s"
 
@@ -1158,7 +1141,6 @@ msgstr "lista separada con comas"
 #~ msgid "dvipng and Imagemagick are not available"
 #~ msgstr "No está disponibles dvipng ni Imagemagick"
 
-#, python-format
 #~ msgid ""
 #~ "latex error: %(error)s\n"
 #~ "===ORIGINAL CODE====\n"

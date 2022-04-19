@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Gajim Plugins\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-03-31 21:05+0200\n"
+"POT-Creation-Date: 2022-04-19 18:43+0000\n"
 "PO-Revision-Date: 2022-04-04 18:47+0000\n"
 "Last-Translator: Daniel Brötzmann <mailtrash@posteo.de>\n"
 "Language-Team: German <https://translate.gajim.org/projects/gajim-plugins/"
@@ -411,9 +411,6 @@ msgstr "Neue Schnellantwort"
 msgid "New rule"
 msgstr "Neue Regel"
 
-msgid "No OpenPGP key"
-msgstr "Kein OpenPGP-Schlüssel"
-
 msgid "No OpenPGP key assigned"
 msgstr "Kein OpenPGP-Schlüssel zugewiesen"
 
@@ -761,9 +758,6 @@ msgstr "Version"
 msgid "Wav Sounds"
 msgstr "Wav-Dateien"
 
-msgid "We didnt receive a OpenPGP key from this contact."
-msgstr "Kein OpenPGP-Schlüssel von diesem Kontakt empfangen."
-
 msgid "Welcome"
 msgstr "Wilkommen"
 
@@ -812,27 +806,21 @@ msgstr "kommagetrennte Liste"
 #~ msgid " and "
 #~ msgstr " und "
 
-#, python-format
 #~ msgid "%(name)s (%(jid)s) wants to play tictactoe with you."
 #~ msgstr "%(name)s (%(jid)s) möchte mit Ihnen Tictactoe spielen."
 
-#, python-format
 #~ msgid "%(name)s (%(jid)s) wants to start a whiteboard with you."
 #~ msgstr "%(name)s (%(jid)s) möchte ein Whiteboard mit Ihnen starten."
 
-#, python-format
 #~ msgid "%(name)s capitulated"
 #~ msgstr "%(name)s hat aufgegeben"
 
-#, python-format
 #~ msgid "%(name)s cheated"
 #~ msgstr "%(name)s hat geschummelt"
 
-#, python-format
 #~ msgid "%(name)s declined your invitation to play Tic Tac Toe."
 #~ msgstr "%(name)s hat deine Einladung zum Spielen von Tictactoe abgelehnt."
 
-#, python-format
 #~ msgid "%s: it’s a draw."
 #~ msgstr "%s: unentschieden."
 
@@ -855,7 +843,6 @@ msgstr "kommagetrennte Liste"
 #~ msgid "Board Size"
 #~ msgstr "Spielfeldgröße"
 
-#, python-format
 #~ msgid "Cannot open %s for reading"
 #~ msgstr "Kann %s nicht zum Lesen öffnen"
 
@@ -871,7 +858,6 @@ msgstr "kommagetrennte Liste"
 #~ msgid "Clients:"
 #~ msgstr "Clients:"
 
-#, python-format
 #~ msgid ""
 #~ "Convertion to image failed\n"
 #~ "===ORIGINAL CODE====\n"
@@ -887,22 +873,18 @@ msgstr "kommagetrennte Liste"
 #~ msgid "Decrypting file…"
 #~ msgstr "Datei wird entschlüsselt…"
 
-#, python-format
 #~ msgid "Directory '%s' is not writable"
 #~ msgstr "Verzeichnis \"%s\" ist nicht beschreibbar"
 
 #~ msgid "Displays a preview of image links."
 #~ msgstr "Zeigt eine Vorschau für Links zu Bildern."
 
-#, python-format
 #~ msgid "Do you want to open %s?"
 #~ msgstr "Willst du %s öffnen?"
 
-#, python-format
 #~ msgid "Error executing \"%(command)s\": %(error)s"
 #~ msgstr "Fehler beim Ausführen von \"%(command)s\": %(error)s"
 
-#, python-format
 #~ msgid "Error processing LaTeX: %s"
 #~ msgstr "Fehler beim Verarbeiten von LaTeX: %s"
 
@@ -938,7 +920,6 @@ msgstr "kommagetrennte Liste"
 #~ msgid "Invitation Declined"
 #~ msgstr "Einladung abgelehnt"
 
-#, python-format
 #~ msgid "It’s %(name)s's turn"
 #~ msgstr "%(name)s ist dran"
 
@@ -951,7 +932,6 @@ msgstr "kommagetrennte Liste"
 #~ msgid "LaTeX is not available"
 #~ msgstr "LaTeX ist nicht verfügbar"
 
-#, python-format
 #~ msgid "Lat: %s Lon: %s"
 #~ msgstr "Breite: %s Länge: %s"
 
@@ -964,12 +944,14 @@ msgstr "kommagetrennte Liste"
 #~ msgid "Left Click"
 #~ msgstr "Linksklick"
 
-#, python-format
 #~ msgid "Location at Lat: %s Lon: %s"
 #~ msgstr "Standort bei Breite: %s Länge: %s"
 
 #~ msgid "Maximum file size for preview generation"
 #~ msgstr "Maximale Dateigröße für die Erstellung eines Vorschaubildes"
+
+#~ msgid "No OpenPGP key"
+#~ msgstr "Kein OpenPGP-Schlüssel"
 
 #~ msgid "Offline"
 #~ msgstr "Abgemeldet"
@@ -1106,7 +1088,6 @@ msgstr "kommagetrennte Liste"
 #~ msgid "This plugin integrates Gajim with the Ayatana AppIndicator."
 #~ msgstr "Dieses Plugin integriert Gajim in den Ayatana AppIndicator."
 
-#, python-format
 #~ msgid "Tic Tac Toe with %s"
 #~ msgstr "Tic Tac Toe mit %s"
 
@@ -1119,10 +1100,12 @@ msgstr "kommagetrennte Liste"
 #~ msgid "UrlImagePreview Configuration"
 #~ msgstr "UrlImagePreview-Konfiguration"
 
+#~ msgid "We didnt receive a OpenPGP key from this contact."
+#~ msgstr "Kein OpenPGP-Schlüssel von diesem Kontakt empfangen."
+
 #~ msgid "Whether to check for a valid certificate"
 #~ msgstr "Ob auf ein gültiges Zertifikat geprüft werden soll"
 
-#, python-format
 #~ msgid "Whiteboard stopped: %(reason)s"
 #~ msgstr "Whiteboard gestoppt: %(reason)s"
 
@@ -1165,7 +1148,6 @@ msgstr "kommagetrennte Liste"
 #~ msgid "dvipng and Imagemagick are not available"
 #~ msgstr "dvipng und Imagemagick sind nicht verfügbar"
 
-#, python-format
 #~ msgid ""
 #~ "latex error: %(error)s\n"
 #~ "===ORIGINAL CODE====\n"
