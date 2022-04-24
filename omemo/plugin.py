@@ -21,6 +21,7 @@ import binascii
 import threading
 from enum import IntEnum, unique
 from pathlib import Path
+from functools import partial
 
 from gi.repository import GLib
 from gi.repository import Gtk
@@ -95,7 +96,8 @@ class OmemoPlugin(GajimPlugin):
             'room-joined': (ged.GUI1, self._on_muc_joined),
         }
         self.modules = [omemo]
-        self.config_dialog = OMEMOConfigDialog(self)
+
+        self.config_dialog = partial(OMEMOConfigDialog, self)
         self.gui_extension_points = {
             'encrypt' + self.encryption_name: (self._encrypt_message, None),
             'gc_encrypt' + self.encryption_name: (
