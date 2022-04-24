@@ -24,7 +24,6 @@ Regex Filter plugin.
 import re
 
 from gajim.plugins import GajimPlugin
-from gajim.plugins.helpers import log_calls
 
 from gajim.common import app
 from gajim.common import ged
@@ -37,7 +36,6 @@ from gajim.plugins.plugins_i18n import _
 
 class RegexFilterPlugin(GajimPlugin):
 
-    @log_calls('RegexFilterPlugin')
     def init(self):
         self.description = _('Filter messages with regex')
         self.config_dialog = None
@@ -49,21 +47,17 @@ class RegexFilterPlugin(GajimPlugin):
 
         self.create_rules()
 
-    @log_calls('RegexFilterPlugin')
     def activate(self):
         FilterCommands.enable()
 
-    @log_calls('RegexFilterPlugin')
     def deactivate(self):
         FilterCommands.disable()
 
-    @log_calls('RegexFilterPlugin')
     def create_rules(self):
         self.rules = {}
         for num, c in self.config.items():
             self.rules[int(num)] = [re.compile(c[0], re.MULTILINE), c[1]]
 
-    @log_calls('RegexFilterPlugin')
     def add_rule(self, search, replace):
         if self.rules:
             num = max(self.rules.keys()) + 1
@@ -72,7 +66,6 @@ class RegexFilterPlugin(GajimPlugin):
         self.config[str(num)] = [search, replace]
         self.create_rules()
 
-    @log_calls('RegexFilterPlugin')
     def remove_rule(self, num):
         if num in self.config:
             del self.config[num]
@@ -80,11 +73,9 @@ class RegexFilterPlugin(GajimPlugin):
             return True
         return False
 
-    @log_calls('RegexFilterPlugin')
     def get_rules(self):
         return self.config
 
-    @log_calls('RegexFilterPlugin')
     def _nec_all(self, obj):
         if not obj.msgtxt:
             return
@@ -93,11 +84,9 @@ class RegexFilterPlugin(GajimPlugin):
             rule = self.rules[num]
             obj.msgtxt = rule[0].sub(rule[1], obj.msgtxt)
 
-    @log_calls('RegexFilterPlugin')
     def _on_message_received(self, obj):
         self._nec_all(obj)
 
-    @log_calls('RegexFilterPlugin')
     def _on_gc_message_received(self, obj):
         self._nec_all(obj)
 
