@@ -1,0 +1,17 @@
+{
+    "authors": [
+        "Denis Fomin <fominde@gmail.com>"
+    ],
+    "description": "Allows you to paste info about the music you are playing (use by pressing Alt+N in the message input).",
+    "homepage": "https://dev.gajim.org/gajim/gajim-plugins/wikis/NowListenPlugin",
+    "config_dialog": true,
+    "name": "Now Listen",
+    "platforms": [
+        "linux"
+    ],
+    "requirements": [
+        "gajim>=1.4.0"
+    ],
+    "short_name": "now_listen",
+    "version": "1.4.1"
+}

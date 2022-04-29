@@ -1,0 +1,19 @@
+{
+    "authors": [
+        "Evgeniy Popov <evgeniypopov@gmail.com>"
+    ],
+    "description": "Adds a menu with customizable quick replies",
+    "homepage": "https://dev.gajim.org/gajim/gajim-plugins/wikis/QuickRepliesPlugin",
+    "config_dialog": false,
+    "name": "Quick replies",
+    "platforms": [
+        "linux",
+        "darwin",
+        "win32"
+    ],
+    "requirements": [
+        "gajim>=1.4.0"
+    ],
+    "short_name": "quick_replies",
+    "version": "1.4.2"
+}

@@ -1,0 +1,19 @@
+{
+    "authors": [
+        "Yann Leboulanger <asterix@lagaule.org>"
+    ],
+    "description": "Filter incoming messages using regex.",
+    "homepage": "https://dev.gajim.org/gajim/gajim-plugins/wikis/RegexFilterPlugin",
+    "config_dialog": false,
+    "name": "Regex Filter",
+    "platforms": [
+        "linux",
+        "darwin",
+        "win32"
+    ],
+    "requirements": [
+        "gajim>=1.4.0"
+    ],
+    "short_name": "regex_filter",
+    "version": "1.4.2"
+}

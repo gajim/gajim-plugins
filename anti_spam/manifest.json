@@ -1,0 +1,21 @@
+{
+    "authors": [
+        "Yann Leboulanger <asterix@lagaule.org>",
+        "Denis Fomin <fominde@gmail.com>",
+        "Ilya Kanyukov <ilya.kanukov@gmail.com>"
+    ],
+    "description": "Block some incoming messages.",
+    "homepage": "https://dev.gajim.org/gajim/gajim-plugins/wikis/AntiSpamPlugin",
+    "config_dialog": true,
+    "name": "Anti Spam",
+    "platforms": [
+        "linux",
+        "darwin",
+        "win32"
+    ],
+    "requirements": [
+        "gajim>=1.4.0"
+    ],
+    "short_name": "anti_spam",
+    "version": "1.6.4"
+}

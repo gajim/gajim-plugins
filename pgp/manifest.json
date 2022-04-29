@@ -1,0 +1,19 @@
+{
+    "authors": [
+        "Philipp Hörist <philipp@hoerist.com>"
+    ],
+    "description": "PGP encryption as per XEP-0027.",
+    "homepage": "https://dev.gajim.org/gajim/gajim-plugins/wikis/pgpplugin",
+    "config_dialog": false,
+    "name": "PGP",
+    "platforms": [
+        "linux",
+        "darwin",
+        "win32"
+    ],
+    "requirements": [
+        "gajim>=1.4.0"
+    ],
+    "short_name": "pgp",
+    "version": "1.4.5"
+}

@@ -1,0 +1,19 @@
+{
+    "authors": [
+        "Yann Leboulanger <asterix@lagaule.org>"
+    ],
+    "description": "Configure Gajim's behaviour for each contact.",
+    "homepage": "https://dev.gajim.org/gajim/gajim-plugins/wikis/TriggersPlugin",
+    "config_dialog": true,
+    "name": "Triggers",
+    "platforms": [
+        "linux",
+        "darwin",
+        "win32"
+    ],
+    "requirements": [
+        "gajim>=1.4.0"
+    ],
+    "short_name": "triggers",
+    "version": "1.4.5"
+}

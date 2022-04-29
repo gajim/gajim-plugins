@@ -1,0 +1,19 @@
+{
+    "authors": [
+        "Denis Fomin <fominde@gmail.com>"
+    ],
+    "description": "This plugin contains translation files for Gajim plugins.",
+    "homepage": "https://dev.gajim.org/gajim/gajim-plugins/wikis/PluginsTranslationsPlugin",
+    "config_dialog": false,
+    "name": "Plugins translations",
+    "platforms": [
+        "linux",
+        "darwin",
+        "win32"
+    ],
+    "requirements": [
+        "gajim>=1.4.0"
+    ],
+    "short_name": "plugins_translations",
+    "version": "1.4.1"
+}

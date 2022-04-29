@@ -1,0 +1,21 @@
+{
+    "authors": [
+        "Denis Fomin <fominde@gmail.com>",
+        "Artem Klyop <art.klyop@gmail.com>",
+        "Thilo Molitor <thilo@eightysoft.de>"
+    ],
+    "description": "Shows client icons in roster and in groupchats.",
+    "homepage": "https://dev.gajim.org/gajim/gajim-plugins/wikis/ClientsIconsPlugin",
+    "config_dialog": true,
+    "name": "Clients icons",
+    "platforms": [
+        "linux",
+        "darwin",
+        "win32"
+    ],
+    "requirements": [
+        "gajim>=1.4.0"
+    ],
+    "short_name": "clients_icons",
+    "version": "7.10.5"
+}

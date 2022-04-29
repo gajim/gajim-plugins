@@ -1,0 +1,19 @@
+{
+    "authors": [
+        "Philipp Hörist <philipp@hoerist.com>"
+    ],
+    "description": "Experimental OpenPGP (XEP-0373) implementation.",
+    "homepage": "https://dev.gajim.org/gajim/gajim-plugins/wikis/pgp",
+    "config_dialog": false,
+    "name": "OpenPGP",
+    "platforms": [
+        "linux",
+        "darwin",
+        "win32"
+    ],
+    "requirements": [
+        "gajim>=1.4.0"
+    ],
+    "short_name": "openpgp",
+    "version": "1.4.9"
+}
