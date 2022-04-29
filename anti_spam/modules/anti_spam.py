@@ -45,7 +45,7 @@ class AntiSpam(BaseModule):
         ])
 
         for plugin in app.plugin_manager.plugins:
-            if plugin.short_name == 'anti_spam':
+            if plugin.manifest.short_name == 'anti_spam':
                 self._config = plugin.config
 
         self._contacted_jids = set()
