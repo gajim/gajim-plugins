@@ -1,1 +1,0 @@
-from form_handler.plugin import FormHandlerPlugin
