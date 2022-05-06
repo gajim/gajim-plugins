@@ -35,7 +35,7 @@ REQUIRED_KEYS: Set[str] = {
 PACKAGE_INDEX: Dict[str, Any] = {
     'metadata': {
         'repository_name': 'master',
-        'image_url': 'images.zip',
+        'image_path': 'images.zip',
     },
     'plugins': defaultdict(dict)
 }
