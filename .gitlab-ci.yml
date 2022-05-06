@@ -1,0 +1,9 @@
+image: ci-gajim:master
+
+stages:
+  - deploy
+
+deploy-plugins:
+  stage: deploy
+  script:
+    - python .ci/deploy.py
