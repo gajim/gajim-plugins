@@ -9,4 +9,7 @@
         "**/__pycache__",
         ".git"
     ],
+    "include": [
+        "scripts/*",
+    ]
 }
