@@ -138,7 +138,8 @@ def deploy(ftp: FTP_TLS, packages_to_publish: list[PackageT]) -> None:
 
         ftp.cwd(package_name)
         upload_file(ftp, zip_path)
-        upload_file(ftp, image_path)
+        if image_path.exists():
+            upload_file(ftp, image_path)
         ftp.cwd('..')
 
         console.print('Deployed', package_name)
