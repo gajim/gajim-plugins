@@ -1,7 +1,11 @@
 
+# Keep this file python 3.7 compatible because it is executed on the server
+
 from typing import Any
 from typing import Dict
 from typing import Iterator
+from typing import Set
+from typing import Dict
 
 import sys
 import json
@@ -16,7 +20,7 @@ logging.basicConfig(format=FORMAT, level=logging.DEBUG)
 log = logging.getLogger()
 
 
-REQUIRED_KEYS: set[str] = {
+REQUIRED_KEYS: Set[str] = {
     'authors',
     'description',
     'homepage',
@@ -28,7 +32,7 @@ REQUIRED_KEYS: set[str] = {
     'version'
 }
 
-PACKAGE_INDEX: dict[str, Any] = {
+PACKAGE_INDEX: Dict[str, Any] = {
     'metadata': {
         'repository_name': 'master',
         'image_url': 'images.zip',
@@ -37,7 +41,7 @@ PACKAGE_INDEX: dict[str, Any] = {
 }
 
 
-def is_manifest_valid(manifest: dict[str, Any]) -> bool:
+def is_manifest_valid(manifest: Dict[str, Any]) -> bool:
     manifest_keys = set(manifest.keys())
     return REQUIRED_KEYS.issubset(manifest_keys)
 
