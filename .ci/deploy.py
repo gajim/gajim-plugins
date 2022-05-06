@@ -61,6 +61,9 @@ def is_manifest_valid(manifest: ManifestT) -> bool:
 def download_package_index() -> ManifestT:
     console.print('Download package index')
     r = requests.get(PACKAGE_INDEX_URL)
+    if r.status_code == 404:
+        return {}
+
     r.raise_for_status()
     index = r.json()
     return index
