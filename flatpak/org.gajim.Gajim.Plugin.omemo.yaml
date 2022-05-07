@@ -50,13 +50,15 @@ modules:
     buildsystem: simple
     build-commands:
       - 'cp -R -t ${FLATPAK_DEST} *'
+      - 'mv ${FLATPAK_DEST}/{,plugin-}manifest.json'
     post-install:
       - install -Dm644 --target-directory=${FLATPAK_DEST}/share/metainfo org.gajim.Gajim.Plugin.omemo.metainfo.xml
       - appstream-compose --basename=org.gajim.Gajim.Devel.Plugin.omemo --prefix=${FLATPAK_DEST} --origin=flatpak org.gajim.Gajim.Plugin.omemo
     sources:
       - type: archive
-        url: https://ftp.gajim.org/plugins_releases/omemo_2.8.12.zip
-        sha256: 933bce110e9255aa81e76c34ca1c4bb9e6bfb3b82047d0c3c4f8dc08417d82ce
+        strip-components: 0
+        url: https://ftp.gajim.org/plugins/master/omemo/omemo_2.8.14.zip
+        sha256: 610602db8de8e124137342ca060e883a5a917529968e63bb95783e4a96f4a1e5
       - type: shell
         commands:
           - sed -i "s+org.gajim.Gajim+org.gajim.Gajim.Devel+" org.gajim.Gajim.Plugin.*.metainfo.xml

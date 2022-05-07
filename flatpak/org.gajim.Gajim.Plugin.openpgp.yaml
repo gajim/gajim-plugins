@@ -45,13 +45,15 @@ modules:
     buildsystem: simple
     build-commands:
       - 'cp -R -t ${FLATPAK_DEST} *'
+      - 'mv ${FLATPAK_DEST}/{,plugin-}manifest.json'
     post-install:
       - install -Dm644 --target-directory=${FLATPAK_DEST}/share/metainfo org.gajim.Gajim.Plugin.openpgp.metainfo.xml
       - appstream-compose --basename=org.gajim.Gajim.Devel.Plugin.openpgp --prefix=${FLATPAK_DEST} --origin=flatpak org.gajim.Gajim.Plugin.openpgp
     sources:
       - type: archive
-        url: https://ftp.gajim.org/plugins_releases/openpgp_1.4.8.zip
-        sha256: 20c9b101b8696e14adaa62f9e11e6dda2c8963b626063cc9004c77aa7a666f16
+        strip-components: 0
+        url: https://ftp.gajim.org/plugins/master/openpgp/openpgp_1.4.9.zip
+        sha256: e80d4fbafe6b69d2ee5ba6a1acb6bf942ab719da70470dc9d15d5cbfd1e657a6
       - type: shell
         commands:
           - sed -i "s+org.gajim.Gajim+org.gajim.Gajim.Devel+" org.gajim.Gajim.Plugin.*.metainfo.xml
