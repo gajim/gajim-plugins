@@ -23,7 +23,6 @@ modules:
     buildsystem: simple
     build-commands:
       - 'cp -R -t ${FLATPAK_DEST} *'
-      - 'mv ${FLATPAK_DEST}/{,plugin-}manifest.json'
     post-install:
       - install -Dm644 --target-directory=${FLATPAK_DEST}/share/metainfo org.gajim.Gajim.Plugin.pgp.metainfo.xml
       - appstream-compose --basename=org.gajim.Gajim.Devel.Plugin.pgp --prefix=${FLATPAK_DEST} --origin=flatpak org.gajim.Gajim.Plugin.pgp
@@ -31,7 +30,7 @@ modules:
       - type: archive
         strip-components: 0
         url: https://ftp.gajim.org/plugins/master/pgp/pgp_1.4.5.zip
-        sha256: fb02a0a32f71874052a0203724f023a2373caeca7c0bedd41f3d5be636a824a7
+        sha256: 8f492406c1f49dc2cc22bfffa4aeb165b3079c4c8dbd90b6dcc3619256e94e59
       - type: shell
         commands:
           - sed -i "s+org.gajim.Gajim+org.gajim.Gajim.Devel+" org.gajim.Gajim.Plugin.*.metainfo.xml

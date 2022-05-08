@@ -13,11 +13,11 @@ modules:
   - name: protobuf
     buildsystem: simple
     build-commands:
-      - pip3 install --no-deps protobuf-3.19.4-py2.py3-none-any.whl
+      - pip3 install --no-deps protobuf-3.20.1-py2.py3-none-any.whl
     sources:
       - type: file
-        url: https://files.pythonhosted.org/packages/py2.py3/p/protobuf/protobuf-3.19.4-py2.py3-none-any.whl
-        sha256: 8961c3a78ebfcd000920c9060a262f082f29838682b1f7201889300c1fbe0616
+        url: https://files.pythonhosted.org/packages/py2.py3/p/protobuf/protobuf-3.20.1-py2.py3-none-any.whl
+        sha256: adfc6cf69c7f8c50fd24c793964eef18f0ac321315439d94945820612849c388
 
   - name: python3-axolotl-curve25519
     buildsystem: simple
@@ -50,7 +50,6 @@ modules:
     buildsystem: simple
     build-commands:
       - 'cp -R -t ${FLATPAK_DEST} *'
-      - 'mv ${FLATPAK_DEST}/{,plugin-}manifest.json'
     post-install:
       - install -Dm644 --target-directory=${FLATPAK_DEST}/share/metainfo org.gajim.Gajim.Plugin.omemo.metainfo.xml
       - appstream-compose --basename=org.gajim.Gajim.Devel.Plugin.omemo --prefix=${FLATPAK_DEST} --origin=flatpak org.gajim.Gajim.Plugin.omemo
@@ -58,7 +57,7 @@ modules:
       - type: archive
         strip-components: 0
         url: https://ftp.gajim.org/plugins/master/omemo/omemo_2.8.14.zip
-        sha256: 610602db8de8e124137342ca060e883a5a917529968e63bb95783e4a96f4a1e5
+        sha256: a16187122b09f37a8811a847235d197f12bc9d771811cc63d70a4f30befa89c2
       - type: shell
         commands:
           - sed -i "s+org.gajim.Gajim+org.gajim.Gajim.Devel+" org.gajim.Gajim.Plugin.*.metainfo.xml
