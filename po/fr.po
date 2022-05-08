@@ -1,13 +1,14 @@
 # Copyright (C) Gajim Team
 # This file is distributed under the same license as the Gajim Plugins package.
 #
+# pitchum <pitchum@gramaton.org>, 2022.
 msgid ""
 msgstr ""
 "Project-Id-Version: Gajim Plugins\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2022-04-19 18:43+0000\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"PO-Revision-Date: 2022-04-20 14:28+0000\n"
+"Last-Translator: pitchum <pitchum@gramaton.org>\n"
 "Language-Team: French <https://translate.gajim.org/projects/gajim-plugins/"
 "master/fr/>\n"
 "Language: fr\n"
@@ -15,7 +16,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n > 1;\n"
-"X-Generator: Weblate 4.1.1\n"
+"X-Generator: Weblate 4.11.2\n"
 
 #. #' Means number
 msgid "#"
@@ -31,22 +32,22 @@ msgstr "%(num)s : %(search)s -> %(replace)s"
 
 #. label for account selector
 msgid "Acc_ount"
-msgstr ""
+msgstr "C_ompte"
 
 msgid "Acronym"
-msgstr ""
+msgstr "Acronyme"
 
 msgid "Acronyms Configuration"
 msgstr "Configuration de Acronyms"
 
 msgid "Actions"
-msgstr ""
+msgstr "Actions"
 
 msgid "Active Accounts"
-msgstr ""
+msgstr "Comptes actifs"
 
 msgid "Add"
-msgstr ""
+msgstr "Ajouter"
 
 msgid ""
 "Add an incoming filter. First argument is the search regex, second argument "
@@ -62,14 +63,15 @@ msgstr "règle ajoutée pour remplacer %(search)s par %(replace)s"
 msgid "Adds a menu with customizable quick replies"
 msgstr "Ajoute un menu avec des réponses rapides personnalisables"
 
+#, fuzzy
 msgid "Advanced"
-msgstr ""
+msgstr "Avancé"
 
 msgid "All Files"
 msgstr "Tous les fichiers"
 
 msgid "All statuses"
-msgstr ""
+msgstr "Tous les états"
 
 msgid "Allows you to adjust the height of the message input."
 msgstr "Permet d'ajuster la hauteur du champ de saisie de message."
@@ -104,13 +106,13 @@ msgid "Assign key for %s"
 msgstr "Associer la clef pour %s"
 
 msgid "Authors"
-msgstr ""
+msgstr "Auteurs"
 
 msgid "Available"
 msgstr "Disponible"
 
 msgid "Away"
-msgstr ""
+msgstr "Absent"
 
 msgid "Bad Configuration"
 msgstr "Mauvaise configuration"
@@ -122,22 +124,22 @@ msgid "Blind Trust"
 msgstr "Confiance aveugle"
 
 msgid "Blind Trust Before Verification"
-msgstr ""
+msgstr "Confiance aveugle avant vérification"
 
 msgid "Busy"
-msgstr ""
+msgstr "Occupé"
 
 msgid "Cancel"
 msgstr "Annuler"
 
 msgid "Category"
-msgstr ""
+msgstr "Catégorie"
 
 msgid "Certain status"
 msgstr ""
 
 msgid "Chat Window"
-msgstr ""
+msgstr "Fenêtre de discussion"
 
 msgid "Check for updates"
 msgstr "Vérifier les mises à jour"
@@ -152,11 +154,14 @@ msgstr ""
 "Vérifie les vCards de vos contacts à la recherche de dates d'anniversaire "
 "imminentes et vous informe le jour venu."
 
+#, fuzzy
 msgid "Clear Devices"
-msgstr ""
+msgstr "Purger les appareils"
 
 msgid "Click the shield icon to manage trust for each fingerprint."
 msgstr ""
+"Cliquer sur l'icône bouclier pour définir la confiance accordée à chaque "
+"empreinte."
 
 msgid "Clients Icons Configuration"
 msgstr "Configuration de Client Icons"
@@ -180,7 +185,7 @@ msgstr ""
 "contact"
 
 msgid "Contact"
-msgstr ""
+msgstr "Contact"
 
 msgid "Contact Changes Status"
 msgstr ""
@@ -193,7 +198,7 @@ msgid "Contact Disconnects"
 msgstr ""
 
 msgid "Contact Name"
-msgstr ""
+msgstr "Nom du contact"
 
 msgid ""
 "Copy tune info of playing music to conversation input box at cursor position "
@@ -225,16 +230,17 @@ msgid "Delete rule"
 msgstr "Supprimer la clé publique"
 
 msgid "Delete this rule once applied"
-msgstr ""
+msgstr "Effacer cette règle une fois appliquée"
 
 msgid "Deny Subscription Requests"
 msgstr "Refuser les demandes d'inscription à votre présence"
 
 msgid "Device ID"
-msgstr ""
+msgstr "Identifiant d'appareil"
 
+#, fuzzy
 msgid "Disable Accounts"
-msgstr ""
+msgstr "Désactiver des comptes"
 
 msgid "Disable XHTML for Group Chats"
 msgstr "Désactiver XHTML dans les salons de discussion"
@@ -243,7 +249,7 @@ msgid "Disable XHTML for PMs"
 msgstr "Désactive XHTML pour les messages privés"
 
 msgid "Disabled Accounts"
-msgstr ""
+msgstr "Comptes désactivés"
 
 msgid "Do not show this message again"
 msgstr "Ne plus afficher ce message"
@@ -257,9 +263,8 @@ msgstr "Cela va supprimer définitivement cette empreinte"
 msgid "Down"
 msgstr ""
 
-#, fuzzy
 msgid "Download"
-msgstr "Télécharge…"
+msgstr "Télécharger"
 
 msgid "Enable the plugin for selected XMPP addresses only (comma separated)"
 msgstr ""
@@ -280,13 +285,13 @@ msgid "Error"
 msgstr "Erreur"
 
 msgid "Event"
-msgstr ""
+msgstr "Événement"
 
 msgid "Everybody"
-msgstr ""
+msgstr "Tout le monde"
 
 msgid "Filter messages with regex"
-msgstr ""
+msgstr "Filtrer les messages avec une expression rationnelle"
 
 #, python-format
 msgid "Fingerprints for %s"
@@ -299,6 +304,8 @@ msgid ""
 "For verification via QR-Code\n"
 "you have to install python-qrcode"
 msgstr ""
+"Pour la vérification par QR-Code\n"
+"vous devez installer python-qrcode"
 
 msgid "Form has successfully been sent"
 msgstr "Le formulaire a été envoyé avec succès"
@@ -321,8 +328,9 @@ msgstr "Génération d'une nouvelle clé"
 msgid "Group"
 msgstr ""
 
+#, fuzzy
 msgid "Groupchat participant"
-msgstr ""
+msgstr "Participant de salon"
 
 msgid "Has focus"
 msgstr ""
@@ -341,17 +349,17 @@ msgstr ""
 "longueur du message dépasse un seuil spécifié."
 
 msgid "Homepage"
-msgstr ""
+msgstr "Page d'accueil"
 
 msgid "Inactive"
-msgstr "Inactive"
+msgstr "Inactif"
 
 #, fuzzy
 msgid "Install"
 msgstr ". Installer %s"
 
 msgid "Install / Upda_te"
-msgstr ""
+msgstr "Installer / Me_tre à jour"
 
 msgid "Install and upgrade plugins for Gajim"
 msgstr "Installer et mettre à jour les extensions pour Gajim"
@@ -447,13 +455,15 @@ msgid "Not opened"
 msgstr "Non décidé"
 
 msgid "Not_ify me with a popup"
-msgstr ""
+msgstr "Me not_ifier avec une popup"
 
 msgid "Note: Fingerprints of your contacts are managed in the message window."
 msgstr ""
+"Note : les empreintes de vos contacts sont gérées depuis la fenêtre de "
+"message."
 
 msgid "Notifications"
-msgstr ""
+msgstr "Notifications"
 
 msgid "Notify after update"
 msgstr "Notifier après mise à jour"
@@ -493,7 +503,7 @@ msgid "Own Fingerprints"
 msgstr "Empreintes OMEMO"
 
 msgid "Own _Device ID"
-msgstr ""
+msgstr "Mon propre i_dentifiant d'appareil"
 
 #. Descriptive label
 #, fuzzy
@@ -553,7 +563,7 @@ msgid "Public Keys for %s"
 msgstr "Clés publiques pour %s"
 
 msgid "Published Devices"
-msgstr ""
+msgstr "Appareils publiés"
 
 msgid "Question has to be answered in order to contact you"
 msgstr "La question à laquelle il faut répondre pour pouvoir vous contacter"
@@ -699,6 +709,11 @@ msgid ""
 "It is advised to go online with all of your actively used devices after "
 "clearing."
 msgstr ""
+"Cela nettoie votre liste d'appareils sur le serveur.\n"
+"Nettoyer la liste d'appareils vous permet de retirer du processus de "
+"chiffrement les appareils inutilisés.\n"
+"Nous vous recommandons de vous connecter avec tous vos appareils habituels "
+"juste après le nettoyage."
 
 msgid "This message was encrypted with OMEMO, but not for your device."
 msgstr ""
@@ -761,7 +776,7 @@ msgid "Verified"
 msgstr "Vérifiée"
 
 msgid "Version"
-msgstr ""
+msgstr "Version"
 
 msgid "Wav Sounds"
 msgstr "Sons Wav"
@@ -770,7 +785,7 @@ msgid "Welcome"
 msgstr "Bienvenue"
 
 msgid "You have to restart Gajim for changes to take effect !"
-msgstr ""
+msgstr "Vous devez redémarrer Gajim pour que les changements prennent effet !"
 
 msgid "You have undecided fingerprints"
 msgstr "Il y a des empreintes pour lesquelles vous n'avez encore rien décidé"
@@ -779,10 +794,10 @@ msgid "[This message is *encrypted* (See :XEP:`27`]"
 msgstr "[Ce message est *chiffré* (Voir :XEP:`27`]"
 
 msgid "_Clear Devices"
-msgstr ""
+msgstr "_Nettoyer les appareils"
 
 msgid "_Disable Account"
-msgstr ""
+msgstr "Désactiver compte"
 
 msgid "_Disable existing notification"
 msgstr ""
@@ -794,7 +809,7 @@ msgid "_Do not ask me again"
 msgstr "_Ne plus poser la question"
 
 msgid "_Enable Account"
-msgstr ""
+msgstr "Activ_er compte"
 
 msgid "_Encrypt Anyway"
 msgstr "_Chiffrer malgré tout"
@@ -809,7 +824,7 @@ msgid "and I am "
 msgstr "et je suis "
 
 msgid "comma separated list"
-msgstr ""
+msgstr "liste d'éléments séparés par des virgules"
 
 #~ msgid " and "
 #~ msgstr " et "
