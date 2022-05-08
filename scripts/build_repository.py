@@ -49,6 +49,9 @@ def is_manifest_valid(manifest: Dict[str, Any]) -> bool:
 def iter_releases(release_folder: Path) -> Iterator[Dict[str, Any]]:
     for path in release_folder.rglob('*.zip'):
         with ZipFile(path) as release_zip:
+            if path.name == 'images.zip':
+                continue
+            log.info('Check path: %s', path)
             try:
                 with release_zip.open('plugin-manifest.json') as file:
                     manifest = json.load(file)
