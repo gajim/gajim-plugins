@@ -70,7 +70,7 @@ def download_package_index() -> ManifestT:
 
 
 def iter_manifests() -> Iterator[PackageT]:
-    for path in REPO_ROOT.rglob('manifest.json'):
+    for path in REPO_ROOT.rglob('plugin-manifest.json'):
         with path.open() as f:
             manifest = json.load(f)
         yield manifest, path.parent

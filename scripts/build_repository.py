@@ -50,7 +50,7 @@ def iter_releases(release_folder: Path) -> Iterator[Dict[str, Any]]:
     for path in release_folder.rglob('*.zip'):
         with ZipFile(path) as release_zip:
             try:
-                with release_zip.open('manifest.json') as file:
+                with release_zip.open('plugin-manifest.json') as file:
                     manifest = json.load(file)
                     yield manifest
             except Exception:
