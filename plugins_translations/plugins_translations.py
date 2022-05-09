@@ -22,7 +22,8 @@ class PluginsTranslationsPlugin(GajimPlugin):
         self.locale_dir = Path(configpaths.get('PLUGINS_USER')) / 'locale'
 
     def activate(self):
-        if self.config['last_version'] == self.version:
+        current_version = str(self.manifest.version)
+        if self.config['last_version'] == current_version:
             return
 
         files = glob(self.__path__ + '/*.mo')
@@ -40,7 +41,7 @@ class PluginsTranslationsPlugin(GajimPlugin):
             shutil.copy2(os.path.join(self.__path__, '%s.mo' % locale),
                          str(dst))
 
-        self.config['last_version'] = self.version
+        self.config['last_version'] = current_version
 
     def _remove_translations(self):
         log.info('Removing old translations...')
