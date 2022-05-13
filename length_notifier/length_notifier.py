@@ -26,6 +26,7 @@ Message length notifier plugin.
 import logging
 from functools import partial
 
+from gi.repository import Gdk
 from gi.repository import Gtk
 
 from nbxmpp.protocol import JID
@@ -122,6 +123,13 @@ class Counter(Gtk.Label):
         self._max_length = config['MESSAGE_WARNING_LENGTH']
         self._color = config['WARNING_COLOR']
 
+        rgba = Gdk.RGBA()
+        rgba.parse(self._color)
+        red = int(255 - rgba.red * 255)
+        green = int(255 - rgba.green * 255)
+        blue = int(255 - rgba.blue * 255)
+        self._inverted_color = f'rgb({red}, {green}, {blue})'
+
         self.set_tooltip_text(_('Number of typed characters'))
         self.get_style_context().add_class('dim-label')
 
@@ -139,9 +147,10 @@ class Counter(Gtk.Label):
             self._context.remove_provider(self._provider)
         css = '''
         .length-warning > * {
+            color: %s;
             background-color: %s;
         }
-        ''' % self._color
+        ''' % (self._inverted_color, self._color)
         self._provider = Gtk.CssProvider()
         self._provider.load_from_data(bytes(css.encode()))
         self._context.add_provider(
