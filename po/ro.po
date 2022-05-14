@@ -1,13 +1,14 @@
 # Copyright (C) Gajim Team
 # This file is distributed under the same license as the Gajim Plugins package.
 #
+# Max Muster <c@zp1.net>, 2022.
 msgid ""
 msgstr ""
 "Project-Id-Version: Gajim Plugins\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-04-19 18:43+0000\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"POT-Creation-Date: 2022-05-08 13:46+0000\n"
+"PO-Revision-Date: 2022-05-14 12:29+0000\n"
+"Last-Translator: Max Muster <c@zp1.net>\n"
 "Language-Team: Romanian <https://translate.gajim.org/projects/gajim-plugins/"
 "master/ro/>\n"
 "Language: ro\n"
@@ -16,7 +17,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=n==1 ? 0 : (n==0 || (n%100 > 0 && n%100 < "
 "20)) ? 1 : 2;\n"
-"X-Generator: Weblate 4.1.1\n"
+"X-Generator: Weblate 4.11.2\n"
 
 #. #' Means number
 msgid "#"
@@ -32,22 +33,22 @@ msgstr "%(num)s: %(search)s -> %(replace)s"
 
 #. label for account selector
 msgid "Acc_ount"
-msgstr ""
+msgstr "C_ont"
 
 msgid "Acronym"
-msgstr ""
+msgstr "Acronim"
 
 msgid "Acronyms Configuration"
 msgstr "Acronime Configurare"
 
 msgid "Actions"
-msgstr ""
+msgstr "Acțiuni"
 
 msgid "Active Accounts"
-msgstr ""
+msgstr "Conturi active"
 
 msgid "Add"
-msgstr ""
+msgstr "Adaugă"
 
 msgid ""
 "Add an incoming filter. First argument is the search regex, second argument "
@@ -64,13 +65,13 @@ msgid "Adds a menu with customizable quick replies"
 msgstr "Adaugă un meniu cu răspunsuri rapide personalizabile"
 
 msgid "Advanced"
-msgstr ""
+msgstr "Avansat"
 
 msgid "All Files"
 msgstr "Toate fișierele"
 
 msgid "All statuses"
-msgstr ""
+msgstr "Toate stările"
 
 msgid "Allows you to adjust the height of the message input."
 msgstr "Vă permite să reglați înălțimea mesajului introdus."
@@ -104,60 +105,40 @@ msgstr "Atribuiți cheia PGP"
 msgid "Assign key for %s"
 msgstr "Atribuiți cheia pentru %s"
 
-msgid "Authors"
-msgstr ""
-
-msgid "Available"
-msgstr "Disponibil"
-
 msgid "Away"
-msgstr ""
+msgstr "absent"
 
 msgid "Bad Configuration"
 msgstr "Configurație greșită"
-
-msgid "Birthday Reminder"
-msgstr "Amintire ziua de naștere"
 
 msgid "Blind Trust"
 msgstr "Încredere oarbă"
 
 msgid "Blind Trust Before Verification"
-msgstr ""
+msgstr "Încredere oarbă"
 
 msgid "Busy"
-msgstr ""
+msgstr "Ocupat"
 
 msgid "Cancel"
 msgstr "Anulează"
 
 msgid "Category"
-msgstr ""
+msgstr "Categorie"
 
 msgid "Certain status"
-msgstr ""
+msgstr "Stare certă"
 
 msgid "Chat Window"
-msgstr ""
-
-msgid "Check for updates"
-msgstr "Verificați dacă există actualizări"
-
-msgid "Check for updates after start"
-msgstr "Verificați dacă există actualizări după pornire"
-
-msgid ""
-"Checks vCards of your contacts for upcoming birthdays and reminds you on "
-"that day."
-msgstr ""
-"Verifică vCard-urile contactelor dvs. pentru zilele de naștere viitoare și "
-"vă reamintește în ziua respectivă."
+msgstr "Fereastra de chat"
 
 msgid "Clear Devices"
-msgstr ""
+msgstr "sterge dispozitivele"
 
 msgid "Click the shield icon to manage trust for each fingerprint."
 msgstr ""
+"Clic pe pictograma scut pentru a gestiona încrederea pentru fiecare amprentă "
+"digitală."
 
 msgid "Clients Icons Configuration"
 msgstr "Configurarea pictogramelor clienților"
@@ -166,34 +147,32 @@ msgid "Color"
 msgstr "Culoare"
 
 msgid "Command..."
-msgstr ""
+msgstr "Comanda..."
 
 msgid "Condition"
 msgstr "Condiție"
 
-#, fuzzy
 msgid "Conditions"
-msgstr "Condiție"
+msgstr "Condiții"
 
 msgid "Configure Gajim’s behaviour with triggers for each contact"
 msgstr ""
 "Configurați comportamentul lui Gajim cu declanșatori pentru fiecare contact"
 
 msgid "Contact"
-msgstr ""
+msgstr "Contact"
 
 msgid "Contact Changes Status"
-msgstr ""
+msgstr "Contactul își schimbă statutul"
 
-#, fuzzy
 msgid "Contact Connects"
-msgstr "Conectați-vă"
+msgstr "Contactul se conectează"
 
 msgid "Contact Disconnects"
-msgstr ""
+msgstr "Contactul se deconectează"
 
 msgid "Contact Name"
-msgstr ""
+msgstr "Numele contactului"
 
 msgid ""
 "Copy tune info of playing music to conversation input box at cursor position "
@@ -208,9 +187,6 @@ msgstr ""
 "Răspunsul corect la întrebarea dvs. Anti Spam (lăsați gol pentru a dezactiva "
 "întrebarea)"
 
-msgid "Data Form"
-msgstr "Formular de date"
-
 msgid "Delete"
 msgstr "Ștergeți"
 
@@ -220,21 +196,20 @@ msgstr "Ștergerea amprentei digitale"
 msgid "Delete Public Key"
 msgstr "Ștergeți cheia publică"
 
-#, fuzzy
 msgid "Delete rule"
-msgstr "Ștergeți cheia publică"
+msgstr "Ștergeți regula"
 
 msgid "Delete this rule once applied"
-msgstr ""
+msgstr "Ștergeți această regulă odată aplicată"
 
 msgid "Deny Subscription Requests"
 msgstr "Refuzarea cererilor de abonament"
 
 msgid "Device ID"
-msgstr ""
+msgstr "ID-ul dispozitivului"
 
 msgid "Disable Accounts"
-msgstr ""
+msgstr "Dezactivați conturile"
 
 msgid "Disable XHTML for Group Chats"
 msgstr "Dezactivați XHTML pentru discuțiile de grup"
@@ -243,23 +218,19 @@ msgid "Disable XHTML for PMs"
 msgstr "Dezactivați XHTML pentru PMs"
 
 msgid "Disabled Accounts"
-msgstr ""
-
-msgid "Do not show this message again"
-msgstr "Nu mai afișați acest mesaj"
+msgstr "Conturi dezactivate"
 
 msgid "Does not have focus"
-msgstr ""
+msgstr "Nu are focus"
 
 msgid "Doing so will permanently delete this Fingerprint"
 msgstr "În acest fel, această amprentă digitală va fi ștearsă definitiv"
 
 msgid "Down"
-msgstr ""
+msgstr "Jos"
 
-#, fuzzy
 msgid "Download"
-msgstr "Descărcare…"
+msgstr "Descărcare"
 
 msgid "Enable the plugin for selected XMPP addresses only (comma separated)"
 msgstr ""
@@ -281,31 +252,27 @@ msgid "Error"
 msgstr "Eroare"
 
 msgid "Event"
-msgstr ""
+msgstr "Eveniment"
 
 msgid "Everybody"
-msgstr ""
+msgstr "Toți"
 
 msgid "Filter messages with regex"
-msgstr ""
+msgstr "Filtrarea mesajelor cu regex"
 
 #, python-format
 msgid "Fingerprints for %s"
 msgstr "Amprentele digitale pentru %s"
 
 msgid "Focus"
-msgstr ""
+msgstr "focus"
 
 msgid ""
 "For verification via QR-Code\n"
 "you have to install python-qrcode"
 msgstr ""
-
-msgid "Form has successfully been sent"
-msgstr "Formularul a fost trimis cu succes"
-
-msgid "Form sent"
-msgstr "Formular trimis"
+"Pentru verificare prin QR-Code\n"
+"trebuie să instalați python-qrcode"
 
 msgid "Format string"
 msgstr "Format string"
@@ -314,19 +281,19 @@ msgid "Gajim will now try to setup OpenPGP for you"
 msgstr "Gajim va încerca acum să va configureze OpenPGP"
 
 msgid "General"
-msgstr ""
+msgstr "General"
 
 msgid "Generating new Key"
 msgstr "Generarea unei noi chei"
 
 msgid "Group"
-msgstr ""
+msgstr "Grupă"
 
 msgid "Groupchat participant"
-msgstr ""
+msgstr "Participant la discuțiile în grup"
 
 msgid "Has focus"
-msgstr ""
+msgstr "Are focus"
 
 msgid "Height in pixels"
 msgstr "Înălțime în pixeli"
@@ -341,43 +308,21 @@ msgstr ""
 "Evidențiază intrarea mesajului din fereastra de chat în cazul în care se "
 "depășește o lungime de mesaj specificată."
 
-msgid "Homepage"
-msgstr ""
-
 msgid "Inactive"
 msgstr "Inactiv"
 
-#, fuzzy
-msgid "Install"
-msgstr ". Instalați %s"
-
-msgid "Install / Upda_te"
-msgstr ""
-
-msgid "Install and upgrade plugins for Gajim"
-msgstr "Instalarea și actualizarea plugin-urilor pentru Gajim"
-
-#, fuzzy
-msgid "Installed"
-msgstr ". Instalați %s"
-
 msgid "Key ID"
-msgstr ""
+msgstr "ID cheie"
 
 #, python-format
 msgid "Last seen: %s"
 msgstr "Ultima dată văzut: %s"
 
 msgid "Launch command"
-msgstr ""
+msgstr "Lansare comandă"
 
 msgid "Length Notifier Configuration"
 msgstr "Configurația notificatorului de lungime"
-
-msgid "Lets the user display and answer forms attached to messages."
-msgstr ""
-"Permite utilizatorului să afișeze și să răspundă la formularele atașate la "
-"mesaje."
 
 msgid "Limit Message Length"
 msgstr "Limitarea lungimii mesajului"
@@ -386,7 +331,7 @@ msgid "Limits maximum message length (leave empty to disable)"
 msgstr "Limitează lungimea maximă a mesajului (lăsați gol pentru a dezactiva)"
 
 msgid "List"
-msgstr ""
+msgstr "listează"
 
 msgid "List incoming filters."
 msgstr "Lista filtrelor primite."
@@ -401,7 +346,7 @@ msgid "Message length at which the highlight is shown"
 msgstr "Lungimea mesajului la care se afișează evidențierea"
 
 msgid "My status"
-msgstr ""
+msgstr "statusul meu"
 
 msgid "Never"
 msgstr "Niciodată"
@@ -410,7 +355,7 @@ msgid "New Quick Reply"
 msgstr "Nou Răspuns rapid"
 
 msgid "New rule"
-msgstr ""
+msgstr "regulă nouă"
 
 msgid "No OpenPGP key assigned"
 msgstr "Nu a fost atribuită nicio cheie OpenPGP"
@@ -433,9 +378,8 @@ msgstr "Nici o regulă definită"
 msgid "None"
 msgstr "Nici unul"
 
-#, fuzzy
 msgid "Not Available"
-msgstr "Disponibil"
+msgstr "Nu este disponibil"
 
 msgid "Not Decided"
 msgstr "Nehotărât"
@@ -443,21 +387,19 @@ msgstr "Nehotărât"
 msgid "Not Trusted"
 msgstr "Nu este de încredere"
 
-#, fuzzy
 msgid "Not opened"
-msgstr "Nehotărât"
+msgstr "Nedeschis"
 
 msgid "Not_ify me with a popup"
-msgstr ""
+msgstr "Înștiințează-mă cu un pop-up"
 
 msgid "Note: Fingerprints of your contacts are managed in the message window."
 msgstr ""
+"Notă: Amprentele digitale ale contactelor dvs. sunt gestionate în fereastra "
+"de mesaje."
 
 msgid "Notifications"
-msgstr ""
-
-msgid "Notify after update"
-msgstr "Notificare după actualizare"
+msgstr "Notificări"
 
 msgid "Now Listen Configuration"
 msgstr "Acum ascultați Configurația"
@@ -474,32 +416,28 @@ msgstr "OK"
 msgid "OMEMO Fingerprints"
 msgstr "Amprente digitale OMEMO"
 
+msgid "OMEMO Settings"
+msgstr "Setări OMEMO"
+
 msgid "Online"
 msgstr "Online"
 
-msgid "Open"
-msgstr "Deschideți"
-
-#, fuzzy
 msgid "Opened"
-msgstr "Deschideți"
+msgstr "Deschise"
 
-#, fuzzy
 msgid "Own Fingerprint"
-msgstr "Amprente digitale OMEMO"
+msgstr "Propria amprentă digitală"
 
 #. tab label
-#, fuzzy
 msgid "Own Fingerprints"
-msgstr "Amprente digitale OMEMO"
+msgstr "Amprente proprii"
 
 msgid "Own _Device ID"
-msgstr ""
+msgstr "ID _dispozitiv propriu"
 
 #. Descriptive label
-#, fuzzy
 msgid "Own _Fingerprint"
-msgstr "Amprente digitale OMEMO"
+msgstr "_Amprente digitale OMEMO"
 
 msgid "PGP Configuration"
 msgstr "Configurația PGP"
@@ -510,9 +448,8 @@ msgstr "Neconcordanță între cheile PGP"
 msgid "PGP encryption as per XEP-0027"
 msgstr "Criptare PGP conform XEP-0027"
 
-#, fuzzy
 msgid "Play sound"
-msgstr "Sunete Wav"
+msgstr "Redare sunet"
 
 msgid "Please install GnuPG / Gpg4win"
 msgstr "Vă rugăm să instalați GnuPG / Gpg4win"
@@ -520,41 +457,15 @@ msgstr "Vă rugăm să instalați GnuPG / Gpg4win"
 msgid "Please install python-gnupg and gnupg"
 msgstr "Vă rugăm să instalați python-gnupg și gnupg"
 
-#, fuzzy
-msgid "Plugin"
-msgstr "Actualizări Plugin"
-
-msgid "Plugin Installer Configuration"
-msgstr "Configurația instalatorului de pluginuri"
-
-msgid "Plugin Updates"
-msgstr "Actualizări Plugin"
-
-msgid "Plugin Updates Available"
-msgstr "Actualizări Plugin disponibile"
-
 msgid "Plugin only available for Linux"
 msgstr "Plugin disponibil doar pentru Linux"
-
-msgid ""
-"Plugin updates have successfully been downloaded.\n"
-"Updates will be installed next time Gajim is started."
-msgstr ""
-"Actualizările de plugin au fost descărcate cu succes.\n"
-"Actualizările vor fi instalate data viitoare când Gajim va fi pornit."
-
-msgid "Plugins Downloaded"
-msgstr "Plugin-uri descărcate"
-
-msgid "Plugins Updated"
-msgstr "Plugin-uri actualizate"
 
 #, python-format
 msgid "Public Keys for %s"
 msgstr "Chei publice pentru %s"
 
 msgid "Published Devices"
-msgstr ""
+msgstr "Dispozitive publicate"
 
 msgid "Question has to be answered in order to contact you"
 msgstr "Trebuie să răspundeți la întrebare pentru a vă putea contacta"
@@ -565,22 +476,20 @@ msgstr "Răspunsuri rapide"
 msgid "Quick Replies Configuration"
 msgstr "Răspunsuri rapide Configurație"
 
-#, fuzzy
 msgid "Quick Reply"
-msgstr "Nou Răspuns rapid"
+msgstr "Răspuns rapid"
 
 msgid "Read more about blind trust."
 msgstr "Citiți mai multe despre blind trust."
 
-#, fuzzy
 msgid "Read more on blind trust."
-msgstr "Citiți mai multe despre blind trust."
+msgstr "Citiți mai multe despre încrederea oarbă."
 
 msgid "Receive a Message"
-msgstr ""
+msgstr "Primire mesaj"
 
 msgid "Remove"
-msgstr ""
+msgstr "Elimina"
 
 msgid ""
 "Remove an incoming filter. Argument is the rule number. See /list_rules "
@@ -613,17 +522,13 @@ msgid "Rule number %s removed"
 msgstr "Numărul de reguli %s eliminat"
 
 msgid "Select Sound"
-msgstr ""
+msgstr "Selectați Sunet"
 
 msgid "Selected Addresses"
 msgstr "Adrese selectate"
 
-#, python-format
-msgid "Send your best wishes to %s"
-msgstr "Trimite cele mai bune urări lui %s"
-
 msgid "Settings"
-msgstr ""
+msgstr "Setări"
 
 msgid "Setup OpenPGP"
 msgstr "Configurare OpenPGP"
@@ -640,34 +545,27 @@ msgstr "Afișați pictograma pentru clienții necunoscuți"
 msgid "Show Icons in Tooltip"
 msgstr "Afișați pictogramele în Tooltip"
 
-#, fuzzy
 msgid "Show inactive"
-msgstr "Inactiv"
+msgstr "Arată inactiv"
 
-msgid "Show message when automatic update was successful"
-msgstr "Afișați un mesaj atunci când actualizarea automată a avut succes"
-
-#, fuzzy
 msgid ""
 "Shows client icons in your contact list and in the groupchat participants "
 "list."
-msgstr "Afișează pictogramele clienților în listă și în conversațiile de grup."
+msgstr ""
+"Afișează pictogramele clienților în lista de contacte și în lista "
+"participanților la groupchat."
 
 msgid "Size of message input in pixels"
 msgstr "Dimensiunea mesajului de intrare în pixeli"
 
-#, fuzzy
 msgid "Sounds"
-msgstr "Sunete Wav"
+msgstr "Sunete"
 
 msgid "Status"
-msgstr ""
-
-msgid "Submit"
-msgstr "Trimiteți"
+msgstr "status"
 
 msgid "Substitute"
-msgstr ""
+msgstr "Înlocuiți"
 
 msgid ""
 "The PGP key used to encrypt this chat is not trusted. Do you really want to "
@@ -681,14 +579,6 @@ msgid "The contact's key (%s) <b>does not match</b> the key assigned in Gajim."
 msgstr ""
 "Cheia contactului (%s) <b>nu se potrivește</b> cu cheia atribuită în Gajim."
 
-#, python-format
-msgid ""
-"There are updates for your plugins:\n"
-"<b>%s</b>"
-msgstr ""
-"Există actualizări pentru plugin-urile dumneavoastră:\n"
-"<b>%s</b>"
-
 msgid "There was no trusted and active key found"
 msgstr "Nu a fost găsită nicio cheie de încredere și activă"
 
@@ -699,6 +589,11 @@ msgid ""
 "It is advised to go online with all of your actively used devices after "
 "clearing."
 msgstr ""
+"Aceasta șterge lista de dispozitive de pe server.\n"
+"Ștergerea listei de dispozitive vă ajută să eliminați dispozitivele "
+"neutilizate din procesul de criptare.\n"
+"Se recomandă să vă conectați online cu toate dispozitivele utilizate în mod "
+"activ după ștergere."
 
 msgid "This message was encrypted with OMEMO, but not for your device."
 msgstr ""
@@ -742,25 +637,10 @@ msgid "Untrusted PGP key"
 msgstr "Cheie PGP nesigură"
 
 msgid "Up"
-msgstr ""
-
-msgid "Update automatically"
-msgstr "Actualizare automată"
-
-msgid "Update plugins automatically"
-msgstr "Actualizarea automată a plugin-urilor"
-
-msgid "Update plugins automatically next time"
-msgstr "Actualizarea automată a plugin-urilor data viitoare"
-
-msgid "Updates will be installed next time Gajim is started."
-msgstr "Actualizările vor fi instalate data viitoare când Gajim va fi pornit."
+msgstr "Sus"
 
 msgid "Verified"
 msgstr "Verificat"
-
-msgid "Version"
-msgstr ""
 
 msgid "Wav Sounds"
 msgstr "Sunete Wav"
@@ -769,7 +649,7 @@ msgid "Welcome"
 msgstr "Bine ați venit"
 
 msgid "You have to restart Gajim for changes to take effect !"
-msgstr ""
+msgstr "Trebuie să reporniți Gajim pentru ca modificările să aibă efect !"
 
 msgid "You have undecided fingerprints"
 msgstr "Aveți amprente nehotărâte"
@@ -778,22 +658,22 @@ msgid "[This message is *encrypted* (See :XEP:`27`]"
 msgstr "[Acest mesaj este *encrypted* (See :XEP:`27`]"
 
 msgid "_Clear Devices"
-msgstr ""
+msgstr "_sterge dispozitivele"
 
 msgid "_Disable Account"
-msgstr ""
+msgstr "_Dezactivați contul"
 
 msgid "_Disable existing notification"
-msgstr ""
+msgstr "_Dezactivarea notificării existente"
 
 msgid "_Disable existing sound for this event"
-msgstr ""
+msgstr "_Dezactivează sunetul actual pentru acest eveniment"
 
 msgid "_Do not ask me again"
 msgstr "Nu mă mai întreba din nou"
 
 msgid "_Enable Account"
-msgstr ""
+msgstr "_Activați contul"
 
 msgid "_Encrypt Anyway"
 msgstr "_Criptați oricum"
@@ -801,14 +681,11 @@ msgstr "_Criptați oricum"
 msgid "_No"
 msgstr "_Nu"
 
-msgid "_Update"
-msgstr "_Actualizare"
-
 msgid "and I am "
 msgstr "și eu sunt "
 
 msgid "comma separated list"
-msgstr ""
+msgstr "listă separată prin virgule"
 
 #~ msgid " and "
 #~ msgstr " și "
@@ -846,11 +723,30 @@ msgstr ""
 #~ msgid "All files"
 #~ msgstr "Toate fișierele"
 
+#~ msgid "Available"
+#~ msgstr "Disponibil"
+
+#~ msgid "Birthday Reminder"
+#~ msgstr "Amintire ziua de naștere"
+
 #~ msgid "Board Size"
 #~ msgstr "Dimensiunea plăcii"
 
 #~ msgid "Cannot open %s for reading"
 #~ msgstr "Nu se poate deschide %s pentru citire"
+
+#~ msgid "Check for updates"
+#~ msgstr "Verificați dacă există actualizări"
+
+#~ msgid "Check for updates after start"
+#~ msgstr "Verificați dacă există actualizări după pornire"
+
+#~ msgid ""
+#~ "Checks vCards of your contacts for upcoming birthdays and reminds you on "
+#~ "that day."
+#~ msgstr ""
+#~ "Verifică vCard-urile contactelor dvs. pentru zilele de naștere viitoare "
+#~ "și vă reamintește în ziua respectivă."
 
 #~ msgid "Click to view location"
 #~ msgstr "Faceți clic pentru a vedea locația"
@@ -877,6 +773,9 @@ msgstr ""
 #~ msgid "Copy Link Location"
 #~ msgstr "Copiați locația link-ului"
 
+#~ msgid "Data Form"
+#~ msgstr "Formular de date"
+
 #~ msgid "Decrypting file…"
 #~ msgstr "Decriptarea fișierului…"
 
@@ -885,6 +784,9 @@ msgstr ""
 
 #~ msgid "Displays a preview of image links."
 #~ msgstr "Afișează o previzualizare a legăturilor de imagine."
+
+#~ msgid "Do not show this message again"
+#~ msgstr "Nu mai afișați acest mesaj"
 
 #~ msgid "Do you want to open %s?"
 #~ msgstr "Doriți să deschideți %s?"
@@ -900,6 +802,12 @@ msgstr ""
 
 #~ msgid "File size unknown"
 #~ msgstr "Dimensiunea fișierului necunoscută"
+
+#~ msgid "Form has successfully been sent"
+#~ msgstr "Formularul a fost trimis cu succes"
+
+#~ msgid "Form sent"
+#~ msgstr "Formular trimis"
 
 #~ msgid "Generate preview for any URL containing images (may be unsafe)"
 #~ msgstr ""
@@ -920,6 +828,17 @@ msgstr ""
 
 #~ msgid "Incoming Whiteboard Request"
 #~ msgstr "Cerere de tablă albă de intrare"
+
+#, fuzzy
+#~ msgid "Install"
+#~ msgstr ". Instalați %s"
+
+#~ msgid "Install and upgrade plugins for Gajim"
+#~ msgstr "Instalarea și actualizarea plugin-urilor pentru Gajim"
+
+#, fuzzy
+#~ msgid "Installed"
+#~ msgstr ". Instalați %s"
 
 #~ msgid "Invalid XMPP Address"
 #~ msgstr "Adresă XMPP invalidă"
@@ -951,6 +870,11 @@ msgstr ""
 #~ msgid "Left Click"
 #~ msgstr "Faceți clic stânga"
 
+#~ msgid "Lets the user display and answer forms attached to messages."
+#~ msgstr ""
+#~ "Permite utilizatorului să afișeze și să răspundă la formularele atașate "
+#~ "la mesaje."
+
 #~ msgid "Location at Lat: %s Lon: %s"
 #~ msgstr "Locație la Lat: %s Lon: %s"
 
@@ -960,8 +884,14 @@ msgstr ""
 #~ msgid "No OpenPGP key"
 #~ msgstr "Fără cheie OpenPGP"
 
+#~ msgid "Notify after update"
+#~ msgstr "Notificare după actualizare"
+
 #~ msgid "Offline"
 #~ msgstr "Offline"
+
+#~ msgid "Open"
+#~ msgstr "Deschideți"
 
 #~ msgid "Open File"
 #~ msgstr "Deschidere fișier"
@@ -998,6 +928,32 @@ msgstr ""
 
 #~ msgid "Please install python-pillow"
 #~ msgstr "Vă rugăm să instalați python-pillow"
+
+#, fuzzy
+#~ msgid "Plugin"
+#~ msgstr "Actualizări Plugin"
+
+#~ msgid "Plugin Installer Configuration"
+#~ msgstr "Configurația instalatorului de pluginuri"
+
+#~ msgid "Plugin Updates"
+#~ msgstr "Actualizări Plugin"
+
+#~ msgid "Plugin Updates Available"
+#~ msgstr "Actualizări Plugin disponibile"
+
+#~ msgid ""
+#~ "Plugin updates have successfully been downloaded.\n"
+#~ "Updates will be installed next time Gajim is started."
+#~ msgstr ""
+#~ "Actualizările de plugin au fost descărcate cu succes.\n"
+#~ "Actualizările vor fi instalate data viitoare când Gajim va fi pornit."
+
+#~ msgid "Plugins Downloaded"
+#~ msgstr "Plugin-uri descărcate"
+
+#~ msgid "Plugins Updated"
+#~ msgstr "Plugin-uri actualizate"
 
 #~ msgid "Preview Size"
 #~ msgstr "Previzualizare Dimensiune"
@@ -1037,6 +993,9 @@ msgstr ""
 #~ msgid "Scale of the rendered PNG file"
 #~ msgstr "Scala fișierului PNG redat"
 
+#~ msgid "Send your best wishes to %s"
+#~ msgstr "Trimite cele mai bune urări lui %s"
+
 #~ msgid "Set Location Configuration"
 #~ msgstr "Setați configurația locației"
 
@@ -1048,6 +1007,9 @@ msgstr ""
 #~ "Setați informații despre locația dvs. geografică sau fizică actuală. \n"
 #~ "Pentru a vă putea seta locația pe harta încorporată, trebuie să aveți "
 #~ "instalate gir1.2-gtkchamplain și gir1.2-gtkclutter-1.0"
+
+#~ msgid "Show message when automatic update was successful"
+#~ msgstr "Afișați un mesaj atunci când actualizarea automată a avut succes"
 
 #~ msgid "Show/hide contact list"
 #~ msgstr "Afișați / ascundeți lista de contacte"
@@ -1087,11 +1049,21 @@ msgstr ""
 #~ msgid "Start/stop playback"
 #~ msgstr "Pornirea/oprirea redării"
 
+#~ msgid "Submit"
+#~ msgstr "Trimiteți"
+
 #~ msgid "Syntax Highlighter Configuration"
 #~ msgstr "Configurația Syntax Highlighter"
 
 #~ msgid "There are bad commands!"
 #~ msgstr "Sunt comenzi rele!"
+
+#~ msgid ""
+#~ "There are updates for your plugins:\n"
+#~ "<b>%s</b>"
+#~ msgstr ""
+#~ "Există actualizări pentru plugin-urile dumneavoastră:\n"
+#~ "<b>%s</b>"
 
 #~ msgid "This plugin integrates Gajim with the Ayatana AppIndicator."
 #~ msgstr "Acest plugin integrează Gajim cu Ayatana AppIndicator."
@@ -1104,6 +1076,19 @@ msgstr ""
 
 #~ msgid "TicTacToe requires PangoCairo to run"
 #~ msgstr "TicTacToe necesită PangoCairo pentru a rula"
+
+#~ msgid "Update automatically"
+#~ msgstr "Actualizare automată"
+
+#~ msgid "Update plugins automatically"
+#~ msgstr "Actualizarea automată a plugin-urilor"
+
+#~ msgid "Update plugins automatically next time"
+#~ msgstr "Actualizarea automată a plugin-urilor data viitoare"
+
+#~ msgid "Updates will be installed next time Gajim is started."
+#~ msgstr ""
+#~ "Actualizările vor fi instalate data viitoare când Gajim va fi pornit."
 
 #~ msgid "UrlImagePreview Configuration"
 #~ msgstr "UrlImagePreview Configurație"
@@ -1151,6 +1136,9 @@ msgstr ""
 
 #~ msgid "_Paste as Code"
 #~ msgstr "_Lipiți ca și cod"
+
+#~ msgid "_Update"
+#~ msgstr "_Actualizare"
 
 #~ msgid "dvipng and Imagemagick are not available"
 #~ msgstr "dvipng și Imagemagick nu sunt disponibile"

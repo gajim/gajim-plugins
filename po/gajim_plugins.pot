@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Gajim Plugins\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-04-19 18:43+0000\n"
+"POT-Creation-Date: 2022-05-08 13:46+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -99,19 +99,10 @@ msgstr ""
 msgid "Assign key for %s"
 msgstr ""
 
-msgid "Authors"
-msgstr ""
-
-msgid "Available"
-msgstr ""
-
 msgid "Away"
 msgstr ""
 
 msgid "Bad Configuration"
-msgstr ""
-
-msgid "Birthday Reminder"
 msgstr ""
 
 msgid "Blind Trust"
@@ -133,17 +124,6 @@ msgid "Certain status"
 msgstr ""
 
 msgid "Chat Window"
-msgstr ""
-
-msgid "Check for updates"
-msgstr ""
-
-msgid "Check for updates after start"
-msgstr ""
-
-msgid ""
-"Checks vCards of your contacts for upcoming birthdays and reminds you on "
-"that day."
 msgstr ""
 
 msgid "Clear Devices"
@@ -194,9 +174,6 @@ msgid ""
 "Correct answer to your Anti Spam Question (leave empty to disable question)"
 msgstr ""
 
-msgid "Data Form"
-msgstr ""
-
 msgid "Delete"
 msgstr ""
 
@@ -228,9 +205,6 @@ msgid "Disable XHTML for PMs"
 msgstr ""
 
 msgid "Disabled Accounts"
-msgstr ""
-
-msgid "Do not show this message again"
 msgstr ""
 
 msgid "Does not have focus"
@@ -282,12 +256,6 @@ msgid ""
 "you have to install python-qrcode"
 msgstr ""
 
-msgid "Form has successfully been sent"
-msgstr ""
-
-msgid "Form sent"
-msgstr ""
-
 msgid "Format string"
 msgstr ""
 
@@ -320,22 +288,7 @@ msgid ""
 "exceeded."
 msgstr ""
 
-msgid "Homepage"
-msgstr ""
-
 msgid "Inactive"
-msgstr ""
-
-msgid "Install"
-msgstr ""
-
-msgid "Install / Upda_te"
-msgstr ""
-
-msgid "Install and upgrade plugins for Gajim"
-msgstr ""
-
-msgid "Installed"
 msgstr ""
 
 msgid "Key ID"
@@ -349,9 +302,6 @@ msgid "Launch command"
 msgstr ""
 
 msgid "Length Notifier Configuration"
-msgstr ""
-
-msgid "Lets the user display and answer forms attached to messages."
 msgstr ""
 
 msgid "Limit Message Length"
@@ -429,9 +379,6 @@ msgstr ""
 msgid "Notifications"
 msgstr ""
 
-msgid "Notify after update"
-msgstr ""
-
 msgid "Now Listen Configuration"
 msgstr ""
 
@@ -447,10 +394,10 @@ msgstr ""
 msgid "OMEMO Fingerprints"
 msgstr ""
 
-msgid "Online"
+msgid "OMEMO Settings"
 msgstr ""
 
-msgid "Open"
+msgid "Online"
 msgstr ""
 
 msgid "Opened"
@@ -488,30 +435,7 @@ msgstr ""
 msgid "Please install python-gnupg and gnupg"
 msgstr ""
 
-msgid "Plugin"
-msgstr ""
-
-msgid "Plugin Installer Configuration"
-msgstr ""
-
-msgid "Plugin Updates"
-msgstr ""
-
-msgid "Plugin Updates Available"
-msgstr ""
-
 msgid "Plugin only available for Linux"
-msgstr ""
-
-msgid ""
-"Plugin updates have successfully been downloaded.\n"
-"Updates will be installed next time Gajim is started."
-msgstr ""
-
-msgid "Plugins Downloaded"
-msgstr ""
-
-msgid "Plugins Updated"
 msgstr ""
 
 #, python-format
@@ -576,10 +500,6 @@ msgstr ""
 msgid "Selected Addresses"
 msgstr ""
 
-#, python-format
-msgid "Send your best wishes to %s"
-msgstr ""
-
 msgid "Settings"
 msgstr ""
 
@@ -601,9 +521,6 @@ msgstr ""
 msgid "Show inactive"
 msgstr ""
 
-msgid "Show message when automatic update was successful"
-msgstr ""
-
 msgid ""
 "Shows client icons in your contact list and in the groupchat participants "
 "list."
@@ -618,9 +535,6 @@ msgstr ""
 msgid "Status"
 msgstr ""
 
-msgid "Submit"
-msgstr ""
-
 msgid "Substitute"
 msgstr ""
 
@@ -631,12 +545,6 @@ msgstr ""
 
 #, python-format
 msgid "The contact's key (%s) <b>does not match</b> the key assigned in Gajim."
-msgstr ""
-
-#, python-format
-msgid ""
-"There are updates for your plugins:\n"
-"<b>%s</b>"
 msgstr ""
 
 msgid "There was no trusted and active key found"
@@ -686,22 +594,7 @@ msgstr ""
 msgid "Up"
 msgstr ""
 
-msgid "Update automatically"
-msgstr ""
-
-msgid "Update plugins automatically"
-msgstr ""
-
-msgid "Update plugins automatically next time"
-msgstr ""
-
-msgid "Updates will be installed next time Gajim is started."
-msgstr ""
-
 msgid "Verified"
-msgstr ""
-
-msgid "Version"
 msgstr ""
 
 msgid "Wav Sounds"
@@ -741,9 +634,6 @@ msgid "_Encrypt Anyway"
 msgstr ""
 
 msgid "_No"
-msgstr ""
-
-msgid "_Update"
 msgstr ""
 
 msgid "and I am "

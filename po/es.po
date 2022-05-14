@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Gajim Plugins\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-04-19 18:43+0000\n"
-"PO-Revision-Date: 2022-04-25 09:28+0000\n"
+"POT-Creation-Date: 2022-05-08 13:46+0000\n"
+"PO-Revision-Date: 2022-05-08 16:29+0000\n"
 "Last-Translator: El gran Pirujo <boina@disroot.org>\n"
 "Language-Team: Spanish <https://translate.gajim.org/projects/gajim-plugins/"
 "master/es/>\n"
@@ -104,20 +104,11 @@ msgstr "Asignar clave PGP"
 msgid "Assign key for %s"
 msgstr "Asignar clave para %s"
 
-msgid "Authors"
-msgstr "Autores"
-
-msgid "Available"
-msgstr "Disponible"
-
 msgid "Away"
 msgstr "Ausente"
 
 msgid "Bad Configuration"
 msgstr "Mala configuración"
-
-msgid "Birthday Reminder"
-msgstr "Recordatorio de cumpleaños"
 
 msgid "Blind Trust"
 msgstr "Confianza a ciegas"
@@ -139,19 +130,6 @@ msgstr "Ciertos estados"
 
 msgid "Chat Window"
 msgstr "Ventana de chat"
-
-msgid "Check for updates"
-msgstr "Buscar actualizaciones"
-
-msgid "Check for updates after start"
-msgstr "Buscar actualizaciones después de arrancar"
-
-msgid ""
-"Checks vCards of your contacts for upcoming birthdays and reminds you on "
-"that day."
-msgstr ""
-"Comprueba vCards de tus contactos para los próximos cumpleaños y te recuerda "
-"ese día."
 
 msgid "Clear Devices"
 msgstr "Borrar dispositivos"
@@ -207,9 +185,6 @@ msgstr ""
 "Respuesta correcta a tu pregunta antispam (deja en blanco para deshabilitar "
 "la pregunta)"
 
-msgid "Data Form"
-msgstr "Formulario de datos"
-
 msgid "Delete"
 msgstr "Borrar"
 
@@ -242,9 +217,6 @@ msgstr "Deshabilitar XHTML para MPs"
 
 msgid "Disabled Accounts"
 msgstr "Cuentas deshabilitadas"
-
-msgid "Do not show this message again"
-msgstr "No mostrar este mensaje otra vez"
 
 msgid "Does not have focus"
 msgstr "No tiene el foco"
@@ -299,12 +271,6 @@ msgstr ""
 "Para verificación via QR-Code\n"
 "tienes que instalar python-qrcode"
 
-msgid "Form has successfully been sent"
-msgstr "El formulario ha sido enviado exitosamente"
-
-msgid "Form sent"
-msgstr "Formulario enviado"
-
 msgid "Format string"
 msgstr "Cadena de formateo"
 
@@ -339,23 +305,8 @@ msgstr ""
 "Resalta la entrada de mensajes de la ventana de chat si se excede una "
 "longitud de mensaje especificada."
 
-msgid "Homepage"
-msgstr "Página principal"
-
 msgid "Inactive"
 msgstr "Inactivo"
-
-msgid "Install"
-msgstr "Instalar"
-
-msgid "Install / Upda_te"
-msgstr "Instalar/Actu_alizar"
-
-msgid "Install and upgrade plugins for Gajim"
-msgstr "Instalar y actualizar complementos de Gajim"
-
-msgid "Installed"
-msgstr "Instalado"
 
 msgid "Key ID"
 msgstr "ID de clave"
@@ -369,10 +320,6 @@ msgstr "Lanzar comando"
 
 msgid "Length Notifier Configuration"
 msgstr "Configuración de notificación de longitud"
-
-msgid "Lets the user display and answer forms attached to messages."
-msgstr ""
-"Permite al usuario mostrar y responder formularios adjuntos a los mensajes."
 
 msgid "Limit Message Length"
 msgstr "Limita la longitud del mensaje"
@@ -451,9 +398,6 @@ msgstr ""
 msgid "Notifications"
 msgstr "Notificaciones"
 
-msgid "Notify after update"
-msgstr "Notificar después de actualizar"
-
 msgid "Now Listen Configuration"
 msgstr "Configuración ahora escuchando"
 
@@ -469,11 +413,11 @@ msgstr "OK"
 msgid "OMEMO Fingerprints"
 msgstr "Huellas digitales OMEMO"
 
+msgid "OMEMO Settings"
+msgstr "Ajustes de OMEMO"
+
 msgid "Online"
 msgstr "Conectado"
-
-msgid "Open"
-msgstr "Abrir"
 
 msgid "Opened"
 msgstr "Abierto"
@@ -510,33 +454,8 @@ msgstr "Por favor, instala GnuPG / Gpg4win"
 msgid "Please install python-gnupg and gnupg"
 msgstr "Por favor, instala python-gnupg y gnupg"
 
-msgid "Plugin"
-msgstr "Complemento"
-
-msgid "Plugin Installer Configuration"
-msgstr "Configuración de instalador de complementos"
-
-msgid "Plugin Updates"
-msgstr "Actualizaciones de complementos"
-
-msgid "Plugin Updates Available"
-msgstr "Actualizaciones de complementos disponibles"
-
 msgid "Plugin only available for Linux"
 msgstr "Complemento solo disponible para Linux"
-
-msgid ""
-"Plugin updates have successfully been downloaded.\n"
-"Updates will be installed next time Gajim is started."
-msgstr ""
-"Las actualizaciones de los complementos han sido descargadas con éxito.\n"
-"Las actualizaciones se instalarán la próxima que se arranque Gajim."
-
-msgid "Plugins Downloaded"
-msgstr "Complementos descargados"
-
-msgid "Plugins Updated"
-msgstr "Complementos actualizados"
 
 #, python-format
 msgid "Public Keys for %s"
@@ -604,10 +523,6 @@ msgstr "Seleccionar sonido"
 msgid "Selected Addresses"
 msgstr "Direcciones seleccionadas"
 
-#, python-format
-msgid "Send your best wishes to %s"
-msgstr "Envía tus mejores deseos a %s"
-
 msgid "Settings"
 msgstr "Ajustes"
 
@@ -629,9 +544,6 @@ msgstr "Mostrar iconos en la descripción emergente"
 msgid "Show inactive"
 msgstr "Mostrar inactivo"
 
-msgid "Show message when automatic update was successful"
-msgstr "Mostrar mensaje cuando la actualización automática tuvo exito"
-
 msgid ""
 "Shows client icons in your contact list and in the groupchat participants "
 "list."
@@ -648,9 +560,6 @@ msgstr "Sonidos"
 msgid "Status"
 msgstr "Estado"
 
-msgid "Submit"
-msgstr "Enviar"
-
 msgid "Substitute"
 msgstr "Sustituir"
 
@@ -665,14 +574,6 @@ msgstr ""
 msgid "The contact's key (%s) <b>does not match</b> the key assigned in Gajim."
 msgstr ""
 "La clave del contacto (%s) <b>no coincide</b> con la clave asignada en Gajim."
-
-#, python-format
-msgid ""
-"There are updates for your plugins:\n"
-"<b>%s</b>"
-msgstr ""
-"Hay actualizaciones para tus complementos:\n"
-"<b>%s</b>"
 
 msgid "There was no trusted and active key found"
 msgstr "No se ha encontrado ninguna clave activa y confiable"
@@ -731,23 +632,8 @@ msgstr "Clave PGP no confiable"
 msgid "Up"
 msgstr "Arriba"
 
-msgid "Update automatically"
-msgstr "Actualizar automáticamente"
-
-msgid "Update plugins automatically"
-msgstr "Actualizar complementos automáticamente"
-
-msgid "Update plugins automatically next time"
-msgstr "Actualizar automáticamente los complementos la próxima vez"
-
-msgid "Updates will be installed next time Gajim is started."
-msgstr "Las actualizaciones se instalarán en el próximo arranque de Gajim."
-
 msgid "Verified"
 msgstr "Verificado"
-
-msgid "Version"
-msgstr "Versión"
 
 msgid "Wav Sounds"
 msgstr "Sonidos Wav"
@@ -787,9 +673,6 @@ msgstr "Cifrar de todos modos"
 
 msgid "_No"
 msgstr "_No"
-
-msgid "_Update"
-msgstr "Actualizar"
 
 msgid "and I am "
 msgstr "y yo estoy "
@@ -834,11 +717,33 @@ msgstr "lista separada con comas"
 #~ msgid "All files"
 #~ msgstr "Todos los ficheros"
 
+#~ msgid "Authors"
+#~ msgstr "Autores"
+
+#~ msgid "Available"
+#~ msgstr "Disponible"
+
+#~ msgid "Birthday Reminder"
+#~ msgstr "Recordatorio de cumpleaños"
+
 #~ msgid "Board Size"
 #~ msgstr "Tamaño del tablero"
 
 #~ msgid "Cannot open %s for reading"
 #~ msgstr "No puedo abrir %s para lectura"
+
+#~ msgid "Check for updates"
+#~ msgstr "Buscar actualizaciones"
+
+#~ msgid "Check for updates after start"
+#~ msgstr "Buscar actualizaciones después de arrancar"
+
+#~ msgid ""
+#~ "Checks vCards of your contacts for upcoming birthdays and reminds you on "
+#~ "that day."
+#~ msgstr ""
+#~ "Comprueba vCards de tus contactos para los próximos cumpleaños y te "
+#~ "recuerda ese día."
 
 #~ msgid "Click to view location"
 #~ msgstr "Click para ver ubicación"
@@ -864,6 +769,9 @@ msgstr "lista separada con comas"
 #~ msgid "Copy Link Location"
 #~ msgstr "Copiar ubicación de enlace"
 
+#~ msgid "Data Form"
+#~ msgstr "Formulario de datos"
+
 #~ msgid "Decrypting file…"
 #~ msgstr "Descifrando fichero…"
 
@@ -872,6 +780,9 @@ msgstr "lista separada con comas"
 
 #~ msgid "Displays a preview of image links."
 #~ msgstr "Muestra una vista previa de los enlaces de imágenes."
+
+#~ msgid "Do not show this message again"
+#~ msgstr "No mostrar este mensaje otra vez"
 
 #~ msgid "Do you want to open %s?"
 #~ msgstr "¿Quieres abrir %s?"
@@ -888,6 +799,12 @@ msgstr "lista separada con comas"
 #~ msgid "File size unknown"
 #~ msgstr "Tamaño de fichero desconocido"
 
+#~ msgid "Form has successfully been sent"
+#~ msgstr "El formulario ha sido enviado exitosamente"
+
+#~ msgid "Form sent"
+#~ msgstr "Formulario enviado"
+
 #~ msgid "Generate preview for any URL containing images (may be unsafe)"
 #~ msgstr ""
 #~ "Genera previsualizaciones para cualquier URL conteniendo imágenes (puede "
@@ -895,6 +812,9 @@ msgstr "lista separada con comas"
 
 #~ msgid "HTTPS Verification"
 #~ msgstr "Verificación HTTPS"
+
+#~ msgid "Homepage"
+#~ msgstr "Página principal"
 
 #~ msgid "Incoming Tictactoe"
 #~ msgstr "Tictactoe entrante"
@@ -907,6 +827,18 @@ msgstr "lista separada con comas"
 
 #~ msgid "Incoming Whiteboard Request"
 #~ msgstr "Solicitud de pizarra entrante"
+
+#~ msgid "Install"
+#~ msgstr "Instalar"
+
+#~ msgid "Install / Upda_te"
+#~ msgstr "Instalar/Actu_alizar"
+
+#~ msgid "Install and upgrade plugins for Gajim"
+#~ msgstr "Instalar y actualizar complementos de Gajim"
+
+#~ msgid "Installed"
+#~ msgstr "Instalado"
 
 #~ msgid "Invalid XMPP Address"
 #~ msgstr "Dirección XMPP no válida"
@@ -938,6 +870,11 @@ msgstr "lista separada con comas"
 #~ msgid "Left Click"
 #~ msgstr "Botón izquierdo"
 
+#~ msgid "Lets the user display and answer forms attached to messages."
+#~ msgstr ""
+#~ "Permite al usuario mostrar y responder formularios adjuntos a los "
+#~ "mensajes."
+
 #~ msgid "Location at Lat: %s Lon: %s"
 #~ msgstr "Ubicación en lat: %s lon: %s"
 
@@ -947,8 +884,14 @@ msgstr "lista separada con comas"
 #~ msgid "No OpenPGP key"
 #~ msgstr "No hay clave OpenPGP"
 
+#~ msgid "Notify after update"
+#~ msgstr "Notificar después de actualizar"
+
 #~ msgid "Offline"
 #~ msgstr "Desconectado"
+
+#~ msgid "Open"
+#~ msgstr "Abrir"
 
 #~ msgid "Open File"
 #~ msgstr "Abrir fichero"
@@ -985,6 +928,31 @@ msgstr "lista separada con comas"
 
 #~ msgid "Please install python-pillow"
 #~ msgstr "Por favor, instala python-pillow"
+
+#~ msgid "Plugin"
+#~ msgstr "Complemento"
+
+#~ msgid "Plugin Installer Configuration"
+#~ msgstr "Configuración de instalador de complementos"
+
+#~ msgid "Plugin Updates"
+#~ msgstr "Actualizaciones de complementos"
+
+#~ msgid "Plugin Updates Available"
+#~ msgstr "Actualizaciones de complementos disponibles"
+
+#~ msgid ""
+#~ "Plugin updates have successfully been downloaded.\n"
+#~ "Updates will be installed next time Gajim is started."
+#~ msgstr ""
+#~ "Las actualizaciones de los complementos han sido descargadas con éxito.\n"
+#~ "Las actualizaciones se instalarán la próxima que se arranque Gajim."
+
+#~ msgid "Plugins Downloaded"
+#~ msgstr "Complementos descargados"
+
+#~ msgid "Plugins Updated"
+#~ msgstr "Complementos actualizados"
 
 #~ msgid "Preview Size"
 #~ msgstr "Tamaño de previsualización"
@@ -1023,6 +991,9 @@ msgstr "lista separada con comas"
 #~ msgid "Scale of the rendered PNG file"
 #~ msgstr "Escala del archivo PNG renderizado"
 
+#~ msgid "Send your best wishes to %s"
+#~ msgstr "Envía tus mejores deseos a %s"
+
 #~ msgid "Set Location Configuration"
 #~ msgstr "Establecer configuración de ubicación"
 
@@ -1034,6 +1005,9 @@ msgstr "lista separada con comas"
 #~ "Establecer información sobre tu ubicación geográfica o física actual.\n"
 #~ "Para poder establecer tu ubicación en el mapa incorporado, necesitas "
 #~ "tener instalados gir1.2-gtkchamplain y gir1.2-gtkclutter-1.0"
+
+#~ msgid "Show message when automatic update was successful"
+#~ msgstr "Mostrar mensaje cuando la actualización automática tuvo exito"
 
 #~ msgid "Show/hide contact list"
 #~ msgstr "Mostrar/ocultar lista de contactos"
@@ -1073,11 +1047,21 @@ msgstr "lista separada con comas"
 #~ msgid "Start/stop playback"
 #~ msgstr "Iniciar/detener reproducción"
 
+#~ msgid "Submit"
+#~ msgstr "Enviar"
+
 #~ msgid "Syntax Highlighter Configuration"
 #~ msgstr "Configuración del resaltador de sintaxis"
 
 #~ msgid "There are bad commands!"
 #~ msgstr "¡Hay comandos malos!"
+
+#~ msgid ""
+#~ "There are updates for your plugins:\n"
+#~ "<b>%s</b>"
+#~ msgstr ""
+#~ "Hay actualizaciones para tus complementos:\n"
+#~ "<b>%s</b>"
 
 #~ msgid "This plugin integrates Gajim with the Ayatana AppIndicator."
 #~ msgstr "Este complemento integra Gajim con Ayatana AppIndicator."
@@ -1091,8 +1075,23 @@ msgstr "lista separada con comas"
 #~ msgid "TicTacToe requires PangoCairo to run"
 #~ msgstr "TicTacToe necesita PangoCairo para ejecutar"
 
+#~ msgid "Update automatically"
+#~ msgstr "Actualizar automáticamente"
+
+#~ msgid "Update plugins automatically"
+#~ msgstr "Actualizar complementos automáticamente"
+
+#~ msgid "Update plugins automatically next time"
+#~ msgstr "Actualizar automáticamente los complementos la próxima vez"
+
+#~ msgid "Updates will be installed next time Gajim is started."
+#~ msgstr "Las actualizaciones se instalarán en el próximo arranque de Gajim."
+
 #~ msgid "UrlImagePreview Configuration"
 #~ msgstr "Configuración de UrlImagePreview"
+
+#~ msgid "Version"
+#~ msgstr "Versión"
 
 #~ msgid "We didnt receive a OpenPGP key from this contact."
 #~ msgstr "No hemos recibido una clave OpenPGP de este contacto."
@@ -1137,6 +1136,9 @@ msgstr "lista separada con comas"
 
 #~ msgid "_Paste as Code"
 #~ msgstr "_Pegar como código"
+
+#~ msgid "_Update"
+#~ msgstr "Actualizar"
 
 #~ msgid "dvipng and Imagemagick are not available"
 #~ msgstr "No está disponibles dvipng ni Imagemagick"
