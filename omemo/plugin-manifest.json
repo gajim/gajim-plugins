@@ -17,5 +17,5 @@
         "gajim>=1.4.0"
     ],
     "short_name": "omemo",
-    "version": "2.8.14"
+    "version": "2.8.15"
 }
