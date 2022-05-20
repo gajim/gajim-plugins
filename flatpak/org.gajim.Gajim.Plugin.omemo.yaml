@@ -56,8 +56,8 @@ modules:
     sources:
       - type: archive
         strip-components: 0
-        url: https://ftp.gajim.org/plugins/master/omemo/omemo_2.8.14.zip
-        sha256: a16187122b09f37a8811a847235d197f12bc9d771811cc63d70a4f30befa89c2
+        url: https://ftp.gajim.org/plugins/master/omemo/omemo_2.8.15.zip
+        sha256: 9639e6ddb76c4612ca43e74ee9d80d8d92c31fdfbb173f7c9976a2cc3d22c1c1
       - type: shell
         commands:
           - sed -i "s+org.gajim.Gajim+org.gajim.Gajim.Devel+" org.gajim.Gajim.Plugin.*.metainfo.xml
