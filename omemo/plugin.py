@@ -93,7 +93,6 @@ class OmemoPlugin(GajimPlugin):
             'omemo-new-fingerprint': (ged.PRECORE, self._on_new_fingerprints),
             'signed-in': (ged.PRECORE, self._on_signed_in),
             'muc-disco-update': (ged.GUI1, self._on_muc_disco_update),
-            'room-joined': (ged.GUI1, self._on_muc_joined),
         }
         self.modules = [omemo]
 
@@ -108,7 +107,10 @@ class OmemoPlugin(GajimPlugin):
                 self._on_encryption_button_clicked, None),
             'encryption_state' + self.encryption_name: (
                 self._encryption_state, None),
-            'update_caps': (self._update_caps, None)}
+            'update_caps': (self._update_caps, None),
+            'groupchat_control': (self._gc_control_connect,
+                                  self._gc_control_disconnect)
+        }
 
         self.disabled_accounts = []
         self._windows = {}
@@ -182,10 +184,10 @@ class OmemoPlugin(GajimPlugin):
             return
         self.get_omemo(event.account).on_muc_disco_update(event)
 
-    def _on_muc_joined(self, event):
-        if not self._is_enabled_account(event.account):
+    def _on_room_joined(self, contact, _signal_name: str):
+        if not self._is_enabled_account(contact.account):
             return
-        self.get_omemo(event.account).on_muc_joined(event)
+        self.get_omemo(contact.account).on_room_joined(contact)
 
     def _update_caps(self, account, features):
         if not self._is_enabled_account(account):
@@ -328,3 +330,9 @@ class OmemoPlugin(GajimPlugin):
         if msg is None:
             return
         chat_control.add_info_message(msg)
+
+    def _gc_control_connect(self, groupchat_control):
+        groupchat_control.contact.connect('room-joined', self._on_room_joined)
+
+    def _gc_control_disconnect(self, groupchat_control):
+        groupchat_control.contact.disconnect(self)

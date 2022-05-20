@@ -346,10 +346,11 @@ class OMEMO(BaseModule):
     def on_muc_disco_update(self, event):
         self._check_if_omemo_capable(event.jid)
 
-    def on_muc_joined(self, event):
-        self._check_if_omemo_capable(event.room_jid)
-        if self.is_omemo_groupchat(event.room_jid):
-            self.get_affiliation_list(event.room_jid)
+    def on_room_joined(self, contact):
+        jid = str(contact.jid)
+        self._check_if_omemo_capable(jid)
+        if self.is_omemo_groupchat(jid):
+            self.get_affiliation_list(jid)
 
     def _check_if_omemo_capable(self, jid):
         disco_info = app.storage.cache.get_last_disco_info(jid)
