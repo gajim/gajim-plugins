@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import argparse
 import re
 import subprocess
 from pathlib import Path
@@ -90,17 +91,30 @@ def build_translations() -> None:
                        check=True)
 
 
+def cleanup_translations() -> None:
+    for po_file in TRANS_DIR.glob('*.po'):
+        subprocess.run(['msgattrib',
+                        '--output-file',
+                        str(po_file),
+                        '--no-obsolete',
+                        str(po_file)],
+                       cwd=REPO_DIR,
+                       check=True)
+
+
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='Update Translations')
+    parser.add_argument('command', choices=['update', 'build', 'cleanup'])
+    args = parser.parse_args()
 
-    build = False
-    if len(sys.argv) > 1:
-        cmd = sys.argv[1]
-        if cmd == 'build':
-            build = True
-        else:
-            exit('Unknown commands found: %s' % sys.argv)
+    if args.command == 'cleanup':
+        cleanup_translations()
 
-    update_translation_template()
-    update_translation_files()
-    if build:
+    elif args.command == 'update':
+        update_translation_template()
+        update_translation_files()
+
+    elif args.command == 'build':
+        update_translation_template()
+        update_translation_files()
         build_translations()
