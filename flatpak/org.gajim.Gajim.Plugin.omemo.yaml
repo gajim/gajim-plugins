@@ -13,11 +13,11 @@ modules:
   - name: protobuf
     buildsystem: simple
     build-commands:
-      - pip3 install --no-deps protobuf-3.20.1-py2.py3-none-any.whl
+      - pip3 install --no-deps protobuf-4.21.1-py3-none-any.whl
     sources:
       - type: file
-        url: https://files.pythonhosted.org/packages/py2.py3/p/protobuf/protobuf-3.20.1-py2.py3-none-any.whl
-        sha256: adfc6cf69c7f8c50fd24c793964eef18f0ac321315439d94945820612849c388
+        url: https://files.pythonhosted.org/packages/py3/p/protobuf/protobuf-4.21.1-py3-none-any.whl
+        sha256: 79cd8d0a269b714f6b32641f86928c718e8d234466919b3f552bfb069dbb159b
 
   - name: python3-axolotl-curve25519
     buildsystem: simple
