@@ -1,0 +1,650 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the Gajim Plugins package.
+# Tommy He <lovenemesis@gmail.com>, 2022.
+msgid ""
+msgstr ""
+"Project-Id-Version: Gajim Plugins\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2022-05-08 13:46+0000\n"
+"PO-Revision-Date: 2022-05-31 10:30+0000\n"
+"Last-Translator: Tommy He <lovenemesis@gmail.com>\n"
+"Language-Team: Chinese (Simplified) <https://translate.gajim.org/projects/"
+"gajim-plugins/master/zh_Hans/>\n"
+"Language: zh_Hans\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"X-Generator: Weblate 4.11.2\n"
+
+#. #' Means number
+msgid "#"
+msgstr "#"
+
+#, python-format
+msgid "%(event)s (%(recipient_type)s) %(recipient)s %(status)s"
+msgstr "%(event)s (%(recipient_type)s) %(recipient)s %(status)s"
+
+#, python-format
+msgid "%(num)s: %(search)s -> %(replace)s"
+msgstr "%(num)s: %(search)s -> %(replace)s"
+
+#. label for account selector
+msgid "Acc_ount"
+msgstr "帐号(_O)"
+
+msgid "Acronym"
+msgstr "缩略词"
+
+msgid "Acronyms Configuration"
+msgstr "缩略词配置"
+
+msgid "Actions"
+msgstr "动作"
+
+msgid "Active Accounts"
+msgstr "活跃的帐户"
+
+msgid "Add"
+msgstr "添加"
+
+msgid ""
+"Add an incoming filter. First argument is the search regex, second argument "
+"is the replace regex."
+msgstr ""
+"添加一个传入过滤器。首个参数为搜索正则表达式，第二个参数为替换正则表达式。"
+
+#, python-format
+msgid "Added rule to replace %(search)s by %(replace)s"
+msgstr "已添加规则替换 %(search)s 为 %(replace)s"
+
+msgid "Adds a menu with customizable quick replies"
+msgstr "添加一个包含自定义快捷回复的菜单"
+
+msgid "Advanced"
+msgstr "高级"
+
+msgid "All Files"
+msgstr "所有文件"
+
+msgid "All statuses"
+msgstr "所有状态"
+
+msgid "Allows you to adjust the height of the message input."
+msgstr "允许您调整消息输入的高度。"
+
+msgid ""
+"Allows you to block various kinds of incoming messages (Spam, XHTML "
+"formatting, etc.)"
+msgstr "允许您阻止各种类型的传入消息（垃圾、XHTML 格式等。）"
+
+msgid "Anti Spam Answer"
+msgstr "反垃圾消息应答"
+
+msgid "Anti Spam Configuration"
+msgstr "反垃圾消息配置"
+
+msgid "Anti Spam Question"
+msgstr "反垃圾问题"
+
+msgid "Anti Spam Question in Group Chats"
+msgstr "在群聊中的反垃圾问题"
+
+msgid "Assign Key"
+msgstr "指定密钥"
+
+msgid "Assign PGP Key"
+msgstr "指定 PGP 密钥"
+
+#, python-format
+msgid "Assign key for %s"
+msgstr "指定密钥给 %s"
+
+msgid "Away"
+msgstr "离开"
+
+msgid "Bad Configuration"
+msgstr "损坏的配置"
+
+msgid "Blind Trust"
+msgstr "盲目信任"
+
+msgid "Blind Trust Before Verification"
+msgstr "认证前盲目信任"
+
+msgid "Busy"
+msgstr "忙碌"
+
+msgid "Cancel"
+msgstr "取消"
+
+msgid "Category"
+msgstr "类别"
+
+msgid "Certain status"
+msgstr "某些状态"
+
+msgid "Chat Window"
+msgstr "聊天窗口"
+
+msgid "Clear Devices"
+msgstr "清除设备"
+
+msgid "Click the shield icon to manage trust for each fingerprint."
+msgstr "点击盾牌图标来管理每个指纹的信任情况。"
+
+msgid "Clients Icons Configuration"
+msgstr "客户端图标配置"
+
+msgid "Color"
+msgstr "颜色"
+
+msgid "Command..."
+msgstr "命令…"
+
+msgid "Condition"
+msgstr "条件"
+
+msgid "Conditions"
+msgstr "条件"
+
+msgid "Configure Gajim’s behaviour with triggers for each contact"
+msgstr "配置 Gajim 用于每一个联系人的触发行为"
+
+msgid "Contact"
+msgstr "联系人"
+
+msgid "Contact Changes Status"
+msgstr "联系人变更了状态"
+
+msgid "Contact Connects"
+msgstr "联系人连接"
+
+msgid "Contact Disconnects"
+msgstr "联系人断开连接"
+
+msgid "Contact Name"
+msgstr "联系人名称"
+
+msgid ""
+"Copy tune info of playing music to conversation input box at cursor position "
+"(Alt + N)"
+msgstr "复制正在播放音乐的音频信息到对话框输入栏的光标位置(Alt + N)"
+
+msgid ""
+"Correct answer to your Anti Spam Question (leave empty to disable question)"
+msgstr "针对您的反垃圾问题的正确答案（留空来禁用问题）"
+
+msgid "Delete"
+msgstr "删除"
+
+msgid "Delete Fingerprint"
+msgstr "删除指纹"
+
+msgid "Delete Public Key"
+msgstr "删除公钥"
+
+msgid "Delete rule"
+msgstr "删除规则"
+
+msgid "Delete this rule once applied"
+msgstr "一旦生效删除此规则"
+
+msgid "Deny Subscription Requests"
+msgstr "拒绝订阅请求"
+
+msgid "Device ID"
+msgstr "设备 ID"
+
+msgid "Disable Accounts"
+msgstr "禁用账户"
+
+msgid "Disable XHTML for Group Chats"
+msgstr "为群聊禁用 XHTML"
+
+msgid "Disable XHTML for PMs"
+msgstr "为私聊禁用 XHTML"
+
+msgid "Disabled Accounts"
+msgstr "已禁用账户"
+
+msgid "Does not have focus"
+msgstr "不会获得焦点"
+
+msgid "Doing so will permanently delete this Fingerprint"
+msgstr "如此操作将会永久性删除此指纹"
+
+msgid "Down"
+msgstr "向下"
+
+msgid "Download"
+msgstr "下载"
+
+msgid "Enable the plugin for selected XMPP addresses only (comma separated)"
+msgstr "仅为选定的 XMPP 地址启用插件（以逗号分割）"
+
+msgid "Enables anti spam question for private messages in group chats"
+msgstr "为群聊中的私信启用反垃圾问题"
+
+msgid "Encryption error"
+msgstr "加密错误"
+
+#, python-format
+msgid "Encryption error: %s"
+msgstr "加密错误: %s"
+
+msgid "Error"
+msgstr "错误"
+
+msgid "Event"
+msgstr "事件"
+
+msgid "Everybody"
+msgstr "所有人"
+
+msgid "Filter messages with regex"
+msgstr "使用正则表达式过滤消息"
+
+#, python-format
+msgid "Fingerprints for %s"
+msgstr "适用于 %s 的指纹"
+
+msgid "Focus"
+msgstr "焦点"
+
+msgid ""
+"For verification via QR-Code\n"
+"you have to install python-qrcode"
+msgstr ""
+"为了使用二维码校验\n"
+"您必须安装 python-qrcode"
+
+msgid "Format string"
+msgstr "格式化字符串"
+
+msgid "Gajim will now try to setup OpenPGP for you"
+msgstr "Gajim 将尝试为您设置 OpenPGP"
+
+msgid "General"
+msgstr "通用"
+
+msgid "Generating new Key"
+msgstr "正在生成新密钥"
+
+msgid "Group"
+msgstr "群组"
+
+msgid "Groupchat participant"
+msgstr "群聊参与者"
+
+msgid "Has focus"
+msgstr "拥有焦点"
+
+msgid "Height in pixels"
+msgstr "以像素的高度"
+
+msgid "Highlight color for the message input"
+msgstr "高亮输入消息的颜色"
+
+msgid ""
+"Highlights the chat window’s message input if a specified message length is "
+"exceeded."
+msgstr "如果超过指定的消息长度那么高亮聊天窗口的消息输入。"
+
+msgid "Inactive"
+msgstr "不活跃"
+
+msgid "Key ID"
+msgstr "密钥 ID"
+
+#, python-format
+msgid "Last seen: %s"
+msgstr "最后见到: %s"
+
+msgid "Launch command"
+msgstr "启动命令"
+
+msgid "Length Notifier Configuration"
+msgstr "长度提醒配置"
+
+msgid "Limit Message Length"
+msgstr "限制消息长度"
+
+msgid "Limits maximum message length (leave empty to disable)"
+msgstr "限制最大消息长度（留空以禁用）"
+
+msgid "List"
+msgstr "列表"
+
+msgid "List incoming filters."
+msgstr "列表传入过滤器。"
+
+msgid "Message Box Size Configuration"
+msgstr "消息框尺寸配置"
+
+msgid "Message Length"
+msgstr "消息长度"
+
+msgid "Message length at which the highlight is shown"
+msgstr "展示高亮的消息长度"
+
+msgid "My status"
+msgstr "我的状态"
+
+msgid "Never"
+msgstr "从未"
+
+msgid "New Quick Reply"
+msgstr "新快捷回复"
+
+msgid "New rule"
+msgstr "新规则"
+
+msgid "No OpenPGP key assigned"
+msgstr "未指定 OpenPGP 密钥"
+
+msgid "No OpenPGP key is assigned to this contact."
+msgstr "未给该联系人指定 OpenPGP 密钥。"
+
+msgid "No OpenPGP key is assigned to your account."
+msgstr "没有 OpenPGP 密钥指派给您的账户。"
+
+msgid "No devices found. Query in progress..."
+msgstr "未找到设备。查询进行中…"
+
+msgid "No key assigned"
+msgstr "未指定密钥"
+
+msgid "No rule defined"
+msgstr "没有规则定义"
+
+msgid "None"
+msgstr "无"
+
+msgid "Not Available"
+msgstr "不可用"
+
+msgid "Not Decided"
+msgstr "未决定"
+
+msgid "Not Trusted"
+msgstr "不信任"
+
+msgid "Not opened"
+msgstr "未打开"
+
+msgid "Not_ify me with a popup"
+msgstr "用弹出框提醒我(_I)"
+
+msgid "Note: Fingerprints of your contacts are managed in the message window."
+msgstr "注意：您联系人的指纹在聊天窗口中管理。"
+
+msgid "Notifications"
+msgstr "提醒"
+
+msgid "Now Listen Configuration"
+msgstr "当前聆听配置"
+
+msgid "Now listening to: \"%title\" by %artist"
+msgstr "当前正在听： %artist 的 \"%title\""
+
+msgid "Number of typed characters"
+msgstr "输入的字符数"
+
+msgid "OK"
+msgstr "好的"
+
+msgid "OMEMO Fingerprints"
+msgstr "OMEMO 指纹"
+
+msgid "OMEMO Settings"
+msgstr "OMEMO 设定"
+
+msgid "Online"
+msgstr "在线"
+
+msgid "Opened"
+msgstr "已打开"
+
+msgid "Own Fingerprint"
+msgstr "自己的指纹"
+
+#. tab label
+msgid "Own Fingerprints"
+msgstr "自己的指纹"
+
+msgid "Own _Device ID"
+msgstr "自己的设备 ID(_D)"
+
+#. Descriptive label
+msgid "Own _Fingerprint"
+msgstr "自己的指纹(_F)"
+
+msgid "PGP Configuration"
+msgstr "PGP 配置"
+
+msgid "PGP Key mismatch"
+msgstr "PGP 密钥不匹配"
+
+msgid "PGP encryption as per XEP-0027"
+msgstr "依据 XEP-0027 的 PGP 加密"
+
+msgid "Play sound"
+msgstr "播放声音"
+
+msgid "Please install GnuPG / Gpg4win"
+msgstr "请安装 GnuPG / Gpg4win"
+
+msgid "Please install python-gnupg and gnupg"
+msgstr "请安装 python-gnupg 和 gnupg"
+
+msgid "Plugin only available for Linux"
+msgstr "插件仅适用于 Linux"
+
+#, python-format
+msgid "Public Keys for %s"
+msgstr "用于 %s 的公钥"
+
+msgid "Published Devices"
+msgstr "发布的设备"
+
+msgid "Question has to be answered in order to contact you"
+msgstr "联系您之前必须要回答的问题"
+
+msgid "Quick Replies"
+msgstr "快捷回复"
+
+msgid "Quick Replies Configuration"
+msgstr "快捷回复配置"
+
+msgid "Quick Reply"
+msgstr "快捷回复"
+
+msgid "Read more about blind trust."
+msgstr "阅读并了解更多关于盲目信任。"
+
+msgid "Read more on blind trust."
+msgstr "阅读更多关于盲目信任。"
+
+msgid "Receive a Message"
+msgstr "接收到一则消息"
+
+msgid "Remove"
+msgstr "移除"
+
+msgid ""
+"Remove an incoming filter. Argument is the rule number. See /list_rules "
+"command."
+msgstr "移除一个传入过滤器。参数为规则编号。查看 /list_rules 命令。"
+
+msgid "Removes XHTML formatting from group chat messages"
+msgstr "从群聊消息移除 XHTML 格式"
+
+msgid "Removes XHTML formatting from private messages in group chats"
+msgstr "从群聊的私信中移除 XHTML 格式"
+
+msgid "Replaces acronyms (or other strings) with given expansions/substitutes."
+msgstr "用指定扩展/替代替换缩略语(或者其他字符串)。"
+
+msgid "Request OpenPGP Key"
+msgstr "请求 OpenPGP 密钥"
+
+#, python-format
+msgid "Rule number %s does not exist"
+msgstr "规则编号 %s 不存在"
+
+#, python-format
+msgid "Rule number %s removed"
+msgstr "规则编号 %s 已移除"
+
+msgid "Select Sound"
+msgstr "选择声音"
+
+msgid "Selected Addresses"
+msgstr "已选定的地址"
+
+msgid "Settings"
+msgstr "设定"
+
+msgid "Setup OpenPGP"
+msgstr "设置 OpenPGP"
+
+msgid "Setup failed"
+msgstr "设置失败"
+
+msgid "Setup successful"
+msgstr "设置成功"
+
+msgid "Show Icon for Unknown Clients"
+msgstr "为未知客户端显示图标"
+
+msgid "Show Icons in Tooltip"
+msgstr "在悬浮提示中显示图标"
+
+msgid "Show inactive"
+msgstr "显示不活跃的"
+
+msgid ""
+"Shows client icons in your contact list and in the groupchat participants "
+"list."
+msgstr "在您的联系人列表和群聊参与者列表显示客户端图标。"
+
+msgid "Size of message input in pixels"
+msgstr "以像素为单位的消息输入尺寸"
+
+msgid "Sounds"
+msgstr "声音"
+
+msgid "Status"
+msgstr "状态"
+
+msgid "Substitute"
+msgstr "替代"
+
+msgid ""
+"The PGP key used to encrypt this chat is not trusted. Do you really want to "
+"encrypt this message?"
+msgstr "用来加密此聊天的 PGP 密钥尚未信任。您真的想要加密此消息吗？"
+
+#, python-format
+msgid "The contact's key (%s) <b>does not match</b> the key assigned in Gajim."
+msgstr "该联系人的公钥 (%s) <b>并不匹配</b> 在 Gajim 中的指定的公钥。"
+
+msgid "There was no trusted and active key found"
+msgstr "没有发现已信任且活跃的公钥"
+
+msgid ""
+"This clears your device list from the server.\n"
+"Clearing the device list helps you to remove unused devices from the "
+"encryption process.\n"
+"It is advised to go online with all of your actively used devices after "
+"clearing."
+msgstr ""
+"这将从服务器清除您的设备列表。\n"
+"清除设备列表帮助您从加密过程中移除不再使用的设备。\n"
+"推荐您在清理后登录您所有活跃使用的设备。"
+
+msgid "This message was encrypted with OMEMO, but not for your device."
+msgstr "这则消息使用 OMEMO 加密，但并未用于您的设备。"
+
+msgid ""
+"This plugin contains translations for other Gajim plugins. Please restart "
+"Gajim after enabling this plugin."
+msgstr "该插件包含用于其他 Gajim 插件的翻译。请在启用该插件后重新启动 Gajim。"
+
+msgid "This will permanently delete this public key"
+msgstr "这将永久性的删除该公钥"
+
+msgid ""
+"To send an encrypted message, you have to first trust the fingerprint of "
+"your contact!"
+msgstr "要发送一则加密消息，您首先需要信任您联系人的指纹！"
+
+msgid ""
+"To use OMEMO in a Groupchat, the Groupchat should be non-anonymous and "
+"members-only."
+msgstr "要在群俩中使用 OMEMO，群聊必须是非匿名的且仅限成员。"
+
+msgid "Triggers Configuration"
+msgstr "触发器配置"
+
+msgid "Unknown"
+msgstr "未知"
+
+msgid "Untrusted"
+msgstr "未信任的"
+
+msgid "Untrusted PGP key"
+msgstr "未信任的 PGP 密钥"
+
+msgid "Up"
+msgstr "向上"
+
+msgid "Verified"
+msgstr "已验证"
+
+msgid "Wav Sounds"
+msgstr "Wav 声音"
+
+msgid "Welcome"
+msgstr "欢迎"
+
+msgid "You have to restart Gajim for changes to take effect !"
+msgstr "您必须重新启动 Gajim 来使变更生效！"
+
+msgid "You have undecided fingerprints"
+msgstr "您有尚未决定的指纹"
+
+msgid "[This message is *encrypted* (See :XEP:`27`]"
+msgstr "[该消息 *已加密* (查看 :XEP:`27`]"
+
+msgid "_Clear Devices"
+msgstr "清除设备(_C)"
+
+msgid "_Disable Account"
+msgstr "禁用账户(_D)"
+
+msgid "_Disable existing notification"
+msgstr "禁用已存在的提示(_D)"
+
+msgid "_Disable existing sound for this event"
+msgstr "禁用当前事件的已存在声音(_D)"
+
+msgid "_Do not ask me again"
+msgstr "不要再询问(_D)"
+
+msgid "_Enable Account"
+msgstr "启用账户(_E)"
+
+msgid "_Encrypt Anyway"
+msgstr "仍然加密(_E)"
+
+msgid "_No"
+msgstr "不(_N)"
+
+msgid "and I am "
+msgstr "且我是 "
+
+msgid "comma separated list"
+msgstr "逗号分割列表"
