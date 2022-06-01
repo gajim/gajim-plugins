@@ -15,5 +15,5 @@
         "gajim>=1.4.0"
     ],
     "short_name": "plugins_translations",
-    "version": "1.4.3"
+    "version": "1.4.4"
 }
