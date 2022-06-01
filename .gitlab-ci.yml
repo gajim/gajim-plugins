@@ -6,4 +6,4 @@ stages:
 deploy-plugins:
   stage: deploy
   script:
-    - python .ci/deploy.py
+    - python3 .ci/deploy.py
