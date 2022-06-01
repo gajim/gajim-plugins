@@ -13,6 +13,11 @@
 # You should have received a copy of the GNU General Public License
 # along with Gajim. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import annotations
+
+from typing import Any
+from typing import cast
+
 from gi.repository import Gtk
 
 from gajim.gui.settings import SettingsDialog
@@ -26,14 +31,14 @@ from gajim.plugins.plugins_i18n import _
 class AntiSpamConfigDialog(SettingsDialog):
     def __init__(self, plugin, parent):
         self.plugin = plugin
-        msgtxt_limit = self.plugin.config['msgtxt_limit']
+        msgtxt_limit = cast(int, self.plugin.config['msgtxt_limit'])
         max_length = '' if msgtxt_limit == 0 else msgtxt_limit
 
         settings = [
             Setting(SettingKind.ENTRY,
                     _('Limit Message Length'),
                     SettingType.VALUE,
-                    max_length,
+                    str(max_length),
                     callback=self._on_length_setting,
                     data='msgtxt_limit',
                     desc=_('Limits maximum message length (leave empty to '
@@ -89,11 +94,11 @@ class AntiSpamConfigDialog(SettingsDialog):
         SettingsDialog.__init__(self, parent, _('Anti Spam Configuration'),
                                 Gtk.DialogFlags.MODAL, settings, None)
 
-    def _on_setting(self, value, data):
+    def _on_setting(self, value: Any, data: Any) -> None:
         self.plugin.config[data] = value
 
-    def _on_length_setting(self, value, data):
+    def _on_length_setting(self, value: str, data: str) -> None:
         try:
             self.plugin.config[data] = int(value)
-        except Exception:
+        except ValueError:
             self.plugin.config[data] = 0

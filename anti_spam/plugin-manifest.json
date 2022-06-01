@@ -17,5 +17,5 @@
         "gajim>=1.4.0"
     ],
     "short_name": "anti_spam",
-    "version": "1.6.4"
+    "version": "1.6.5"
 }
