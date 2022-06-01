@@ -1,4 +1,4 @@
-image: ci-gajim:master
+image: plugins-master:latest
 
 stages:
   - deploy
