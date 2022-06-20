@@ -13,12 +13,23 @@
 # along with Gajim.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+from __future__ import annotations
+
+from typing import Any
+from typing import cast
+
 from nbxmpp import NodeProcessed
+from nbxmpp.protocol import JID
 from nbxmpp.protocol import Message
+from nbxmpp.protocol import Presence
+from nbxmpp.structs import MessageProperties
+from nbxmpp.structs import PresenceProperties
 from nbxmpp.structs import StanzaHandler
 
 from gajim.common import app
 from gajim.common import ged
+from gajim.common import types
+from gajim.common.events import MessageSent
 from gajim.common.modules.base import BaseModule
 
 # Module name
@@ -27,7 +38,7 @@ zeroconf = False
 
 
 class AntiSpam(BaseModule):
-    def __init__(self, con):
+    def __init__(self, con: types.Client) -> None:
         BaseModule.__init__(self, con, plugin=True)
 
         self.handlers = [
@@ -48,24 +59,22 @@ class AntiSpam(BaseModule):
             if plugin.manifest.short_name == 'anti_spam':
                 self._config = plugin.config
 
-        self._contacted_jids = set()
+        self._contacted_jids: set[JID] = set()
 
-    def _on_message_sent(self, event):
-        if event.type_ not in ('chat', 'normal'):
-            return
-
+    def _on_message_sent(self, event: MessageSent) -> None:
         # We need self._contacted_jids in order to prevent two
         # Anti Spam Plugins from chatting with each other.
         # This set contains JIDs of all outgoing chats.
-        if isinstance(event.jid, list):
-            for jid in event.jid:
-                self._contacted_jids.add(jid)
-        else:
-            self._contacted_jids.add(event.jid)
+        self._contacted_jids.add(event.jid)
 
-    def _message_received(self, _con, _stanza, properties):
+    def _message_received(self,
+                          _con: types.xmppClient,
+                          _stanza: Message,
+                          properties: MessageProperties
+                          ) -> None:
         if properties.is_sent_carbon:
             # Another device already sent a message
+            assert properties.jid
             self._contacted_jids.add(properties.jid)
             return
 
@@ -77,7 +86,7 @@ class AntiSpam(BaseModule):
             raise NodeProcessed
 
         msg_from = properties.jid
-        limit = self._config['msgtxt_limit']
+        limit = cast(int, self._config['msgtxt_limit'])
         if limit > 0 and len(msg_body) > limit:
             self._log.info('Discarded message from %s: message '
                            'length exceeded' % msg_from)
@@ -93,8 +102,8 @@ class AntiSpam(BaseModule):
             self._log.info('Stripped message from %s: message '
                            'contained XHTML' % msg_from)
 
-    def _ask_question(self, properties):
-        answer = self._config['msgtxt_answer']
+    def _ask_question(self, properties: MessageProperties) -> bool:
+        answer = cast(str, self._config['msgtxt_answer'])
         if len(answer) == 0:
             return False
 
@@ -106,23 +115,28 @@ class AntiSpam(BaseModule):
                 properties.is_mam_message):
             return False
 
-        msg_from = properties.jid if is_muc_pm else properties.jid.bare
+        assert properties.jid
+        if is_muc_pm:
+            msg_from = properties.jid
+        else:
+            msg_from = JID.from_string(properties.jid.bare)
 
         if msg_from in self._contacted_jids:
             return False
 
         # If we receive a PM or a message from an unknown user, our anti spam
         # question will silently be sent in the background
-        whitelist = self._config['whitelist']
-        if msg_from in whitelist:
+        whitelist = cast(list[str], self._config['whitelist'])
+        if str(msg_from) in whitelist:
             return False
 
         roster_item = self._con.get_module('Roster').get_item(msg_from)
 
         if is_muc_pm or roster_item is None:
+            assert properties.body
             if answer in properties.body.split('\n'):
                 if msg_from not in whitelist:
-                    whitelist.append(msg_from)
+                    whitelist.append(str(msg_from))
                     # We need to explicitly save, because 'append' does not
                     # implement the __setitem__ method
                     self._config.save()
@@ -131,13 +145,17 @@ class AntiSpam(BaseModule):
                 return True
         return False
 
-    def _send_question(self, properties, jid):
+    def _send_question(self, properties: MessageProperties, jid: JID) -> None:
         message = 'Anti Spam Question: %s' % self._config['msgtxt_question']
         stanza = Message(to=jid, body=message, typ=properties.type.value)
         self._con.connection.send_stanza(stanza)
         self._log.info('Anti spam question sent to %s', jid)
 
-    def _subscribe_received(self, _con, _stanza, properties):
+    def _subscribe_received(self,
+                            _con: types.xmppClient,
+                            _stanza: Presence,
+                            properties: PresenceProperties
+                            ) -> None:
         msg_from = properties.jid
         block_sub = self._config['block_subscription_requests']
         roster_item = self._con.get_module('Roster').get_item(msg_from)
@@ -148,5 +166,5 @@ class AntiSpam(BaseModule):
             raise NodeProcessed
 
 
-def get_instance(*args, **kwargs):
+def get_instance(*args: Any, **kwargs: Any) -> None:
     return AntiSpam(*args, **kwargs), 'AntiSpam'
