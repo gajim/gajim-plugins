@@ -150,7 +150,11 @@ class ConfigDialog(Gtk.ApplicationWindow):
 
         # event
         value = self._config[self._active_num]['event']
-        if value:
+        legacy_values = [
+            'contact_connected',
+            'contact_disconnected',
+            'contact_status_change']
+        if value and value not in legacy_values:
             self._ui.event_combobox.set_active(
                 list(EVENTS.keys()).index(value))
         else:

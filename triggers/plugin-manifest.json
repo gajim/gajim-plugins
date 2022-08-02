@@ -15,5 +15,5 @@
         "gajim>=1.4.0"
     ],
     "short_name": "triggers",
-    "version": "1.4.5"
+    "version": "1.4.6"
 }
