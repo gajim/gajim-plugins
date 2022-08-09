@@ -438,9 +438,11 @@ class OMEMO(BaseModule):
 
         # Trigger dialog to trust new Fingerprints if
         # the Chat Window is Open
-        ctrl = app.window.get_control(self._account, jid)
-        if ctrl:
-            app.ged.raise_event(OMEMONewFingerprint(chat_control=ctrl))
+
+        # TODO: This does not work anymore
+        # ctrl = app.window.get_control(self._account, jid)
+        # if ctrl:
+        #     app.ged.raise_event(OMEMONewFingerprint(chat_control=ctrl))
 
     def set_devicelist(self, devicelist=None):
         devicelist_ = set([self.backend.own_device])
