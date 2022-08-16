@@ -14,8 +14,8 @@
         "win32"
     ],
     "requirements": [
-        "gajim>=1.4.0"
+        "gajim>=1.5.0"
     ],
     "short_name": "message_box_size",
-    "version": "1.4.1"
+    "version": "1.4.2"
 }

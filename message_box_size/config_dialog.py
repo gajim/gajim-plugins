@@ -28,6 +28,7 @@ class MessageBoxSizeConfigDialog(SettingsDialog):
 
     def on_setting(self, value, data):
         self.plugin.config[data] = value
+        self.plugin.set_input_height(value)
 
 
 class SizeSpinSetting(SpinSetting):
