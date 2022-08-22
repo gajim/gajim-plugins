@@ -31,7 +31,6 @@ from gajim.common.const import STOP_EVENT
 from gajim.common.events import Notification
 from gajim.common.events import GcMessageReceived
 from gajim.common.events import MessageReceived
-from gajim.common.events import Notification
 from gajim.common.helpers import exec_command
 from gajim.common.helpers import play_sound_file
 
@@ -210,8 +209,8 @@ class Triggers(GajimPlugin):
     @log_result
     def _check_rule_status(self, event, rule: RuleT) -> bool:
         rule_statuses = rule['status'].split()
-        our_status = app.connections[event.account].status
-        if rule['status'] != 'all' and our_status not in rule_statuses:
+        client = app.get_client(event.account)
+        if rule['status'] != 'all' and client.status not in rule_statuses:
             return False
 
         return True
@@ -221,7 +220,7 @@ class Triggers(GajimPlugin):
         if rule['tab_opened'] == 'both':
             return True
         tab_opened = False
-        if app.window.get_control(event.account, event.jid):
+        if app.window.chat_exists(event.account, event.jid):
             tab_opened = True
         if tab_opened and rule['tab_opened'] == 'no':
             return False
@@ -237,14 +236,10 @@ class Triggers(GajimPlugin):
         if rule['tab_opened'] == 'no':
             # Does not apply in this case
             return True
-        ctrl = app.window.get_control(event.account, event.jid)
-        if not ctrl:
-            # Does not apply in this case
-            return True
-        has_focus = ctrl.has_focus()
-        if has_focus and rule['has_focus'] == 'no':
+        chat_active = app.window.is_chat_active(event.account, event.jid)
+        if chat_active and rule['has_focus'] == 'no':
             return False
-        elif not has_focus and rule['has_focus'] == 'yes':
+        elif not chat_active and rule['has_focus'] == 'yes':
             return False
 
         return True
