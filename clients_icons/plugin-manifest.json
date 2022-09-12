@@ -9,6 +9,7 @@
     "config_dialog": true,
     "name": "Clients icons",
     "platforms": [
+        "others",
         "linux",
         "darwin",
         "win32"

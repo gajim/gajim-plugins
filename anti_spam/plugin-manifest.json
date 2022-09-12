@@ -9,6 +9,7 @@
     "config_dialog": true,
     "name": "Anti Spam",
     "platforms": [
+        "others",
         "linux",
         "darwin",
         "win32"

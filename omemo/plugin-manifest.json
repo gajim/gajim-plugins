@@ -9,6 +9,7 @@
     "config_dialog": true,
     "name": "OMEMO",
     "platforms": [
+        "others",
         "linux",
         "darwin",
         "win32"

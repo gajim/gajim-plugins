@@ -7,6 +7,7 @@
     "config_dialog": false,
     "name": "Quick replies",
     "platforms": [
+        "others",
         "linux",
         "darwin",
         "win32"

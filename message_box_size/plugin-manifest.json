@@ -8,6 +8,7 @@
     "config_dialog": true,
     "name": "Message Box Size",
     "platforms": [
+        "others",
         "linux",
         "darwin",
         "win32"
