@@ -15,8 +15,8 @@
         "win32"
     ],
     "requirements": [
-        "gajim>=1.4.0"
+        "gajim>=1.5.0"
     ],
     "short_name": "omemo",
-    "version": "2.8.15"
+    "version": "2.8.16"
 }
