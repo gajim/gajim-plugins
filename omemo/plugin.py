@@ -30,6 +30,7 @@ from gi.repository import Gdk
 from nbxmpp.namespaces import Namespace
 
 from gajim.common import app, ged
+from gajim.common.modules.contacts import GroupchatContact
 
 from gajim.gui.dialogs import ErrorDialog
 
@@ -93,6 +94,7 @@ class OmemoPlugin(GajimPlugin):
             'omemo-new-fingerprint': (ged.PRECORE, self._on_new_fingerprints),
             'signed-in': (ged.PRECORE, self._on_signed_in),
             'muc-disco-update': (ged.GUI1, self._on_muc_disco_update),
+            'muc-added': (ged.GUI1, self._on_muc_added),
         }
         self.modules = [omemo]
 
@@ -108,8 +110,6 @@ class OmemoPlugin(GajimPlugin):
             'encryption_state' + self.encryption_name: (
                 self._encryption_state, None),
             'update_caps': (self._update_caps, None),
-            'groupchat_control': (self._gc_control_connect,
-                                  self._gc_control_disconnect)
         }
 
         self.disabled_accounts = []
@@ -331,8 +331,13 @@ class OmemoPlugin(GajimPlugin):
             return
         chat_control.add_info_message(msg)
 
-    def _gc_control_connect(self, groupchat_control):
-        groupchat_control.contact.connect('room-joined', self._on_room_joined)
+    def _on_muc_added(self, event):
+        client = app.get_client(event.account)
+        contact = client.get_module('Contacts').get_contact(event.jid)
+        if not isinstance(contact, GroupchatContact):
+            log.warning('%s is not a groupchat contact', contact)
+            return
 
-    def _gc_control_disconnect(self, groupchat_control):
-        groupchat_control.contact.disconnect(self)
+        # Event is triggert on every join, avoid multiple connects
+        contact.disconnect_all_from_obj(self)
+        contact.connect('room-joined', self._on_room_joined)
