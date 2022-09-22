@@ -13,11 +13,11 @@ modules:
   - name: protobuf
     buildsystem: simple
     build-commands:
-      - pip3 install --no-deps protobuf-4.21.1-py3-none-any.whl
+      - pip3 install --no-deps protobuf-4.21.6-py3-none-any.whl
     sources:
       - type: file
-        url: https://files.pythonhosted.org/packages/py3/p/protobuf/protobuf-4.21.1-py3-none-any.whl
-        sha256: 79cd8d0a269b714f6b32641f86928c718e8d234466919b3f552bfb069dbb159b
+        url: https://files.pythonhosted.org/packages/py3/p/protobuf/protobuf-4.21.6-py3-none-any.whl
+        sha256: c7c864148a237f058c739ae7a05a2b403c0dfa4ce7d1f3e5213f352ad52d57c6
 
   - name: python3-axolotl-curve25519
     buildsystem: simple
@@ -56,8 +56,8 @@ modules:
     sources:
       - type: archive
         strip-components: 0
-        url: https://ftp.gajim.org/plugins/master/omemo/omemo_2.8.15.zip
-        sha256: 9639e6ddb76c4612ca43e74ee9d80d8d92c31fdfbb173f7c9976a2cc3d22c1c1
+        url: https://ftp.gajim.org/plugins/master/omemo/omemo_2.8.16.zip
+        sha256: 430df55ec3d79f58603e475b157700a6f97e229bef4690d8144e5d0aae5f4888
       - type: shell
         commands:
           - sed -i "s+org.gajim.Gajim+org.gajim.Gajim.Devel+" org.gajim.Gajim.Plugin.*.metainfo.xml
