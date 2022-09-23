@@ -1,12 +1,13 @@
 id: org.gajim.Gajim.Devel.Plugin.openpgp
 runtime: org.gajim.Gajim.Devel
-sdk: org.gnome.Sdk//42
+sdk: org.gnome.Sdk//43
 build-extension: true
 separate-locales: false
 appstream-compose: false
 build-options:
   env:
     PIP_TARGET: /app/plugins/openpgp/site-packages
+    PIP_DISABLE_PIP_VERSION_CHECK: "1"
 
 modules:
   - name: swig
@@ -33,13 +34,16 @@ modules:
       prepend-path: "/app/plugins/openpgp/bin:"
       prefix: ${FLATPAK_DEST}
     post-install:
-      - mv ${FLATPAK_DEST}/lib/python3.9/site-packages ${FLATPAK_DEST}/site-packages
+      - mkdir -p ${FLATPAK_DEST}/site-packages
+      - mv ${FLATPAK_DEST}/lib/python3.10/site-packages/*.egg/gpg ${FLATPAK_DEST}/site-packages/
     sources:
       # used version should match runtime version of gpgme
       # so we don't have to ship libs
       - type: archive
-        url: https://www.gnupg.org/ftp/gcrypt/gpgme/gpgme-1.16.0.tar.bz2
-        sha256: 6c8cc4aedb10d5d4c905894ba1d850544619ee765606ac43df7405865de29ed0
+        url: https://www.gnupg.org/ftp/gcrypt/gpgme/gpgme-1.18.0.tar.bz2
+        sha256: 361d4eae47ce925dba0ea569af40e7b52c645c4ae2e65e5621bf1b6cdd8b0e9e
+      - type: patch
+        path: gpgme_python310.patch
 
   - name: gajim-openpgp
     buildsystem: simple

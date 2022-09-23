@@ -1,6 +1,6 @@
 id: org.gajim.Gajim.Devel.Plugin.pgp
 runtime: org.gajim.Gajim.Devel
-sdk: org.gnome.Sdk//42
+sdk: org.gnome.Sdk//43
 build-extension: true
 separate-locales: false
 appstream-compose: false
@@ -8,6 +8,7 @@ appstream-compose: false
 build-options:
   env:
     PIP_TARGET: /app/plugins/pgp/site-packages
+    PIP_DISABLE_PIP_VERSION_CHECK: "1"
 
 modules:
   - name: python3-python-gnupg
