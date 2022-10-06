@@ -137,7 +137,7 @@ class OMEMOConfigDialog(Gtk.ApplicationWindow):
     def cleardevice_button_clicked_cb(self, button, *args):
         active = self._ui.account_combobox.get_active()
         account = self._ui.account_store[active][0]
-        app.connections[account].get_module('OMEMO').clear_devicelist()
+        app.get_client(account).get_module('OMEMO').clear_devicelist()
         self.update_context_list()
 
     def refresh_button_clicked_cb(self, button, *args):

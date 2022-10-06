@@ -85,8 +85,8 @@ class OMEMO(BaseModule):
         'request_bundle',
     ]
 
-    def __init__(self, con):
-        BaseModule.__init__(self, con, plugin=True)
+    def __init__(self, client):
+        BaseModule.__init__(self, client, plugin=True)
 
         self.handlers = [
             StanzaHandler(name='message',
@@ -103,7 +103,7 @@ class OMEMO(BaseModule):
 
         self.available = True
 
-        self._own_jid = self._con.get_own_jid().bare
+        self._own_jid = self._client.get_own_jid().bare
         self._backend = self._get_backend()
 
         self._omemo_groupchats = set()
@@ -114,8 +114,8 @@ class OMEMO(BaseModule):
 
     def get_own_jid(self, stripped=False):
         if stripped:
-            return self._con.get_own_jid().bare
-        return self._con.get_own_jid()
+            return self._client.get_own_jid().bare
+        return self._client.get_own_jid()
 
     @property
     def backend(self):
@@ -138,7 +138,7 @@ class OMEMO(BaseModule):
     def activate(self):
         """ Method called when the Plugin is activated in the PluginManager
         """
-        self._con.get_module('Caps').update_caps()
+        self._client.get_module('Caps').update_caps()
 
         if app.account_is_connected(self._account):
             self._log.info('Announce Support after Plugin Activation')
@@ -190,7 +190,7 @@ class OMEMO(BaseModule):
 
         transport_message = get_key_transport_message(typ, jid, omemo_message)
         self._log.info('Send key transport message %s (%s)', jid, devices)
-        self._con.connection.send(transport_message)
+        self._client.connection.send(transport_message)
 
     def _message_received(self, _con, stanza, properties):
         if not properties.is_omemo:
@@ -259,7 +259,8 @@ class OMEMO(BaseModule):
             # History Message from MUC
             return properties.muc_ofrom.bare
 
-        contact = self._con.get_module('Contacts').get_contact(properties.jid)
+        contact = self._client.get_module('Contacts').get_contact(
+            properties.jid)
         if contact.real_jid is not None:
             return contact.real_jid.bare
 
@@ -336,11 +337,11 @@ class OMEMO(BaseModule):
         if jid == self._own_jid:
             return True
 
-        roster_item = self._con.get_module('Roster').get_item(jid)
+        roster_item = self._client.get_module('Roster').get_item(jid)
         if roster_item is None:
             return False
 
-        contact = self._con.get_module('Contacts').get_contact(jid)
+        contact = self._client.get_module('Contacts').get_contact(jid)
         return contact.subscription == 'both'
 
     def on_muc_disco_update(self, event):
@@ -484,7 +485,7 @@ class OMEMO(BaseModule):
         self._process_devicelist_update(str(properties.jid), devicelist)
 
     def _process_devicelist_update(self, jid, devicelist):
-        own_devices = jid is None or self._con.get_own_jid().bare_match(jid)
+        own_devices = jid is None or self._client.get_own_jid().bare_match(jid)
         if own_devices:
             jid = self._own_jid
 

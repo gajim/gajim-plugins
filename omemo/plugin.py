@@ -135,7 +135,7 @@ class OmemoPlugin(GajimPlugin):
 
     @staticmethod
     def get_omemo(account):
-        return app.connections[account].get_module('OMEMO')
+        return app.get_client(account).get_module('OMEMO')
 
     @staticmethod
     def _load_css():
@@ -159,7 +159,7 @@ class OmemoPlugin(GajimPlugin):
         """
         Method called when the Plugin is activated in the PluginManager
         """
-        for account in app.connections:
+        for account in app.settings.get_active_accounts():
             if not self._is_enabled_account(account):
                 continue
             self.get_omemo(account).activate()
@@ -168,16 +168,15 @@ class OmemoPlugin(GajimPlugin):
         """
         Method called when the Plugin is deactivated in the PluginManager
         """
-        for account in app.connections:
+        for account in app.settings.get_active_accounts():
             if not self._is_enabled_account(account):
                 continue
             self.get_omemo(account).deactivate()
 
     def _on_signed_in(self, event):
-        account = event.conn.name
-        if not self._is_enabled_account(account):
+        if not self._is_enabled_account(event.account):
             return
-        self.get_omemo(account).on_signed_in()
+        self.get_omemo(event.account).on_signed_in()
 
     def _on_muc_disco_update(self, event):
         if not self._is_enabled_account(event.account):
