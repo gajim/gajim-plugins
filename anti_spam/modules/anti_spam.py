@@ -38,8 +38,8 @@ zeroconf = False
 
 
 class AntiSpam(BaseModule):
-    def __init__(self, con: types.Client) -> None:
-        BaseModule.__init__(self, con, plugin=True)
+    def __init__(self, client: types.Client) -> None:
+        BaseModule.__init__(self, client, plugin=True)
 
         self.handlers = [
             StanzaHandler(name='message',
@@ -130,7 +130,7 @@ class AntiSpam(BaseModule):
         if str(msg_from) in whitelist:
             return False
 
-        roster_item = self._con.get_module('Roster').get_item(msg_from)
+        roster_item = self._client.get_module('Roster').get_item(msg_from)
 
         if is_muc_pm or roster_item is None:
             assert properties.body
@@ -148,7 +148,7 @@ class AntiSpam(BaseModule):
     def _send_question(self, properties: MessageProperties, jid: JID) -> None:
         message = 'Anti Spam Question: %s' % self._config['msgtxt_question']
         stanza = Message(to=jid, body=message, typ=properties.type.value)
-        self._con.connection.send_stanza(stanza)
+        self._client.connection.send_stanza(stanza)
         self._log.info('Anti spam question sent to %s', jid)
 
     def _subscribe_received(self,
@@ -158,10 +158,10 @@ class AntiSpam(BaseModule):
                             ) -> None:
         msg_from = properties.jid
         block_sub = self._config['block_subscription_requests']
-        roster_item = self._con.get_module('Roster').get_item(msg_from)
+        roster_item = self._client.get_module('Roster').get_item(msg_from)
 
         if block_sub and roster_item is None:
-            self._con.get_module('Presence').unsubscribed(msg_from)
+            self._client.get_module('Presence').unsubscribed(msg_from)
             self._log.info('Denied subscription request from %s' % msg_from)
             raise NodeProcessed
 
