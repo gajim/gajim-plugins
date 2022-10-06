@@ -56,7 +56,7 @@ class KeyDialog(Gtk.Dialog):
 
         self.get_style_context().add_class('openpgp-key-dialog')
 
-        self.con = app.connections[account]
+        self._client = app.get_client(account)
 
         self._listbox = Gtk.ListBox()
         self._listbox.set_selection_mode(Gtk.SelectionMode.NONE)
@@ -69,7 +69,8 @@ class KeyDialog(Gtk.Dialog):
         box = self.get_content_area()
         box.pack_start(self._scrolled, True, True, 0)
 
-        keys = self.con.get_module('OpenPGP').get_keys(jid, only_trusted=False)
+        keys = self._client.get_module('OpenPGP').get_keys(
+            jid, only_trusted=False)
         for key in keys:
             log.info('Load: %s', key.fingerprint)
             self._listbox.add(KeyRow(key))

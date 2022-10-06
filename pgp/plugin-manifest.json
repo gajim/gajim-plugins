@@ -16,5 +16,5 @@
         "gajim>=1.4.0"
     ],
     "short_name": "pgp",
-    "version": "1.4.7"
+    "version": "1.4.8"
 }

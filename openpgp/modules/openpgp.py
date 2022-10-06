@@ -73,8 +73,8 @@ class OpenPGP(BaseModule):
         'request_secret_key',
     ]
 
-    def __init__(self, con):
-        BaseModule.__init__(self, con)
+    def __init__(self, client):
+        BaseModule.__init__(self, client)
 
         self.handlers = [
             StanzaHandler(name='message',
@@ -85,7 +85,7 @@ class OpenPGP(BaseModule):
 
         self._register_pubsub_handler(self._keylist_notification_received)
 
-        self.own_jid = self._con.get_own_jid()
+        self.own_jid = self._client.get_own_jid()
 
         own_bare_jid = self.own_jid.bare
         path = Path(configpaths.get('MY_DATA')) / 'openpgp' / own_bare_jid
@@ -265,7 +265,7 @@ class OpenPGP(BaseModule):
         if error:
             log.error('Error: %s', error)
             app.ged.raise_event(
-                MessageNotSent(client=self._con,
+                MessageNotSent(client=self._client,
                                jid=obj.jid,
                                message=obj.message,
                                error=error,

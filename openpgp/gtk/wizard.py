@@ -38,7 +38,7 @@ class KeyWizard(Gtk.Assistant):
     def __init__(self, plugin, account, chat_control):
         Gtk.Assistant.__init__(self)
 
-        self._con = app.connections[account]
+        self._client = app.get_client(account)
         self._plugin = plugin
         self._account = account
         self._data_form_widget = None
@@ -55,7 +55,7 @@ class KeyWizard(Gtk.Assistant):
 
         self._add_page(WelcomePage())
         # self._add_page(BackupKeyPage())
-        self._add_page(NewKeyPage(self, self._con))
+        self._add_page(NewKeyPage(self, self._client))
         # self._add_page(SaveBackupCodePage())
         self._add_page(SuccessfulPage())
         self._add_page(ErrorPage())
@@ -85,7 +85,7 @@ class KeyWizard(Gtk.Assistant):
 
     def _on_page_change(self, assistant, page):
         if self.get_current_page() == Page.NEWKEY:
-            if self._con.get_module('OpenPGP').secret_key_available:
+            if self._client.get_module('OpenPGP').secret_key_available:
                 self.set_current_page(Page.SUCCESS)
             else:
                 page.generate()
@@ -150,10 +150,10 @@ class NewKeyPage(RequestPage):
     title = _('Generating new Key')
     complete = False
 
-    def __init__(self, assistant, con):
+    def __init__(self, assistant, client):
         super().__init__()
         self._assistant = assistant
-        self._con = con
+        self._client = client
 
     def generate(self):
         log.info('Creating Key')
@@ -163,7 +163,7 @@ class NewKeyPage(RequestPage):
     def worker(self):
         text = None
         try:
-            self._con.get_module('OpenPGP').generate_key()
+            self._client.get_module('OpenPGP').generate_key()
         except Exception as error:
             text = str(error)
 
@@ -171,9 +171,9 @@ class NewKeyPage(RequestPage):
 
     def finished(self, error):
         if error is None:
-            self._con.get_module('OpenPGP').get_own_key_details()
-            self._con.get_module('OpenPGP').set_public_key()
-            self._con.get_module('OpenPGP').request_keylist()
+            self._client.get_module('OpenPGP').get_own_key_details()
+            self._client.get_module('OpenPGP').set_public_key()
+            self._client.get_module('OpenPGP').request_keylist()
             self._assistant.set_current_page(Page.SUCCESS)
         else:
             error_page = self._assistant.get_nth_page(Page.ERROR)

@@ -104,24 +104,23 @@ class OpenPGPPlugin(GajimPlugin):
             keyring_path.mkdir()
 
     def signed_in(self, event):
-        account = event.conn.name
-        con = app.connections[account]
-        if con.get_module('OpenPGP').secret_key_available:
+        client = app.get_client(event.account)
+        if client.get_module('OpenPGP').secret_key_available:
             log.info('%s => Publish keylist and public key after sign in',
-                     account)
-            con.get_module('OpenPGP').request_keylist()
-            con.get_module('OpenPGP').set_public_key()
+                     event.account)
+            client.get_module('OpenPGP').request_keylist()
+            client.get_module('OpenPGP').set_public_key()
 
     def activate(self):
-        for account in app.connections:
-            con = app.connections[account]
-            con.get_module('Caps').update_caps()
+        for account in app.settings.get_active_accounts():
+            client = app.get_client(account)
+            client.get_module('Caps').update_caps()
             if app.account_is_connected(account):
-                if con.get_module('OpenPGP').secret_key_available:
+                if client.get_module('OpenPGP').secret_key_available:
                     log.info('%s => Publish keylist and public key '
                              'after plugin activation', account)
-                    con.get_module('OpenPGP').request_keylist()
-                    con.get_module('OpenPGP').set_public_key()
+                    client.get_module('OpenPGP').request_keylist()
+                    client.get_module('OpenPGP').set_public_key()
 
     def deactivate(self):
         pass
@@ -133,12 +132,12 @@ class OpenPGPPlugin(GajimPlugin):
     def activate_encryption(self, chat_control):
         account = chat_control.account
         jid = chat_control.contact.jid
-        con = app.connections[account]
-        if con.get_module('OpenPGP').secret_key_available:
-            keys = app.connections[account].get_module('OpenPGP').get_keys(
+        client = app.get_client(account)
+        if client.get_module('OpenPGP').secret_key_available:
+            keys = client.get_module('OpenPGP').get_keys(
                 jid, only_trusted=False)
             if not keys:
-                con.get_module('OpenPGP').request_keylist(JID.from_string(jid))
+                client.get_module('OpenPGP').request_keylist(JID.from_string(jid))
             return True
 
         from openpgp.gtk.wizard import KeyWizard
@@ -161,14 +160,14 @@ class OpenPGPPlugin(GajimPlugin):
     def _before_sendmessage(self, chat_control):
         account = chat_control.account
         jid = chat_control.contact.jid
-        con = app.connections[account]
+        client = app.get_client(account)
 
-        if not con.get_module('OpenPGP').secret_key_available:
+        if not client.get_module('OpenPGP').secret_key_available:
             from openpgp.gtk.wizard import KeyWizard
             KeyWizard(self, account, chat_control)
             return
 
-        keys = con.get_module('OpenPGP').get_keys(jid)
+        keys = client.get_module('OpenPGP').get_keys(jid)
         if not keys:
             ErrorDialog(
                 _('Not Trusted'),
@@ -176,7 +175,7 @@ class OpenPGPPlugin(GajimPlugin):
             chat_control.sendmessage = False
 
     @staticmethod
-    def _encrypt_message(con, obj, callback):
-        if not con.get_module('OpenPGP').secret_key_available:
+    def _encrypt_message(client, obj, callback):
+        if not client.get_module('OpenPGP').secret_key_available:
             return
-        con.get_module('OpenPGP').encrypt_message(obj, callback)
+        client.get_module('OpenPGP').encrypt_message(obj, callback)
