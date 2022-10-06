@@ -35,7 +35,7 @@ class KeyDialog(Gtk.Dialog):
 
         self._plugin = plugin
         self._jid = jid
-        self._con = app.connections[account]
+        self._client = app.get_client(account)
 
         self._label = Gtk.Label()
 
@@ -57,12 +57,12 @@ class KeyDialog(Gtk.Dialog):
         self.show_all()
 
     def _choose_key(self, *args):
-        backend = self._con.get_module('PGPLegacy').pgp_backend
+        backend = self._client.get_module('PGPLegacy').pgp_backend
         dialog = ChooseGPGKeyDialog(backend.get_keys(), self)
         dialog.connect('response', self._on_response)
 
     def _load_key(self):
-        key_data = self._con.get_module('PGPLegacy').get_contact_key_data(
+        key_data = self._client.get_module('PGPLegacy').get_contact_key_data(
             self._jid)
         if key_data is None:
             self._set_key(None)
@@ -74,11 +74,11 @@ class KeyDialog(Gtk.Dialog):
             return
 
         if dialog.selected_key is None:
-            self._con.get_module('PGPLegacy').set_contact_key_data(
+            self._client.get_module('PGPLegacy').set_contact_key_data(
                 self._jid, None)
             self._set_key(None)
         else:
-            self._con.get_module('PGPLegacy').set_contact_key_data(
+            self._client.get_module('PGPLegacy').set_contact_key_data(
                 self._jid, dialog.selected_key)
             self._set_key(dialog.selected_key)
 

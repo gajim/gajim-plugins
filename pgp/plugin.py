@@ -105,7 +105,7 @@ class PGPPlugin(GajimPlugin):
 
     @staticmethod
     def get_pgp_module(account):
-        return app.connections[account].get_module('PGPLegacy')
+        return app.get_client(account).get_module('PGPLegacy')
 
     def activate(self):
         pass
@@ -153,9 +153,9 @@ class PGPPlugin(GajimPlugin):
         account = chat_control.account
         jid = chat_control.contact.jid
 
-        con = app.connections[account]
+        client = app.get_client(account)
         try:
-            valid = con.get_module('PGPLegacy').has_valid_key_assigned(jid)
+            valid = client.get_module('PGPLegacy').has_valid_key_assigned(jid)
         except KeyMismatch as announced_key_id:
             ErrorDialog(
                 _('PGP Key mismatch'),
@@ -169,7 +169,7 @@ class PGPPlugin(GajimPlugin):
                 _('No OpenPGP key assigned'),
                 _('No OpenPGP key is assigned to this contact.'))
             chat_control.sendmessage = False
-        elif con.get_module('PGPLegacy').get_own_key_data() is None:
+        elif client.get_module('PGPLegacy').get_own_key_data() is None:
             ErrorDialog(
                 _('No OpenPGP key assigned'),
                 _('No OpenPGP key is assigned to your account.'))

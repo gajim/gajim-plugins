@@ -60,8 +60,8 @@ ALLOWED_TAGS = [('request', Namespace.RECEIPTS),
 
 
 class PGPLegacy(BaseModule):
-    def __init__(self, con):
-        BaseModule.__init__(self, con, plugin=True)
+    def __init__(self, client):
+        BaseModule.__init__(self, client, plugin=True)
 
         self.handlers = [
             StanzaHandler(name='message',
@@ -74,7 +74,7 @@ class PGPLegacy(BaseModule):
                           priority=48),
         ]
 
-        self.own_jid = self._con.get_own_jid()
+        self.own_jid = self._client.get_own_jid()
 
         self._pgp = PGP()
         self._store = KeyStore(self._account, self.own_jid, self._log,

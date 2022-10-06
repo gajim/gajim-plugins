@@ -48,7 +48,7 @@ class PGPConfigDialog(Gtk.ApplicationWindow):
 
         self._plugin = plugin
 
-        for account in app.connections.keys():
+        for account in app.settings.get_active_accounts():
             page = Page(plugin, account)
             self._ui.stack.add_titled(page,
                                       account,
@@ -61,7 +61,7 @@ class Page(Gtk.Box):
     def __init__(self, plugin, account):
         Gtk.Box.__init__(self, orientation=Gtk.Orientation.VERTICAL)
 
-        self._con = app.connections[account]
+        self._client = app.get_client(account)
         self._plugin = plugin
         self._label = Gtk.Label()
         self._button = Gtk.Button(label=_('Assign Key'))
@@ -76,13 +76,13 @@ class Page(Gtk.Box):
         self.show_all()
 
     def _on_assign(self, _button):
-        backend = self._con.get_module('PGPLegacy').pgp_backend
+        backend = self._client.get_module('PGPLegacy').pgp_backend
         secret_keys = backend.get_keys(secret=True)
         dialog = ChooseGPGKeyDialog(secret_keys, self.get_toplevel())
         dialog.connect('response', self._on_response)
 
     def _load_key(self):
-        key_data = self._con.get_module('PGPLegacy').get_own_key_data()
+        key_data = self._client.get_module('PGPLegacy').get_own_key_data()
         if key_data is None:
             self._set_key(None)
         else:
@@ -93,10 +93,10 @@ class Page(Gtk.Box):
             return
 
         if dialog.selected_key is None:
-            self._con.get_module('PGPLegacy').set_own_key_data(None)
+            self._client.get_module('PGPLegacy').set_own_key_data(None)
             self._set_key(None)
         else:
-            self._con.get_module('PGPLegacy').set_own_key_data(
+            self._client.get_module('PGPLegacy').set_own_key_data(
                 dialog.selected_key)
             self._set_key(dialog.selected_key)
 
