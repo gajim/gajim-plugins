@@ -157,7 +157,7 @@ class PGPLegacy(BaseModule):
             callback(event)
             return
 
-        to_jid = app.get_jid_without_resource(event.jid)
+        to_jid = event.jid.bare
         try:
             key_id, own_key_id = self._get_key_ids(to_jid)
         except NoKeyIdFound as error:
