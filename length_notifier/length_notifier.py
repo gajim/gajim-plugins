@@ -57,7 +57,7 @@ class LengthNotifierPlugin(GajimPlugin):
         self.config_dialog = partial(LengthNotifierConfigDialog, self)
 
         self.gui_extension_points = {
-            'message_actions_box': (self._connect, None),
+            'message_actions_box': (self._message_actions_box_created, None),
             'switch_contact': (self._on_switch_contact, None)
         }
 
@@ -85,6 +85,7 @@ class LengthNotifierPlugin(GajimPlugin):
 
     def deactivate(self) -> None:
         assert self._counter is not None
+        self._counter.reset()
         self._counter.destroy()
         del self._counter
 
@@ -95,19 +96,17 @@ class LengthNotifierPlugin(GajimPlugin):
                                 self.config)
         self._actions_box_widget.pack_end(self._counter, False, False, 0)
 
-    def _connect(self,
-                 message_actions_box: MessageActionsBox,
-                 gtk_box: Gtk.Box
-                 ) -> None:
+    def _message_actions_box_created(self,
+                                     message_actions_box: MessageActionsBox,
+                                     gtk_box: Gtk.Box
+                                     ) -> None:
 
         self._message_action_box = message_actions_box
         self._actions_box_widget = gtk_box
         self._create_counter()
 
     def _on_switch_contact(self, contact: types.ChatContactT) -> None:
-        if self._counter is None:
-            return
-
+        assert self._counter is not None
         self._contact = contact
         self._counter.update_contact(contact)
 
@@ -211,7 +210,12 @@ class Counter(Gtk.Label):
         return False
 
     def _jid_allowed(self, current_jid: JID) -> bool:
-        jids = cast(str, self._config['JIDS'])
+        jids = self._config['JIDS']
+        if isinstance(jids, list):
+            # Gajim 1.0 stored this as list[str]
+            jids = ','.join(jids)
+
+        assert isinstance(jids, str)
         if not len(jids):
             # Not restricted to any JIDs
             return True
