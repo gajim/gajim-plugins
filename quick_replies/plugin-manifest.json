@@ -4,7 +4,7 @@
     ],
     "description": "Adds a menu with customizable quick replies",
     "homepage": "https://dev.gajim.org/gajim/gajim-plugins/wikis/QuickRepliesPlugin",
-    "config_dialog": false,
+    "config_dialog": true,
     "name": "Quick replies",
     "platforms": [
         "others",
@@ -16,5 +16,5 @@
         "gajim>=1.5.0"
     ],
     "short_name": "quick_replies",
-    "version": "1.4.3"
+    "version": "1.4.4"
 }

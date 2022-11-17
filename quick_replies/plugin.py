@@ -1,11 +1,16 @@
 from __future__ import annotations
 
+from typing import cast
+
 import json
 from pathlib import Path
 from functools import partial
 
+from gi.repository import Gio
+from gi.repository import GLib
 from gi.repository import Gtk
 
+from gajim.common import app
 from gajim.common import configpaths
 
 from gajim.gui.message_actions_box import MessageActionsBox
@@ -23,7 +28,7 @@ class QuickRepliesPlugin(GajimPlugin):
         self.description = _('Adds a menu with customizable quick replies')
         self.config_dialog = partial(ConfigDialog, self)
         self.gui_extension_points = {
-            'message_actions_box': (self._connect, None),
+            'message_actions_box': (self._message_actions_box_created, None),
         }
         self._button = None
         self.quick_replies = self._load_quick_replies()
@@ -33,13 +38,14 @@ class QuickRepliesPlugin(GajimPlugin):
         self._button.destroy()
         del self._button
 
-    def _connect(self,
-                 message_actions_box: MessageActionsBox,
-                 gtk_box: Gtk.Box
-                 ) -> None:
+    def _message_actions_box_created(self,
+                                     message_actions_box: MessageActionsBox,
+                                     gtk_box: Gtk.Box
+                                     ) -> None:
 
         self._button = QuickRepliesButton(
-            message_actions_box.msg_textview, self.quick_replies)
+            self,
+            message_actions_box.msg_textview)
         gtk_box.pack_start(self._button, False, False, 0)
         self._button.show()
 
@@ -79,13 +85,13 @@ class QuickRepliesPlugin(GajimPlugin):
         self.quick_replies = quick_replies
         self._save_quick_replies(quick_replies)
         assert self._button is not None
-        self._button.update_menu(self.quick_replies)
+        self._button.update_menu()
 
 
 class QuickRepliesButton(Gtk.MenuButton):
     def __init__(self,
-                 message_input: MessageInputTextView,
-                 replies: list[str]
+                 plugin: QuickRepliesPlugin,
+                 message_input: MessageInputTextView
                  ) -> None:
 
         Gtk.MenuButton.__init__(self)
@@ -98,20 +104,58 @@ class QuickRepliesButton(Gtk.MenuButton):
         self.set_image(img)
         self.set_tooltip_text(_('Quick Replies'))
 
+        self._plugin = plugin
         self._message_input = message_input
 
-        self.update_menu(replies)
+        self._menu = Gio.Menu()
+        self._popover = Gtk.Popover()
+        self._popover.bind_model(self._menu)
+        self.set_popover(self._popover)
 
-    def update_menu(self, replies: list[str]) -> None:
-        self._menu = Gtk.Menu()
-        for reply in replies:
-            item = Gtk.MenuItem.new_with_label(label=reply)
-            item.connect('activate', self._on_activate, reply)
-            self._menu.append(item)
-        self._menu.show_all()
-        self.set_popup(self._menu)
+        self.update_menu()
 
-    def _on_activate(self, _widget: Gtk.MenuItem, text: str) -> None:
+    def update_menu(self) -> None:
+        self._menu.remove_all()
+
+        # Add config item
+        action_data = GLib.Variant('s', 'plugin-configuration')
+        menu_item = Gio.MenuItem()
+        menu_item.set_label(_('Manage Replies…'))
+        menu_item.set_attribute_value('action-data', action_data)
+        self._menu.append_item(menu_item)
+
+        # Add quick replies
+        for reply in self._plugin.quick_replies:
+            assert isinstance(reply, str)
+            action_data = GLib.Variant('s', reply)
+            menu_item = Gio.MenuItem()
+            menu_item.set_label(reply)
+            menu_item.set_attribute_value('action-data', action_data)
+            self._menu.append_item(menu_item)
+
+        menu_buttons = self._get_menu_buttons()
+        for button in menu_buttons:
+            button.connect(
+                'clicked',
+                self._on_button_clicked,
+                menu_buttons.index(button))
+
+    def _on_button_clicked(self, _button: Gtk.MenuButton, index: int) -> None:
+        variant = self._menu.get_item_attribute_value(
+            index, 'action-data')
+        if variant.get_string() == 'plugin-configuration':
+            self._popover.popdown()
+            self._plugin.config_dialog(app.window)
+            return
+
         message_buffer = self._message_input.get_buffer()
-        message_buffer.insert_at_cursor(text.rstrip() + ' ')
+        message_buffer.insert_at_cursor(variant.get_string().rstrip() + ' ')
+        self._popover.popdown()
         self._message_input.grab_focus()
+
+    def _get_menu_buttons(self) -> list[Gtk.ModelButton]:
+        stack = cast(Gtk.Stack, self._popover.get_children()[0])
+        menu_section_box = cast(Gtk.Box, stack.get_children()[0])
+        box = cast(Gtk.Box, menu_section_box.get_children()[0])
+        items = cast(list[Gtk.ModelButton], box.get_children())
+        return items
