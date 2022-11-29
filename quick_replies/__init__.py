@@ -1,1 +1,1 @@
-from .plugin import QuickRepliesPlugin
+from .plugin import QuickRepliesPlugin  # type: ignore
