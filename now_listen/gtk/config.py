@@ -13,18 +13,26 @@
 # You should have received a copy of the GNU General Public License
 # along with Gajim. If not, see <http://www.gnu.org/licenses/>.
 
-from gi.repository import Gtk
+from __future__ import annotations
 
-from gajim.gui.settings import SettingsDialog
-from gajim.gui.settings import SettingKind
-from gajim.gui.const import Setting
-from gajim.gui.const import SettingType
+from typing import Any
+from typing import TYPE_CHECKING
+
+from gi.repository import Gtk
 
 from gajim.plugins.plugins_i18n import _
 
+from gajim.gui.const import Setting
+from gajim.gui.const import SettingKind
+from gajim.gui.const import SettingType
+from gajim.gui.settings import SettingsDialog
+
+if TYPE_CHECKING:
+    from ..now_listen import NowListenPlugin
+
 
 class NowListenConfigDialog(SettingsDialog):
-    def __init__(self, plugin, parent):
+    def __init__(self, plugin: NowListenPlugin, parent: Gtk.Window) -> None:
 
         self.plugin = plugin
         settings = [
@@ -32,11 +40,15 @@ class NowListenConfigDialog(SettingsDialog):
                     _('Format string'),
                     SettingType.VALUE,
                     self.plugin.config['format_string'],
-                    callback=self.on_setting, data='format_string')
+                    callback=self._on_setting, data='format_string')
             ]
 
-        SettingsDialog.__init__(self, parent, _('Now Listen Configuration'),
-                                Gtk.DialogFlags.MODAL, settings, None)
+        SettingsDialog.__init__(self,
+                                parent,
+                                _('Now Listen Configuration'),
+                                Gtk.DialogFlags.MODAL,
+                                settings,
+                                '')
 
-    def on_setting(self, value, data):
+    def _on_setting(self, value: Any, data: Any) -> None:
         self.plugin.config[data] = value

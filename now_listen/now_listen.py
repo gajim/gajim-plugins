@@ -40,7 +40,7 @@ log = logging.getLogger('gajim.p.now_listen')
 
 
 class NowListenPlugin(GajimPlugin):
-    def init(self):
+    def init(self) -> None:
         # pylint: disable=attribute-defined-outside-init
         self.description = _('Copy tune info of playing music to conversation '
                              'input box at cursor position (Alt + N)')
