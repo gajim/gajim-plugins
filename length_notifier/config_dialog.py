@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-#
 # This file is part of Gajim.
 #
 # Gajim is free software: you can redistribute it and/or modify
@@ -15,6 +13,11 @@
 # You should have received a copy of the GNU General Public License
 # along with Gajim. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import annotations
+
+from typing import Any
+from typing import TYPE_CHECKING
+
 from gi.repository import GObject
 from gi.repository import Gtk
 
@@ -26,13 +29,20 @@ from gajim.gui.const import SettingType
 
 from gajim.plugins.plugins_i18n import _
 
+if TYPE_CHECKING:
+    from .length_notifier import LengthNotifierPlugin
+
 
 class LengthNotifierConfigDialog(SettingsDialog):
-    def __init__(self, plugin, parent):
+    def __init__(self,
+                 plugin: LengthNotifierPlugin,
+                 parent: Gtk.Window
+                 ) -> None:
+
         self.plugin = plugin
         jids = self.plugin.config['JIDS'] or ''
         settings = [
-            Setting('MessageLengthSpinSetting',
+            Setting('MessageLengthSpinSetting',  # type: ignore
                     _('Message Length'),
                     SettingType.VALUE,
                     self.plugin.config['MESSAGE_WARNING_LENGTH'],
@@ -62,11 +72,13 @@ class LengthNotifierConfigDialog(SettingsDialog):
 
         SettingsDialog.__init__(self, parent,
                                 _('Length Notifier Configuration'),
-                                Gtk.DialogFlags.MODAL, settings, None,
-                                extend=[('MessageLengthSpinSetting',
+                                Gtk.DialogFlags.MODAL,
+                                settings,
+                                '',
+                                extend=[('MessageLengthSpinSetting',  # type: ignore
                                          SizeSpinSetting)])
 
-    def _on_setting(self, value, data):
+    def _on_setting(self, value: Any, data: Any) -> None:
         if isinstance(value, str):
             value.strip()
         self.plugin.config[data] = value
@@ -76,8 +88,14 @@ class LengthNotifierConfigDialog(SettingsDialog):
 class SizeSpinSetting(SpinSetting):
 
     __gproperties__ = {
-        "setting-value": (int, 'Size', '', 1, 1000, 140,
-                          GObject.ParamFlags.READWRITE), }
+        'setting-value': (int,
+                          'Size',
+                          '',
+                          1,
+                          1000,
+                          140,
+                          GObject.ParamFlags.READWRITE),
+    }
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
         SpinSetting.__init__(self, *args, **kwargs)

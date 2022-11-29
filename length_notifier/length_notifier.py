@@ -11,7 +11,6 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with Gajim.  If not, see <http://www.gnu.org/licenses/>.
-#
 
 '''
 Message length notifier plugin.
@@ -23,7 +22,8 @@ Message length notifier plugin.
 '''
 from __future__ import annotations
 
-from typing import Any, cast
+from typing import Any
+from typing import cast
 
 import logging
 from functools import partial
