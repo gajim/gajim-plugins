@@ -1,1 +1,1 @@
-from .anti_spam import AntiSpamPlugin
+from .anti_spam import AntiSpamPlugin  # type: ignore

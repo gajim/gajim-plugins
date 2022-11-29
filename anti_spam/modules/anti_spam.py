@@ -11,7 +11,6 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with Gajim.  If not, see <http://www.gnu.org/licenses/>.
-#
 
 from __future__ import annotations
 
@@ -28,7 +27,7 @@ from nbxmpp.structs import StanzaHandler
 
 from gajim.common import app
 from gajim.common import ged
-from gajim.common import types
+from gajim.common.client import Client
 from gajim.common.events import MessageSent
 from gajim.common.modules.base import BaseModule
 
@@ -38,7 +37,7 @@ zeroconf = False
 
 
 class AntiSpam(BaseModule):
-    def __init__(self, client: types.Client) -> None:
+    def __init__(self, client: Client) -> None:
         BaseModule.__init__(self, client, plugin=True)
 
         self.handlers = [
@@ -68,10 +67,11 @@ class AntiSpam(BaseModule):
         self._contacted_jids.add(event.jid)
 
     def _message_received(self,
-                          _con: types.xmppClient,
+                          _con: Client,
                           _stanza: Message,
                           properties: MessageProperties
                           ) -> None:
+
         if properties.is_sent_carbon:
             # Another device already sent a message
             assert properties.jid
@@ -135,7 +135,7 @@ class AntiSpam(BaseModule):
         if is_muc_pm or roster_item is None:
             assert properties.body
             if answer in properties.body.split('\n'):
-                if msg_from not in whitelist:
+                if str(msg_from) not in whitelist:
                     whitelist.append(str(msg_from))
                     # We need to explicitly save, because 'append' does not
                     # implement the __setitem__ method
@@ -152,10 +152,11 @@ class AntiSpam(BaseModule):
         self._log.info('Anti spam question sent to %s', jid)
 
     def _subscribe_received(self,
-                            _con: types.xmppClient,
+                            _con: Client,
                             _stanza: Presence,
                             properties: PresenceProperties
                             ) -> None:
+
         msg_from = properties.jid
         block_sub = self._config['block_subscription_requests']
         roster_item = self._client.get_module('Roster').get_item(msg_from)
@@ -166,5 +167,5 @@ class AntiSpam(BaseModule):
             raise NodeProcessed
 
 
-def get_instance(*args: Any, **kwargs: Any) -> None:
+def get_instance(*args: Any, **kwargs: Any) -> tuple[AntiSpam, str]:
     return AntiSpam(*args, **kwargs), 'AntiSpam'

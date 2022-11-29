@@ -17,6 +17,7 @@ from __future__ import annotations
 
 from typing import Any
 from typing import cast
+from typing import TYPE_CHECKING
 
 from gi.repository import Gtk
 
@@ -27,9 +28,12 @@ from gajim.gui.const import SettingType
 
 from gajim.plugins.plugins_i18n import _
 
+if TYPE_CHECKING:
+    from .anti_spam import AntiSpamPlugin
+
 
 class AntiSpamConfigDialog(SettingsDialog):
-    def __init__(self, plugin, parent):
+    def __init__(self, plugin: AntiSpamPlugin, parent: Gtk.Window) -> None:
         self.plugin = plugin
         msgtxt_limit = cast(int, self.plugin.config['msgtxt_limit'])
         max_length = '' if msgtxt_limit == 0 else msgtxt_limit
@@ -91,8 +95,12 @@ class AntiSpamConfigDialog(SettingsDialog):
                            'in group chats')),
             ]
 
-        SettingsDialog.__init__(self, parent, _('Anti Spam Configuration'),
-                                Gtk.DialogFlags.MODAL, settings, None)
+        SettingsDialog.__init__(self,
+                                parent,
+                                _('Anti Spam Configuration'),
+                                Gtk.DialogFlags.MODAL,
+                                settings,
+                                '')
 
     def _on_setting(self, value: Any, data: Any) -> None:
         self.plugin.config[data] = value

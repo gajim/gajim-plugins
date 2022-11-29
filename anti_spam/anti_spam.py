@@ -11,7 +11,6 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with Gajim.  If not, see <http://www.gnu.org/licenses/>.
-#
 
 '''
 :author: Yann Leboulanger <asterix@lagaule.org>
@@ -30,7 +29,7 @@ from anti_spam.config_dialog import AntiSpamConfigDialog
 
 
 class AntiSpamPlugin(GajimPlugin):
-    def init(self):
+    def init(self) -> None:
         self.description = _('Allows you to block various kinds of incoming '
                              'messages (Spam, XHTML formatting, etc.)')
         self.config_dialog = partial(AntiSpamConfigDialog, self)
