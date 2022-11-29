@@ -112,5 +112,5 @@ class ClientsIconsPlugin(GajimPlugin):
         client_box.add(label)
 
         children = resource_box.get_children()
-        box = cast(Gtk.Box, children[9])
+        box = cast(Gtk.Box, children[0])
         box.add(client_box)
