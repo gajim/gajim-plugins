@@ -4,7 +4,6 @@ import argparse
 import re
 import subprocess
 from pathlib import Path
-import sys
 
 
 REPO_DIR = Path(__file__).parent.parent

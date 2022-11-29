@@ -2,10 +2,7 @@
 # Keep this file python 3.7 compatible because it is executed on the server
 
 from typing import Any
-from typing import Dict
 from typing import Iterator
-from typing import Set
-from typing import Dict
 
 import sys
 import json
@@ -20,7 +17,7 @@ logging.basicConfig(format=FORMAT, level=logging.DEBUG)
 log = logging.getLogger()
 
 
-REQUIRED_KEYS: Set[str] = {
+REQUIRED_KEYS: set[str] = {
     'authors',
     'description',
     'homepage',
@@ -32,7 +29,7 @@ REQUIRED_KEYS: Set[str] = {
     'version'
 }
 
-PACKAGE_INDEX: Dict[str, Any] = {
+PACKAGE_INDEX: dict[str, Any] = {
     'metadata': {
         'repository_name': 'master',
         'image_path': 'images.zip',
@@ -41,12 +38,12 @@ PACKAGE_INDEX: Dict[str, Any] = {
 }
 
 
-def is_manifest_valid(manifest: Dict[str, Any]) -> bool:
+def is_manifest_valid(manifest: dict[str, Any]) -> bool:
     manifest_keys = set(manifest.keys())
     return REQUIRED_KEYS.issubset(manifest_keys)
 
 
-def iter_releases(release_folder: Path) -> Iterator[Dict[str, Any]]:
+def iter_releases(release_folder: Path) -> Iterator[dict[str, Any]]:
     for path in release_folder.rglob('*.zip'):
         with ZipFile(path) as release_zip:
             if path.name == 'images.zip':
