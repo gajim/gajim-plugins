@@ -1,1 +1,1 @@
-from .plugins_translations import PluginsTranslationsPlugin
+from .plugins_translations import PluginsTranslationsPlugin  # type: ignore
