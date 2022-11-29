@@ -13,17 +13,28 @@
 # You should have received a copy of the GNU General Public License
 # along with Gajim. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import annotations
+
+from typing import cast
+from typing import Optional
+from typing import Union
+
 import logging
 from pathlib import Path
 from functools import partial
 
 from gi.repository import Gtk
 
+from nbxmpp.structs import DiscoInfo
+
 from gajim.common import app
-from gajim.gui.util import load_icon_surface
+from gajim.common.modules.contacts import GroupchatParticipant
+from gajim.common.modules.contacts import ResourceContact
 
 from gajim.plugins import GajimPlugin
 from gajim.plugins.plugins_i18n import _
+
+from gajim.gui.util import load_icon_surface
 
 from clients_icons import clients
 from clients_icons.config_dialog import ClientsIconsConfigDialog
@@ -32,7 +43,7 @@ log = logging.getLogger('gajim.p.client_icons')
 
 
 class ClientsIconsPlugin(GajimPlugin):
-    def init(self):
+    def init(self) -> None:
         self.description = _('Shows client icons in your contact list '
                              'and in the groupchat participants list.')
         self.config_dialog = partial(ClientsIconsConfigDialog, self)
@@ -41,10 +52,7 @@ class ClientsIconsPlugin(GajimPlugin):
             'roster_tooltip_resource_populate': (
                 self._roster_tooltip_resource_populate,
                 None),
-            'gc_tooltip_populate': (
-                self._gc_roster_tooltip_populate,
-                None),
-            }
+        }
 
         self.config_default_values = {
             'show_in_tooltip': (True, ''),
@@ -56,12 +64,18 @@ class ClientsIconsPlugin(GajimPlugin):
             _icon_theme.append_search_path(str(Path(__file__).parent))
 
     @staticmethod
-    def _get_client_identity_name(disco_info):
+    def _get_client_identity_name(disco_info: DiscoInfo) -> Optional[str]:
         for identity in disco_info.identities:
             if identity.category == 'client':
                 return identity.name
+        return None
 
-    def _get_image_and_client_name(self, contact, _widget):
+    def _get_image_and_client_name(self,
+                                   contact: Union[
+                                    GroupchatParticipant, ResourceContact],
+                                   _widget: Gtk.Widget
+                                   ) -> Optional[tuple[Gtk.Image, str]]:
+
         disco_info = app.storage.cache.get_last_disco_info(contact.jid)
         if disco_info is None:
             return None
@@ -77,7 +91,11 @@ class ClientsIconsPlugin(GajimPlugin):
         surface = load_icon_surface(icon_name)
         return Gtk.Image.new_from_surface(surface), client_name
 
-    def _roster_tooltip_resource_populate(self, resource_box, resource):
+    def _roster_tooltip_resource_populate(self,
+                                          resource_box: Gtk.Box,
+                                          resource: ResourceContact
+                                          ) -> None:
+
         if not self.config['show_in_tooltip']:
             return
 
@@ -94,26 +112,5 @@ class ClientsIconsPlugin(GajimPlugin):
         client_box.add(label)
 
         children = resource_box.get_children()
-        children[0].add(client_box)
-
-    def _gc_roster_tooltip_populate(self, tooltip, contact, tooltip_grid):
-        if not self.config['show_in_tooltip']:
-            return
-
-        result = self._get_image_and_client_name(contact, tooltip_grid)
-        if result is None:
-            return
-
-        image, client_name = result
-
-        label = Gtk.Label(label=client_name)
-
-        box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
-        box.add(image)
-        box.add(label)
-        box.show_all()
-
-        tooltip_grid.insert_next_to(tooltip._ui.affiliation,
-                                    Gtk.PositionType.BOTTOM)
-        tooltip_grid.attach_next_to(box, tooltip._ui.affiliation,
-                                    Gtk.PositionType.BOTTOM, 1, 1)
+        box = cast(Gtk.Box, children[9])
+        box.add(client_box)

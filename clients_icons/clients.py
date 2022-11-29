@@ -13,16 +13,24 @@
 # You should have received a copy of the GNU General Public License
 # along with Gajim. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import annotations
+
+from typing import Any
+from typing import Optional
+
 from collections import UserDict
-from collections import namedtuple
+from dataclasses import dataclass
 
 from gajim.plugins.plugins_i18n import _
 
-ClientData = namedtuple('ClientData', ['default', 'variations'])
-ClientData.__new__.__defaults__ = (None,)
+
+@dataclass
+class ClientData:
+    default: Optional[tuple[str, str]] = None
+    variations: Optional[dict[str, str]] = None
 
 
-def get_variations(client_name):
+def get_variations(client_name: str) -> list[str]:
     # get_variations('Conversation Legacy 1.2.3')
     #
     # Returns List:
@@ -32,29 +40,32 @@ def get_variations(client_name):
     if client_name is None:
         return []
     alts = client_name.split()
-    alts = [" ".join(alts[:(i + 1)]) for i in range(len(alts))]
+    alts = [' '.join(alts[:(i + 1)]) for i in range(len(alts))]
     alts.reverse()
     return alts
 
 
-class ClientsDict(UserDict):
-    def get_client_data(self, name, node):
+class ClientsDict(UserDict[str, ClientData]):
+    def get_client_data(self, name: str, node: str) -> tuple[str, str]:
         client_data = self.get(node)
         if client_data is None:
             return _('Unknown'), 'xmpp-client-unknown'
 
         if client_data.variations is None:
+            assert client_data.default is not None
             client_name, icon_name = client_data.default
-            return client_name, 'xmpp-client-%s' % icon_name
+            return client_name, f'xmpp-client-{icon_name}'
 
         variations = get_variations(name)
         for var in variations:
             try:
-                return var, 'xmpp-client-%s' % client_data.variations[var]
+                return var, f'xmpp-client-{client_data.variations[var]}'
             except KeyError:
                 pass
+
+        assert client_data.default is not None
         client_name, icon_name = client_data.default
-        return client_name, 'xmpp-client-%s' % icon_name
+        return client_name, f'xmpp-client-{icon_name}'
 
 
 # ClientData(
@@ -62,6 +73,7 @@ class ClientsDict(UserDict):
 #   variations={Shown name, icon name}
 # )
 
+# pylint: disable=too-many-lines
 CLIENTS = ClientsDict({
     'http://gajim.org': ClientData(('Gajim', 'gajim')),
     'https://gajim.org': ClientData(('Gajim', 'gajim')),
@@ -193,7 +205,8 @@ CLIENTS = ClientsDict({
     'http://www.xfire.com/caps': ClientData(('Xfire', 'xfire')),
     'http://xu-6.jabbrik.ru/caps': ClientData(('XU-6', 'bot')),
 })
+# pylint: enable=too-many-lines
 
 
-def get_data(*args):
+def get_data(*args: Any) -> tuple[str, str]:
     return CLIENTS.get_client_data(*args)

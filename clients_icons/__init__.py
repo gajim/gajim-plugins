@@ -1,1 +1,1 @@
-from .clients_icons import ClientsIconsPlugin
+from .clients_icons import ClientsIconsPlugin  # type: ignore

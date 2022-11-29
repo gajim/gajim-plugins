@@ -13,34 +13,50 @@
 # You should have received a copy of the GNU General Public License
 # along with Gajim. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import annotations
+
+from typing import Any
+from typing import TYPE_CHECKING
+
 from gi.repository import Gtk
+
+from gajim.plugins.plugins_i18n import _
 
 from gajim.gui.settings import SettingsDialog
 from gajim.gui.const import Setting
 from gajim.gui.const import SettingKind
 from gajim.gui.const import SettingType
 
-from gajim.plugins.plugins_i18n import _
+if TYPE_CHECKING:
+    from .clients_icons import ClientsIconsPlugin
 
 
 class ClientsIconsConfigDialog(SettingsDialog):
-    def __init__(self, plugin, parent):
+    def __init__(self, plugin: ClientsIconsPlugin, parent: Gtk.Window) -> None:
 
         self.plugin = plugin
         settings = [
+            Setting(SettingKind.SWITCH,
+                    _('Show Icons in Tooltip'),
+                    SettingType.VALUE,
+                    self.plugin.config['show_in_tooltip'],
+                    callback=self._on_setting,
+                    data='show_in_tooltip'),
 
-            Setting(SettingKind.SWITCH, _('Show Icons in Tooltip'),
-                    SettingType.VALUE, self.plugin.config['show_in_tooltip'],
-                    callback=self._on_setting, data='show_in_tooltip'),
+            Setting(SettingKind.SWITCH,
+                    _('Show Icon for Unknown Clients'),
+                    SettingType.VALUE,
+                    self.plugin.config['show_unknown_icon'],
+                    callback=self._on_setting,
+                    data='show_unknown_icon'),
+        ]
 
-            Setting(SettingKind.SWITCH, _('Show Icon for Unknown Clients'),
-                    SettingType.VALUE, self.plugin.config['show_unknown_icon'],
-                    callback=self._on_setting, data='show_unknown_icon'),
+        SettingsDialog.__init__(self,
+                                parent,
+                                _('Clients Icons Configuration'),
+                                Gtk.DialogFlags.MODAL,
+                                settings,
+                                '')
 
-            ]
-
-        SettingsDialog.__init__(self, parent, _('Clients Icons Configuration'),
-                                Gtk.DialogFlags.MODAL, settings, None)
-
-    def _on_setting(self, value, data):
+    def _on_setting(self, value: Any, data: Any) -> None:
         self.plugin.config[data] = value
