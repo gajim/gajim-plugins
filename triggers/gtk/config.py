@@ -14,6 +14,11 @@
 # You should have received a copy of the GNU General Public License
 # along with Gajim. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import annotations
+
+from typing import Any
+from typing import TYPE_CHECKING
+
 from pathlib import Path
 
 from gi.repository import Gtk
@@ -26,7 +31,10 @@ from gajim.common.helpers import play_sound_file
 from gajim.plugins.plugins_i18n import _
 from gajim.plugins.helpers import get_builder
 
-EVENTS = {
+if TYPE_CHECKING:
+    from ..triggers import Triggers
+
+EVENTS: dict[str, Any] = {
     'message_received': [],
 }
 
@@ -39,7 +47,7 @@ RECIPIENT_TYPES = [
 
 
 class ConfigDialog(Gtk.ApplicationWindow):
-    def __init__(self, plugin, transient):
+    def __init__(self, plugin: Triggers, transient: Gtk.Window) -> None:
         Gtk.ApplicationWindow.__init__(self)
         self.set_application(app.app)
         self.set_show_menubar(False)
@@ -51,41 +59,61 @@ class ConfigDialog(Gtk.ApplicationWindow):
         self.set_destroy_with_parent(True)
 
         ui_path = Path(__file__).parent
-        self._ui = get_builder(ui_path.resolve() / 'config.ui')
+        self._ui = get_builder(str(ui_path.resolve() / 'config.ui'))
 
         self._plugin = plugin
 
         self.add(self._ui.box)
         self.show_all()
 
-        self._active_num = ''
+        self._active_num = -1
+        self._config: dict[int, Any] = {}
+
         self._initialize()
 
         self._ui.connect_signals(self)
         self.connect('destroy', self._on_destroy)
 
-    def _on_destroy(self, *args):
+    def _on_destroy(self, *args: Any) -> None:
         for num in list(self._plugin.config.keys()):
             del self._plugin.config[num]
         for num in self._config:
             self._plugin.config[str(num)] = self._config[num]
 
-    def _initialize(self):
+    def _initialize(self) -> None:
         # Fill window
-        for widget in (
-                'conditions_treeview', 'config_box', 'event_combobox',
-                'recipient_type_combobox', 'recipient_list_entry',
-                'delete_button', 'online_cb', 'away_cb', 'xa_cb', 'dnd_cb',
-                'use_sound_cb', 'disable_sound_cb', 'use_popup_cb',
-                'disable_popup_cb',
-                'tab_opened_cb', 'not_tab_opened_cb', 'has_focus_cb',
-                'not_has_focus_cb', 'filechooser', 'sound_file_box',
-                'up_button', 'down_button', 'run_command_cb',
-                'command_entry', 'one_shot_cb'):
+        widgets = [
+            'conditions_treeview',
+            'config_box',
+            'event_combobox',
+            'recipient_type_combobox',
+            'recipient_list_entry',
+            'delete_button',
+            'online_cb',
+            'away_cb',
+            'xa_cb',
+            'dnd_cb',
+            'use_sound_cb',
+            'disable_sound_cb',
+            'use_popup_cb',
+            'disable_popup_cb',
+            'tab_opened_cb',
+            'not_tab_opened_cb',
+            'has_focus_cb',
+            'not_has_focus_cb',
+            'filechooser',
+            'sound_file_box',
+            'up_button',
+            'down_button',
+            'run_command_cb',
+            'command_entry',
+            'one_shot_cb'
+        ]
+        for widget in widgets:
             self._ui.__dict__[widget] = self._ui.get_object(widget)
 
         self._config = {}
-        for num in self._plugin.config:
+        for num in self._plugin.config.keys():
             self._config[int(num)] = self._plugin.config[num]
 
         if not self._ui.conditions_treeview.get_column(0):
@@ -141,7 +169,7 @@ class ConfigDialog(Gtk.ApplicationWindow):
         self._ui.filechooser.add_filter(filter_)
         self._ui.filechooser.set_filter(filter_)
 
-    def _initiate_rule_state(self):
+    def _initiate_rule_state(self) -> None:
         """
         Set values for all widgets
         """
@@ -243,7 +271,7 @@ class ConfigDialog(Gtk.ApplicationWindow):
             value = False
         self._ui.one_shot_cb.set_active(value)
 
-    def _set_treeview_string(self):
+    def _set_treeview_string(self) -> None:
         selection = self._ui.conditions_treeview.get_selection()
         (model, iter_) = selection.get_selected()
         if not iter_:
@@ -274,17 +302,22 @@ class ConfigDialog(Gtk.ApplicationWindow):
                                 'recipient': recipient,
                                 'status': status}
 
-    def _on_conditions_treeview_cursor_changed(self, widget):
+    def _on_conditions_treeview_cursor_changed(self,
+                                               widget: Gtk.TreeView
+                                               ) -> None:
+
         (model, iter_) = widget.get_selection().get_selected()
         if not iter_:
-            self._active_num = ''
+            self._active_num = -1
             return
         self._active_num = model[iter_][0]
         if self._active_num == 0:
             self._ui.up_button.set_sensitive(False)
         else:
             self._ui.up_button.set_sensitive(True)
-        _max = widget.get_model().iter_n_children(None)
+        model = widget.get_model()
+        assert model is not None
+        _max = model.iter_n_children(None)
         if self._active_num == _max - 1:
             self._ui.down_button.set_sensitive(False)
         else:
@@ -293,7 +326,7 @@ class ConfigDialog(Gtk.ApplicationWindow):
         self._ui.config_box.set_sensitive(True)
         self._ui.delete_button.set_sensitive(True)
 
-    def _on_new_button_clicked(self, _widget):
+    def _on_new_button_clicked(self, _button: Gtk.Button) -> None:
         model = self._ui.conditions_treeview.get_model()
         num = self._ui.conditions_treeview.get_model().iter_n_children(None)
         self._config[num] = {
@@ -317,7 +350,7 @@ class ConfigDialog(Gtk.ApplicationWindow):
         self._set_treeview_string()
         self._ui.config_box.set_sensitive(True)
 
-    def _on_delete_button_clicked(self, widget):
+    def _on_delete_button_clicked(self, button: Gtk.Button) -> None:
         selection = self._ui.conditions_treeview.get_selection()
         (model, iter_) = selection.get_selected()
         if not iter_:
@@ -332,13 +365,13 @@ class ConfigDialog(Gtk.ApplicationWindow):
             iter2 = model.iter_next(iter2)
         model.remove(iter_)
         del self._config[num]
-        self._active_num = ''
-        widget.set_sensitive(False)
+        self._active_num = -1
+        button.set_sensitive(False)
         self._ui.up_button.set_sensitive(False)
         self._ui.down_button.set_sensitive(False)
         self._ui.config_box.set_sensitive(False)
 
-    def _on_up_button_clicked(self, _widget):
+    def _on_up_button_clicked(self, _button: Gtk.Button) -> None:
         selection = self._ui.conditions_treeview.get_selection()
         (model, iter_) = selection.get_selected()
         if not iter_:
@@ -355,7 +388,7 @@ class ConfigDialog(Gtk.ApplicationWindow):
         self._on_conditions_treeview_cursor_changed(
             self._ui.conditions_treeview)
 
-    def _on_down_button_clicked(self, _widget):
+    def _on_down_button_clicked(self, _button: Gtk.Button) -> None:
         selection = self._ui.conditions_treeview.get_selection()
         (model, iter_) = selection.get_selected()
         if not iter_:
@@ -370,10 +403,10 @@ class ConfigDialog(Gtk.ApplicationWindow):
         self._on_conditions_treeview_cursor_changed(
             self._ui.conditions_treeview)
 
-    def _on_event_combobox_changed(self, widget):
+    def _on_event_combobox_changed(self, combo: Gtk.ComboBox) -> None:
         if self._active_num < 0:
             return
-        active = widget.get_active()
+        active = combo.get_active()
         if active == -1:
             return
         event = list(EVENTS.keys())[active]
@@ -383,7 +416,10 @@ class ConfigDialog(Gtk.ApplicationWindow):
             self._ui.__dict__[widget].set_state(False)
         self._set_treeview_string()
 
-    def _on_recipient_type_combobox_changed(self, widget):
+    def _on_recipient_type_combobox_changed(self,
+                                            widget: Gtk.ComboBox
+                                            ) -> None:
+
         if self._active_num < 0:
             return
         recipient_type = RECIPIENT_TYPES[widget.get_active()]
@@ -394,7 +430,7 @@ class ConfigDialog(Gtk.ApplicationWindow):
             self._ui.recipient_list_entry.set_sensitive(True)
         self._set_treeview_string()
 
-    def _on_recipient_list_entry_changed(self, widget):
+    def _on_recipient_list_entry_changed(self, widget: Gtk.Entry) -> None:
         if self._active_num < 0:
             return
         recipients = widget.get_text()
@@ -402,7 +438,7 @@ class ConfigDialog(Gtk.ApplicationWindow):
         self._config[self._active_num]['recipients'] = recipients
         self._set_treeview_string()
 
-    def _set_status_config(self):
+    def _set_status_config(self) -> None:
         if self._active_num < 0:
             return
         status = ''
@@ -414,7 +450,7 @@ class ConfigDialog(Gtk.ApplicationWindow):
         self._config[self._active_num]['status'] = status
         self._set_treeview_string()
 
-    def _on_status_radiobutton_toggled(self, _widget):
+    def _on_status_radiobutton_toggled(self, _widget: Gtk.RadioButton) -> None:
         if self._active_num < 0:
             return
         if self._ui.all_status_rb.get_active():
@@ -432,13 +468,13 @@ class ConfigDialog(Gtk.ApplicationWindow):
 
         self._set_treeview_string()
 
-    def _on_status_cb_toggled(self, _widget):
+    def _on_status_cb_toggled(self, _widget: Gtk.CheckButton) -> None:
         if self._active_num < 0:
             return
         self._set_status_config()
 
     # tab_opened OR (not xor) not_tab_opened must be active
-    def _on_tab_opened_cb_toggled(self, widget):
+    def _on_tab_opened_cb_toggled(self, widget: Gtk.CheckButton) -> None:
         if self._active_num < 0:
             return
         if widget.get_active():
@@ -454,7 +490,7 @@ class ConfigDialog(Gtk.ApplicationWindow):
             self._ui.not_tab_opened_cb.set_active(True)
             self._config[self._active_num]['tab_opened'] = 'no'
 
-    def _on_not_tab_opened_cb_toggled(self, widget):
+    def _on_not_tab_opened_cb_toggled(self, widget: Gtk.CheckButton) -> None:
         if self._active_num < 0:
             return
         if widget.get_active():
@@ -467,7 +503,7 @@ class ConfigDialog(Gtk.ApplicationWindow):
             self._config[self._active_num]['tab_opened'] = 'yes'
 
     # has_focus OR (not xor) not_has_focus must be active
-    def _on_has_focus_cb_toggled(self, widget):
+    def _on_has_focus_cb_toggled(self, widget: Gtk.CheckButton) -> None:
         if self._active_num < 0:
             return
         if widget.get_active():
@@ -479,7 +515,7 @@ class ConfigDialog(Gtk.ApplicationWindow):
             self._ui.not_has_focus_cb.set_active(True)
             self._config[self._active_num]['has_focus'] = 'no'
 
-    def _on_not_has_focus_cb_toggled(self, widget):
+    def _on_not_has_focus_cb_toggled(self, widget: Gtk.CheckButton) -> None:
         if self._active_num < 0:
             return
         if widget.get_active():
@@ -491,7 +527,12 @@ class ConfigDialog(Gtk.ApplicationWindow):
             self._ui.has_focus_cb.set_active(True)
             self._config[self._active_num]['has_focus'] = 'yes'
 
-    def _on_use_it_toggled(self, widget, opposite_widget, option):
+    def _on_use_it_toggled(self,
+                           widget: Gtk.CheckButton,
+                           opposite_widget: Gtk.CheckButton,
+                           option: str
+                           ) -> None:
+
         if widget.get_active():
             if opposite_widget.get_active():
                 opposite_widget.set_active(False)
@@ -501,7 +542,12 @@ class ConfigDialog(Gtk.ApplicationWindow):
         else:
             self._config[self._active_num][option] = ''
 
-    def _on_disable_it_toggled(self, widget, opposite_widget, option):
+    def _on_disable_it_toggled(self,
+                               widget: Gtk.CheckButton,
+                               opposite_widget: Gtk.CheckButton,
+                               option: str
+                               ) -> None:
+
         if widget.get_active():
             if opposite_widget.get_active():
                 opposite_widget.set_active(False)
@@ -511,38 +557,38 @@ class ConfigDialog(Gtk.ApplicationWindow):
         else:
             self._config[self._active_num][option] = ''
 
-    def _on_use_sound_cb_toggled(self, widget):
+    def _on_use_sound_cb_toggled(self, widget: Gtk.CheckButton) -> None:
         self._on_use_it_toggled(widget, self._ui.disable_sound_cb, 'sound')
         if widget.get_active():
             self._ui.sound_file_box.set_sensitive(True)
         else:
             self._ui.sound_file_box.set_sensitive(False)
 
-    def _on_sound_file_set(self, widget):
+    def _on_sound_file_set(self, widget: Gtk.FileChooserButton) -> None:
         self._config[self._active_num]['sound_file'] = widget.get_filename()
 
-    def _on_play_button_clicked(self, _widget):
+    def _on_play_button_clicked(self, _button: Gtk.Button) -> None:
         play_sound_file(self._ui.filechooser.get_filename())
 
-    def _on_disable_sound_cb_toggled(self, widget):
+    def _on_disable_sound_cb_toggled(self, widget: Gtk.CheckButton) -> None:
         self._on_disable_it_toggled(widget, self._ui.use_sound_cb, 'sound')
 
-    def _on_use_popup_cb_toggled(self, widget):
+    def _on_use_popup_cb_toggled(self, widget: Gtk.CheckButton) -> None:
         self._on_use_it_toggled(widget, self._ui.disable_popup_cb, 'popup')
 
-    def _on_disable_popup_cb_toggled(self, widget):
+    def _on_disable_popup_cb_toggled(self, widget: Gtk.CheckButton) -> None:
         self._on_disable_it_toggled(widget, self._ui.use_popup_cb, 'popup')
 
-    def _on_run_command_cb_toggled(self, widget):
+    def _on_run_command_cb_toggled(self, widget: Gtk.CheckButton) -> None:
         self._config[self._active_num]['run_command'] = widget.get_active()
         if widget.get_active():
             self._ui.command_entry.set_sensitive(True)
         else:
             self._ui.command_entry.set_sensitive(False)
 
-    def _on_command_entry_changed(self, widget):
+    def _on_command_entry_changed(self, widget: Gtk.Entry) -> None:
         self._config[self._active_num]['command'] = widget.get_text()
 
-    def _on_one_shot_cb_toggled(self, widget):
+    def _on_one_shot_cb_toggled(self, widget: Gtk.CheckButton) -> None:
         self._config[self._active_num]['one_shot'] = widget.get_active()
         self._ui.command_entry.set_sensitive(widget.get_active())

@@ -14,15 +14,18 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with Gajim. If not, see <http://www.gnu.org/licenses/>.
-#
 
 from __future__ import annotations
 
 from typing import Any
+from typing import Callable
+from typing import cast
 from typing import Union
 
 import logging
 from functools import partial
+
+from nbxmpp.protocol import JID
 
 from gajim.common import app
 from gajim.common import ged
@@ -31,24 +34,26 @@ from gajim.common.const import STOP_EVENT
 from gajim.common.events import Notification
 from gajim.common.events import GcMessageReceived
 from gajim.common.events import MessageReceived
+from gajim.common.events import PresenceReceived
 from gajim.common.helpers import exec_command
 from gajim.common.helpers import play_sound_file
 
 from gajim.plugins import GajimPlugin
 from gajim.plugins.plugins_i18n import _
 
+from triggers.gtk.config import ConfigDialog
 from triggers.util import log_result
 from triggers.util import RuleResult
-from triggers.gtk.config import ConfigDialog
 
 log = logging.getLogger('gajim.p.triggers')
 
 MessageEventsT = Union[GcMessageReceived, MessageReceived]
+ProcessableEventsT = Union[MessageEventsT, Notification, PresenceReceived]
 RuleT = dict[str, Any]
 
 
 class Triggers(GajimPlugin):
-    def init(self):
+    def init(self) -> None:
         self.description = _(
             'Configure Gajim’s behaviour with triggers for each contact')
         self.config_dialog = partial(ConfigDialog, self)
@@ -77,7 +82,7 @@ class Triggers(GajimPlugin):
         log.info('Result: %s', result)
         return self._excecute_message_rules(result)
 
-    def _on_presence_received(self, event):
+    def _on_presence_received(self, event: PresenceReceived) -> None:
         # TODO
         return
 
@@ -89,14 +94,19 @@ class Triggers(GajimPlugin):
             check_func = self._check_rule_apply_status_changed
         self._check_all(event, check_func, self._apply_rule)
 
-    def _check_all(self, event, check_func, apply_func) -> RuleResult:
+    def _check_all(self,
+                   event: ProcessableEventsT,
+                   check_func: Callable[..., bool],
+                   apply_func: Callable[..., Any]
+                   ) -> RuleResult:
+
         result = RuleResult()
 
         rules_num = [int(item) for item in self.config.keys()]
         rules_num.sort()
-        to_remove = []
+        to_remove: list[int] = []
         for num in rules_num:
-            rule = self.config[str(num)]
+            rule = cast(RuleT, self.config[str(num)])
             if check_func(event, rule):
                 apply_func(result, rule)
                 if 'one_shot' in rule and rule['one_shot']:
@@ -108,7 +118,8 @@ class Triggers(GajimPlugin):
             if num + decal in to_remove:
                 num2 = num
                 while str(num2 + 1) in self.config:
-                    self.config[str(num2)] = self.config[str(num2 + 1)].copy()
+                    copy = self.config[str(num2 + 1)].copy()  # type: ignore
+                    self.config[str(num2)] = copy
                     num2 += 1
                 del self.config[str(num2)]
                 decal += 1
@@ -120,43 +131,64 @@ class Triggers(GajimPlugin):
     @log_result
     def _check_rule_apply_msg_received(self,
                                        event: MessageEventsT,
-                                       rule: RuleT) -> bool:
+                                       rule: RuleT
+                                       ) -> bool:
+
         return self._check_rule_all('message_received', event, rule)
 
     @log_result
-    def _check_rule_apply_connected(self, event, rule: RuleT) -> bool:
+    def _check_rule_apply_connected(self,
+                                    event: PresenceReceived,
+                                    rule: RuleT
+                                    ) -> bool:
+
         return self._check_rule_all('contact_connected', event, rule)
 
     @log_result
-    def _check_rule_apply_disconnected(self, event, rule: RuleT) -> bool:
+    def _check_rule_apply_disconnected(self,
+                                       event: PresenceReceived,
+                                       rule: RuleT
+                                       ) -> bool:
+
         return self._check_rule_all('contact_disconnected', event, rule)
 
     @log_result
-    def _check_rule_apply_status_changed(self, event, rule: RuleT) -> bool:
+    def _check_rule_apply_status_changed(self,
+                                         event: PresenceReceived,
+                                         rule: RuleT
+                                         ) -> bool:
+
         return self._check_rule_all('contact_status_change', event, rule)
 
     @log_result
     def _check_rule_apply_notification(self,
                                        event: Notification,
-                                       rule: RuleT) -> bool:
+                                       rule: RuleT
+                                       ) -> bool:
+
         # Check notification type
         notif_type = ''
         if event.type == 'incoming-message':
             notif_type = 'message_received'
-        if event.type == 'pres':
-            # TODO:
-            if (event.base_event.old_show < 2 and
-                    event.base_event.new_show > 1):
-                notif_type = 'contact_connected'
-            elif (event.base_event.old_show > 1 and
-                    event.base_event.new_show < 2):
-                notif_type = 'contact_disconnected'
-            else:
-                notif_type = 'contact_status_change'
+        # if event.type == 'pres':
+        #     # TODO:
+        #     if (event.base_event.old_show < 2 and
+        #             event.base_event.new_show > 1):
+        #         notif_type = 'contact_connected'
+        #     elif (event.base_event.old_show > 1 and
+        #             event.base_event.new_show < 2):
+        #         notif_type = 'contact_disconnected'
+        #     else:
+        #         notif_type = 'contact_status_change'
 
         return self._check_rule_all(notif_type, event, rule)
 
-    def _check_rule_all(self, notif_type: str, event: Any, rule: RuleT) -> bool:
+    def _check_rule_all(self,
+                        notif_type: str,
+                        event: ProcessableEventsT,
+                        rule: RuleT
+                        ) -> bool:
+
         # Check notification type
         if rule['event'] != notif_type:
             return False
@@ -181,7 +213,11 @@ class Triggers(GajimPlugin):
         return True
 
     @log_result
-    def _check_rule_recipients(self, event, rule: RuleT) -> bool:
+    def _check_rule_recipients(self,
+                               event: ProcessableEventsT,
+                               rule: RuleT
+                               ) -> bool:
+
         rule_recipients = [t.strip() for t in rule['recipients'].split(',')]
         if rule['recipient_type'] == 'groupchat':
             if event.jid in rule_recipients:
@@ -207,7 +243,11 @@ class Triggers(GajimPlugin):
         return True
 
     @log_result
-    def _check_rule_status(self, event, rule: RuleT) -> bool:
+    def _check_rule_status(self,
+                           event: ProcessableEventsT,
+                           rule: RuleT
+                           ) -> bool:
+
         rule_statuses = rule['status'].split()
         client = app.get_client(event.account)
         if rule['status'] != 'all' and client.status not in rule_statuses:
@@ -216,10 +256,15 @@ class Triggers(GajimPlugin):
         return True
 
     @log_result
-    def _check_rule_tab_opened(self, event, rule: RuleT) -> bool:
+    def _check_rule_tab_opened(self,
+                               event: ProcessableEventsT,
+                               rule: RuleT
+                               ) -> bool:
+
         if rule['tab_opened'] == 'both':
             return True
         tab_opened = False
+        assert isinstance(event.jid, JID)
         if app.window.chat_exists(event.account, event.jid):
             tab_opened = True
         if tab_opened and rule['tab_opened'] == 'no':
@@ -230,12 +275,17 @@ class Triggers(GajimPlugin):
         return True
 
     @log_result
-    def _check_rule_has_focus(self, event, rule: RuleT) -> bool:
+    def _check_rule_has_focus(self,
+                              event: ProcessableEventsT,
+                              rule: RuleT
+                              ) -> bool:
+
         if rule['has_focus'] == 'both':
             return True
         if rule['tab_opened'] == 'no':
             # Does not apply in this case
             return True
+        assert isinstance(event.jid, JID)
         chat_active = app.window.is_chat_active(event.account, event.jid)
         if chat_active and rule['has_focus'] == 'no':
             return False
@@ -263,7 +313,9 @@ class Triggers(GajimPlugin):
 
     def _excecute_notification_rules(self,
                                      result: RuleResult,
-                                     event: Notification) -> bool:
+                                     event: Notification
+                                     ) -> bool:
+
         if result.sound is False:
             event.sound = None
 

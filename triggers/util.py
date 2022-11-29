@@ -12,20 +12,29 @@
 # You should have received a copy of the GNU General Public License
 # along with Gajim. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import annotations
+
+from typing import Any
+from typing import Callable
 from typing import Optional
+from typing import TYPE_CHECKING
 
 import logging
 from dataclasses import dataclass
 
+if TYPE_CHECKING:
+    from .triggers import ProcessableEventsT
+    from .triggers import RuleT
+
 log = logging.getLogger('gajim.p.triggers')
 
 
-def log_result(func):
-  def wrapper(self, event, rule):
-      res = func(self, event, rule)
-      log.info(f'{event.name} -> {func.__name__} -> {res}')
-      return res
-  return wrapper
+def log_result(func: Callable[..., Any]) -> Callable[..., bool]:
+    def wrapper(self: Any, event: ProcessableEventsT, rule: RuleT):
+        res = func(self, event, rule)
+        log.info(f'{event.name} -> {func.__name__} -> {res}')
+        return res
+    return wrapper
 
 
 @dataclass
