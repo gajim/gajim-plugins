@@ -7,9 +7,9 @@
     "reportMissingModuleSource": "none",
     "exclude": [
         "**/__pycache__",
-        ".git"
+        ".git",
+        "omemo",
+        "openpgp",
+        "pgp",
     ],
-    "include": [
-        "scripts/*",
-    ]
 }
