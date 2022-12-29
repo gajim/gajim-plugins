@@ -24,6 +24,7 @@ from typing import Union
 
 import logging
 from functools import partial
+import subprocess
 
 from nbxmpp.protocol import JID
 
@@ -35,7 +36,6 @@ from gajim.common.events import Notification
 from gajim.common.events import GcMessageReceived
 from gajim.common.events import MessageReceived
 from gajim.common.events import PresenceReceived
-from gajim.common.helpers import exec_command
 from gajim.common.helpers import play_sound_file
 
 from gajim.plugins import GajimPlugin
@@ -330,7 +330,7 @@ class Triggers(GajimPlugin):
 
         if result.command is not None:
             try:
-                exec_command(result.command, use_shell=True)
+                subprocess.Popen(f'{result.command} &', shell=True).wait()
             except Exception:
                 pass
 
