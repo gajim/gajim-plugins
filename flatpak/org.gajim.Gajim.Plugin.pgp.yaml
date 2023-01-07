@@ -30,8 +30,8 @@ modules:
     sources:
       - type: archive
         strip-components: 0
-        url: https://ftp.gajim.org/plugins/master/pgp/pgp_1.4.9.zip
-        sha256: 837481ce196bd597f62c7077e995e9316b2f054bac2bee1333a38395aa2b903e
+        url: https://ftp.gajim.org/plugins/master/pgp/pgp_1.5.1.zip
+        sha256: 5984c64faec68cf35f185313b0b24af207784b87422dd7fa394870cf045ea7d2
       - type: shell
         commands:
           - sed -i "s+org.gajim.Gajim+org.gajim.Gajim.Devel+" org.gajim.Gajim.Plugin.*.metainfo.xml
