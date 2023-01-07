@@ -37,8 +37,8 @@ from nbxmpp.protocol import JID
 from gajim.common import app
 from gajim.common import types
 
-from gajim.gui.message_actions_box import MessageActionsBox
-from gajim.gui.message_input import MessageInputTextView
+from gajim.gtk.message_actions_box import MessageActionsBox
+from gajim.gtk.message_input import MessageInputTextView
 
 from gajim.plugins import GajimPlugin
 from gajim.plugins.gajimplugin import GajimPluginConfig
