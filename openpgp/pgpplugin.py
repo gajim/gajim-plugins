@@ -27,7 +27,7 @@ from gajim.common import ged
 from gajim.common import configpaths
 from gajim.common.const import CSSPriority
 
-from gajim.gui.dialogs import ErrorDialog
+from gajim.gtk.dialogs import ErrorDialog
 
 from gajim.plugins import GajimPlugin
 from gajim.plugins.plugins_i18n import _
