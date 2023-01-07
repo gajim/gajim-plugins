@@ -20,7 +20,7 @@ from typing import cast
 
 from functools import partial
 
-from gajim.gui.message_input import MessageInputTextView
+from gajim.gtk.message_input import MessageInputTextView
 
 from gajim.plugins import GajimPlugin
 from gajim.plugins.plugins_i18n import _

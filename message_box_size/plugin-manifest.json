@@ -17,5 +17,5 @@
         "gajim>=1.5.0"
     ],
     "short_name": "message_box_size",
-    "version": "1.4.2"
+    "version": "1.4.3"
 }
