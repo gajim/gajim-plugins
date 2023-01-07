@@ -34,7 +34,7 @@ from gajim.common.modules.contacts import ResourceContact
 from gajim.plugins import GajimPlugin
 from gajim.plugins.plugins_i18n import _
 
-from gajim.gui.util import load_icon_surface
+from gajim.gtk.util import load_icon_surface
 
 from clients_icons import clients
 from clients_icons.config_dialog import ClientsIconsConfigDialog
