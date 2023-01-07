@@ -30,7 +30,7 @@ from gajim.common import configpaths
 from gajim.common import types
 from gajim.common.modules.contacts import GroupchatContact
 
-from gajim.gui.message_input import MessageInputTextView
+from gajim.gtk.message_input import MessageInputTextView
 
 from gajim.plugins import GajimPlugin
 from gajim.plugins.plugins_i18n import _
