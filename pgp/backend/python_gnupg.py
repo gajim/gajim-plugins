@@ -26,7 +26,7 @@ from functools import lru_cache
 
 import gnupg
 
-from gajim.common.helpers import Singleton
+from gajim.common.util.classes import Singleton
 
 from pgp.exceptions import SignError
 
