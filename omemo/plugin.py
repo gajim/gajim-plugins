@@ -32,7 +32,7 @@ from nbxmpp.namespaces import Namespace
 from gajim.common import app, ged
 from gajim.common.modules.contacts import GroupchatContact
 
-from gajim.gui.dialogs import ErrorDialog
+from gajim.gtk.dialogs import ErrorDialog
 
 from gajim.plugins import GajimPlugin
 from gajim.plugins.plugins_i18n import _
