@@ -21,10 +21,10 @@ from typing import TYPE_CHECKING
 
 from gi.repository import Gtk
 
-from gajim.gui.settings import SettingsDialog
-from gajim.gui.const import Setting
-from gajim.gui.const import SettingKind
-from gajim.gui.const import SettingType
+from gajim.gtk.settings import SettingsDialog
+from gajim.gtk.const import Setting
+from gajim.gtk.const import SettingKind
+from gajim.gtk.const import SettingType
 
 from gajim.plugins.plugins_i18n import _
 
