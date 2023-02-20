@@ -99,6 +99,10 @@ class AcronymsExpanderPlugin(GajimPlugin):
                            buffer_: Gtk.TextBuffer
                            ) -> None:
 
+        if self._contact is None:
+            # If no chat has been activated yet
+            return
+
         if self._replace_in_progress:
             return
 
@@ -132,7 +136,6 @@ class AcronymsExpanderPlugin(GajimPlugin):
         # Get last word and cut invoker
         last_word = word_start_iter.get_slice(insert_iter)
 
-        assert self._contact is not None
         if isinstance(self._contact, GroupchatContact):
             if last_word in self._contact.get_user_nicknames():
                 log.info('Groupchat participant has same nick as acronym')
