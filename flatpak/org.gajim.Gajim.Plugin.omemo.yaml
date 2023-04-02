@@ -1,6 +1,6 @@
 id: org.gajim.Gajim.Devel.Plugin.omemo
 runtime: org.gajim.Gajim.Devel
-sdk: org.gnome.Sdk//43
+sdk: org.gnome.Sdk//44
 build-extension: true
 separate-locales: false
 appstream-compose: false
@@ -11,16 +11,16 @@ build-options:
     PIP_DISABLE_PIP_VERSION_CHECK: "1"
 
 modules:
-  - name: protobuf
+  - name: python3-protobuf
     buildsystem: simple
     build-commands:
-      - pip3 install --no-deps protobuf-4.21.12-py3-none-any.whl
+      - pip3 install --no-deps protobuf-4.22.1-py3-none-any.whl
     sources:
       - type: file
-        url: https://files.pythonhosted.org/packages/py3/p/protobuf/protobuf-4.21.12-py3-none-any.whl
-        sha256: b98d0148f84e3a3c569e19f52103ca1feacdac0d2df8d6533cf983d1fda28462
+        url: https://files.pythonhosted.org/packages/py3/p/protobuf/protobuf-4.22.1-py3-none-any.whl
+        sha256: 3e19dcf4adbf608924d3486ece469dd4f4f2cf7d2649900f0efcd1a84e8fd3ba
 
-  - name: python3-axolotl-curve25519
+  - name: python3-python-axolotl-curve25519
     buildsystem: simple
     build-commands:
       - pip3 install .
@@ -29,7 +29,7 @@ modules:
         url: https://files.pythonhosted.org/packages/source/p/python-axolotl-curve25519/python-axolotl-curve25519-0.4.1.post2.tar.gz
         sha256: 0705a66297ebd2f508a60dc94e22881c754301eb81db93963322f6b3bdcb63a3
 
-  - name: python3-axolotl
+  - name: python3-python-axolotl
     buildsystem: simple
     build-commands:
       - pip3 install --no-deps python_axolotl-0.2.3-py3-none-any.whl
@@ -41,11 +41,11 @@ modules:
   - name: python3-qrcode
     buildsystem: simple
     build-commands:
-      - pip3 install .
+      - pip3 install --no-deps qrcode-7.4.2-py3-none-any.whl
     sources:
-      - type: archive
-        url: https://files.pythonhosted.org/packages/source/q/qrcode/qrcode-7.3.1.tar.gz
-        sha256: 375a6ff240ca9bd41adc070428b5dfc1dcfbb0f2507f1ac848f6cded38956578
+      - type: file
+        url: https://files.pythonhosted.org/packages/py3/q/qrcode/qrcode-7.4.2-py3-none-any.whl
+        sha256: 581dca7a029bcb2deef5d01068e39093e80ef00b4a61098a2182eac59d01643a
 
   - name: gajim-omemo
     buildsystem: simple
@@ -53,7 +53,8 @@ modules:
       - 'cp -R -t ${FLATPAK_DEST} *'
     post-install:
       - install -Dm644 --target-directory=${FLATPAK_DEST}/share/metainfo org.gajim.Gajim.Plugin.omemo.metainfo.xml
-      - appstream-compose --basename=org.gajim.Gajim.Devel.Plugin.omemo --prefix=${FLATPAK_DEST} --origin=flatpak org.gajim.Gajim.Plugin.omemo
+      - appstream-compose --basename=org.gajim.Gajim.Devel.Plugin.omemo --prefix=${FLATPAK_DEST}
+        --origin=flatpak org.gajim.Gajim.Plugin.omemo
     sources:
       - type: archive
         strip-components: 0

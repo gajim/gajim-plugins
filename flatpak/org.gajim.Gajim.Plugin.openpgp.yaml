@@ -1,6 +1,6 @@
 id: org.gajim.Gajim.Devel.Plugin.openpgp
 runtime: org.gajim.Gajim.Devel
-sdk: org.gnome.Sdk//43
+sdk: org.gnome.Sdk//44
 build-extension: true
 separate-locales: false
 appstream-compose: false
@@ -17,10 +17,10 @@ modules:
       prefix: ${FLATPAK_DEST}
     sources:
       - type: archive
-        url: https://downloads.sourceforge.net/swig/swig-4.0.2.tar.gz
-        sha256: d53be9730d8d58a16bf0cbd1f8ac0c0c3e1090573168bfa151b01eb47fa906fc
+        url: https://downloads.sourceforge.net/swig/swig-4.1.1.tar.gz
+        sha256: 2af08aced8fcd65cdb5cc62426768914bedc735b1c250325203716f78e39ac9b
 
-  - name: python3-gpgme
+  - name: gpgme
     cleanup:
       - /bin
       - /include
@@ -30,7 +30,7 @@ modules:
       config-opts:
         - --enable-languages=python
       env:
-         SWIG_LIB: "/app/plugins/openpgp/share/swig/4.0.2"
+        SWIG_LIB: "/app/plugins/openpgp/share/swig/4.1.1"
       prepend-path: "/app/plugins/openpgp/bin:"
       prefix: ${FLATPAK_DEST}
     post-install:
@@ -51,7 +51,8 @@ modules:
       - 'cp -R -t ${FLATPAK_DEST} *'
     post-install:
       - install -Dm644 --target-directory=${FLATPAK_DEST}/share/metainfo org.gajim.Gajim.Plugin.openpgp.metainfo.xml
-      - appstream-compose --basename=org.gajim.Gajim.Devel.Plugin.openpgp --prefix=${FLATPAK_DEST} --origin=flatpak org.gajim.Gajim.Plugin.openpgp
+      - appstream-compose --basename=org.gajim.Gajim.Devel.Plugin.openpgp --prefix=${FLATPAK_DEST}
+        --origin=flatpak org.gajim.Gajim.Plugin.openpgp
     sources:
       - type: archive
         strip-components: 0
