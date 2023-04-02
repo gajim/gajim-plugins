@@ -38,6 +38,24 @@ modules:
         url: https://files.pythonhosted.org/packages/0f/b3/4a0b0e664435691bba36fac6e366cece506d002294c293bd3dcb40c2b2ba/python_axolotl-0.2.3-py3-none-any.whl
         sha256: 6a22acbf646c3b736ea1a4663ab5c52687fce6612e92ae6a7fe63803c212fb9e
 
+  - name: python3-pypng
+    buildsystem: simple
+    build-commands:
+      - pip3 install --no-build-isolation .
+    sources:
+      - type: archive
+        url: https://files.pythonhosted.org/packages/source/p/pypng/pypng-0.20220715.0.tar.gz
+        sha256: 739c433ba96f078315de54c0db975aee537cbc3e1d0ae4ed9aab0ca1e427e2c1
+
+  - name: python3-typing-extensions
+    buildsystem: simple
+    build-commands:
+      - pip3 install typing_extensions-4.5.0-py3-none-any.whl
+    sources:
+      - type: file
+        url: https://files.pythonhosted.org/packages/py3/t/typing_extensions/typing_extensions-4.5.0-py3-none-any.whl
+        sha256: fb33085c39dd998ac16d1431ebc293a8b3eedd00fd4a32de0ff79002c19511b4
+
   - name: python3-qrcode
     buildsystem: simple
     build-commands:
