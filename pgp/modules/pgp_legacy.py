@@ -232,11 +232,11 @@ class PGPLegacy(BaseModule):
 
     @staticmethod
     def _get_info_message():
-        msg = '[This message is *encrypted* (See :XEP:`27`]'
+        msg = '[This message is *encrypted* (See :XEP:`27`)]'
         lang = os.getenv('LANG')
         if lang is not None and not lang.startswith('en'):
             # we're not english: one in locale and one en
-            msg = _('[This message is *encrypted* (See :XEP:`27`]') + \
+            msg = _('[This message is *encrypted* (See :XEP:`27`)]') + \
                     ' (' + msg + ')'
         return msg
 
