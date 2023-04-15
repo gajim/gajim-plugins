@@ -15,6 +15,7 @@
 # along with PGP Gajim Plugin. If not, see <http://www.gnu.org/licenses/>.
 
 import os
+import sys
 import logging
 from functools import partial
 from packaging.version import Version as V
@@ -101,7 +102,8 @@ class PGPPlugin(GajimPlugin):
                                           self._on_file_encryption_error),
         }
 
-        self._pgp = PGP(BINARY)
+        encoding = 'utf8' if sys.platform == 'linux' else None
+        self._pgp = PGP(BINARY, encoding=encoding)
 
     @staticmethod
     def get_pgp_module(account):
