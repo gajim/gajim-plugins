@@ -465,9 +465,3 @@ msgstr ""
 
 msgid "comma separated list"
 msgstr ""
-
-#~ msgid "Acc_ount"
-#~ msgstr "Acc_ount"
-
-#~ msgid "Active Accounts"
-#~ msgstr "Account attivi"
