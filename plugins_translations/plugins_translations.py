@@ -54,10 +54,10 @@ class PluginsTranslationsPlugin(GajimPlugin):
         ]
         log.info('Installing new translations...')
         for locale in locales:
-            dst = self.locale_dir / locale / 'LC_MESSAGES' / 'gajim_plugins.mo'
+            dst = self.locale_dir / locale / 'LC_MESSAGES'
             dst.mkdir(parents=True)
             shutil.copy2(os.path.join(self.__path__, '%s.mo' % locale),
-                         str(dst))
+                         dst / 'gajim_plugins.mo')
 
         self.config['last_version'] = current_version
 
