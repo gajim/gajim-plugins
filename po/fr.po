@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Gajim Plugins\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-05-08 13:46+0000\n"
+"POT-Creation-Date: 2023-04-15 14:16+0000\n"
 "PO-Revision-Date: 2022-04-20 14:28+0000\n"
 "Last-Translator: pitchum <pitchum@gramaton.org>\n"
 "Language-Team: French <https://translate.gajim.org/projects/gajim-plugins/"
@@ -26,14 +26,6 @@ msgstr "#"
 msgid "%(event)s (%(recipient_type)s) %(recipient)s %(status)s"
 msgstr "%(event)s (%(recipient_type)s) %(recipient)s %(status)s"
 
-#, python-format
-msgid "%(num)s: %(search)s -> %(replace)s"
-msgstr "%(num)s : %(search)s -> %(replace)s"
-
-#. label for account selector
-msgid "Acc_ount"
-msgstr "C_ompte"
-
 msgid "Acronym"
 msgstr "Acronyme"
 
@@ -43,22 +35,8 @@ msgstr "Configuration de Acronyms"
 msgid "Actions"
 msgstr "Actions"
 
-msgid "Active Accounts"
-msgstr "Comptes actifs"
-
 msgid "Add"
 msgstr "Ajouter"
-
-msgid ""
-"Add an incoming filter. First argument is the search regex, second argument "
-"is the replace regex."
-msgstr ""
-"Ajouter un filtre entrant. Le premier argument est la regex de recherche, le "
-"second est la regex de remplacement."
-
-#, python-format
-msgid "Added rule to replace %(search)s by %(replace)s"
-msgstr "règle ajoutée pour remplacer %(search)s par %(replace)s"
 
 msgid "Adds a menu with customizable quick replies"
 msgstr "Ajoute un menu avec des réponses rapides personnalisables"
@@ -108,14 +86,8 @@ msgstr "Associer la clef pour %s"
 msgid "Away"
 msgstr "Absent"
 
-msgid "Bad Configuration"
-msgstr "Mauvaise configuration"
-
 msgid "Blind Trust"
 msgstr "Confiance aveugle"
-
-msgid "Blind Trust Before Verification"
-msgstr "Confiance aveugle avant vérification"
 
 msgid "Busy"
 msgstr "Occupé"
@@ -131,15 +103,6 @@ msgstr ""
 
 msgid "Chat Window"
 msgstr "Fenêtre de discussion"
-
-#, fuzzy
-msgid "Clear Devices"
-msgstr "Purger les appareils"
-
-msgid "Click the shield icon to manage trust for each fingerprint."
-msgstr ""
-"Cliquer sur l'icône bouclier pour définir la confiance accordée à chaque "
-"empreinte."
 
 msgid "Clients Icons Configuration"
 msgstr "Configuration de Client Icons"
@@ -165,16 +128,6 @@ msgstr ""
 msgid "Contact"
 msgstr "Contact"
 
-msgid "Contact Changes Status"
-msgstr ""
-
-#, fuzzy
-msgid "Contact Connects"
-msgstr "Se connecter"
-
-msgid "Contact Disconnects"
-msgstr ""
-
 msgid "Contact Name"
 msgstr "Nom du contact"
 
@@ -194,9 +147,6 @@ msgstr ""
 msgid "Delete"
 msgstr "Supprimer"
 
-msgid "Delete Fingerprint"
-msgstr "Supprimer l'empreinte"
-
 msgid "Delete Public Key"
 msgstr "Supprimer la clé publique"
 
@@ -210,33 +160,17 @@ msgstr "Effacer cette règle une fois appliquée"
 msgid "Deny Subscription Requests"
 msgstr "Refuser les demandes d'inscription à votre présence"
 
-msgid "Device ID"
-msgstr "Identifiant d'appareil"
-
-#, fuzzy
-msgid "Disable Accounts"
-msgstr "Désactiver des comptes"
-
 msgid "Disable XHTML for Group Chats"
 msgstr "Désactiver XHTML dans les salons de discussion"
 
 msgid "Disable XHTML for PMs"
 msgstr "Désactive XHTML pour les messages privés"
 
-msgid "Disabled Accounts"
-msgstr "Comptes désactivés"
-
 msgid "Does not have focus"
 msgstr ""
 
-msgid "Doing so will permanently delete this Fingerprint"
-msgstr "Cela va supprimer définitivement cette empreinte"
-
 msgid "Down"
 msgstr ""
-
-msgid "Download"
-msgstr "Télécharger"
 
 msgid "Enable the plugin for selected XMPP addresses only (comma separated)"
 msgstr ""
@@ -245,9 +179,6 @@ msgstr ""
 
 msgid "Enables anti spam question for private messages in group chats"
 msgstr "Active la question anti spam pour les messages privés dans les salons"
-
-msgid "Encryption error"
-msgstr "Erreur de chiffrement"
 
 #, python-format
 msgid "Encryption error: %s"
@@ -262,31 +193,14 @@ msgstr "Événement"
 msgid "Everybody"
 msgstr "Tout le monde"
 
-msgid "Filter messages with regex"
-msgstr "Filtrer les messages avec une expression rationnelle"
-
-#, python-format
-msgid "Fingerprints for %s"
-msgstr "Empreinte pour %s"
-
 msgid "Focus"
 msgstr ""
-
-msgid ""
-"For verification via QR-Code\n"
-"you have to install python-qrcode"
-msgstr ""
-"Pour la vérification par QR-Code\n"
-"vous devez installer python-qrcode"
 
 msgid "Format string"
 msgstr "Chaîne de formatage"
 
 msgid "Gajim will now try to setup OpenPGP for you"
 msgstr "Gajim va maintenant essayer de paramétrer OpenPGP pour vous"
-
-msgid "General"
-msgstr ""
 
 msgid "Generating new Key"
 msgstr "Génération d'une nouvelle clé"
@@ -320,10 +234,6 @@ msgstr "Inactif"
 msgid "Key ID"
 msgstr ""
 
-#, python-format
-msgid "Last seen: %s"
-msgstr "Vue pour la dernière fois : %s"
-
 msgid "Launch command"
 msgstr ""
 
@@ -339,8 +249,8 @@ msgstr "Limite la taille maximale des messages (laisser vide pour désactiver)"
 msgid "List"
 msgstr ""
 
-msgid "List incoming filters."
-msgstr "Liste les filtres entrants."
+msgid "Manage Replies…"
+msgstr ""
 
 msgid "Message Box Size Configuration"
 msgstr "Configuration de Message Box Size"
@@ -353,9 +263,6 @@ msgstr "Longueur de message à partir de laquelle il sera mis en surbrillance"
 
 msgid "My status"
 msgstr ""
-
-msgid "Never"
-msgstr "Jamais"
 
 msgid "New Quick Reply"
 msgstr "Nouvelle réponse rapide"
@@ -372,14 +279,8 @@ msgstr "Aucune de clé OpenPGP n'est associée à ce contact."
 msgid "No OpenPGP key is assigned to your account."
 msgstr "Aucune clé OpenPGP n'est associée à votre compte."
 
-msgid "No devices found. Query in progress..."
-msgstr "Aucun appareil trouvé. Interrogation en cours..."
-
 msgid "No key assigned"
 msgstr "Aucune clé assignée"
-
-msgid "No rule defined"
-msgstr "Aucune règle définie"
 
 msgid "None"
 msgstr "Aucune"
@@ -401,11 +302,6 @@ msgstr "Non décidé"
 msgid "Not_ify me with a popup"
 msgstr "Me not_ifier avec une popup"
 
-msgid "Note: Fingerprints of your contacts are managed in the message window."
-msgstr ""
-"Note : les empreintes de vos contacts sont gérées depuis la fenêtre de "
-"message."
-
 msgid "Notifications"
 msgstr "Notifications"
 
@@ -421,36 +317,12 @@ msgstr "Nombre de caractères tapés"
 msgid "OK"
 msgstr "OK"
 
-msgid "OMEMO Fingerprints"
-msgstr "Empreintes OMEMO"
-
-#, fuzzy
-msgid "OMEMO Settings"
-msgstr "Empreintes OMEMO"
-
 msgid "Online"
 msgstr "Connecté"
 
 #, fuzzy
 msgid "Opened"
 msgstr "Ouvrir"
-
-#, fuzzy
-msgid "Own Fingerprint"
-msgstr "Empreintes OMEMO"
-
-#. tab label
-#, fuzzy
-msgid "Own Fingerprints"
-msgstr "Empreintes OMEMO"
-
-msgid "Own _Device ID"
-msgstr "Mon propre i_dentifiant d'appareil"
-
-#. Descriptive label
-#, fuzzy
-msgid "Own _Fingerprint"
-msgstr "Empreintes OMEMO"
 
 msgid "PGP Configuration"
 msgstr "Configuration de PGP"
@@ -478,9 +350,6 @@ msgstr "Extension disponible uniquement pour Linux"
 msgid "Public Keys for %s"
 msgstr "Clés publiques pour %s"
 
-msgid "Published Devices"
-msgstr "Appareils publiés"
-
 msgid "Question has to be answered in order to contact you"
 msgstr "La question à laquelle il faut répondre pour pouvoir vous contacter"
 
@@ -494,25 +363,11 @@ msgstr "Configuration de Quick Replies"
 msgid "Quick Reply"
 msgstr "Nouvelle réponse rapide"
 
-msgid "Read more about blind trust."
-msgstr "Lire davantage à propos de Confiance Aveugle."
-
-#, fuzzy
-msgid "Read more on blind trust."
-msgstr "Lire davantage à propos de Confiance Aveugle."
-
 msgid "Receive a Message"
 msgstr ""
 
 msgid "Remove"
 msgstr ""
-
-msgid ""
-"Remove an incoming filter. Argument is the rule number. See /list_rules "
-"command."
-msgstr ""
-"Supprime un filtre entrant. L'argument est le numéro de la règle. Voir la "
-"commande /list_rules."
 
 msgid "Removes XHTML formatting from group chat messages"
 msgstr "Retire le formatage XHTML des messages de salon"
@@ -528,22 +383,11 @@ msgstr ""
 msgid "Request OpenPGP Key"
 msgstr "Récupérer la clé OpenPGP"
 
-#, python-format
-msgid "Rule number %s does not exist"
-msgstr "La règle numéro %s n'existe pas"
-
-#, python-format
-msgid "Rule number %s removed"
-msgstr "Règle numéro %s supprimée"
-
 msgid "Select Sound"
 msgstr ""
 
 msgid "Selected Addresses"
 msgstr "Adresses sélectionnées"
-
-msgid "Settings"
-msgstr ""
 
 msgid "Setup OpenPGP"
 msgstr "Paramétrer OpenPGP"
@@ -559,10 +403,6 @@ msgstr "Montrer une icône pour les clients inconnus"
 
 msgid "Show Icons in Tooltip"
 msgstr "Afficher les icônes dans les info-bulles"
-
-#, fuzzy
-msgid "Show inactive"
-msgstr "Inactive"
 
 #, fuzzy
 msgid ""
@@ -601,24 +441,6 @@ msgid "There was no trusted and active key found"
 msgstr "Aucune clé de confiance activée n'a été trouvée"
 
 msgid ""
-"This clears your device list from the server.\n"
-"Clearing the device list helps you to remove unused devices from the "
-"encryption process.\n"
-"It is advised to go online with all of your actively used devices after "
-"clearing."
-msgstr ""
-"Cela nettoie votre liste d'appareils sur le serveur.\n"
-"Nettoyer la liste d'appareils vous permet de retirer du processus de "
-"chiffrement les appareils inutilisés.\n"
-"Nous vous recommandons de vous connecter avec tous vos appareils habituels "
-"juste après le nettoyage."
-
-msgid "This message was encrypted with OMEMO, but not for your device."
-msgstr ""
-"Ce message a été chiffré avec OMEMO, mais pas à l'attention de votre "
-"appareil."
-
-msgid ""
 "This plugin contains translations for other Gajim plugins. Please restart "
 "Gajim after enabling this plugin."
 msgstr ""
@@ -628,28 +450,11 @@ msgstr ""
 msgid "This will permanently delete this public key"
 msgstr "Cela va supprimer définitivement cette clé publique"
 
-msgid ""
-"To send an encrypted message, you have to first trust the fingerprint of "
-"your contact!"
-msgstr ""
-"Pour envoyer un message crypté, vous devez d'abord faire confiance à "
-"l'empreinte de votre contact !"
-
-msgid ""
-"To use OMEMO in a Groupchat, the Groupchat should be non-anonymous and "
-"members-only."
-msgstr ""
-"Pour utiliser OMEMO dans un salon de discussion, le salon devrait être non "
-"anonyme et accessible uniquement aux membres."
-
 msgid "Triggers Configuration"
 msgstr "Configuration de Triggers"
 
 msgid "Unknown"
 msgstr "Inconnu"
-
-msgid "Untrusted"
-msgstr "Non approuvée"
 
 msgid "Untrusted PGP key"
 msgstr "Clé PGP non approuvée"
@@ -666,20 +471,9 @@ msgstr "Sons Wav"
 msgid "Welcome"
 msgstr "Bienvenue"
 
-msgid "You have to restart Gajim for changes to take effect !"
-msgstr "Vous devez redémarrer Gajim pour que les changements prennent effet !"
-
-msgid "You have undecided fingerprints"
-msgstr "Il y a des empreintes pour lesquelles vous n'avez encore rien décidé"
-
-msgid "[This message is *encrypted* (See :XEP:`27`]"
+#, fuzzy
+msgid "[This message is *encrypted* (See :XEP:`27`)]"
 msgstr "[Ce message est *chiffré* (Voir :XEP:`27`]"
-
-msgid "_Clear Devices"
-msgstr "_Nettoyer les appareils"
-
-msgid "_Disable Account"
-msgstr "Désactiver compte"
 
 msgid "_Disable existing notification"
 msgstr ""
@@ -689,9 +483,6 @@ msgstr ""
 
 msgid "_Do not ask me again"
 msgstr "_Ne plus poser la question"
-
-msgid "_Enable Account"
-msgstr "Activ_er compte"
 
 msgid "_Encrypt Anyway"
 msgstr "_Chiffrer malgré tout"
@@ -704,3 +495,198 @@ msgstr "et je suis "
 
 msgid "comma separated list"
 msgstr "liste d'éléments séparés par des virgules"
+
+#~ msgid "%(num)s: %(search)s -> %(replace)s"
+#~ msgstr "%(num)s : %(search)s -> %(replace)s"
+
+#~ msgid "Acc_ount"
+#~ msgstr "C_ompte"
+
+#~ msgid "Active Accounts"
+#~ msgstr "Comptes actifs"
+
+#~ msgid ""
+#~ "Add an incoming filter. First argument is the search regex, second "
+#~ "argument is the replace regex."
+#~ msgstr ""
+#~ "Ajouter un filtre entrant. Le premier argument est la regex de recherche, "
+#~ "le second est la regex de remplacement."
+
+#~ msgid "Added rule to replace %(search)s by %(replace)s"
+#~ msgstr "règle ajoutée pour remplacer %(search)s par %(replace)s"
+
+#~ msgid "Bad Configuration"
+#~ msgstr "Mauvaise configuration"
+
+#~ msgid "Blind Trust Before Verification"
+#~ msgstr "Confiance aveugle avant vérification"
+
+#, fuzzy
+#~ msgid "Clear Devices"
+#~ msgstr "Purger les appareils"
+
+#~ msgid "Click the shield icon to manage trust for each fingerprint."
+#~ msgstr ""
+#~ "Cliquer sur l'icône bouclier pour définir la confiance accordée à chaque "
+#~ "empreinte."
+
+#, fuzzy
+#~ msgid "Contact Connects"
+#~ msgstr "Se connecter"
+
+#~ msgid "Delete Fingerprint"
+#~ msgstr "Supprimer l'empreinte"
+
+#~ msgid "Device ID"
+#~ msgstr "Identifiant d'appareil"
+
+#, fuzzy
+#~ msgid "Disable Accounts"
+#~ msgstr "Désactiver des comptes"
+
+#~ msgid "Disabled Accounts"
+#~ msgstr "Comptes désactivés"
+
+#~ msgid "Doing so will permanently delete this Fingerprint"
+#~ msgstr "Cela va supprimer définitivement cette empreinte"
+
+#~ msgid "Download"
+#~ msgstr "Télécharger"
+
+#~ msgid "Encryption error"
+#~ msgstr "Erreur de chiffrement"
+
+#~ msgid "Filter messages with regex"
+#~ msgstr "Filtrer les messages avec une expression rationnelle"
+
+#~ msgid "Fingerprints for %s"
+#~ msgstr "Empreinte pour %s"
+
+#~ msgid ""
+#~ "For verification via QR-Code\n"
+#~ "you have to install python-qrcode"
+#~ msgstr ""
+#~ "Pour la vérification par QR-Code\n"
+#~ "vous devez installer python-qrcode"
+
+#~ msgid "Last seen: %s"
+#~ msgstr "Vue pour la dernière fois : %s"
+
+#~ msgid "List incoming filters."
+#~ msgstr "Liste les filtres entrants."
+
+#~ msgid "Never"
+#~ msgstr "Jamais"
+
+#~ msgid "No devices found. Query in progress..."
+#~ msgstr "Aucun appareil trouvé. Interrogation en cours..."
+
+#~ msgid "No rule defined"
+#~ msgstr "Aucune règle définie"
+
+#~ msgid ""
+#~ "Note: Fingerprints of your contacts are managed in the message window."
+#~ msgstr ""
+#~ "Note : les empreintes de vos contacts sont gérées depuis la fenêtre de "
+#~ "message."
+
+#~ msgid "OMEMO Fingerprints"
+#~ msgstr "Empreintes OMEMO"
+
+#, fuzzy
+#~ msgid "OMEMO Settings"
+#~ msgstr "Empreintes OMEMO"
+
+#, fuzzy
+#~ msgid "Own Fingerprint"
+#~ msgstr "Empreintes OMEMO"
+
+#, fuzzy
+#~ msgid "Own Fingerprints"
+#~ msgstr "Empreintes OMEMO"
+
+#~ msgid "Own _Device ID"
+#~ msgstr "Mon propre i_dentifiant d'appareil"
+
+#, fuzzy
+#~ msgid "Own _Fingerprint"
+#~ msgstr "Empreintes OMEMO"
+
+#~ msgid "Published Devices"
+#~ msgstr "Appareils publiés"
+
+#~ msgid "Read more about blind trust."
+#~ msgstr "Lire davantage à propos de Confiance Aveugle."
+
+#, fuzzy
+#~ msgid "Read more on blind trust."
+#~ msgstr "Lire davantage à propos de Confiance Aveugle."
+
+#~ msgid ""
+#~ "Remove an incoming filter. Argument is the rule number. See /list_rules "
+#~ "command."
+#~ msgstr ""
+#~ "Supprime un filtre entrant. L'argument est le numéro de la règle. Voir la "
+#~ "commande /list_rules."
+
+#~ msgid "Rule number %s does not exist"
+#~ msgstr "La règle numéro %s n'existe pas"
+
+#~ msgid "Rule number %s removed"
+#~ msgstr "Règle numéro %s supprimée"
+
+#, fuzzy
+#~ msgid "Show inactive"
+#~ msgstr "Inactive"
+
+#~ msgid ""
+#~ "This clears your device list from the server.\n"
+#~ "Clearing the device list helps you to remove unused devices from the "
+#~ "encryption process.\n"
+#~ "It is advised to go online with all of your actively used devices after "
+#~ "clearing."
+#~ msgstr ""
+#~ "Cela nettoie votre liste d'appareils sur le serveur.\n"
+#~ "Nettoyer la liste d'appareils vous permet de retirer du processus de "
+#~ "chiffrement les appareils inutilisés.\n"
+#~ "Nous vous recommandons de vous connecter avec tous vos appareils "
+#~ "habituels juste après le nettoyage."
+
+#~ msgid "This message was encrypted with OMEMO, but not for your device."
+#~ msgstr ""
+#~ "Ce message a été chiffré avec OMEMO, mais pas à l'attention de votre "
+#~ "appareil."
+
+#~ msgid ""
+#~ "To send an encrypted message, you have to first trust the fingerprint of "
+#~ "your contact!"
+#~ msgstr ""
+#~ "Pour envoyer un message crypté, vous devez d'abord faire confiance à "
+#~ "l'empreinte de votre contact !"
+
+#~ msgid ""
+#~ "To use OMEMO in a Groupchat, the Groupchat should be non-anonymous and "
+#~ "members-only."
+#~ msgstr ""
+#~ "Pour utiliser OMEMO dans un salon de discussion, le salon devrait être "
+#~ "non anonyme et accessible uniquement aux membres."
+
+#~ msgid "Untrusted"
+#~ msgstr "Non approuvée"
+
+#~ msgid "You have to restart Gajim for changes to take effect !"
+#~ msgstr ""
+#~ "Vous devez redémarrer Gajim pour que les changements prennent effet !"
+
+#~ msgid "You have undecided fingerprints"
+#~ msgstr ""
+#~ "Il y a des empreintes pour lesquelles vous n'avez encore rien décidé"
+
+#~ msgid "_Clear Devices"
+#~ msgstr "_Nettoyer les appareils"
+
+#~ msgid "_Disable Account"
+#~ msgstr "Désactiver compte"
+
+#~ msgid "_Enable Account"
+#~ msgstr "Activ_er compte"

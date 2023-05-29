@@ -1,0 +1,634 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the Gajim Plugins package.
+# Baurzhan Muftakhidinov <baurthefirst@gmail.com>, 2023.
+msgid ""
+msgstr ""
+"Project-Id-Version: Gajim Plugins\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2023-04-15 14:16+0000\n"
+"PO-Revision-Date: 2023-01-13 16:53+0000\n"
+"Last-Translator: Baurzhan Muftakhidinov <baurthefirst@gmail.com>\n"
+"Language-Team: Kazakh <https://translate.gajim.org/projects/gajim-plugins/"
+"master/kk/>\n"
+"Language: kk\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Weblate 4.11.2\n"
+
+#. #' Means number
+msgid "#"
+msgstr "#"
+
+#, python-format
+msgid "%(event)s (%(recipient_type)s) %(recipient)s %(status)s"
+msgstr "%(event)s (%(recipient_type)s) %(recipient)s %(status)s"
+
+msgid "Acronym"
+msgstr "Акроним"
+
+msgid "Acronyms Configuration"
+msgstr "Акронимдерді баптау"
+
+msgid "Actions"
+msgstr "Әрекеттер"
+
+msgid "Add"
+msgstr "Қосу"
+
+msgid "Adds a menu with customizable quick replies"
+msgstr "Бапталатын жылдам жауаптары бар мәзірді қосады"
+
+msgid "Advanced"
+msgstr "Кеңейтілген"
+
+msgid "All Files"
+msgstr "Барлық файлдар"
+
+msgid "All statuses"
+msgstr "Барлық қалып-күйлер"
+
+msgid "Allows you to adjust the height of the message input."
+msgstr "Хабарлама енгізу өрісі биіктігін баптауға мүмкіндік береді."
+
+msgid ""
+"Allows you to block various kinds of incoming messages (Spam, XHTML "
+"formatting, etc.)"
+msgstr ""
+"Әр түрлі кіріс хабарларды (спам, XHTML пішімдеу, т.б.) блоктауға мүмкіндік "
+"береді"
+
+msgid "Anti Spam Answer"
+msgstr "Антиспам жауабы"
+
+msgid "Anti Spam Configuration"
+msgstr "Антиспамды баптау"
+
+msgid "Anti Spam Question"
+msgstr "Антиспам сұрағы"
+
+msgid "Anti Spam Question in Group Chats"
+msgstr "Топтық чаттардағы антиспам сұрағы"
+
+msgid "Assign Key"
+msgstr "Кілтті тағайындау"
+
+msgid "Assign PGP Key"
+msgstr "PGP кілтін тағайындау"
+
+#, python-format
+msgid "Assign key for %s"
+msgstr "%s үшін кілт тағайындау"
+
+msgid "Away"
+msgstr "Кетіп қалған"
+
+msgid "Blind Trust"
+msgstr "Cоқыр сенім"
+
+msgid "Busy"
+msgstr "Бос емес"
+
+msgid "Cancel"
+msgstr "Бас тарту"
+
+msgid "Category"
+msgstr "Санаты"
+
+msgid "Certain status"
+msgstr "Белгілі бар қалып-күйі"
+
+msgid "Chat Window"
+msgstr "Чат терезесі"
+
+msgid "Clients Icons Configuration"
+msgstr "Клиент таңбашаларын баптау"
+
+msgid "Color"
+msgstr "Түс"
+
+msgid "Command..."
+msgstr "Команда..."
+
+msgid "Condition"
+msgstr "Шарт"
+
+msgid "Conditions"
+msgstr "Шарттар"
+
+msgid "Configure Gajim’s behaviour with triggers for each contact"
+msgstr "Әрбір контакт үшін триггерлермен Gajim әрекетін баптау"
+
+msgid "Contact"
+msgstr "Контакт"
+
+msgid "Contact Name"
+msgstr "Контакт аты"
+
+msgid ""
+"Copy tune info of playing music to conversation input box at cursor position "
+"(Alt + N)"
+msgstr ""
+"Ойнап тұрған музыка ақпаратын курсор орнындағы сөйлесу жолағына көшіру (Alt "
+"+ N)"
+
+msgid ""
+"Correct answer to your Anti Spam Question (leave empty to disable question)"
+msgstr "Спамға қарсы сұраққа дұрыс жауап (сұрақты өшіру үшін бос қалдырыңыз)"
+
+msgid "Delete"
+msgstr "Өшіру"
+
+msgid "Delete Public Key"
+msgstr "Жария кілтті өшіру"
+
+msgid "Delete rule"
+msgstr "Ережені өшіру"
+
+msgid "Delete this rule once applied"
+msgstr "Бұл ережені іске асырғаннан кейін өшіру"
+
+msgid "Deny Subscription Requests"
+msgstr "Жазылуға сұранымдарды елемеу"
+
+msgid "Disable XHTML for Group Chats"
+msgstr "Топтық чаттар үшін XHTML сөндіру"
+
+msgid "Disable XHTML for PMs"
+msgstr "Жеке хабарламалар үшін XHTML сөндіру"
+
+msgid "Does not have focus"
+msgstr "Фокусы жоқ"
+
+msgid "Down"
+msgstr "Төмен"
+
+msgid "Enable the plugin for selected XMPP addresses only (comma separated)"
+msgstr ""
+"Таңдалған XMPP адрестері үшін ғана плагинді іске қосу (үтірмен бөлінген)"
+
+msgid "Enables anti spam question for private messages in group chats"
+msgstr ""
+"Топтық чаттардағы жеке хабарламалар үшін спамға қарсы сұрақты іске қосу"
+
+#, python-format
+msgid "Encryption error: %s"
+msgstr "Шифрлеу қатесі: %s"
+
+msgid "Error"
+msgstr "Қате"
+
+msgid "Event"
+msgstr "Оқиға"
+
+msgid "Everybody"
+msgstr "Әркім"
+
+msgid "Focus"
+msgstr "Фокус"
+
+msgid "Format string"
+msgstr "Пішім жолы"
+
+msgid "Gajim will now try to setup OpenPGP for you"
+msgstr "Енді Gajim сіз үшін OpenPGP орнатуға тырысады"
+
+msgid "Generating new Key"
+msgstr "Жаңа кілтті жасау"
+
+msgid "Group"
+msgstr "Топ"
+
+msgid "Groupchat participant"
+msgstr "Топтық чат мүшесі"
+
+msgid "Has focus"
+msgstr "Фокус бар"
+
+msgid "Height in pixels"
+msgstr "Биіктігі, пиксельмен"
+
+msgid "Highlight color for the message input"
+msgstr "Хабарламаны енгізу үшін ерекшелеу түсі"
+
+msgid ""
+"Highlights the chat window’s message input if a specified message length is "
+"exceeded."
+msgstr ""
+"Хабарлама ұзындығы белгіленген шамадан асып кетсе, сөйлесу терезесінің "
+"хабарлама енгізуін ерекшелейді."
+
+msgid "Inactive"
+msgstr "Белсенді емес"
+
+msgid "Key ID"
+msgstr "Кілт идентификаторы"
+
+msgid "Launch command"
+msgstr "Команданы жөнелту"
+
+msgid "Length Notifier Configuration"
+msgstr "Ұзындық хабарландырушы баптаулары"
+
+msgid "Limit Message Length"
+msgstr "Хабарлама ұзындығын шектеу"
+
+msgid "Limits maximum message length (leave empty to disable)"
+msgstr "Хабарламаның максималды ұзындығын шектеу (сөндіру үшін бос қалдырыңыз)"
+
+msgid "List"
+msgstr "Тізім"
+
+msgid "Manage Replies…"
+msgstr "Жауаптарды басқару…"
+
+msgid "Message Box Size Configuration"
+msgstr "Хабарлама терезесінің өлшемі конфигурациясы"
+
+msgid "Message Length"
+msgstr "Хабарлама ұзындығы"
+
+msgid "Message length at which the highlight is shown"
+msgstr "Ерекшелеу көрсетіле бастайтын хабарлама ұзындығы"
+
+msgid "My status"
+msgstr "Менің қалып-күйім"
+
+msgid "New Quick Reply"
+msgstr "Жаңа жылдам жауап"
+
+msgid "New rule"
+msgstr "Жаңа ереже"
+
+msgid "No OpenPGP key assigned"
+msgstr "OpenPGP кілті тағайындалмаған"
+
+msgid "No OpenPGP key is assigned to this contact."
+msgstr "Бұл контактіге OpenPGP кілті тағайындалмаған."
+
+msgid "No OpenPGP key is assigned to your account."
+msgstr "Тіркелгіңізге OpenPGP кілті тағайындалмаған."
+
+msgid "No key assigned"
+msgstr "Ешқандай кілт тағайындалмаған"
+
+msgid "None"
+msgstr "Ешнәрсе"
+
+msgid "Not Available"
+msgstr "Қолжетімді емес"
+
+msgid "Not Decided"
+msgstr "Шешілмеген"
+
+msgid "Not Trusted"
+msgstr "Сенімді емес"
+
+msgid "Not opened"
+msgstr "Ашылмаған"
+
+msgid "Not_ify me with a popup"
+msgstr "Қалқымалы тереземен хабарла_у"
+
+msgid "Notifications"
+msgstr "Хабарламалар"
+
+msgid "Now Listen Configuration"
+msgstr "\"Қазір тыңдап отырған\" баптаулары"
+
+msgid "Now listening to: \"%title\" by %artist"
+msgstr "Қазір тыңдап отырған: \"%title\", %artist"
+
+msgid "Number of typed characters"
+msgstr "Терілген таңбалар саны"
+
+msgid "OK"
+msgstr "ОК"
+
+msgid "Online"
+msgstr "Желіде"
+
+msgid "Opened"
+msgstr "Ашылған"
+
+msgid "PGP Configuration"
+msgstr "PGP баптаулары"
+
+msgid "PGP Key mismatch"
+msgstr "PGP кілтінің сәйкессіздігі"
+
+msgid "PGP encryption as per XEP-0027"
+msgstr "XEP-0027 сәйкес PGP шифрлеуі"
+
+msgid "Play sound"
+msgstr "Дыбысты ойнату"
+
+msgid "Please install GnuPG / Gpg4win"
+msgstr "GnuPG / Gpg4win орнатыңыз"
+
+msgid "Please install python-gnupg and gnupg"
+msgstr "Python-gnupg және gnupg орнатыңыз"
+
+msgid "Plugin only available for Linux"
+msgstr "Плагин тек Linux үшін қолжетімді"
+
+#, python-format
+msgid "Public Keys for %s"
+msgstr "%s үшін ашық кілттер"
+
+msgid "Question has to be answered in order to contact you"
+msgstr "Сізбен байланысу үшін сұраққа жауап беру керек"
+
+msgid "Quick Replies"
+msgstr "Жылдам жауаптар"
+
+msgid "Quick Replies Configuration"
+msgstr "Жылдам жауаптарды баптау"
+
+msgid "Quick Reply"
+msgstr "Жылдам жауап"
+
+msgid "Receive a Message"
+msgstr "Хабарламаны алу"
+
+msgid "Remove"
+msgstr "Өшіру"
+
+msgid "Removes XHTML formatting from group chat messages"
+msgstr "Топтық чат хабарларынан XHTML пішімдеуін өшіреді"
+
+msgid "Removes XHTML formatting from private messages in group chats"
+msgstr "Топтық чаттардағы жеке хабарлардан XHTML пішімдеуін өшіреді"
+
+msgid "Replaces acronyms (or other strings) with given expansions/substitutes."
+msgstr ""
+"Қысқартуларды (немесе басқа жолдарды) берілген кеңейтулермен/алмастырумен "
+"алмастырады."
+
+msgid "Request OpenPGP Key"
+msgstr "OpenPGP кілтін сұрау"
+
+msgid "Select Sound"
+msgstr "Дыбысты таңдау"
+
+msgid "Selected Addresses"
+msgstr "Таңдалған адрестер"
+
+msgid "Setup OpenPGP"
+msgstr "OpenPGP баптау"
+
+msgid "Setup failed"
+msgstr "Баптау сәтсіз аяқталды"
+
+msgid "Setup successful"
+msgstr "Баптау сәтті аяқталды"
+
+msgid "Show Icon for Unknown Clients"
+msgstr "Белгісіз клиенттер таңбашасын көрсету"
+
+msgid "Show Icons in Tooltip"
+msgstr "Таңбашаларды қалқымалы терезеде көрсету"
+
+msgid ""
+"Shows client icons in your contact list and in the groupchat participants "
+"list."
+msgstr ""
+"Контакттар тізімінде және топтық чатқа қатысушылар тізімінде клиент "
+"таңбашаларын көрсету."
+
+msgid "Size of message input in pixels"
+msgstr "Хабарламаны енгізудің пиксельдегі өлшемі"
+
+msgid "Sounds"
+msgstr "Дыбыстар"
+
+msgid "Status"
+msgstr "Қалып-күй"
+
+msgid "Substitute"
+msgstr "Алмастыру"
+
+msgid ""
+"The PGP key used to encrypt this chat is not trusted. Do you really want to "
+"encrypt this message?"
+msgstr ""
+"Бұл чатты шифрлеу үшін пайдаланылатын PGP кілті сенімсіз. Бұл хабарламаны "
+"шынымен шифрлегіңіз келе ме?"
+
+#, python-format
+msgid "The contact's key (%s) <b>does not match</b> the key assigned in Gajim."
+msgstr ""
+"Контакт кілті (%s) Gajim жүйесінде тағайындалған кілтке <b>сәйкес келмейді</"
+"b>."
+
+msgid "There was no trusted and active key found"
+msgstr "Сенімді және белсенді кілт табылмады"
+
+msgid ""
+"This plugin contains translations for other Gajim plugins. Please restart "
+"Gajim after enabling this plugin."
+msgstr ""
+"Бұл плагин басқа Gajim плагиндерінің аудармаларын қамтиды. Осы плагинді іске "
+"қосқаннан кейін Gajim қолданбасын қайта іске қосыңыз."
+
+msgid "This will permanently delete this public key"
+msgstr "Бұл жария кілтті біржола өшіреді"
+
+msgid "Triggers Configuration"
+msgstr "Баптауды ауыстырады"
+
+msgid "Unknown"
+msgstr "Белгісіз"
+
+msgid "Untrusted PGP key"
+msgstr "Сенімсіз PGP кілті"
+
+msgid "Up"
+msgstr "Жоғары"
+
+msgid "Verified"
+msgstr "Расталған"
+
+msgid "Wav Sounds"
+msgstr "Wav дыбыстары"
+
+msgid "Welcome"
+msgstr "Қош келдіңіз"
+
+#, fuzzy
+msgid "[This message is *encrypted* (See :XEP:`27`)]"
+msgstr "[Бұл хабарлама *шифрленген* (Қараңыз :XEP:`27`]"
+
+msgid "_Disable existing notification"
+msgstr "Бар болып тұрған хабарлауды сөн_діру"
+
+msgid "_Disable existing sound for this event"
+msgstr "Осы оқиға үшін бар дыбысты сөн_діру"
+
+msgid "_Do not ask me again"
+msgstr "_Мені қайта сұрамау"
+
+msgid "_Encrypt Anyway"
+msgstr "Сонда да шифрл_еу"
+
+msgid "_No"
+msgstr "_Жоқ"
+
+msgid "and I am "
+msgstr "және мен "
+
+msgid "comma separated list"
+msgstr "үтірмен ажыратылған тізім"
+
+#~ msgid "Acc_ount"
+#~ msgstr "_Тіркелгі"
+
+#~ msgid "Active Accounts"
+#~ msgstr "Белсенді тіркелгілер"
+
+#~ msgid "Bad Configuration"
+#~ msgstr "Жарамсыз конфигурация"
+
+#~ msgid "Blind Trust Before Verification"
+#~ msgstr "Тексеру алдында сену"
+
+#~ msgid "Clear Devices"
+#~ msgstr "Құрылғыларды тазарту"
+
+#~ msgid "Click the shield icon to manage trust for each fingerprint."
+#~ msgstr ""
+#~ "Әрбір саусақ ізі үшін сенімді басқару үшін қалқан белгішесін басыңыз."
+
+#~ msgid "Delete Fingerprint"
+#~ msgstr "Саусақ ізін өшіру"
+
+#~ msgid "Device ID"
+#~ msgstr "Құрылғы идентификаторы"
+
+#~ msgid "Disable Accounts"
+#~ msgstr "Тіркелгілерді сөндіру"
+
+#~ msgid "Disabled Accounts"
+#~ msgstr "Сөндірілген тіркелгілер"
+
+#~ msgid "Doing so will permanently delete this Fingerprint"
+#~ msgstr "Бұл әрекет бұл саусақ ізін толығымен өшіреді"
+
+#~ msgid "Download"
+#~ msgstr "Жүктеп алу"
+
+#~ msgid "Encryption error"
+#~ msgstr "Шифрлеу қатесі"
+
+#~ msgid "Fingerprints for %s"
+#~ msgstr "%s үшін саусақ ізі"
+
+#~ msgid ""
+#~ "For verification via QR-Code\n"
+#~ "you have to install python-qrcode"
+#~ msgstr ""
+#~ "QR кодымен тексеру үшін\n"
+#~ "python-qrcode орнату керек"
+
+#~ msgid "General"
+#~ msgstr "Жалпы"
+
+#~ msgid "Last seen: %s"
+#~ msgstr "Соңғы көрінген: %s"
+
+#~ msgid "Never"
+#~ msgstr "Ешқашан"
+
+#~ msgid "No devices found. Query in progress..."
+#~ msgstr "Ешбір құрылғы табылмады. Сұрау орындалуда..."
+
+#~ msgid ""
+#~ "Note: Fingerprints of your contacts are managed in the message window."
+#~ msgstr ""
+#~ "Назарыңызға: Контакттарыңыздың саусақ іздері хабарлама терезесінде "
+#~ "басқарылады."
+
+#~ msgid "OMEMO Fingerprints"
+#~ msgstr "OMEMO саусақ іздері"
+
+#~ msgid "OMEMO Settings"
+#~ msgstr "OMEMO баптаулары"
+
+#~ msgid "Own Fingerprint"
+#~ msgstr "Жеке саусақ ізі"
+
+#~ msgid "Own Fingerprints"
+#~ msgstr "Жеке саусақ іздері"
+
+#~ msgid "Own _Device ID"
+#~ msgstr "Өзіндік құ_рылғы идентификаторы"
+
+#~ msgid "Own _Fingerprint"
+#~ msgstr "Өзіндік _саусақ ізі"
+
+#~ msgid "Published Devices"
+#~ msgstr "Жарияланған құрылғылар"
+
+#~ msgid "Read more about blind trust."
+#~ msgstr "Соқыр сенім туралы көбірек оқу."
+
+#~ msgid "Read more on blind trust."
+#~ msgstr "Соқыр сенім туралы көбірек оқу."
+
+#~ msgid "Settings"
+#~ msgstr "Баптаулар"
+
+#~ msgid "Show inactive"
+#~ msgstr "Белсенді еместі көрсету"
+
+#~ msgid ""
+#~ "This clears your device list from the server.\n"
+#~ "Clearing the device list helps you to remove unused devices from the "
+#~ "encryption process.\n"
+#~ "It is advised to go online with all of your actively used devices after "
+#~ "clearing."
+#~ msgstr ""
+#~ "Бұл сіздің құрылғылар тізімін серверден тазартады.\n"
+#~ "Құрылғылар тізімін тазарту шифрлеу процесінен пайдаланылмайтын "
+#~ "құрылғыларды өшіруге көмектеседі.\n"
+#~ "Тазартудан кейін барлық белсенді қолданылатын құрылғылармен желіге қосылу "
+#~ "ұсынылады."
+
+#~ msgid "This message was encrypted with OMEMO, but not for your device."
+#~ msgstr ""
+#~ "Бұл хабар OMEMO көмегімен шифрленген, бірақ сіздің құрылғыңыз үшін емес."
+
+#~ msgid ""
+#~ "To send an encrypted message, you have to first trust the fingerprint of "
+#~ "your contact!"
+#~ msgstr ""
+#~ "Шифрленген хабарламаны жіберу үшін алдымен контакттің саусақ ізіне сену "
+#~ "керек!"
+
+#~ msgid ""
+#~ "To use OMEMO in a Groupchat, the Groupchat should be non-anonymous and "
+#~ "members-only."
+#~ msgstr ""
+#~ "OMEMO-ны топтық чатта пайдалану үшін, топтық чат анонимді емес және тек "
+#~ "мүшелер үшін болуы керек."
+
+#~ msgid "Untrusted"
+#~ msgstr "Сенімсіз"
+
+#~ msgid "You have to restart Gajim for changes to take effect !"
+#~ msgstr ""
+#~ "Өзгерістер күшіне енуі үшін Gajim қолданбасын қайта іске қосуыңыз керек!"
+
+#~ msgid "You have undecided fingerprints"
+#~ msgstr "Сізде шешілмеген саусақ іздері бар"
+
+#~ msgid "_Clear Devices"
+#~ msgstr "Құрылғыларды та_зарту"
+
+#~ msgid "_Disable Account"
+#~ msgstr "Тіркелгіні сөн_діру"
+
+#~ msgid "_Enable Account"
+#~ msgstr "Тіркелгіні іск_е қосу"

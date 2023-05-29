@@ -2,13 +2,14 @@
 # This file is distributed under the same license as the Gajim Plugins package.
 #
 # Max Muster <c@zp1.net>, 2022.
+# Simona Iacob <s@zp1.net>, 2022.
 msgid ""
 msgstr ""
 "Project-Id-Version: Gajim Plugins\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-05-08 13:46+0000\n"
-"PO-Revision-Date: 2022-05-14 12:29+0000\n"
-"Last-Translator: Max Muster <c@zp1.net>\n"
+"POT-Creation-Date: 2023-04-15 14:16+0000\n"
+"PO-Revision-Date: 2022-11-29 18:39+0000\n"
+"Last-Translator: Simona Iacob <s@zp1.net>\n"
 "Language-Team: Romanian <https://translate.gajim.org/projects/gajim-plugins/"
 "master/ro/>\n"
 "Language: ro\n"
@@ -27,14 +28,6 @@ msgstr "#"
 msgid "%(event)s (%(recipient_type)s) %(recipient)s %(status)s"
 msgstr "%(event)s (%(recipient_type)s) %(recipient)s %(status)s"
 
-#, python-format
-msgid "%(num)s: %(search)s -> %(replace)s"
-msgstr "%(num)s: %(search)s -> %(replace)s"
-
-#. label for account selector
-msgid "Acc_ount"
-msgstr "C_ont"
-
 msgid "Acronym"
 msgstr "Acronim"
 
@@ -44,22 +37,8 @@ msgstr "Acronime Configurare"
 msgid "Actions"
 msgstr "Acțiuni"
 
-msgid "Active Accounts"
-msgstr "Conturi active"
-
 msgid "Add"
 msgstr "Adaugă"
-
-msgid ""
-"Add an incoming filter. First argument is the search regex, second argument "
-"is the replace regex."
-msgstr ""
-"Adăugați un filtru de intrare. Primul argument este regex-ul de căutare, al "
-"doilea argument este regex-ul de înlocuire."
-
-#, python-format
-msgid "Added rule to replace %(search)s by %(replace)s"
-msgstr "A fost adăugată regula de înlocuire a %(search)s cu %(replace)s"
 
 msgid "Adds a menu with customizable quick replies"
 msgstr "Adaugă un meniu cu răspunsuri rapide personalizabile"
@@ -108,13 +87,7 @@ msgstr "Atribuiți cheia pentru %s"
 msgid "Away"
 msgstr "absent"
 
-msgid "Bad Configuration"
-msgstr "Configurație greșită"
-
 msgid "Blind Trust"
-msgstr "Încredere oarbă"
-
-msgid "Blind Trust Before Verification"
 msgstr "Încredere oarbă"
 
 msgid "Busy"
@@ -131,14 +104,6 @@ msgstr "Stare certă"
 
 msgid "Chat Window"
 msgstr "Fereastra de chat"
-
-msgid "Clear Devices"
-msgstr "sterge dispozitivele"
-
-msgid "Click the shield icon to manage trust for each fingerprint."
-msgstr ""
-"Clic pe pictograma scut pentru a gestiona încrederea pentru fiecare amprentă "
-"digitală."
 
 msgid "Clients Icons Configuration"
 msgstr "Configurarea pictogramelor clienților"
@@ -162,15 +127,6 @@ msgstr ""
 msgid "Contact"
 msgstr "Contact"
 
-msgid "Contact Changes Status"
-msgstr "Contactul își schimbă statutul"
-
-msgid "Contact Connects"
-msgstr "Contactul se conectează"
-
-msgid "Contact Disconnects"
-msgstr "Contactul se deconectează"
-
 msgid "Contact Name"
 msgstr "Numele contactului"
 
@@ -190,9 +146,6 @@ msgstr ""
 msgid "Delete"
 msgstr "Ștergeți"
 
-msgid "Delete Fingerprint"
-msgstr "Ștergerea amprentei digitale"
-
 msgid "Delete Public Key"
 msgstr "Ștergeți cheia publică"
 
@@ -205,32 +158,17 @@ msgstr "Ștergeți această regulă odată aplicată"
 msgid "Deny Subscription Requests"
 msgstr "Refuzarea cererilor de abonament"
 
-msgid "Device ID"
-msgstr "ID-ul dispozitivului"
-
-msgid "Disable Accounts"
-msgstr "Dezactivați conturile"
-
 msgid "Disable XHTML for Group Chats"
 msgstr "Dezactivați XHTML pentru discuțiile de grup"
 
 msgid "Disable XHTML for PMs"
 msgstr "Dezactivați XHTML pentru PMs"
 
-msgid "Disabled Accounts"
-msgstr "Conturi dezactivate"
-
 msgid "Does not have focus"
 msgstr "Nu are focus"
 
-msgid "Doing so will permanently delete this Fingerprint"
-msgstr "În acest fel, această amprentă digitală va fi ștearsă definitiv"
-
 msgid "Down"
 msgstr "Jos"
-
-msgid "Download"
-msgstr "Descărcare"
 
 msgid "Enable the plugin for selected XMPP addresses only (comma separated)"
 msgstr ""
@@ -240,9 +178,6 @@ msgstr ""
 msgid "Enables anti spam question for private messages in group chats"
 msgstr ""
 "Activează întrebarea anti-spam pentru mesajele private din chat-urile de grup"
-
-msgid "Encryption error"
-msgstr "Eroare de criptare"
 
 #, python-format
 msgid "Encryption error: %s"
@@ -257,31 +192,14 @@ msgstr "Eveniment"
 msgid "Everybody"
 msgstr "Toți"
 
-msgid "Filter messages with regex"
-msgstr "Filtrarea mesajelor cu regex"
-
-#, python-format
-msgid "Fingerprints for %s"
-msgstr "Amprentele digitale pentru %s"
-
 msgid "Focus"
 msgstr "focus"
-
-msgid ""
-"For verification via QR-Code\n"
-"you have to install python-qrcode"
-msgstr ""
-"Pentru verificare prin QR-Code\n"
-"trebuie să instalați python-qrcode"
 
 msgid "Format string"
 msgstr "Format string"
 
 msgid "Gajim will now try to setup OpenPGP for you"
 msgstr "Gajim va încerca acum să va configureze OpenPGP"
-
-msgid "General"
-msgstr "General"
 
 msgid "Generating new Key"
 msgstr "Generarea unei noi chei"
@@ -314,10 +232,6 @@ msgstr "Inactiv"
 msgid "Key ID"
 msgstr "ID cheie"
 
-#, python-format
-msgid "Last seen: %s"
-msgstr "Ultima dată văzut: %s"
-
 msgid "Launch command"
 msgstr "Lansare comandă"
 
@@ -333,8 +247,8 @@ msgstr "Limitează lungimea maximă a mesajului (lăsați gol pentru a dezactiva
 msgid "List"
 msgstr "listează"
 
-msgid "List incoming filters."
-msgstr "Lista filtrelor primite."
+msgid "Manage Replies…"
+msgstr "Gestionați răspunsurile…"
 
 msgid "Message Box Size Configuration"
 msgstr "Configurarea dimensiunii casetei de mesaje"
@@ -347,9 +261,6 @@ msgstr "Lungimea mesajului la care se afișează evidențierea"
 
 msgid "My status"
 msgstr "statusul meu"
-
-msgid "Never"
-msgstr "Niciodată"
 
 msgid "New Quick Reply"
 msgstr "Nou Răspuns rapid"
@@ -366,14 +277,8 @@ msgstr "Nici o cheie OpenPGP nu este atribuită acestui contact."
 msgid "No OpenPGP key is assigned to your account."
 msgstr "Contul dumneavoastră nu are atribuită nicio cheie OpenPGP."
 
-msgid "No devices found. Query in progress..."
-msgstr "Nu s-au găsit dispozitive. Interogare în curs..."
-
 msgid "No key assigned"
 msgstr "Nici o tastă atribuită"
-
-msgid "No rule defined"
-msgstr "Nici o regulă definită"
 
 msgid "None"
 msgstr "Nici unul"
@@ -393,11 +298,6 @@ msgstr "Nedeschis"
 msgid "Not_ify me with a popup"
 msgstr "Înștiințează-mă cu un pop-up"
 
-msgid "Note: Fingerprints of your contacts are managed in the message window."
-msgstr ""
-"Notă: Amprentele digitale ale contactelor dvs. sunt gestionate în fereastra "
-"de mesaje."
-
 msgid "Notifications"
 msgstr "Notificări"
 
@@ -413,31 +313,11 @@ msgstr "Numărul de caractere tastate"
 msgid "OK"
 msgstr "OK"
 
-msgid "OMEMO Fingerprints"
-msgstr "Amprente digitale OMEMO"
-
-msgid "OMEMO Settings"
-msgstr "Setări OMEMO"
-
 msgid "Online"
 msgstr "Online"
 
 msgid "Opened"
 msgstr "Deschise"
-
-msgid "Own Fingerprint"
-msgstr "Propria amprentă digitală"
-
-#. tab label
-msgid "Own Fingerprints"
-msgstr "Amprente proprii"
-
-msgid "Own _Device ID"
-msgstr "ID _dispozitiv propriu"
-
-#. Descriptive label
-msgid "Own _Fingerprint"
-msgstr "_Amprente digitale OMEMO"
 
 msgid "PGP Configuration"
 msgstr "Configurația PGP"
@@ -464,9 +344,6 @@ msgstr "Plugin disponibil doar pentru Linux"
 msgid "Public Keys for %s"
 msgstr "Chei publice pentru %s"
 
-msgid "Published Devices"
-msgstr "Dispozitive publicate"
-
 msgid "Question has to be answered in order to contact you"
 msgstr "Trebuie să răspundeți la întrebare pentru a vă putea contacta"
 
@@ -479,24 +356,11 @@ msgstr "Răspunsuri rapide Configurație"
 msgid "Quick Reply"
 msgstr "Răspuns rapid"
 
-msgid "Read more about blind trust."
-msgstr "Citiți mai multe despre blind trust."
-
-msgid "Read more on blind trust."
-msgstr "Citiți mai multe despre încrederea oarbă."
-
 msgid "Receive a Message"
 msgstr "Primire mesaj"
 
 msgid "Remove"
 msgstr "Elimina"
-
-msgid ""
-"Remove an incoming filter. Argument is the rule number. See /list_rules "
-"command."
-msgstr ""
-"Îndepărtați un filtru de intrare. Argumentul este numărul regulii. A se "
-"vedea comanda /list_rules."
 
 msgid "Removes XHTML formatting from group chat messages"
 msgstr "Îndepărtează formatarea XHTML din mesajele de chat de grup"
@@ -513,22 +377,11 @@ msgstr ""
 msgid "Request OpenPGP Key"
 msgstr "Cerere cheie OpenPGP"
 
-#, python-format
-msgid "Rule number %s does not exist"
-msgstr "Numărul de reguli %s nu există"
-
-#, python-format
-msgid "Rule number %s removed"
-msgstr "Numărul de reguli %s eliminat"
-
 msgid "Select Sound"
 msgstr "Selectați Sunet"
 
 msgid "Selected Addresses"
 msgstr "Adrese selectate"
-
-msgid "Settings"
-msgstr "Setări"
 
 msgid "Setup OpenPGP"
 msgstr "Configurare OpenPGP"
@@ -544,9 +397,6 @@ msgstr "Afișați pictograma pentru clienții necunoscuți"
 
 msgid "Show Icons in Tooltip"
 msgstr "Afișați pictogramele în Tooltip"
-
-msgid "Show inactive"
-msgstr "Arată inactiv"
 
 msgid ""
 "Shows client icons in your contact list and in the groupchat participants "
@@ -583,24 +433,6 @@ msgid "There was no trusted and active key found"
 msgstr "Nu a fost găsită nicio cheie de încredere și activă"
 
 msgid ""
-"This clears your device list from the server.\n"
-"Clearing the device list helps you to remove unused devices from the "
-"encryption process.\n"
-"It is advised to go online with all of your actively used devices after "
-"clearing."
-msgstr ""
-"Aceasta șterge lista de dispozitive de pe server.\n"
-"Ștergerea listei de dispozitive vă ajută să eliminați dispozitivele "
-"neutilizate din procesul de criptare.\n"
-"Se recomandă să vă conectați online cu toate dispozitivele utilizate în mod "
-"activ după ștergere."
-
-msgid "This message was encrypted with OMEMO, but not for your device."
-msgstr ""
-"Acest mesaj a fost criptat cu OMEMO, dar nu și pentru dispozitivul "
-"dumneavoastră."
-
-msgid ""
 "This plugin contains translations for other Gajim plugins. Please restart "
 "Gajim after enabling this plugin."
 msgstr ""
@@ -610,28 +442,11 @@ msgstr ""
 msgid "This will permanently delete this public key"
 msgstr "Acest lucru va șterge definitiv această cheie publică"
 
-msgid ""
-"To send an encrypted message, you have to first trust the fingerprint of "
-"your contact!"
-msgstr ""
-"Pentru a trimite un mesaj criptat, trebuie mai întâi să aveți încredere în "
-"amprenta digitală a persoanei de contact!"
-
-msgid ""
-"To use OMEMO in a Groupchat, the Groupchat should be non-anonymous and "
-"members-only."
-msgstr ""
-"Pentru a utiliza OMEMO într-un Groupchat, acesta trebuie să fie non-anonim "
-"și destinat exclusiv membrilor."
-
 msgid "Triggers Configuration"
 msgstr "Configurația declanșatoarelor"
 
 msgid "Unknown"
 msgstr "Necunoscut"
-
-msgid "Untrusted"
-msgstr "Nu este de încredere"
 
 msgid "Untrusted PGP key"
 msgstr "Cheie PGP nesigură"
@@ -648,20 +463,9 @@ msgstr "Sunete Wav"
 msgid "Welcome"
 msgstr "Bine ați venit"
 
-msgid "You have to restart Gajim for changes to take effect !"
-msgstr "Trebuie să reporniți Gajim pentru ca modificările să aibă efect !"
-
-msgid "You have undecided fingerprints"
-msgstr "Aveți amprente nehotărâte"
-
-msgid "[This message is *encrypted* (See :XEP:`27`]"
+#, fuzzy
+msgid "[This message is *encrypted* (See :XEP:`27`)]"
 msgstr "[Acest mesaj este *encrypted* (See :XEP:`27`]"
-
-msgid "_Clear Devices"
-msgstr "_sterge dispozitivele"
-
-msgid "_Disable Account"
-msgstr "_Dezactivați contul"
 
 msgid "_Disable existing notification"
 msgstr "_Dezactivarea notificării existente"
@@ -671,9 +475,6 @@ msgstr "_Dezactivează sunetul actual pentru acest eveniment"
 
 msgid "_Do not ask me again"
 msgstr "Nu mă mai întreba din nou"
-
-msgid "_Enable Account"
-msgstr "_Activați contul"
 
 msgid "_Encrypt Anyway"
 msgstr "_Criptați oricum"
@@ -686,3 +487,199 @@ msgstr "și eu sunt "
 
 msgid "comma separated list"
 msgstr "listă separată prin virgule"
+
+#~ msgid "%(num)s: %(search)s -> %(replace)s"
+#~ msgstr "%(num)s: %(search)s -> %(replace)s"
+
+#~ msgid "Acc_ount"
+#~ msgstr "C_ont"
+
+#~ msgid "Active Accounts"
+#~ msgstr "Conturi active"
+
+#~ msgid ""
+#~ "Add an incoming filter. First argument is the search regex, second "
+#~ "argument is the replace regex."
+#~ msgstr ""
+#~ "Adăugați un filtru de intrare. Primul argument este regex-ul de căutare, "
+#~ "al doilea argument este regex-ul de înlocuire."
+
+#~ msgid "Added rule to replace %(search)s by %(replace)s"
+#~ msgstr "A fost adăugată regula de înlocuire a %(search)s cu %(replace)s"
+
+#~ msgid "Bad Configuration"
+#~ msgstr "Configurație greșită"
+
+#~ msgid "Blind Trust Before Verification"
+#~ msgstr "Încredere oarbă"
+
+#~ msgid "Clear Devices"
+#~ msgstr "sterge dispozitivele"
+
+#~ msgid "Click the shield icon to manage trust for each fingerprint."
+#~ msgstr ""
+#~ "Clic pe pictograma scut pentru a gestiona încrederea pentru fiecare "
+#~ "amprentă digitală."
+
+#~ msgid "Contact Changes Status"
+#~ msgstr "Contactul își schimbă statutul"
+
+#~ msgid "Contact Connects"
+#~ msgstr "Contactul se conectează"
+
+#~ msgid "Contact Disconnects"
+#~ msgstr "Contactul se deconectează"
+
+#~ msgid "Delete Fingerprint"
+#~ msgstr "Ștergerea amprentei digitale"
+
+#~ msgid "Device ID"
+#~ msgstr "ID-ul dispozitivului"
+
+#~ msgid "Disable Accounts"
+#~ msgstr "Dezactivați conturile"
+
+#~ msgid "Disabled Accounts"
+#~ msgstr "Conturi dezactivate"
+
+#~ msgid "Doing so will permanently delete this Fingerprint"
+#~ msgstr "În acest fel, această amprentă digitală va fi ștearsă definitiv"
+
+#~ msgid "Download"
+#~ msgstr "Descărcare"
+
+#~ msgid "Encryption error"
+#~ msgstr "Eroare de criptare"
+
+#~ msgid "Filter messages with regex"
+#~ msgstr "Filtrarea mesajelor cu regex"
+
+#~ msgid "Fingerprints for %s"
+#~ msgstr "Amprentele digitale pentru %s"
+
+#~ msgid ""
+#~ "For verification via QR-Code\n"
+#~ "you have to install python-qrcode"
+#~ msgstr ""
+#~ "Pentru verificare prin QR-Code\n"
+#~ "trebuie să instalați python-qrcode"
+
+#~ msgid "General"
+#~ msgstr "General"
+
+#~ msgid "Last seen: %s"
+#~ msgstr "Ultima dată văzut: %s"
+
+#~ msgid "List incoming filters."
+#~ msgstr "Lista filtrelor primite."
+
+#~ msgid "Never"
+#~ msgstr "Niciodată"
+
+#~ msgid "No devices found. Query in progress..."
+#~ msgstr "Nu s-au găsit dispozitive. Interogare în curs..."
+
+#~ msgid "No rule defined"
+#~ msgstr "Nici o regulă definită"
+
+#~ msgid ""
+#~ "Note: Fingerprints of your contacts are managed in the message window."
+#~ msgstr ""
+#~ "Notă: Amprentele digitale ale contactelor dvs. sunt gestionate în "
+#~ "fereastra de mesaje."
+
+#~ msgid "OMEMO Fingerprints"
+#~ msgstr "Amprente digitale OMEMO"
+
+#~ msgid "OMEMO Settings"
+#~ msgstr "Setări OMEMO"
+
+#~ msgid "Own Fingerprint"
+#~ msgstr "Propria amprentă digitală"
+
+#~ msgid "Own Fingerprints"
+#~ msgstr "Amprente proprii"
+
+#~ msgid "Own _Device ID"
+#~ msgstr "ID _dispozitiv propriu"
+
+#~ msgid "Own _Fingerprint"
+#~ msgstr "_Amprente digitale OMEMO"
+
+#~ msgid "Published Devices"
+#~ msgstr "Dispozitive publicate"
+
+#~ msgid "Read more about blind trust."
+#~ msgstr "Citiți mai multe despre blind trust."
+
+#~ msgid "Read more on blind trust."
+#~ msgstr "Citiți mai multe despre încrederea oarbă."
+
+#~ msgid ""
+#~ "Remove an incoming filter. Argument is the rule number. See /list_rules "
+#~ "command."
+#~ msgstr ""
+#~ "Îndepărtați un filtru de intrare. Argumentul este numărul regulii. A se "
+#~ "vedea comanda /list_rules."
+
+#~ msgid "Rule number %s does not exist"
+#~ msgstr "Numărul de reguli %s nu există"
+
+#~ msgid "Rule number %s removed"
+#~ msgstr "Numărul de reguli %s eliminat"
+
+#~ msgid "Settings"
+#~ msgstr "Setări"
+
+#~ msgid "Show inactive"
+#~ msgstr "Arată inactiv"
+
+#~ msgid ""
+#~ "This clears your device list from the server.\n"
+#~ "Clearing the device list helps you to remove unused devices from the "
+#~ "encryption process.\n"
+#~ "It is advised to go online with all of your actively used devices after "
+#~ "clearing."
+#~ msgstr ""
+#~ "Aceasta șterge lista de dispozitive de pe server.\n"
+#~ "Ștergerea listei de dispozitive vă ajută să eliminați dispozitivele "
+#~ "neutilizate din procesul de criptare.\n"
+#~ "Se recomandă să vă conectați online cu toate dispozitivele utilizate în "
+#~ "mod activ după ștergere."
+
+#~ msgid "This message was encrypted with OMEMO, but not for your device."
+#~ msgstr ""
+#~ "Acest mesaj a fost criptat cu OMEMO, dar nu și pentru dispozitivul "
+#~ "dumneavoastră."
+
+#~ msgid ""
+#~ "To send an encrypted message, you have to first trust the fingerprint of "
+#~ "your contact!"
+#~ msgstr ""
+#~ "Pentru a trimite un mesaj criptat, trebuie mai întâi să aveți încredere "
+#~ "în amprenta digitală a persoanei de contact!"
+
+#~ msgid ""
+#~ "To use OMEMO in a Groupchat, the Groupchat should be non-anonymous and "
+#~ "members-only."
+#~ msgstr ""
+#~ "Pentru a utiliza OMEMO într-un Groupchat, acesta trebuie să fie non-"
+#~ "anonim și destinat exclusiv membrilor."
+
+#~ msgid "Untrusted"
+#~ msgstr "Nu este de încredere"
+
+#~ msgid "You have to restart Gajim for changes to take effect !"
+#~ msgstr "Trebuie să reporniți Gajim pentru ca modificările să aibă efect !"
+
+#~ msgid "You have undecided fingerprints"
+#~ msgstr "Aveți amprente nehotărâte"
+
+#~ msgid "_Clear Devices"
+#~ msgstr "_sterge dispozitivele"
+
+#~ msgid "_Disable Account"
+#~ msgstr "_Dezactivați contul"
+
+#~ msgid "_Enable Account"
+#~ msgstr "_Activați contul"

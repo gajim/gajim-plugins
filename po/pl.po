@@ -1,0 +1,681 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the Gajim Plugins package.
+# Grzegorz Szymaszek <gszymaszek@short.pl>, 2022, 2023.
+msgid ""
+msgstr ""
+"Project-Id-Version: Gajim Plugins\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2023-04-15 14:16+0000\n"
+"PO-Revision-Date: 2023-05-29 08:56+0000\n"
+"Last-Translator: Grzegorz Szymaszek <gszymaszek@short.pl>\n"
+"Language-Team: Polish <https://translate.gajim.org/projects/gajim-plugins/"
+"master/pl/>\n"
+"Language: pl\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 "
+"|| n%100>=20) ? 1 : 2;\n"
+"X-Generator: Weblate 4.11.2\n"
+
+#. #' Means number
+msgid "#"
+msgstr "Nr"
+
+#, python-format
+msgid "%(event)s (%(recipient_type)s) %(recipient)s %(status)s"
+msgstr "%(event)s (%(recipient_type)s) %(recipient)s %(status)s"
+
+msgid "Acronym"
+msgstr "Skrót"
+
+msgid "Acronyms Configuration"
+msgstr "Konfiguracja skrótów"
+
+msgid "Actions"
+msgstr "Akcje"
+
+msgid "Add"
+msgstr "Dodaj"
+
+msgid "Adds a menu with customizable quick replies"
+msgstr "Dodaje menu z własnymi szybkimi odpowiedziami"
+
+msgid "Advanced"
+msgstr "Zaawansowane"
+
+msgid "All Files"
+msgstr "Wszystkie pliki"
+
+msgid "All statuses"
+msgstr "Wszystkie statusy"
+
+msgid "Allows you to adjust the height of the message input."
+msgstr "Umożliwia regulację wysokości pola nowej wiadomości."
+
+msgid ""
+"Allows you to block various kinds of incoming messages (Spam, XHTML "
+"formatting, etc.)"
+msgstr ""
+"Umożliwia blokowanie różnych rodzajów wiadomości przychodzących (spam, "
+"formatowanie XHTML itp.)"
+
+msgid "Anti Spam Answer"
+msgstr "Antyspamowa odpowiedź"
+
+msgid "Anti Spam Configuration"
+msgstr "Konfiguracja antyspamowa"
+
+msgid "Anti Spam Question"
+msgstr "Antyspamowe pytanie"
+
+msgid "Anti Spam Question in Group Chats"
+msgstr "Antyspamowe pytanie w rozmowach grupowych"
+
+msgid "Assign Key"
+msgstr "Przyporządkuj klucz"
+
+msgid "Assign PGP Key"
+msgstr "Przyporządkuj klucz PGP"
+
+#, python-format
+msgid "Assign key for %s"
+msgstr "Przyporządkuj klucz dla %s"
+
+msgid "Away"
+msgstr "Zaraz wracam"
+
+msgid "Blind Trust"
+msgstr "Ślepe zaufanie"
+
+msgid "Busy"
+msgstr "Zajęty"
+
+msgid "Cancel"
+msgstr "Anuluj"
+
+msgid "Category"
+msgstr "Kategoria"
+
+msgid "Certain status"
+msgstr "Określony status"
+
+msgid "Chat Window"
+msgstr "Okno rozmowy"
+
+msgid "Clients Icons Configuration"
+msgstr "Konfiguracja ikon klientów"
+
+msgid "Color"
+msgstr "Kolor"
+
+msgid "Command..."
+msgstr "Polecenie…"
+
+msgid "Condition"
+msgstr "Warunek"
+
+msgid "Conditions"
+msgstr "Warunki"
+
+msgid "Configure Gajim’s behaviour with triggers for each contact"
+msgstr "Konfiguruj zachowanie Gajima z wyzwalaczami dla każdego kontaktu"
+
+msgid "Contact"
+msgstr "Kontakt"
+
+msgid "Contact Name"
+msgstr "Nazwa kontaktu"
+
+msgid ""
+"Copy tune info of playing music to conversation input box at cursor position "
+"(Alt + N)"
+msgstr ""
+"Kopiuj informacje o odtwarzanej muzyce do pola wprowadzania wiadomości "
+"w miejscu kursora (Alt + N)"
+
+msgid ""
+"Correct answer to your Anti Spam Question (leave empty to disable question)"
+msgstr ""
+"Prawidłowa odpowiedź na antyspamowe pytanie (pozostaw puste, żeby wyłączyć "
+"pytanie)"
+
+msgid "Delete"
+msgstr "Usuń"
+
+msgid "Delete Public Key"
+msgstr "Usuń klucz publiczny"
+
+msgid "Delete rule"
+msgstr "Usuń regułę"
+
+msgid "Delete this rule once applied"
+msgstr "Usuń tę regułę gdy zostanie zastosowana"
+
+msgid "Deny Subscription Requests"
+msgstr "Odrzuć żądania subskrybowania"
+
+msgid "Disable XHTML for Group Chats"
+msgstr "Wyłącz XHTML w rozmowach grupowych"
+
+msgid "Disable XHTML for PMs"
+msgstr "Wyłącz XHTML w prywatnych wiadomościach"
+
+msgid "Does not have focus"
+msgstr "Nie ma zaznaczenia"
+
+msgid "Down"
+msgstr "W dół"
+
+msgid "Enable the plugin for selected XMPP addresses only (comma separated)"
+msgstr ""
+"Włącz tę wtyczkę tylko dla wybranych adresów XMPP (oddzielonych przecinkami)"
+
+msgid "Enables anti spam question for private messages in group chats"
+msgstr ""
+"Włącza antyspamowe pytanie dla prywatnych wiadomości w rozmowach grupowych"
+
+#, python-format
+msgid "Encryption error: %s"
+msgstr "Błąd szyfrowania: %s"
+
+msgid "Error"
+msgstr "Błąd"
+
+msgid "Event"
+msgstr "Zdarzenie"
+
+msgid "Everybody"
+msgstr "Wszyscy"
+
+msgid "Focus"
+msgstr "Zaznaczenie"
+
+msgid "Format string"
+msgstr "Tekst formatowania"
+
+msgid "Gajim will now try to setup OpenPGP for you"
+msgstr "Gajim teraz spróbuje skonfigurować OpenPGP dla Ciebie"
+
+msgid "Generating new Key"
+msgstr "Generowanie nowego klucza"
+
+msgid "Group"
+msgstr "Grupa"
+
+msgid "Groupchat participant"
+msgstr "Uczestnik rozmowy grupowej"
+
+msgid "Has focus"
+msgstr "Ma zaznaczenie"
+
+msgid "Height in pixels"
+msgstr "Wysokość w pikselach"
+
+msgid "Highlight color for the message input"
+msgstr "Kolor podświetlenia pola wprowadzania wiadomości"
+
+msgid ""
+"Highlights the chat window’s message input if a specified message length is "
+"exceeded."
+msgstr ""
+"Podświetla pole wprowadzania wiadomości w oknie rozmowy gdy określona "
+"długość wiadomości jest przekroczona."
+
+msgid "Inactive"
+msgstr "Nieaktywny"
+
+msgid "Key ID"
+msgstr "Identyfikator klucza"
+
+msgid "Launch command"
+msgstr "Uruchom polecenie"
+
+msgid "Length Notifier Configuration"
+msgstr "Konfiguracja powiadamiania o długości"
+
+msgid "Limit Message Length"
+msgstr "Ogranicz długość wiadomości"
+
+msgid "Limits maximum message length (leave empty to disable)"
+msgstr ""
+"Ogranicza maksymalną długość wiadomości (pozostaw puste, żeby wyłączyć)"
+
+msgid "List"
+msgstr "Lista"
+
+msgid "Manage Replies…"
+msgstr "Zarządzaj odpowiedziami…"
+
+msgid "Message Box Size Configuration"
+msgstr "Konfiguracja rozmiaru pola wiadomości"
+
+msgid "Message Length"
+msgstr "Długość wiadomości"
+
+msgid "Message length at which the highlight is shown"
+msgstr "Długość wiadomości, przy której pojawi się podświetlenie"
+
+msgid "My status"
+msgstr "Mój status"
+
+msgid "New Quick Reply"
+msgstr "Nowa szybka odpowiedź"
+
+msgid "New rule"
+msgstr "Nowa reguła"
+
+msgid "No OpenPGP key assigned"
+msgstr "Brak przyporządkowanych kluczy OpenPGP"
+
+msgid "No OpenPGP key is assigned to this contact."
+msgstr "Brak kluczy OpenPGP przyporządkowanych do tego kontaktu."
+
+msgid "No OpenPGP key is assigned to your account."
+msgstr "Żaden klucz OpenPGP nie jest przyporządkowany do Twojego konta."
+
+msgid "No key assigned"
+msgstr "Brak przyporządkowanych kluczy"
+
+msgid "None"
+msgstr "Brak"
+
+msgid "Not Available"
+msgstr "Nieobecny"
+
+msgid "Not Decided"
+msgstr "Nie zdecydowano"
+
+msgid "Not Trusted"
+msgstr "Niezaufany"
+
+msgid "Not opened"
+msgstr "Nieotwarty"
+
+msgid "Not_ify me with a popup"
+msgstr "_Powiadom mnie z wyskakującym oknem"
+
+msgid "Notifications"
+msgstr "Powiadomienia"
+
+msgid "Now Listen Configuration"
+msgstr "Konfiguracja „teraz słucham”"
+
+msgid "Now listening to: \"%title\" by %artist"
+msgstr "Teraz słucham: „%title” od %artist"
+
+msgid "Number of typed characters"
+msgstr "Liczba wpisanych znaków"
+
+msgid "OK"
+msgstr "OK"
+
+msgid "Online"
+msgstr "Dostępny"
+
+msgid "Opened"
+msgstr "Otwarty"
+
+msgid "PGP Configuration"
+msgstr "Konfiguracja PGP"
+
+msgid "PGP Key mismatch"
+msgstr "Niedopasowanie kluczy PGP"
+
+msgid "PGP encryption as per XEP-0027"
+msgstr "Szyfrowanie PGP zgodne z XEP-0027"
+
+msgid "Play sound"
+msgstr "Odtwórz dźwięk"
+
+msgid "Please install GnuPG / Gpg4win"
+msgstr "Proszę zainstalować GnuPG / Gpg4win"
+
+msgid "Please install python-gnupg and gnupg"
+msgstr "Proszę zainstalować python-gnupg i gnupg"
+
+msgid "Plugin only available for Linux"
+msgstr "Wtyczka dostępna wyłącznie dla Linuksa"
+
+#, python-format
+msgid "Public Keys for %s"
+msgstr "Klucze publiczne dla %s"
+
+msgid "Question has to be answered in order to contact you"
+msgstr ""
+"Pytanie, na które musi zostać udzielona odpowiedź w celu skontaktowania się "
+"z Tobą"
+
+msgid "Quick Replies"
+msgstr "Szybkie odpowiedzi"
+
+msgid "Quick Replies Configuration"
+msgstr "Konfiguracja szybkich odpowiedzi"
+
+msgid "Quick Reply"
+msgstr "Szybka odpowiedź"
+
+msgid "Receive a Message"
+msgstr "Odebranie wiadomości"
+
+msgid "Remove"
+msgstr "Usuń"
+
+msgid "Removes XHTML formatting from group chat messages"
+msgstr "Usuwa formatowanie XHTML z wiadomości w rozmowach grupowych"
+
+msgid "Removes XHTML formatting from private messages in group chats"
+msgstr "Usuwa formatowanie XHTML z prywatnych wiadomości w rozmowach grupowych"
+
+msgid "Replaces acronyms (or other strings) with given expansions/substitutes."
+msgstr ""
+"Zastępuje skrót (lub inny ciąg znaków) podanym rozwinięciem/zamiennikiem."
+
+msgid "Request OpenPGP Key"
+msgstr "Zażądaj klucza OpenPGP"
+
+msgid "Select Sound"
+msgstr "Wybierz dźwięk"
+
+msgid "Selected Addresses"
+msgstr "Wybrane adresy"
+
+msgid "Setup OpenPGP"
+msgstr "Konfiguracja OpenPGP"
+
+msgid "Setup failed"
+msgstr "Konfiguracja nie powiodła się"
+
+msgid "Setup successful"
+msgstr "Konfiguracja powiodła się"
+
+msgid "Show Icon for Unknown Clients"
+msgstr "Pokazuj ikony dla nieznanych klientów"
+
+msgid "Show Icons in Tooltip"
+msgstr "Pokazuj ikony w podpowiedziach"
+
+msgid ""
+"Shows client icons in your contact list and in the groupchat participants "
+"list."
+msgstr ""
+"Pokazuje ikony klientów na Twojej liście kontaktów i na liście uczestników "
+"rozmowy grupowej."
+
+msgid "Size of message input in pixels"
+msgstr "Rozmiar pola wiadomości w pikselach"
+
+msgid "Sounds"
+msgstr "Dźwięki"
+
+msgid "Status"
+msgstr "Status"
+
+msgid "Substitute"
+msgstr "Zamiennik"
+
+msgid ""
+"The PGP key used to encrypt this chat is not trusted. Do you really want to "
+"encrypt this message?"
+msgstr ""
+"Klucz PGP użyty do szyfrowania tej rozmowy nie jest zaufany. Czy na pewno "
+"chcesz zaszyfrować tę wiadomość?"
+
+#, python-format
+msgid "The contact's key (%s) <b>does not match</b> the key assigned in Gajim."
+msgstr ""
+"Klucz kontaktu (%s) <b>nie pasuje</b> do klucza przyporządkowanego w Gajimie."
+
+msgid "There was no trusted and active key found"
+msgstr "Nie odnaleziono zaufanego i aktywnego klucza"
+
+msgid ""
+"This plugin contains translations for other Gajim plugins. Please restart "
+"Gajim after enabling this plugin."
+msgstr ""
+"Ta wtyczka zawiera tłumaczenia dla innych wtyczek Gajima. Proszę "
+"zrestartować Gajima po włączeniu tej wtyczki."
+
+msgid "This will permanently delete this public key"
+msgstr "To na stałe usunie ten klucz publiczny"
+
+msgid "Triggers Configuration"
+msgstr "Konfiguracja wyzwalaczy"
+
+msgid "Unknown"
+msgstr "Nieznany"
+
+msgid "Untrusted PGP key"
+msgstr "Niezaufany klucz PGP"
+
+msgid "Up"
+msgstr "W górę"
+
+msgid "Verified"
+msgstr "Zweryfikowany"
+
+msgid "Wav Sounds"
+msgstr "Dźwięki Wav"
+
+msgid "Welcome"
+msgstr "Witamy"
+
+msgid "[This message is *encrypted* (See :XEP:`27`)]"
+msgstr "[Ta wiadomość jest *zaszyfrowana* (zobacz :XEP:`27`)]"
+
+msgid "_Disable existing notification"
+msgstr "_Wyłącz istniejące powiadomienie"
+
+msgid "_Disable existing sound for this event"
+msgstr "_Wyłącz trwający dźwięk dla tego zdarzenia"
+
+msgid "_Do not ask me again"
+msgstr "_Nie pytaj mnie ponownie"
+
+msgid "_Encrypt Anyway"
+msgstr "_Zaszyfruj mimo to"
+
+msgid "_No"
+msgstr "_Nie"
+
+msgid "and I am "
+msgstr "i jestem "
+
+msgid "comma separated list"
+msgstr "lista oddzielona przecinkami"
+
+#~ msgid "%(num)s: %(search)s -> %(replace)s"
+#~ msgstr "%(num)s: %(search)s → %(replace)s"
+
+#~ msgid "Acc_ount"
+#~ msgstr "_Konto"
+
+#~ msgid "Active Accounts"
+#~ msgstr "Aktywne konta"
+
+#~ msgid ""
+#~ "Add an incoming filter. First argument is the search regex, second "
+#~ "argument is the replace regex."
+#~ msgstr ""
+#~ "Dodaj filtr przychodzących. Pierwszym argumentem jest wyrażenie regularne "
+#~ "wyszukiwania, drugim argumentem jest wyrażenie regularne zastępowania."
+
+#~ msgid "Added rule to replace %(search)s by %(replace)s"
+#~ msgstr "Dodano regułę do zamiany %(search)s na %(replace)s"
+
+#~ msgid "Bad Configuration"
+#~ msgstr "Nieprawidłowa konfiguracja"
+
+#~ msgid "Blind Trust Before Verification"
+#~ msgstr "Ślepe Zaufanie Przed Weryfikacją"
+
+#~ msgid "Clear Devices"
+#~ msgstr "Czyszczenie urządzeń"
+
+#~ msgid "Click the shield icon to manage trust for each fingerprint."
+#~ msgstr ""
+#~ "Kliknij ikonę tarczy, żeby zarządzać zaufaniem dla każdego odcisku palca."
+
+#~ msgid "Contact Changes Status"
+#~ msgstr "Kontakt zmienia status"
+
+#~ msgid "Contact Connects"
+#~ msgstr "Kontakt połączył się"
+
+#~ msgid "Contact Disconnects"
+#~ msgstr "Kontakt rozłączył się"
+
+#~ msgid "Delete Fingerprint"
+#~ msgstr "Usuń odcisk palca"
+
+#~ msgid "Device ID"
+#~ msgstr "Identyfikator urządzenia"
+
+#~ msgid "Disable Accounts"
+#~ msgstr "Deaktywacja kont"
+
+#~ msgid "Disabled Accounts"
+#~ msgstr "Nieaktywne konta"
+
+#~ msgid "Doing so will permanently delete this Fingerprint"
+#~ msgstr "To spowoduje usunięcie tego odcisku palca na stałe"
+
+#~ msgid "Download"
+#~ msgstr "Pobierz"
+
+#~ msgid "Encryption error"
+#~ msgstr "Błąd szyfrowania"
+
+#~ msgid "Filter messages with regex"
+#~ msgstr "Filtruj wiadomości z wyrażeniem regularnym"
+
+#~ msgid "Fingerprints for %s"
+#~ msgstr "Odciski palca dla %s"
+
+#~ msgid ""
+#~ "For verification via QR-Code\n"
+#~ "you have to install python-qrcode"
+#~ msgstr ""
+#~ "Dla weryfikacji poprzez kody QR\n"
+#~ "musisz zainstalować python-qrcode"
+
+#~ msgid "General"
+#~ msgstr "Ogólne"
+
+#~ msgid "Last seen: %s"
+#~ msgstr "Ostatnio widziany: %s"
+
+#~ msgid "List incoming filters."
+#~ msgstr "Lista filtrów przychodzących."
+
+#~ msgid "Never"
+#~ msgstr "Nigdy"
+
+#~ msgid "No devices found. Query in progress..."
+#~ msgstr "Nie odnaleziono urządzeń. Wyszukiwanie w trakcie…"
+
+#~ msgid "No rule defined"
+#~ msgstr "Brak zdefiniowanych reguł"
+
+#~ msgid ""
+#~ "Note: Fingerprints of your contacts are managed in the message window."
+#~ msgstr ""
+#~ "Uwaga: zarządzanie odciskami palców Twoich kontaktów jest możliwe w oknie "
+#~ "rozmowy."
+
+#~ msgid "OMEMO Fingerprints"
+#~ msgstr "Odciski palca OMEMO"
+
+#~ msgid "OMEMO Settings"
+#~ msgstr "Ustawienia OMEMO"
+
+#~ msgid "Own Fingerprint"
+#~ msgstr "Własny odcisk palca"
+
+#~ msgid "Own Fingerprints"
+#~ msgstr "Własne odciski palca"
+
+#~ msgid "Own _Device ID"
+#~ msgstr "Własny _identyfikator urządzenia"
+
+#~ msgid "Own _Fingerprint"
+#~ msgstr "Własny _odcisk palca"
+
+#~ msgid "Published Devices"
+#~ msgstr "Opublikowane urządzenia"
+
+#~ msgid "Read more about blind trust."
+#~ msgstr "Przeczytaj więcej o ślepym zaufaniu."
+
+#~ msgid "Read more on blind trust."
+#~ msgstr "Przeczytaj więcej o ślepym zaufaniu."
+
+#~ msgid ""
+#~ "Remove an incoming filter. Argument is the rule number. See /list_rules "
+#~ "command."
+#~ msgstr ""
+#~ "Usuń filtr przychodzących. Argumentem jest numer reguły. Zobacz "
+#~ "polecenie /list_rules."
+
+#~ msgid "Rule number %s does not exist"
+#~ msgstr "Reguła numer %s nie istnieje"
+
+#~ msgid "Rule number %s removed"
+#~ msgstr "Reguła numer %s usunięta"
+
+#~ msgid "Settings"
+#~ msgstr "Ustawienia"
+
+#~ msgid "Show inactive"
+#~ msgstr "Pokaż nieaktywne"
+
+#~ msgid ""
+#~ "This clears your device list from the server.\n"
+#~ "Clearing the device list helps you to remove unused devices from the "
+#~ "encryption process.\n"
+#~ "It is advised to go online with all of your actively used devices after "
+#~ "clearing."
+#~ msgstr ""
+#~ "To wyczyści Twoją listę urządzeń na serwerze.\n"
+#~ "Czyszczenie listy urządzeń pomoże Ci usunąć nieużywane urządzenia "
+#~ "z procesu szyfrowania.\n"
+#~ "Zaleca się podłączyć wszystkie Twoje aktywnie używane urządzenia po "
+#~ "wyczyszczeniu."
+
+#~ msgid "This message was encrypted with OMEMO, but not for your device."
+#~ msgstr ""
+#~ "Ta wiadomość została zaszyfrowana z użyciem OMEMO, ale nie dla Twojego "
+#~ "urządzenia."
+
+#~ msgid ""
+#~ "To send an encrypted message, you have to first trust the fingerprint of "
+#~ "your contact!"
+#~ msgstr ""
+#~ "Aby wysłać zaszyfrowaną wiadomość, musisz najpierw zaufać odciskowi palca "
+#~ "Twojego kontaktu!"
+
+#~ msgid ""
+#~ "To use OMEMO in a Groupchat, the Groupchat should be non-anonymous and "
+#~ "members-only."
+#~ msgstr ""
+#~ "Aby używać OMEMO w rozmowie grupowej, rozmowa powinna być nieanonimowa "
+#~ "i tylko dla członków."
+
+#~ msgid "Untrusted"
+#~ msgstr "Niezaufany"
+
+#~ msgid "You have to restart Gajim for changes to take effect !"
+#~ msgstr "Musisz zrestartować Gajima aby zmiany zostały zastosowane!"
+
+#~ msgid "You have undecided fingerprints"
+#~ msgstr "Masz niezdecydowane odciski palca"
+
+#~ msgid "_Clear Devices"
+#~ msgstr "_Wyczyść urządzenia"
+
+#~ msgid "_Disable Account"
+#~ msgstr "_Deaktywuj konto"
+
+#~ msgid "_Enable Account"
+#~ msgstr "_Aktywuj konto"
