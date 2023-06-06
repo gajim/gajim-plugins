@@ -76,6 +76,10 @@ class Triggers(GajimPlugin):
 
     def _on_message_received(self, event: MessageEventsT) -> bool:
         log.info('Process %s', event.name)
+        if not event.msgtxt:
+            log.info('Discard event because it has no message text')
+            return PROPAGATE_EVENT
+
         result = self._check_all(event,
                                  self._check_rule_apply_msg_received,
                                  self._apply_rule)
