@@ -79,9 +79,8 @@ class KeyWizard(Gtk.Assistant):
         main_box.remove(sidebar)
 
     def _activate_encryption(self):
-        action = app.window.lookup_action(
-            'set-encryption-%s' % self._chat_control.control_id)
-        action.activate(GLib.Variant("s", self._plugin.encryption_name))
+        action = app.window.lookup_action('set-encryption')
+        action.activate(GLib.Variant('s', self._plugin.encryption_name))
 
     def _on_page_change(self, assistant, page):
         if self.get_current_page() == Page.NEWKEY:
