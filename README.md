@@ -20,7 +20,7 @@ There are several ways to install a plugin:
 
     **Symlink:** `ln -s /path/to/gajim-plugins-repository/* ~/.local/share/gajim/plugins/`
 
-**For each major Gajim version there is a different plugins branch:**
+**For each major Gajim version there is a different plugins branch. Gajim >=1.4 uses the `master` branch.**
 
 | Version | Plugins branch |
 | ------- | -------------- |
