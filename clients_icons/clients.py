@@ -16,7 +16,6 @@
 from __future__ import annotations
 
 from typing import Any
-from typing import Optional
 
 from collections import UserDict
 from dataclasses import dataclass
@@ -26,8 +25,8 @@ from gajim.plugins.plugins_i18n import _
 
 @dataclass
 class ClientData:
-    default: Optional[tuple[str, str]] = None
-    variations: Optional[dict[str, str]] = None
+    default: tuple[str, str] | None = None
+    variations: dict[str, str] | None = None
 
 
 def get_variations(client_name: str) -> list[str]:

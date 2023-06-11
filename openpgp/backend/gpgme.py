@@ -14,8 +14,6 @@
 # You should have received a copy of the GNU General Public License
 # along with OpenPGP Gajim Plugin. If not, see <http://www.gnu.org/licenses/>.
 
-from typing import Optional
-
 import logging
 
 from nbxmpp.protocol import JID
@@ -46,7 +44,7 @@ class KeyringItem:
             return False
         return jid == self.jid
 
-    def _get_uid(self) -> Optional[str]:
+    def _get_uid(self) -> str | None:
         for uid in self._key.uids:
             try:
                 return parse_uid(uid.uid)

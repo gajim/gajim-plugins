@@ -16,8 +16,6 @@
 from __future__ import annotations
 
 from typing import cast
-from typing import Optional
-from typing import Union
 
 import logging
 from pathlib import Path
@@ -64,17 +62,17 @@ class ClientsIconsPlugin(GajimPlugin):
             _icon_theme.append_search_path(str(Path(__file__).parent))
 
     @staticmethod
-    def _get_client_identity_name(disco_info: DiscoInfo) -> Optional[str]:
+    def _get_client_identity_name(disco_info: DiscoInfo) -> str | None:
         for identity in disco_info.identities:
             if identity.category == 'client':
                 return identity.name
         return None
 
     def _get_image_and_client_name(self,
-                                   contact: Union[
-                                    GroupchatParticipant, ResourceContact],
+                                   contact:
+                                    GroupchatParticipant | ResourceContact,
                                    _widget: Gtk.Widget
-                                   ) -> Optional[tuple[Gtk.Image, str]]:
+                                   ) -> tuple[Gtk.Image, str] | None:
 
         disco_info = app.storage.cache.get_last_disco_info(contact.jid)
         if disco_info is None:

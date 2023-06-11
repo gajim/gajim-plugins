@@ -16,7 +16,6 @@ from __future__ import annotations
 
 from typing import Any
 from typing import Callable
-from typing import Optional
 from typing import TYPE_CHECKING
 
 import logging
@@ -39,7 +38,7 @@ def log_result(func: Callable[..., Any]) -> Callable[..., bool]:
 
 @dataclass
 class RuleResult:
-    show_notification: Optional[bool] = None
-    command: Optional[str] = None
-    sound: Optional[bool] = None
-    sound_file: Optional[str] = None
+    show_notification: bool | None = None
+    command: str | None = None
+    sound: bool | None = None
+    sound_file: str | None = None
