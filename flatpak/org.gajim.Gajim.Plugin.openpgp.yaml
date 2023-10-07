@@ -1,6 +1,6 @@
 id: org.gajim.Gajim.Devel.Plugin.openpgp
 runtime: org.gajim.Gajim.Devel
-sdk: org.gnome.Sdk//44
+sdk: org.gnome.Sdk//45
 build-extension: true
 separate-locales: false
 appstream-compose: false
@@ -35,15 +35,13 @@ modules:
       prefix: ${FLATPAK_DEST}
     post-install:
       - mkdir -p ${FLATPAK_DEST}/site-packages
-      - mv ${FLATPAK_DEST}/lib/python3.10/site-packages/*.egg/gpg ${FLATPAK_DEST}/site-packages/
+      - mv ${FLATPAK_DEST}/lib/python3.11/site-packages/*.egg/gpg ${FLATPAK_DEST}/site-packages/
     sources:
       # used version should match runtime version of gpgme
       # so we don't have to ship libs
       - type: archive
-        url: https://www.gnupg.org/ftp/gcrypt/gpgme/gpgme-1.18.0.tar.bz2
-        sha256: 361d4eae47ce925dba0ea569af40e7b52c645c4ae2e65e5621bf1b6cdd8b0e9e
-      - type: patch
-        path: gpgme_python310.patch
+        url: https://www.gnupg.org/ftp/gcrypt/gpgme/gpgme-1.19.0.tar.bz2
+        sha256: cb58494dc415fba9eeb12b826550ad3190dc92e265c5bb2ae1a21c92841cfd38
 
   - name: gajim-openpgp
     buildsystem: simple
@@ -56,8 +54,8 @@ modules:
     sources:
       - type: archive
         strip-components: 0
-        url: https://ftp.gajim.org/plugins/master/openpgp/openpgp_1.5.0.zip
-        sha256: 848d8349dfe6785d289dc46cfd70ecfd9787a219e272b9ab9aebc41c135c77a4
+        url: https://ftp.gajim.org/plugins/master/openpgp/openpgp_1.5.1.zip
+        sha256: b47831566b276f29c251f2bc05ab6a1a043510b99e471af4d5721f2b00cd780f
       - type: shell
         commands:
           - sed -i "s+org.gajim.Gajim+org.gajim.Gajim.Devel+" org.gajim.Gajim.Plugin.*.metainfo.xml
