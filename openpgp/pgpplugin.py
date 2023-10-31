@@ -35,7 +35,7 @@ from gajim.plugins.plugins_i18n import _
 from openpgp.modules.util import ENCRYPTION_NAME
 try:
     from openpgp.modules import openpgp
-except ImportError as e:
+except (ImportError, OSError) as e:
     ERROR_MSG = str(e)
 else:
     ERROR_MSG = None
