@@ -18,11 +18,9 @@ from __future__ import annotations
 from typing import Any
 from typing import TYPE_CHECKING
 
-from gi.repository import GObject
 from gi.repository import Gtk
 
 from gajim.gtk.settings import SettingsDialog
-from gajim.gtk.settings import SpinSetting
 from gajim.gtk.const import Setting
 from gajim.gtk.const import SettingKind
 from gajim.gtk.const import SettingType
@@ -42,14 +40,14 @@ class LengthNotifierConfigDialog(SettingsDialog):
         self.plugin = plugin
         jids = self.plugin.config['JIDS'] or ''
         settings = [
-            Setting('MessageLengthSpinSetting',  # type: ignore
+            Setting(SettingKind.SPIN,
                     _('Message Length'),
                     SettingType.VALUE,
-                    self.plugin.config['MESSAGE_WARNING_LENGTH'],
+                    str(self.plugin.config['MESSAGE_WARNING_LENGTH']),
                     callback=self._on_setting,
                     data='MESSAGE_WARNING_LENGTH',
                     desc=_('Message length at which the highlight is shown'),
-                    props={'range_': (1, 1000)},
+                    props={'range_': (1, 1000, 1)},
                     ),
             Setting(SettingKind.COLOR,
                     _('Color'),
@@ -74,28 +72,10 @@ class LengthNotifierConfigDialog(SettingsDialog):
                                 _('Length Notifier Configuration'),
                                 Gtk.DialogFlags.MODAL,
                                 settings,
-                                '',
-                                extend=[('MessageLengthSpinSetting',  # type: ignore
-                                         SizeSpinSetting)])
+                                '')
 
     def _on_setting(self, value: Any, data: Any) -> None:
         if isinstance(value, str):
             value.strip()
         self.plugin.config[data] = value
         self.plugin.update()
-
-
-class SizeSpinSetting(SpinSetting):
-
-    __gproperties__ = {
-        'setting-value': (int,
-                          'Size',
-                          '',
-                          1,
-                          1000,
-                          140,
-                          GObject.ParamFlags.READWRITE),
-    }
-
-    def __init__(self, *args: Any, **kwargs: Any) -> None:
-        SpinSetting.__init__(self, *args, **kwargs)

@@ -13,8 +13,8 @@
         "win32"
     ],
     "requirements": [
-        "gajim>=1.5.0"
+        "gajim>=1.8.2"
     ],
     "short_name": "length_notifier",
-    "version": "1.4.8"
+    "version": "1.4.9"
 }
