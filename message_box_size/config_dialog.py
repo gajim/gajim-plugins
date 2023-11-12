@@ -19,12 +19,11 @@ from __future__ import annotations
 from typing import Any
 from typing import TYPE_CHECKING
 
-from gi.repository import GObject
 from gi.repository import Gtk
 
 from gajim.gtk.settings import SettingsDialog
-from gajim.gtk.settings import SpinSetting
 from gajim.gtk.const import Setting
+from gajim.gtk.const import SettingKind
 from gajim.gtk.const import SettingType
 
 from gajim.plugins.plugins_i18n import _
@@ -38,14 +37,14 @@ class MessageBoxSizeConfigDialog(SettingsDialog):
 
         self.plugin = plugin
         settings = [
-            Setting('PreviewSizeSpinSetting',  # type: ignore
+            Setting(SettingKind.SPIN,
                     _('Height in pixels'),
                     SettingType.VALUE,
-                    self.plugin.config['HEIGHT'],
+                    str(self.plugin.config['HEIGHT']),
                     callback=self._on_setting,
                     data='HEIGHT',
                     desc=_('Size of message input in pixels'),
-                    props={'range_': (20, 200)}),
+                    props={'range_': (20, 200, 1)}),
             ]
 
         SettingsDialog.__init__(self,
@@ -53,26 +52,8 @@ class MessageBoxSizeConfigDialog(SettingsDialog):
                                 _('Message Box Size Configuration'),
                                 Gtk.DialogFlags.MODAL,
                                 settings,
-                                '',
-                                extend=[('PreviewSizeSpinSetting',  # type: ignore
-                                         SizeSpinSetting)])
+                                '')
 
     def _on_setting(self, value: Any, data: Any) -> None:
         self.plugin.config[data] = value
         self.plugin.set_input_height(value)
-
-
-class SizeSpinSetting(SpinSetting):
-
-    __gproperties__ = {
-        'setting-value': (int,
-                          'Size',
-                          '',
-                          20,
-                          200,
-                          20,
-                          GObject.ParamFlags.READWRITE),
-    }
-
-    def __init__(self, *args: Any, **kwargs: Any) -> None:
-        SpinSetting.__init__(self, *args, **kwargs)
