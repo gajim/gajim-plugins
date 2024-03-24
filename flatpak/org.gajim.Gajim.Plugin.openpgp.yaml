@@ -1,6 +1,6 @@
 id: org.gajim.Gajim.Devel.Plugin.openpgp
 runtime: org.gajim.Gajim.Devel
-sdk: org.gnome.Sdk//45
+sdk: org.gnome.Sdk//46
 build-extension: true
 separate-locales: false
 appstream-compose: false
@@ -17,8 +17,8 @@ modules:
       prefix: ${FLATPAK_DEST}
     sources:
       - type: archive
-        url: https://downloads.sourceforge.net/swig/swig-4.1.1.tar.gz
-        sha256: 2af08aced8fcd65cdb5cc62426768914bedc735b1c250325203716f78e39ac9b
+        url: https://downloads.sourceforge.net/swig/swig-4.2.1.tar.gz
+        sha256: fa045354e2d048b2cddc69579e4256245d4676894858fcf0bab2290ecf59b7d8
 
   - name: gpgme
     cleanup:
@@ -30,7 +30,7 @@ modules:
       config-opts:
         - --enable-languages=python
       env:
-        SWIG_LIB: "/app/plugins/openpgp/share/swig/4.1.1"
+        SWIG_LIB: "/app/plugins/openpgp/share/swig/4.2.1"
       prepend-path: "/app/plugins/openpgp/bin:"
       prefix: ${FLATPAK_DEST}
     post-install:
@@ -40,8 +40,8 @@ modules:
       # used version should match runtime version of gpgme
       # so we don't have to ship libs
       - type: archive
-        url: https://www.gnupg.org/ftp/gcrypt/gpgme/gpgme-1.19.0.tar.bz2
-        sha256: cb58494dc415fba9eeb12b826550ad3190dc92e265c5bb2ae1a21c92841cfd38
+        url: https://www.gnupg.org/ftp/gcrypt/gpgme/gpgme-1.22.0.tar.bz2
+        sha256: 9551e37081ad3bde81018a0d24f245c3f8206990549598fb31a97a68380a7b71
 
   - name: gajim-openpgp
     buildsystem: simple
