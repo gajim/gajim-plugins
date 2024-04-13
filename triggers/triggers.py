@@ -33,7 +33,6 @@ from gajim.common import ged
 from gajim.common.const import PROPAGATE_EVENT
 from gajim.common.const import STOP_EVENT
 from gajim.common.events import Notification
-from gajim.common.events import GcMessageReceived
 from gajim.common.events import MessageReceived
 from gajim.common.events import PresenceReceived
 from gajim.common.helpers import play_sound_file
@@ -47,8 +46,7 @@ from triggers.util import RuleResult
 
 log = logging.getLogger('gajim.p.triggers')
 
-MessageEventsT = Union[GcMessageReceived, MessageReceived]
-ProcessableEventsT = Union[MessageEventsT, Notification, PresenceReceived]
+ProcessableEventsT = Union[MessageReceived, Notification, PresenceReceived]
 RuleT = dict[str, Any]
 
 
@@ -74,9 +72,10 @@ class Triggers(GajimPlugin):
         log.info('Result: %s', result)
         return self._excecute_notification_rules(result, event)
 
-    def _on_message_received(self, event: MessageEventsT) -> bool:
+    def _on_message_received(self, event: MessageReceived) -> bool:
         log.info('Process %s', event.name)
-        if not event.msgtxt:
+        message = event.message
+        if message.text is None:
             log.info('Discard event because it has no message text')
             return PROPAGATE_EVENT
 
@@ -134,7 +133,7 @@ class Triggers(GajimPlugin):
 
     @log_result
     def _check_rule_apply_msg_received(self,
-                                       event: MessageEventsT,
+                                       event: MessageReceived,
                                        rule: RuleT
                                        ) -> bool:
 
