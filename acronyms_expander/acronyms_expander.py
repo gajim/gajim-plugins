@@ -54,7 +54,7 @@ class AcronymsExpanderPlugin(GajimPlugin):
         self._replace_in_progress = False
 
         self._signal_id = None
-        self._text_buffer = None
+        self._message_input = None
         self._contact = None
 
         self.acronyms = self._load_acronyms()
@@ -96,7 +96,7 @@ class AcronymsExpanderPlugin(GajimPlugin):
         self._save_acronyms(acronyms)
 
     def _on_buffer_changed(self,
-                           buffer_: Gtk.TextBuffer
+                           message_input: MessageInputTextView
                            ) -> None:
 
         if self._contact is None:
@@ -105,6 +105,8 @@ class AcronymsExpanderPlugin(GajimPlugin):
 
         if self._replace_in_progress:
             return
+
+        buffer_ = message_input.get_buffer()
 
         if buffer_.get_char_count() < 2:
             return
@@ -173,13 +175,12 @@ class AcronymsExpanderPlugin(GajimPlugin):
         self._contact = contact
 
     def _connect(self, message_input: MessageInputTextView) -> None:
-        self._text_buffer = message_input.get_buffer()
-        self._signal_id = self._text_buffer.connect(
-            'changed', self._on_buffer_changed)
+        self._message_input = message_input
+        self._signal_id = message_input.connect('buffer-changed', self._on_buffer_changed)
 
     def deactivate(self) -> None:
-        assert self._text_buffer is not None
+        assert self._message_input is not None
         assert self._signal_id is not None
         if GObject.signal_handler_is_connected(
-                self._text_buffer, self._signal_id):
-            self._text_buffer.disconnect(self._signal_id)
+                self._message_input, self._signal_id):
+            self._message_input.disconnect(self._signal_id)
