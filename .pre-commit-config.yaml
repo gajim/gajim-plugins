@@ -1,0 +1,28 @@
+repos:
+  - repo: https://github.com/charliermarsh/ruff-pre-commit
+    rev: v0.3.2
+    hooks:
+      - id: ruff
+
+  - repo: https://github.com/codespell-project/codespell
+    rev: v2.2.6
+    hooks:
+    - id: codespell
+      pass_filenames: false
+      additional_dependencies:
+        - tomli
+
+  - repo: https://github.com/RobertCraigie/pyright-python
+    rev: v1.1.361
+    hooks:
+    - id: pyright
+      pass_filenames: false
+      additional_dependencies:
+        - nbxmpp @ git+https://dev.gajim.org/gajim/python-nbxmpp.git
+        - PyGObject-stubs @ git+https://github.com/pygobject/pygobject-stubs.git
+      stages: [manual]
+
+  - repo: https://github.com/pycqa/isort
+    rev: 5.13.2
+    hooks:
+      - id: isort
