@@ -9,6 +9,7 @@ repos:
     hooks:
     - id: codespell
       pass_filenames: false
+      args: ["--skip=*.svg,*.po,./acronyms_expander/acronyms.py", "-L=fpr,"]
       additional_dependencies:
         - tomli
 
