@@ -135,8 +135,7 @@ class Counter(Gtk.Label):
         self._inverted_color = None
 
         self._textview = message_input
-        self._textbuffer = self._textview.get_buffer()
-        self._signal_id = self._textbuffer.connect('changed', self._update)
+        self._signal_id = self._textview.connect('buffer-changed', self._update)
         self._provider = None
 
         self._parse_config()
@@ -146,11 +145,10 @@ class Counter(Gtk.Label):
 
     def _on_destroy(self, _widget: Counter) -> None:
         self._context.remove_class('length-warning')
-        assert self._textbuffer is not None
         assert self._signal_id is not None
         if GObject.signal_handler_is_connected(
-                self._textbuffer, self._signal_id):
-            self._textbuffer.disconnect(self._signal_id)
+                self._textview, self._signal_id):
+            self._textview.disconnect(self._signal_id)
         app.check_finalize(self)
 
     def _parse_config(self) -> None:
@@ -194,10 +192,7 @@ class Counter(Gtk.Label):
 
         assert self._max_length is not None
         if self._textview.has_text and enable:
-            text = self._textbuffer.get_text(
-                self._textbuffer.get_start_iter(),
-                self._textbuffer.get_end_iter(),
-                True)
+            text = self._textview.get_text()
             len_text = len(text)
             self._set_count(len_text)
             if len_text > self._max_length:
