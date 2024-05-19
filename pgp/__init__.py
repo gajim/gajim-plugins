@@ -1,1 +1,1 @@
-from .plugin import PGPPlugin
+from .plugin import PGPPlugin  # type: ignore # noqa: F401

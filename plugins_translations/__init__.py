@@ -1,1 +1,1 @@
-from .plugins_translations import PluginsTranslationsPlugin  # type: ignore
+from .plugins_translations import PluginsTranslationsPlugin  # type: ignore  # noqa: F401
