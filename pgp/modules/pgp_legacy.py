@@ -218,7 +218,7 @@ class PGPLegacy(BaseModule):
     def sign_presence(self, presence, status):
         key_data = self.get_own_key_data()
         if key_data is None:
-            self._log.warning('No own key id found, cant sign presence')
+            self._log.warning('No own key id found, can’t sign presence')
             return
 
         try:

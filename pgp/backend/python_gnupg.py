@@ -86,7 +86,7 @@ class PGP(gnupg.GPG, metaclass=Singleton):
         raise SignError(result.status)
 
     def verify(self, payload, signed):
-        # Hash algorithm is not transfered in the signed
+        # Hash algorithm is not transferred in the signed
         # presence stanza so try all algorithms.
         # Text name for hash algorithms from RFC 4880 - section 9.4
 
