@@ -93,7 +93,7 @@ class OpenPGP(BaseModule):
         if not path.exists():
             path.mkdir(mode=0o700, parents=True)
 
-        self._pgp = PGPBackend(self.own_jid, path)
+        self._pgp = PGPBackend(own_bare_jid, path)
         self._storage = Storage(path)
         self._contacts = PGPContacts(self._pgp, self._storage)
         self._fingerprint, self._date = self.get_own_key_details()
