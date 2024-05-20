@@ -22,6 +22,8 @@ from pathlib import Path
 from nbxmpp.namespaces import Namespace
 from nbxmpp import Node
 from nbxmpp import StanzaMalformed
+from nbxmpp.structs import EncryptionData
+from nbxmpp.structs import MessageProperties
 from nbxmpp.structs import StanzaHandler
 from nbxmpp.errors import StanzaError
 from nbxmpp.errors import MalformedStanzaError
@@ -33,15 +35,14 @@ from nbxmpp.modules.openpgp import create_message_stanza
 from gajim.common import app
 from gajim.common import configpaths
 from gajim.common.events import MessageNotSent
-from gajim.common.const import EncryptionData
 from gajim.common.modules.base import BaseModule
 from gajim.common.modules.util import event_node
+from gajim.common.structs import OutgoingMessage
 
 from openpgp.modules.util import ENCRYPTION_NAME
 from openpgp.modules.util import NOT_ENCRYPTED_TAGS
 from openpgp.modules.util import Key
 from openpgp.modules.util import Trust
-from openpgp.modules.util import add_additional_data
 from openpgp.modules.util import DecryptionFailed
 from openpgp.modules.util import prepare_stanza
 from openpgp.modules.key_store import PGPContacts
@@ -208,9 +209,12 @@ class OpenPGP(BaseModule):
         for fingerprint in missing_pub_keys:
             self.request_public_key(from_jid, fingerprint)
 
-    def decrypt_message(self, _con, stanza, properties):
+    def decrypt_message(self, _con, stanza, properties: MessageProperties):
         if not properties.is_openpgp:
             return
+
+        remote_jid = properties.remote_jid
+        assert remote_jid is not None
 
         try:
             payload, fingerprint = self._pgp.decrypt(properties.openpgp)
@@ -232,7 +236,7 @@ class OpenPGP(BaseModule):
             log.warning(signcrypt)
             return
 
-        keys = self._contacts.get_keys(properties.jid.bare)
+        keys = self._contacts.get_keys(remote_jid)
         fingerprints = [key.fingerprint for key in keys]
         if fingerprint not in fingerprints:
             log.warning('Invalid fingerprint on message: %s', fingerprint)
@@ -242,45 +246,56 @@ class OpenPGP(BaseModule):
         log.info('Received OpenPGP message from: %s', properties.jid)
         prepare_stanza(stanza, payload)
 
-        trust = self._contacts.get_trust(properties.jid.bare, fingerprint)
+        trust = self._contacts.get_trust(remote_jid, fingerprint)
 
-        properties.encrypted = EncryptionData({'name': ENCRYPTION_NAME,
-                                               'fingerprint': fingerprint,
-                                               'trust': trust})
+        properties.encrypted = EncryptionData(
+            protocol=ENCRYPTION_NAME,
+            key=fingerprint,
+            trust=trust
+        )
 
-    def encrypt_message(self, obj, callback):
-        keys = self._contacts.get_keys(obj.jid)
+    def encrypt_message(self, message: OutgoingMessage, callback):
+        remote_jid = message.contact.jid
+
+        keys = self._contacts.get_keys(remote_jid)
         if not keys:
-            log.error('Droping stanza to %s, because we have no key', obj.jid)
+            log.error('Droping stanza to %s, because we have no key', remote_jid)
             return
 
         keys += self._contacts.get_keys(self.own_jid)
         keys += [Key(self._fingerprint, None)]
 
-        payload = create_signcrypt_node(obj.stanza,
-                                        [obj.jid],
+        payload = create_signcrypt_node(message.get_stanza(),
+                                        [remote_jid],
                                         NOT_ENCRYPTED_TAGS)
 
         encrypted_payload, error = self._pgp.encrypt(payload, keys)
         if error:
             log.error('Error: %s', error)
+            text = message.get_text(with_fallback=False) or ''
             app.ged.raise_event(
                 MessageNotSent(client=self._client,
-                               jid=obj.jid,
-                               message=obj.message,
+                               jid=str(remote_jid),
+                               message=text,
                                error=error,
                                time=time.time()))
             return
 
-        create_message_stanza(obj.stanza, encrypted_payload, bool(obj.message))
-        add_additional_data(obj.additional_data,
-                            self._fingerprint)
+        create_message_stanza(
+            message.get_stanza(),
+            encrypted_payload,
+            bool(message.get_text())
+        )
 
-        obj.encrypted = ENCRYPTION_NAME
-        obj.additional_data['encrypted'] = {
-            'name': ENCRYPTION_NAME,
-            'trust': Trust.VERIFIED}
-        callback(obj)
+        message.set_encryption(
+            EncryptionData(
+                protocol=ENCRYPTION_NAME,
+                key='Unknown',
+                trust=Trust.VERIFIED
+            )
+        )
+
+        callback(message)
 
     @staticmethod
     def print_msg_to_log(stanza):

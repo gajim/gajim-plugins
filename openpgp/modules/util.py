@@ -62,11 +62,6 @@ def delete_nodes(stanza, name, namespace=None):
         stanza.delChild(node)
 
 
-def add_additional_data(data, fingerprint):
-    data['encrypted'] = {'name': ENCRYPTION_NAME,
-                         'fingerprint': fingerprint}
-
-
 class VerifyFailed(Exception):
     pass
 
