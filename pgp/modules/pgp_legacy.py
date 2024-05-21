@@ -20,12 +20,15 @@ import threading
 
 import nbxmpp
 from nbxmpp.namespaces import Namespace
+from nbxmpp.protocol import Message
+from nbxmpp.structs import EncryptionData
 from nbxmpp.structs import StanzaHandler
 from gi.repository import GLib
 
 from gajim.common import app
+from gajim.common.const import Trust
 from gajim.common.events import MessageNotSent
-from gajim.common.const import EncryptionData
+from gajim.common.structs import OutgoingMessage
 from gajim.common.modules.base import BaseModule
 
 from gajim.plugins.plugins_i18n import _
@@ -43,20 +46,27 @@ from pgp.exceptions import NoKeyIdFound
 # Module name
 name = 'PGPLegacy'
 zeroconf = True
+ENCRYPTION_NAME = 'PGP'
 
-ALLOWED_TAGS = [('request', Namespace.RECEIPTS),
-                ('active', Namespace.CHATSTATES),
-                ('gone', Namespace.CHATSTATES),
-                ('inactive', Namespace.CHATSTATES),
-                ('paused', Namespace.CHATSTATES),
-                ('composing', Namespace.CHATSTATES),
-                ('no-store', Namespace.HINTS),
-                ('store', Namespace.HINTS),
-                ('no-copy', Namespace.HINTS),
-                ('no-permanent-store', Namespace.HINTS),
-                ('replace', Namespace.CORRECT),
-                ('origin-id', Namespace.SID),
-                ]
+ALLOWED_TAGS = [
+    ('request', Namespace.RECEIPTS),
+    ('active', Namespace.CHATSTATES),
+    ('gone', Namespace.CHATSTATES),
+    ('inactive', Namespace.CHATSTATES),
+    ('paused', Namespace.CHATSTATES),
+    ('composing', Namespace.CHATSTATES),
+    ('markable', Namespace.CHATMARKERS),
+    ('no-store', Namespace.HINTS),
+    ('store', Namespace.HINTS),
+    ('no-copy', Namespace.HINTS),
+    ('no-permanent-store', Namespace.HINTS),
+    ('replace', Namespace.CORRECT),
+    ('thread', None),
+    ('reply', Namespace.REPLY),
+    ('fallback', Namespace.FALLBACK),
+    ('origin-id', Namespace.SID),
+    ('reactions', Namespace.REACTIONS),
+]
 
 
 class PGPLegacy(BaseModule):
@@ -144,20 +154,24 @@ class PGPLegacy(BaseModule):
         if not properties.is_pgp_legacy or properties.from_muc:
             return
 
-        from_jid = properties.jid.bare
-        self._log.info('Message received from: %s', from_jid)
+        remote_jid = properties.remote_jid
+        self._log.info('Message received from: %s', remote_jid)
 
         payload = self._pgp.decrypt(properties.pgp_legacy)
         prepare_stanza(stanza, payload)
 
-        properties.encrypted = EncryptionData({'name': 'PGP'})
+        properties.encrypted = EncryptionData(
+            protocol=ENCRYPTION_NAME,
+            key='Unknown',
+            trust=Trust.UNDECIDED
+        )
 
-    def encrypt_message(self, con, event, callback):
-        if not event.message:
-            callback(event)
+    def encrypt_message(self, con, message: OutgoingMessage, callback):
+        if not message.get_text():
+            callback(message)
             return
 
-        to_jid = event.jid.bare
+        to_jid = str(message.contact.jid)
         try:
             key_id, own_key_id = self._get_key_ids(to_jid)
         except NoKeyIdFound as error:
@@ -165,49 +179,53 @@ class PGPLegacy(BaseModule):
             return
 
         always_trust = key_id in self._always_trust
-        self._encrypt(con, event, [key_id, own_key_id], callback, always_trust)
+        self._encrypt(con, message, [key_id, own_key_id], callback, always_trust)
 
-    def _encrypt(self, con, event, keys, callback, always_trust):
-        result = self._pgp.encrypt(event.message, keys, always_trust)
+    def _encrypt(self, con, message: OutgoingMessage, keys, callback, always_trust: bool):
+        result = self._pgp.encrypt(message.get_text(), keys, always_trust)
         encrypted_payload, error = result
         if error:
-            self._handle_encrypt_error(con, error, event, keys, callback)
+            self._handle_encrypt_error(con, error, message, keys, callback)
             return
 
-        self._cleanup_stanza(event)
-        self._create_pgp_legacy_message(event.stanza, encrypted_payload)
+        self._cleanup_stanza(message)
+        self._create_pgp_legacy_message(message.get_stanza(), encrypted_payload)
 
-        event.xhtml = None
-        event.encrypted = 'PGP'
-        event.additional_data['encrypted'] = {'name': 'PGP'}
+        message.set_encryption(
+            EncryptionData(
+                protocol=ENCRYPTION_NAME,
+                key='Unknown',
+                trust=Trust.VERIFIED,
+            )
+        )
 
-        callback(event)
+        callback(message)
 
-    def _handle_encrypt_error(self, con, error, event, keys, callback):
+    def _handle_encrypt_error(self, con, error: str, message: OutgoingMessage, keys, callback):
         if error.startswith('NOT_TRUSTED'):
             def on_yes(checked):
                 if checked:
                     self._always_trust.append(keys[0])
-                self._encrypt(con, event, keys, callback, True)
+                self._encrypt(con, message, keys, callback, True)
 
             def on_no():
-                self._raise_message_not_sent(con, event, error)
+                self._raise_message_not_sent(con, message, error)
 
             app.ged.raise_event(PGPNotTrusted(on_yes=on_yes, on_no=on_no))
 
         else:
-            self._raise_message_not_sent(con, event, error)
+            self._raise_message_not_sent(con, message, error)
 
     @staticmethod
-    def _raise_message_not_sent(con, event, error):
+    def _raise_message_not_sent(con, message: OutgoingMessage, error: str):
         app.ged.raise_event(
             MessageNotSent(client=con,
-                           jid=event.jid,
-                           message=event.message,
+                           jid=str(message.contact.jid),
+                           message=message.get_text(),
                            error=_('Encryption error: %s') % error,
                            time=time.time()))
 
-    def _create_pgp_legacy_message(self, stanza, payload):
+    def _create_pgp_legacy_message(self, stanza: Message, payload: str) -> None:
         stanza.setBody(self._get_info_message())
         stanza.setTag('x', namespace=Namespace.ENCRYPTED).setData(payload)
         eme_node = nbxmpp.Node('encryption',
@@ -253,18 +271,19 @@ class PGPLegacy(BaseModule):
         return key_id, own_key_id
 
     @staticmethod
-    def _cleanup_stanza(obj):
+    def _cleanup_stanza(message: OutgoingMessage) -> None:
         ''' We make sure only allowed tags are in the stanza '''
+        original_stanza = message.get_stanza()
         stanza = nbxmpp.Message(
-            to=obj.stanza.getTo(),
-            typ=obj.stanza.getType())
-        stanza.setID(obj.stanza.getID())
-        stanza.setThread(obj.stanza.getThread())
+            to=original_stanza.getTo(),
+            typ=original_stanza.getType())
+        stanza.setID(original_stanza.getID())
+        stanza.setThread(original_stanza.getThread())
         for tag, ns in ALLOWED_TAGS:
-            node = obj.stanza.getTag(tag, namespace=ns)
+            node = original_stanza.getTag(tag, namespace=ns)
             if node:
                 stanza.addChild(node=node)
-        obj.stanza = stanza
+        message.set_stanza(stanza)
 
     def encrypt_file(self, file, callback):
         thread = threading.Thread(target=self._encrypt_file_thread,
