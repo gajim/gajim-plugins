@@ -22,6 +22,7 @@ from pathlib import Path
 from nbxmpp.namespaces import Namespace
 from nbxmpp import Node
 from nbxmpp import StanzaMalformed
+from nbxmpp.exceptions import StanzaDecrypted
 from nbxmpp.structs import EncryptionData
 from nbxmpp.structs import MessageProperties
 from nbxmpp.structs import StanzaHandler
@@ -253,6 +254,8 @@ class OpenPGP(BaseModule):
             key=fingerprint,
             trust=trust
         )
+
+        raise StanzaDecrypted
 
     def encrypt_message(self, message: OutgoingMessage, callback):
         remote_jid = message.contact.jid
