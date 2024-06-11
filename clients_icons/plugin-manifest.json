@@ -4,7 +4,7 @@
         "Artem Klyop <art.klyop@gmail.com>",
         "Thilo Molitor <thilo@eightysoft.de>"
     ],
-    "description": "Shows client icons in roster and in groupchats.",
+    "description": "Shows client icons in your contact list in a tooltip.",
     "homepage": "https://dev.gajim.org/gajim/gajim-plugins/wikis/ClientsIconsPlugin",
     "config_dialog": true,
     "name": "Clients icons",

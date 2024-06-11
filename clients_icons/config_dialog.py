@@ -37,13 +37,6 @@ class ClientsIconsConfigDialog(SettingsDialog):
         self.plugin = plugin
         settings = [
             Setting(SettingKind.SWITCH,
-                    _('Show Icons in Tooltip'),
-                    SettingType.VALUE,
-                    self.plugin.config['show_in_tooltip'],
-                    callback=self._on_setting,
-                    data='show_in_tooltip'),
-
-            Setting(SettingKind.SWITCH,
                     _('Show Icon for Unknown Clients'),
                     SettingType.VALUE,
                     self.plugin.config['show_unknown_icon'],

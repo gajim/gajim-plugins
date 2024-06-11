@@ -42,8 +42,8 @@ log = logging.getLogger('gajim.p.client_icons')
 
 class ClientsIconsPlugin(GajimPlugin):
     def init(self) -> None:
-        self.description = _('Shows client icons in your contact list '
-                             'and in the groupchat participants list.')
+        self.description = _('Shows client icons in your contact list'
+                             ' in a tooltip.')
         self.config_dialog = partial(ClientsIconsConfigDialog, self)
 
         self.gui_extension_points = {
@@ -53,7 +53,6 @@ class ClientsIconsPlugin(GajimPlugin):
         }
 
         self.config_default_values = {
-            'show_in_tooltip': (True, ''),
             'show_unknown_icon': (True, ''),
         }
 
@@ -93,9 +92,6 @@ class ClientsIconsPlugin(GajimPlugin):
                                           resource_box: Gtk.Box,
                                           resource: ResourceContact
                                           ) -> None:
-
-        if not self.config['show_in_tooltip']:
-            return
 
         result = self._get_image_and_client_name(resource, resource_box)
         if result is None:
