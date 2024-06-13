@@ -39,6 +39,10 @@ class LengthNotifierConfigDialog(SettingsDialog):
 
         self.plugin = plugin
         jids = self.plugin.config['JIDS'] or ''
+        if isinstance(jids, list):
+            # Gajim 1.0 stored this as list[str]
+            jids = ','.join(jids)
+
         settings = [
             Setting(SettingKind.SPIN,
                     _('Message Length'),
@@ -68,7 +72,8 @@ class LengthNotifierConfigDialog(SettingsDialog):
                     ),
             ]
 
-        SettingsDialog.__init__(self, parent,
+        SettingsDialog.__init__(self, 
+                                parent,
                                 _('Length Notifier Configuration'),
                                 Gtk.DialogFlags.MODAL,
                                 settings,

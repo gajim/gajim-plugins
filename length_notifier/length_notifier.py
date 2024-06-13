@@ -69,7 +69,7 @@ class LengthNotifierPlugin(GajimPlugin):
                 'rgb(240, 220, 60)',
                 'Highlight color for the message input'),
             'JIDS': (
-                [''],
+                '',
                 'Enable the plugin for selected XMPP addresses '
                 'only (comma separated)')
             }
