@@ -15,6 +15,7 @@
 # along with OpenPGP Gajim Plugin. If not, see <http://www.gnu.org/licenses/>.
 
 import logging
+from pathlib import Path
 
 import gnupg
 from nbxmpp.protocol import JID
@@ -77,10 +78,10 @@ class KeyringItem:
 
 
 class PythonGnuPG(gnupg.GPG):
-    def __init__(self, jid, gnupghome):
+    def __init__(self, jid: str, gnupghome: Path) -> None:
         gnupg.GPG.__init__(self, gpgbinary='gpg', gnupghome=str(gnupghome))
 
-        self._jid = jid.bare
+        self._jid = jid
         self._own_fingerprint = None
 
     @staticmethod
