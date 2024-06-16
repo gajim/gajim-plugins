@@ -16,5 +16,5 @@
         "gajim>=1.9.0"
     ],
     "short_name": "openpgp",
-    "version": "1.6.0"
+    "version": "1.6.1"
 }
