@@ -3,7 +3,7 @@
         "Philipp Hörist <philipp@hoerist.com>"
     ],
     "description": "Experimental OpenPGP (XEP-0373) implementation.",
-    "homepage": "https://dev.gajim.org/gajim/gajim-plugins/wikis/pgp",
+    "homepage": "https://dev.gajim.org/gajim/gajim-plugins/wikis/OpenPGPplugin",
     "config_dialog": false,
     "name": "OpenPGP",
     "platforms": [
