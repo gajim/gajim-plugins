@@ -16,20 +16,15 @@
 
 from __future__ import annotations
 
-from typing import Any
-from typing import TYPE_CHECKING
-
 from pathlib import Path
-
-from gi.repository import Gtk
-from gi.repository import Gdk
+from typing import TYPE_CHECKING, Any
 
 from gajim.common import app
-from gajim.common.helpers import get_uf_show
 from gajim.common.helpers import play_sound_file
-
-from gajim.plugins.plugins_i18n import _
+from gajim.common.util.status import get_uf_show
 from gajim.plugins.helpers import get_builder
+from gajim.plugins.plugins_i18n import _
+from gi.repository import Gdk, Gtk
 
 if TYPE_CHECKING:
     from ..triggers import Triggers
