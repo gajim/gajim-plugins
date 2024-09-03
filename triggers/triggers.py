@@ -17,32 +17,21 @@
 
 from __future__ import annotations
 
-from typing import Any
-from typing import Callable
-from typing import cast
-from typing import Union
-
 import logging
-from functools import partial
 import subprocess
+from functools import partial
+from typing import Any, Callable, Union, cast
 
-from nbxmpp.protocol import JID
-
-from gajim.common import app
-from gajim.common import ged
-from gajim.common.const import PROPAGATE_EVENT
-from gajim.common.const import STOP_EVENT
-from gajim.common.events import Notification
-from gajim.common.events import MessageReceived
-from gajim.common.events import PresenceReceived
+from gajim.common import app, ged
+from gajim.common.const import PROPAGATE_EVENT, STOP_EVENT
+from gajim.common.events import MessageReceived, Notification, PresenceReceived
 from gajim.common.helpers import play_sound_file
-
 from gajim.plugins import GajimPlugin
 from gajim.plugins.plugins_i18n import _
+from nbxmpp.protocol import JID
 
 from triggers.gtk.config import ConfigDialog
-from triggers.util import log_result
-from triggers.util import RuleResult
+from triggers.util import RuleResult, log_result
 
 log = logging.getLogger('gajim.p.triggers')
 
@@ -330,6 +319,8 @@ class Triggers(GajimPlugin):
         return PROPAGATE_EVENT
 
     def _excecute_message_rules(self, result: RuleResult) -> bool:
+        if result.sound_file is not None:
+            play_sound_file(result.sound_file)
 
         if result.command is not None:
             try:
