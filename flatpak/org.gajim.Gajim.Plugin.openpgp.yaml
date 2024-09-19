@@ -1,9 +1,10 @@
 id: org.gajim.Gajim.Devel.Plugin.openpgp
 runtime: org.gajim.Gajim.Devel
-sdk: org.gnome.Sdk//46
+sdk: org.gnome.Sdk//47
 build-extension: true
 separate-locales: false
 appstream-compose: false
+
 build-options:
   env:
     PIP_TARGET: /app/plugins/openpgp/site-packages
@@ -35,13 +36,13 @@ modules:
       prefix: ${FLATPAK_DEST}
     post-install:
       - mkdir -p ${FLATPAK_DEST}/site-packages
-      - mv ${FLATPAK_DEST}/lib/python3.11/site-packages/*.egg/gpg ${FLATPAK_DEST}/site-packages/
+      - mv ${FLATPAK_DEST}/lib/python3.12/site-packages/*.egg/gpg ${FLATPAK_DEST}/site-packages/
     sources:
       # used version should match runtime version of gpgme
       # so we don't have to ship libs
       - type: archive
-        url: https://www.gnupg.org/ftp/gcrypt/gpgme/gpgme-1.22.0.tar.bz2
-        sha256: 9551e37081ad3bde81018a0d24f245c3f8206990549598fb31a97a68380a7b71
+        url: https://www.gnupg.org/ftp/gcrypt/gpgme/gpgme-1.23.2.tar.bz2
+        sha256: 9499e8b1f33cccb6815527a1bc16049d35a6198a6c5fae0185f2bd561bce5224
 
   - name: gajim-openpgp
     buildsystem: simple
@@ -49,13 +50,13 @@ modules:
       - 'cp -R -t ${FLATPAK_DEST} *'
     post-install:
       - install -Dm644 --target-directory=${FLATPAK_DEST}/share/metainfo org.gajim.Gajim.Plugin.openpgp.metainfo.xml
-      - appstream-compose --basename=org.gajim.Gajim.Devel.Plugin.openpgp --prefix=${FLATPAK_DEST}
-        --origin=flatpak org.gajim.Gajim.Plugin.openpgp
+      - appstreamcli compose --components=${FLATPAK_ID} --prefix=/ --origin=${FLATPAK_ID}
+        --result-root=${FLATPAK_DEST} --data-dir=${FLATPAK_DEST}/share/app-info/xmls ${FLATPAK_DEST}
     sources:
       - type: archive
         strip-components: 0
-        url: https://ftp.gajim.org/plugins/master/openpgp/openpgp_1.5.2.zip
-        sha256: 5ccaf42d8d3dd33b5ad16b6cdd85650a9d2c3c7cc0a05eec23f0b4fd3bf0eaf7
+        url: https://ftp.gajim.org/plugins/master/openpgp/openpgp_1.6.1.zip
+        sha256: 900f3e1470411eac1f4d64df984bc010dbe07b8ac3a32dcb7773b02b152f2f54
       - type: shell
         commands:
           - sed -i "s+org.gajim.Gajim+org.gajim.Gajim.Devel+" org.gajim.Gajim.Plugin.*.metainfo.xml
