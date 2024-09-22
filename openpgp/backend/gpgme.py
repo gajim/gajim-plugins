@@ -81,11 +81,8 @@ class GPGME:
     def generate_key(self):
         with gpg.Context(**self._context_args) as context:
             result = context.create_key(f'xmpp:{str(self._jid)}',
+                                        algorithm='default',
                                         expires=False,
-                                        sign=True,
-                                        encrypt=True,
-                                        certify=False,
-                                        authenticate=False,
                                         passphrase=None,
                                         force=False)
 
