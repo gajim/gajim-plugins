@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="addon">
+  <id>org.gajim.Gajim.Plugin.now_listen</id>
+  <extends>org.gajim.Gajim</extends>
+  <name>Now Listen Plugin</name>
+  <summary>Paste information about the music you are playing</summary>
+  <url type="homepage">https://gajim.org/</url>
+  <metadata_license>CC-BY-SA-3.0</metadata_license>
+  <project_license>GPL-3.0-only</project_license>
+  <update_contact>gajim-devel_AT_gajim.org</update_contact>
+</component>
+

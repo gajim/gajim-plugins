@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="addon">
+  <id>org.gajim.Gajim.Plugin.length_notifier</id>
+  <extends>org.gajim.Gajim</extends>
+  <name>Message Length Notifier Plugin</name>
+  <summary>Highlight the chat window’s message input if a specified message length is exceeded</summary>
+  <url type="homepage">https://gajim.org/</url>
+  <metadata_license>CC-BY-SA-3.0</metadata_license>
+  <project_license>GPL-3.0-only</project_license>
+  <update_contact>gajim-devel_AT_gajim.org</update_contact>
+</component>
+
