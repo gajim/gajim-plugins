@@ -16,15 +16,13 @@
 
 from __future__ import annotations
 
-from typing import Any
 from typing import TYPE_CHECKING
 
 from pathlib import Path
 
 from gi.repository import Gtk
-from gi.repository import Gdk
 
-from gajim.common import app
+from gajim.gtk.widgets import GajimAppWindow
 
 from gajim.plugins.plugins_i18n import _
 from gajim.plugins.helpers import get_builder
@@ -33,34 +31,41 @@ if TYPE_CHECKING:
     from ..acronyms_expander import AcronymsExpanderPlugin
 
 
-class ConfigDialog(Gtk.ApplicationWindow):
+class ConfigDialog(GajimAppWindow):
     def __init__(self,
                  plugin: AcronymsExpanderPlugin,
                  transient: Gtk.Window
                  ) -> None:
 
-        Gtk.ApplicationWindow.__init__(self)
-        self.set_application(app.app)
-        self.set_show_menubar(False)
-        self.set_title(_('Acronyms Configuration'))
-        self.set_transient_for(transient)
-        self.set_default_size(400, 400)
-        self.set_type_hint(Gdk.WindowTypeHint.DIALOG)
-        self.set_modal(True)
-        self.set_destroy_with_parent(True)
+        GajimAppWindow.__init__(
+            self,
+            name="AcronymsConfigDialog",
+            title=_('Acronyms Configuration'),
+            default_width=400,
+            default_height=400,
+            transient_for=transient,
+            modal=True,
+        )
 
         ui_path = Path(__file__).parent
         self._ui = get_builder(str(ui_path.resolve() / 'config.ui'))
 
         self._plugin = plugin
 
-        self.add(self._ui.box)
+        self.set_child(self._ui.box)
 
         self._fill_list()
-        self.show_all()
 
-        self._ui.connect_signals(self)
-        self.connect('destroy', self._on_destroy)
+        self._connect(self._ui.acronym_renderer, "edited", self._on_acronym_edited)
+        self._connect(self._ui.sub_renderer, "edited", self._on_substitute_edited)
+        self._connect(self._ui.add_button, "clicked", self._on_add_clicked)
+        self._connect(self._ui.remove_button, "clicked", self._on_remove_clicked)
+        self._connect(self.window, "close-request", self._on_close_request)
+
+        self.show()
+
+    def _cleanup(self) -> None:
+        del self._plugin
 
     def _fill_list(self) -> None:
         for acronym, substitute in self._plugin.acronyms.items():
@@ -102,7 +107,7 @@ class ConfigDialog(Gtk.ApplicationWindow):
             iter_ = model.get_iter(ref.get_path())
             self._ui.acronyms_store.remove(iter_)
 
-    def _on_destroy(self, *args: Any) -> None:
+    def _on_close_request(self, win: Gtk.ApplicationWindow) -> None:
         acronyms = {}
         for row in self._ui.acronyms_store:
             acronym, substitute = row

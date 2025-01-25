@@ -1,30 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Generated with glade 3.22.1 -->
 <interface>
-  <requires lib="gtk+" version="3.20"/>
+  <requires lib="gtk" version="4.0"/>
   <object class="GtkListStore" id="acronyms_store">
     <columns>
-      <!-- column-name acronym -->
       <column type="gchararray"/>
-      <!-- column-name substitute -->
       <column type="gchararray"/>
     </columns>
   </object>
   <object class="GtkBox" id="box">
-    <property name="visible">True</property>
-    <property name="can_focus">False</property>
-    <property name="border_width">18</property>
     <property name="orientation">vertical</property>
     <child>
       <object class="GtkScrolledWindow">
-        <property name="visible">True</property>
-        <property name="can_focus">True</property>
-        <property name="vexpand">True</property>
-        <property name="shadow_type">in</property>
-        <child>
+        <property name="focusable">1</property>
+        <property name="vexpand">1</property>
+        <property name="hexpand">1</property>
+        <property name="child">
           <object class="GtkTreeView" id="acronyms_treeview">
-            <property name="visible">True</property>
-            <property name="can_focus">True</property>
+            <property name="focusable">1</property>
             <property name="model">acronyms_store</property>
             <property name="search_column">1</property>
             <child internal-child="selection">
@@ -34,15 +26,14 @@
             </child>
             <child>
               <object class="GtkTreeViewColumn">
-                <property name="resizable">True</property>
-                <property name="title" translatable="yes">Acronym</property>
-                <property name="clickable">True</property>
-                <property name="sort_indicator">True</property>
+                <property name="resizable">1</property>
+                <property name="title" translatable="1">Acronym</property>
+                <property name="clickable">1</property>
+                <property name="sort_indicator">1</property>
                 <property name="sort_column_id">0</property>
                 <child>
-                  <object class="GtkCellRendererText">
-                    <property name="editable">True</property>
-                    <signal name="edited" handler="_on_acronym_edited" swapped="no"/>
+                  <object class="GtkCellRendererText" id="acronym_renderer">
+                    <property name="editable">1</property>
                   </object>
                   <attributes>
                     <attribute name="text">0</attribute>
@@ -52,15 +43,14 @@
             </child>
             <child>
               <object class="GtkTreeViewColumn">
-                <property name="resizable">True</property>
-                <property name="title" translatable="yes">Substitute</property>
-                <property name="clickable">True</property>
-                <property name="sort_indicator">True</property>
+                <property name="resizable">1</property>
+                <property name="title" translatable="1">Substitute</property>
+                <property name="clickable">1</property>
+                <property name="sort_indicator">1</property>
                 <property name="sort_column_id">0</property>
                 <child>
-                  <object class="GtkCellRendererText">
-                    <property name="editable">True</property>
-                    <signal name="edited" handler="_on_substitute_edited" swapped="no"/>
+                  <object class="GtkCellRendererText" id="sub_renderer">
+                    <property name="editable">1</property>
                   </object>
                   <attributes>
                     <attribute name="text">1</attribute>
@@ -69,55 +59,28 @@
               </object>
             </child>
           </object>
-        </child>
+        </property>
       </object>
-      <packing>
-        <property name="expand">False</property>
-        <property name="fill">True</property>
-        <property name="position">0</property>
-      </packing>
     </child>
     <child>
-      <object class="GtkToolbar">
-        <property name="visible">True</property>
-        <property name="can_focus">False</property>
-        <property name="toolbar_style">icons</property>
-        <property name="icon_size">4</property>
-        <child>
-          <object class="GtkToolButton">
-            <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <property name="tooltip_text" translatable="yes">Add</property>
-            <property name="icon_name">list-add-symbolic</property>
-            <signal name="clicked" handler="_on_add_clicked" swapped="no"/>
-          </object>
-          <packing>
-            <property name="expand">False</property>
-            <property name="homogeneous">True</property>
-          </packing>
-        </child>
-        <child>
-          <object class="GtkToolButton">
-            <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <property name="tooltip_text" translatable="yes">Remove</property>
-            <property name="icon_name">list-remove-symbolic</property>
-            <signal name="clicked" handler="_on_remove_clicked" swapped="no"/>
-          </object>
-          <packing>
-            <property name="expand">False</property>
-            <property name="homogeneous">True</property>
-          </packing>
-        </child>
+      <object class="GtkBox">
+        <property name="css-classes">toolbar</property>
         <style>
           <class name="inline-toolbar"/>
         </style>
+        <child>
+          <object class="GtkButton" id="add_button">
+            <property name="tooltip_text" translatable="1">Add</property>
+            <property name="icon_name">list-add-symbolic</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkButton" id="remove_button">
+            <property name="tooltip_text" translatable="1">Remove</property>
+            <property name="icon_name">list-remove-symbolic</property>
+          </object>
+        </child>
       </object>
-      <packing>
-        <property name="expand">False</property>
-        <property name="fill">True</property>
-        <property name="position">1</property>
-      </packing>
     </child>
   </object>
 </interface>
