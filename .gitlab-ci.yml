@@ -19,3 +19,15 @@ test-isort:
     - isort --version
     - isort --check .
   interruptible: true
+
+test-black:
+  image: gajim-test
+  stage: test
+  rules:
+    - changes:
+      - "**/*.py"
+  script:
+    - pip install black==24.10.0
+    - black --version
+    - black . --check
+  interruptible: true
