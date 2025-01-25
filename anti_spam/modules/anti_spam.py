@@ -89,20 +89,20 @@ class AntiSpam(BaseModule):
         limit = cast(int, self._config["msgtxt_limit"])
         if limit > 0 and len(msg_body) > limit:
             self._log.info(
-                "Discarded message from %s: message " "length exceeded" % msg_from
+                "Discarded message from %s: message length exceeded" % msg_from
             )
             raise NodeProcessed
 
         if self._config["disable_xhtml_muc"] and properties.type.is_groupchat:
             properties.xhtml = None
             self._log.info(
-                "Stripped message from %s: message " "contained XHTML" % msg_from
+                "Stripped message from %s: message contained XHTML" % msg_from
             )
 
         if self._config["disable_xhtml_pm"] and properties.is_muc_pm:
             properties.xhtml = None
             self._log.info(
-                "Stripped message from %s: message " "contained XHTML" % msg_from
+                "Stripped message from %s: message contained XHTML" % msg_from
             )
 
     def _ask_question(self, properties: MessageProperties) -> bool:

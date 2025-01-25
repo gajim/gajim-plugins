@@ -42,7 +42,7 @@ log = logging.getLogger("gajim.p.acronyms")
 class AcronymsExpanderPlugin(GajimPlugin):
     def init(self) -> None:
         self.description = _(
-            "Replaces acronyms (or other strings) " "with given expansions/substitutes."
+            "Replaces acronyms (or other strings) with given expansions/substitutes."
         )
         self.config_dialog = partial(ConfigDialog, self)
         self.gui_extension_points = {

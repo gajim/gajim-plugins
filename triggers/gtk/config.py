@@ -289,7 +289,7 @@ class ConfigDialog(Gtk.ApplicationWindow):
                 if self._ui.__dict__[st + "_cb"].get_active():
                     status += get_uf_show(st) + " "
         model[iter_][1] = _(
-            "%(event)s (%(recipient_type)s) %(recipient)s " "%(status)s"
+            "%(event)s (%(recipient_type)s) %(recipient)s %(status)s"
         ) % {
             "event": event,
             "recipient_type": recipient_type,

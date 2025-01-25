@@ -50,7 +50,7 @@ class KeyStore:
 
             ver = self._store.get("_version", 2)
             if ver > CURRENT_STORE_VERSION:
-                raise Exception("Unknown store version! " "Please upgrade pgp plugin.")
+                raise Exception("Unknown store version! Please upgrade pgp plugin.")
             elif ver == 2:
                 self._migrate_v2_store()
                 self._save_store()
@@ -140,12 +140,12 @@ class KeyStore:
             return candidates[0]
         elif len(candidates) > 1:
             self._log.critical(
-                "Key collision during migration. " "Key ID is %s. Removing binding...",
+                "Key collision during migration. Key ID is %s. Removing binding...",
                 repr(short_id),
             )
         else:
             self._log.warning(
-                "Key %s was not found during migration. " "Removing binding...",
+                "Key %s was not found during migration. Removing binding...",
                 repr(short_id),
             )
         raise KeyResolveError

@@ -134,13 +134,13 @@ class PGPLegacy(BaseModule):
         fingerprint = self._pgp.verify(properties.status, properties.signed)
         if fingerprint is None:
             self._log.info(
-                "Presence from %s was signed but no corresponding " "key was found", jid
+                "Presence from %s was signed but no corresponding key was found", jid
             )
             return
 
         self._presence_fingerprint_store[jid] = fingerprint
         self._log.info(
-            "Presence from %s was verified successfully, " "fingerprint: %s",
+            "Presence from %s was verified successfully, fingerprint: %s",
             jid,
             fingerprint,
         )

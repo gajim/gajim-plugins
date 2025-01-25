@@ -45,7 +45,7 @@ class AntiSpamConfigDialog(SettingsDialog):
                 str(max_length),
                 callback=self._on_length_setting,
                 data="msgtxt_limit",
-                desc=_("Limits maximum message length (leave empty to " "disable)"),
+                desc=_("Limits maximum message length (leave empty to disable)"),
             ),
             Setting(
                 SettingKind.SWITCH,
@@ -62,7 +62,7 @@ class AntiSpamConfigDialog(SettingsDialog):
                 self.plugin.config["disable_xhtml_muc"],
                 callback=self._on_setting,
                 data="disable_xhtml_muc",
-                desc=_("Removes XHTML formatting from group chat " "messages"),
+                desc=_("Removes XHTML formatting from group chat messages"),
             ),
             Setting(
                 SettingKind.SWITCH,
@@ -71,9 +71,7 @@ class AntiSpamConfigDialog(SettingsDialog):
                 self.plugin.config["disable_xhtml_pm"],
                 callback=self._on_setting,
                 data="disable_xhtml_pm",
-                desc=_(
-                    "Removes XHTML formatting from private messages " "in group chats"
-                ),
+                desc=_("Removes XHTML formatting from private messages in group chats"),
             ),
             Setting(
                 SettingKind.ENTRY,
@@ -82,7 +80,7 @@ class AntiSpamConfigDialog(SettingsDialog):
                 self.plugin.config["msgtxt_question"],
                 callback=self._on_setting,
                 data="msgtxt_question",
-                desc=_("Question has to be answered in order to " "contact you"),
+                desc=_("Question has to be answered in order to contact you"),
             ),
             Setting(
                 SettingKind.ENTRY,
@@ -104,7 +102,7 @@ class AntiSpamConfigDialog(SettingsDialog):
                 callback=self._on_setting,
                 data="antispam_for_conference",
                 desc=_(
-                    "Enables anti spam question for private messages " "in group chats"
+                    "Enables anti spam question for private messages in group chats"
                 ),
             ),
         ]
