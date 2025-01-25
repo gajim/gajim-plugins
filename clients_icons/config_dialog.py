@@ -20,12 +20,11 @@ from typing import TYPE_CHECKING
 
 from gi.repository import Gtk
 
-from gajim.plugins.plugins_i18n import _
-
-from gajim.gtk.settings import SettingsDialog
 from gajim.gtk.const import Setting
 from gajim.gtk.const import SettingKind
 from gajim.gtk.const import SettingType
+from gajim.gtk.settings import SettingsDialog
+from gajim.plugins.plugins_i18n import _
 
 if TYPE_CHECKING:
     from .clients_icons import ClientsIconsPlugin
@@ -36,20 +35,24 @@ class ClientsIconsConfigDialog(SettingsDialog):
 
         self.plugin = plugin
         settings = [
-            Setting(SettingKind.SWITCH,
-                    _('Show Icon for Unknown Clients'),
-                    SettingType.VALUE,
-                    self.plugin.config['show_unknown_icon'],
-                    callback=self._on_setting,
-                    data='show_unknown_icon'),
+            Setting(
+                SettingKind.SWITCH,
+                _("Show Icon for Unknown Clients"),
+                SettingType.VALUE,
+                self.plugin.config["show_unknown_icon"],
+                callback=self._on_setting,
+                data="show_unknown_icon",
+            ),
         ]
 
-        SettingsDialog.__init__(self,
-                                parent,
-                                _('Clients Icons Configuration'),
-                                Gtk.DialogFlags.MODAL,
-                                settings,
-                                '')
+        SettingsDialog.__init__(
+            self,
+            parent,
+            _("Clients Icons Configuration"),
+            Gtk.DialogFlags.MODAL,
+            settings,
+            "",
+        )
 
     def _on_setting(self, value: Any, data: Any) -> None:
         self.plugin.config[data] = value

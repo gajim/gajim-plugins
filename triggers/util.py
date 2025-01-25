@@ -25,14 +25,15 @@ if TYPE_CHECKING:
     from .triggers import ProcessableEventsT
     from .triggers import RuleT
 
-log = logging.getLogger('gajim.p.triggers')
+log = logging.getLogger("gajim.p.triggers")
 
 
 def log_result(func: Callable[..., Any]) -> Callable[..., bool]:
     def wrapper(self: Any, event: ProcessableEventsT, rule: RuleT):
         res = func(self, event, rule)
-        log.info(f'{event.name} -> {func.__name__} -> {res}')
+        log.info(f"{event.name} -> {func.__name__} -> {res}")
         return res
+
     return wrapper
 
 

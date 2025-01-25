@@ -12,9 +12,10 @@
 # You should have received a copy of the GNU General Public License
 # along with OMEMO Gajim Plugin. If not, see <http://www.gnu.org/licenses/>.
 
-from __future__ import annotations 
+from __future__ import annotations
 
-from typing import Any, Callable
+from typing import Any
+from typing import Callable
 
 from dataclasses import dataclass
 from dataclasses import field
@@ -24,12 +25,12 @@ from gajim.common.events import ApplicationEvent
 
 @dataclass
 class PGPNotTrusted(ApplicationEvent):
-    name: str = field(init=False, default='pgp-not-trusted')
+    name: str = field(init=False, default="pgp-not-trusted")
     on_yes: Callable[..., Any]
     on_no: Callable[..., Any]
 
 
 @dataclass
 class PGPFileEncryptionError(ApplicationEvent):
-    name: str = field(init=False, default='pgp-file-encryption-error')
+    name: str = field(init=False, default="pgp-file-encryption-error")
     error: str

@@ -23,24 +23,20 @@ from pathlib import Path
 from gi.repository import Gtk
 
 from gajim.gtk.widgets import GajimAppWindow
-
-from gajim.plugins.plugins_i18n import _
 from gajim.plugins.helpers import get_builder
+from gajim.plugins.plugins_i18n import _
 
 if TYPE_CHECKING:
     from ..acronyms_expander import AcronymsExpanderPlugin
 
 
 class ConfigDialog(GajimAppWindow):
-    def __init__(self,
-                 plugin: AcronymsExpanderPlugin,
-                 transient: Gtk.Window
-                 ) -> None:
+    def __init__(self, plugin: AcronymsExpanderPlugin, transient: Gtk.Window) -> None:
 
         GajimAppWindow.__init__(
             self,
             name="AcronymsConfigDialog",
-            title=_('Acronyms Configuration'),
+            title=_("Acronyms Configuration"),
             default_width=400,
             default_height=400,
             transient_for=transient,
@@ -48,7 +44,7 @@ class ConfigDialog(GajimAppWindow):
         )
 
         ui_path = Path(__file__).parent
-        self._ui = get_builder(str(ui_path.resolve() / 'config.ui'))
+        self._ui = get_builder(str(ui_path.resolve() / "config.ui"))
 
         self._plugin = plugin
 
@@ -71,29 +67,24 @@ class ConfigDialog(GajimAppWindow):
         for acronym, substitute in self._plugin.acronyms.items():
             self._ui.acronyms_store.append([acronym, substitute])
 
-    def _on_acronym_edited(self,
-                           _renderer: Gtk.CellRendererText,
-                           path: str,
-                           new_text: str
-                           ) -> None:
+    def _on_acronym_edited(
+        self, _renderer: Gtk.CellRendererText, path: str, new_text: str
+    ) -> None:
 
         iter_ = self._ui.acronyms_store.get_iter(path)
         self._ui.acronyms_store.set_value(iter_, 0, new_text)
 
-    def _on_substitute_edited(self,
-                              _renderer: Gtk.CellRendererText,
-                              path: str,
-                              new_text: str
-                              ) -> None:
+    def _on_substitute_edited(
+        self, _renderer: Gtk.CellRendererText, path: str, new_text: str
+    ) -> None:
 
         iter_ = self._ui.acronyms_store.get_iter(path)
         self._ui.acronyms_store.set_value(iter_, 1, new_text)
 
     def _on_add_clicked(self, _button: Gtk.Button) -> None:
-        self._ui.acronyms_store.append(['', ''])
+        self._ui.acronyms_store.append(["", ""])
         row = self._ui.acronyms_store[-1]
-        self._ui.acronyms_treeview.scroll_to_cell(
-            row.path, None, False, 0, 0)
+        self._ui.acronyms_treeview.scroll_to_cell(row.path, None, False, 0, 0)
         self._ui.selection.unselect_all()
         self._ui.selection.select_path(row.path)
 

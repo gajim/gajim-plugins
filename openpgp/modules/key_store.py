@@ -18,13 +18,14 @@ import logging
 
 from openpgp.modules.util import Trust
 
-log = logging.getLogger('gajim.p.openpgp.store')
+log = logging.getLogger("gajim.p.openpgp.store")
 
 
 class KeyData:
-    '''
+    """
     Holds all data related to a certain key
-    '''
+    """
+
     def __init__(self, contact_data):
         self._contact_data = contact_data
         self.fingerprint = None
@@ -40,11 +41,8 @@ class KeyData:
 
     @trust.setter
     def trust(self, value):
-        if value not in (Trust.NOT_TRUSTED,
-                         Trust.UNKNOWN,
-                         Trust.BLIND,
-                         Trust.VERIFIED):
-            raise ValueError('Trust value not allowed: %s' % value)
+        if value not in (Trust.NOT_TRUSTED, Trust.UNKNOWN, Trust.BLIND, Trust.VERIFIED):
+            raise ValueError("Trust value not allowed: %s" % value)
         self._trust = value
         self._contact_data.set_trust(self.fingerprint, self._trust)
 
@@ -72,9 +70,10 @@ class KeyData:
 
 
 class ContactData:
-    '''
+    """
     Holds all data related to a contact
-    '''
+    """
+
     def __init__(self, jid, storage, pgp):
         self.jid = jid
         self._key_store = {}
@@ -84,8 +83,8 @@ class ContactData:
     @property
     def userid(self):
         if self.jid is None:
-            raise ValueError('JID not set')
-        return 'xmpp:%s' % self.jid
+            raise ValueError("JID not set")
+        return "xmpp:%s" % self.jid
 
     @property
     def default_trust(self):
@@ -96,12 +95,14 @@ class ContactData:
 
     def db_values(self):
         for key in self._key_store.values():
-            yield (self.jid,
-                   key.fingerprint,
-                   key.active,
-                   key.trust,
-                   key.timestamp,
-                   key.comment)
+            yield (
+                self.jid,
+                key.fingerprint,
+                key.active,
+                key.trust,
+                key.timestamp,
+                key.comment,
+            )
 
     def add_from_key(self, key):
         try:
@@ -109,7 +110,7 @@ class ContactData:
         except KeyError:
             keydata = KeyData.from_key(self, key, self.default_trust)
             self._key_store[key.fingerprint] = keydata
-            log.info('Add from key: %s %s', self.jid, keydata.fingerprint)
+            log.info("Add from key: %s %s", self.jid, keydata.fingerprint)
         return keydata
 
     def add_from_db(self, row):
@@ -118,11 +119,11 @@ class ContactData:
         except KeyError:
             keydata = KeyData.from_row(self, row)
             self._key_store[row.fingerprint] = keydata
-            log.info('Add from row: %s %s', self.jid, row.fingerprint)
+            log.info("Add from row: %s %s", self.jid, row.fingerprint)
         return keydata
 
     def process_keylist(self, keylist):
-        log.info('Process keylist: %s %s', self.jid, keylist)
+        log.info("Process keylist: %s %s", self.jid, keylist)
 
         if keylist is None:
             for keydata in self._key_store.values():
@@ -133,7 +134,7 @@ class ContactData:
         missing_pub_keys = []
         fingerprints = set([key.fingerprint for key in keylist])
         if fingerprints == self._key_store.keys():
-            log.info('No updates found')
+            log.info("No updates found")
             for key in self._key_store.values():
                 if not key.has_pubkey:
                     missing_pub_keys.append(key.fingerprint)
@@ -159,18 +160,20 @@ class ContactData:
         try:
             keydata = self._key_store[fingerprint]
         except KeyError:
-            log.warning('Set public key on unknown fingerprint: %s %s',
-                        self.jid, fingerprint)
+            log.warning(
+                "Set public key on unknown fingerprint: %s %s", self.jid, fingerprint
+            )
         else:
             keydata.has_pubkey = True
-        log.info('Set public key: %s %s', self.jid, fingerprint)
+        log.info("Set public key: %s %s", self.jid, fingerprint)
 
     def get_keys(self, only_trusted=True):
         keys = list(self._key_store.values())
         if not only_trusted:
             return keys
-        return [k for k in keys if k.active and k.trust in (Trust.VERIFIED,
-                                                            Trust.BLIND)]
+        return [
+            k for k in keys if k.active and k.trust in (Trust.VERIFIED, Trust.BLIND)
+        ]
 
     def get_key(self, fingerprint):
         return self._key_store.get(fingerprint, None)
@@ -185,9 +188,10 @@ class ContactData:
 
 
 class PGPContacts:
-    '''
+    """
     Holds all contacts available for PGP encryption
-    '''
+    """
+
     def __init__(self, pgp, storage):
         self._contacts = {}
         self._storage = storage
@@ -196,20 +200,20 @@ class PGPContacts:
         self._load_from_keyring()
 
     def _load_from_keyring(self):
-        log.info('Load keys from keyring')
+        log.info("Load keys from keyring")
         keyring = self._pgp.get_keys()
         for key in keyring:
-            log.info('Found: %s %s', key.jid, key.fingerprint)
+            log.info("Found: %s %s", key.jid, key.fingerprint)
             self.set_public_key(key.jid, key.fingerprint)
 
     def _load_from_storage(self):
-        log.info('Load contacts from storage')
+        log.info("Load contacts from storage")
         rows = self._storage.load_contacts()
         if rows is None:
             return
 
         for row in rows:
-            log.info('Found: %s %s', row.jid, row.fingerprint)
+            log.info("Found: %s %s", row.jid, row.fingerprint)
             try:
                 contact_data = self._contacts[row.jid]
             except KeyError:
@@ -235,7 +239,7 @@ class PGPContacts:
         try:
             contact_data = self._contacts[jid]
         except KeyError:
-            log.warning('ContactData not found: %s %s', jid, fingerprint)
+            log.warning("ContactData not found: %s %s", jid, fingerprint)
         else:
             contact_data.set_public_key(fingerprint)
 

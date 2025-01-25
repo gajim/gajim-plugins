@@ -14,13 +14,13 @@
 # You should have received a copy of the GNU General Public License
 # along with OpenPGP Gajim Plugin. If not, see <http://www.gnu.org/licenses/>.
 
-import sqlite3
 import logging
+import sqlite3
 from collections import namedtuple
 
-log = logging.getLogger('gajim.p.openpgp.sql')
+log = logging.getLogger("gajim.p.openpgp.sql")
 
-TABLE_LAYOUT = '''
+TABLE_LAYOUT = """
     CREATE TABLE contacts (
         jid TEXT,
         fingerprint TEXT,
@@ -29,13 +29,14 @@ TABLE_LAYOUT = '''
         timestamp INTEGER,
         comment TEXT
         );
-    CREATE UNIQUE INDEX jid_fingerprint ON contacts (jid, fingerprint);'''
+    CREATE UNIQUE INDEX jid_fingerprint ON contacts (jid, fingerprint);"""
 
 
 class Storage:
     def __init__(self, folder_path):
-        self._con = sqlite3.connect(str(folder_path / 'contacts.db'),
-                                    detect_types=sqlite3.PARSE_COLNAMES)
+        self._con = sqlite3.connect(
+            str(folder_path / "contacts.db"), detect_types=sqlite3.PARSE_COLNAMES
+        )
 
         self._con.row_factory = self._namedtuple_factory
         self._create_database()
@@ -51,11 +52,11 @@ class Storage:
         return named_row
 
     def _user_version(self):
-        return self._con.execute('PRAGMA user_version').fetchone()[0]
+        return self._con.execute("PRAGMA user_version").fetchone()[0]
 
     def _create_database(self):
         if not self._user_version():
-            log.info('Create contacts.db')
+            log.info("Create contacts.db")
             self._execute_query(TABLE_LAYOUT)
 
     def _execute_query(self, query):
@@ -64,41 +65,43 @@ class Storage:
             %s
             PRAGMA user_version=1;
             END TRANSACTION;
-            """ % (query)
+            """ % (
+            query
+        )
         self._con.executescript(transaction)
 
     def _migrate_database(self):
         pass
 
     def load_contacts(self):
-        sql = '''SELECT jid as "jid [jid]",
+        sql = """SELECT jid as "jid [jid]",
                         fingerprint,
                         active, 
                         trust,
                         timestamp,
                         comment
-                FROM contacts'''
+                FROM contacts"""
 
         return self._con.execute(sql).fetchall()
 
     def save_contact(self, db_values):
-        sql = '''REPLACE INTO
+        sql = """REPLACE INTO
                  contacts(jid, fingerprint, active, trust, timestamp, comment)
-                 VALUES(?, ?, ?, ?, ?, ?)'''
+                 VALUES(?, ?, ?, ?, ?, ?)"""
         for values in db_values:
-            log.info('Store key: %s', values)
+            log.info("Store key: %s", values)
             self._con.execute(sql, values)
         self._con.commit()
 
     def set_trust(self, jid, fingerprint, trust):
-        sql = 'UPDATE contacts SET trust = ? WHERE jid = ? AND fingerprint = ?'
-        log.info('Set Trust: %s %s %s', trust, jid, fingerprint)
+        sql = "UPDATE contacts SET trust = ? WHERE jid = ? AND fingerprint = ?"
+        log.info("Set Trust: %s %s %s", trust, jid, fingerprint)
         self._con.execute(sql, (trust, jid, fingerprint))
         self._con.commit()
 
     def delete_key(self, jid, fingerprint):
-        sql = 'DELETE from contacts WHERE jid = ? AND fingerprint = ?'
-        log.info('Delete Key: %s %s', jid, fingerprint)
+        sql = "DELETE from contacts WHERE jid = ? AND fingerprint = ?"
+        log.info("Delete Key: %s %s", jid, fingerprint)
         self._con.execute(sql, (jid, fingerprint))
         self._con.commit()
 

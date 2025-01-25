@@ -20,12 +20,11 @@ from typing import TYPE_CHECKING
 
 from gi.repository import Gtk
 
-from gajim.plugins.plugins_i18n import _
-
 from gajim.gtk.const import Setting
 from gajim.gtk.const import SettingKind
 from gajim.gtk.const import SettingType
 from gajim.gtk.settings import SettingsDialog
+from gajim.plugins.plugins_i18n import _
 
 if TYPE_CHECKING:
     from ..now_listen import NowListenPlugin
@@ -36,19 +35,24 @@ class NowListenConfigDialog(SettingsDialog):
 
         self.plugin = plugin
         settings = [
-            Setting(SettingKind.ENTRY,
-                    _('Format string'),
-                    SettingType.VALUE,
-                    self.plugin.config['format_string'],
-                    callback=self._on_setting, data='format_string')
-            ]
+            Setting(
+                SettingKind.ENTRY,
+                _("Format string"),
+                SettingType.VALUE,
+                self.plugin.config["format_string"],
+                callback=self._on_setting,
+                data="format_string",
+            )
+        ]
 
-        SettingsDialog.__init__(self,
-                                parent,
-                                _('Now Listen Configuration'),
-                                Gtk.DialogFlags.MODAL,
-                                settings,
-                                '')
+        SettingsDialog.__init__(
+            self,
+            parent,
+            _("Now Listen Configuration"),
+            Gtk.DialogFlags.MODAL,
+            settings,
+            "",
+        )
 
     def _on_setting(self, value: Any, data: Any) -> None:
         self.plugin.config[data] = value

@@ -20,11 +20,10 @@ from typing import TYPE_CHECKING
 
 from gi.repository import Gtk
 
-from gajim.gtk.settings import SettingsDialog
 from gajim.gtk.const import Setting
 from gajim.gtk.const import SettingKind
 from gajim.gtk.const import SettingType
-
+from gajim.gtk.settings import SettingsDialog
 from gajim.plugins.plugins_i18n import _
 
 if TYPE_CHECKING:
@@ -32,52 +31,56 @@ if TYPE_CHECKING:
 
 
 class LengthNotifierConfigDialog(SettingsDialog):
-    def __init__(self,
-                 plugin: LengthNotifierPlugin,
-                 parent: Gtk.Window
-                 ) -> None:
+    def __init__(self, plugin: LengthNotifierPlugin, parent: Gtk.Window) -> None:
 
         self.plugin = plugin
-        jids = self.plugin.config['JIDS'] or ''
+        jids = self.plugin.config["JIDS"] or ""
         if isinstance(jids, list):
             # Gajim 1.0 stored this as list[str]
-            jids = ','.join(jids)
+            jids = ",".join(jids)
 
         settings = [
-            Setting(SettingKind.SPIN,
-                    _('Message Length'),
-                    SettingType.VALUE,
-                    str(self.plugin.config['MESSAGE_WARNING_LENGTH']),
-                    callback=self._on_setting,
-                    data='MESSAGE_WARNING_LENGTH',
-                    desc=_('Message length at which the highlight is shown'),
-                    props={'range_': (1, 1000, 1)},
-                    ),
-            Setting(SettingKind.COLOR,
-                    _('Color'),
-                    SettingType.VALUE,
-                    self.plugin.config['WARNING_COLOR'],
-                    callback=self._on_setting,
-                    data='WARNING_COLOR',
-                    desc=_('Highlight color for the message input'),
-                    ),
-            Setting(SettingKind.ENTRY,
-                    _('Selected Addresses'),
-                    SettingType.VALUE,
-                    jids,
-                    callback=self._on_setting,
-                    data='JIDS',
-                    desc=_('Enable the plugin for selected XMPP addresses '
-                           'only (comma separated)'),
-                    ),
-            ]
+            Setting(
+                SettingKind.SPIN,
+                _("Message Length"),
+                SettingType.VALUE,
+                str(self.plugin.config["MESSAGE_WARNING_LENGTH"]),
+                callback=self._on_setting,
+                data="MESSAGE_WARNING_LENGTH",
+                desc=_("Message length at which the highlight is shown"),
+                props={"range_": (1, 1000, 1)},
+            ),
+            Setting(
+                SettingKind.COLOR,
+                _("Color"),
+                SettingType.VALUE,
+                self.plugin.config["WARNING_COLOR"],
+                callback=self._on_setting,
+                data="WARNING_COLOR",
+                desc=_("Highlight color for the message input"),
+            ),
+            Setting(
+                SettingKind.ENTRY,
+                _("Selected Addresses"),
+                SettingType.VALUE,
+                jids,
+                callback=self._on_setting,
+                data="JIDS",
+                desc=_(
+                    "Enable the plugin for selected XMPP addresses "
+                    "only (comma separated)"
+                ),
+            ),
+        ]
 
-        SettingsDialog.__init__(self, 
-                                parent,
-                                _('Length Notifier Configuration'),
-                                Gtk.DialogFlags.MODAL,
-                                settings,
-                                '')
+        SettingsDialog.__init__(
+            self,
+            parent,
+            _("Length Notifier Configuration"),
+            Gtk.DialogFlags.MODAL,
+            settings,
+            "",
+        )
 
     def _on_setting(self, value: Any, data: Any) -> None:
         if isinstance(value, str):

@@ -16,15 +16,14 @@
 
 import logging
 
-from nbxmpp.protocol import JID
-
 import gpg
 from gpg.results import ImportResult
+from nbxmpp.protocol import JID
 
 from openpgp.backend.util import parse_uid
 from openpgp.modules.util import DecryptionFailed
 
-log = logging.getLogger('gajim.p.openpgp.gpgme')
+log = logging.getLogger("gajim.p.openpgp.gpgme")
 
 
 class KeyringItem:
@@ -73,31 +72,33 @@ class GPGME:
     def __init__(self, jid, gnuhome):
         self._jid = jid
         self._context_args = {
-            'home_dir': str(gnuhome),
-            'offline': True,
-            'armor': False,
+            "home_dir": str(gnuhome),
+            "offline": True,
+            "armor": False,
         }
 
     def generate_key(self):
         with gpg.Context(**self._context_args) as context:
-            result = context.create_key(f'xmpp:{str(self._jid)}',
-                                        algorithm='default',
-                                        expires=False,
-                                        passphrase=None,
-                                        force=False)
+            result = context.create_key(
+                f"xmpp:{str(self._jid)}",
+                algorithm="default",
+                expires=False,
+                passphrase=None,
+                force=False,
+            )
 
-            log.info('Generated new key: %s', result.fpr)
+            log.info("Generated new key: %s", result.fpr)
 
     def get_key(self, fingerprint):
         with gpg.Context(**self._context_args) as context:
             try:
                 key = context.get_key(fingerprint)
             except gpg.errors.KeyNotFound as error:
-                log.warning('key not found: %s', error.keystr)
+                log.warning("key not found: %s", error.keystr)
                 return
 
             except Exception as error:
-                log.warning('get_key() error: %s', error)
+                log.warning("get_key() error: %s", error)
                 return
 
         return key
@@ -121,7 +122,7 @@ class GPGME:
             for key in context.keylist():
                 keyring_item = KeyringItem(key)
                 if not keyring_item.is_xmpp_key:
-                    log.warning('Key not suited for xmpp: %s', key.fpr)
+                    log.warning("Key not suited for xmpp: %s", key.fpr)
                     self.delete_key(keyring_item.fingerprint)
                     continue
 
@@ -157,12 +158,12 @@ class GPGME:
                     recipients.append(key)
 
         if not recipients:
-            return None, 'No keys found to encrypt to'
+            return None, "No keys found to encrypt to"
 
         with gpg.Context(**self._context_args) as context:
-            result = context.encrypt(str(plaintext).encode(),
-                                     recipients,
-                                     always_trust=True)
+            result = context.encrypt(
+                str(plaintext).encode(), recipients, always_trust=True
+            )
 
         ciphertext, result, _sign_result = result
         return ciphertext, None
@@ -172,7 +173,7 @@ class GPGME:
             try:
                 result = context.decrypt(ciphertext)
             except Exception as error:
-                raise DecryptionFailed('Decryption failed: %s' % error)
+                raise DecryptionFailed("Decryption failed: %s" % error)
 
         plaintext, result, verify_result = result
         plaintext = plaintext.decode()
@@ -181,16 +182,16 @@ class GPGME:
         if not fingerprints or len(fingerprints) > 1:
             log.error(result)
             log.error(verify_result)
-            raise DecryptionFailed('Verification failed')
+            raise DecryptionFailed("Verification failed")
 
         return plaintext, fingerprints[0]
 
     def import_key(self, data, jid):
-        log.info('Import key from %s', jid)
+        log.info("Import key from %s", jid)
         with gpg.Context(**self._context_args) as context:
             result = context.key_import(data)
             if not isinstance(result, ImportResult) or result.imported != 1:
-                log.error('Key import failed: %s', jid)
+                log.error("Key import failed: %s", jid)
                 log.error(result)
                 return
 
@@ -198,7 +199,7 @@ class GPGME:
             key = self.get_key(fingerprint)
             item = KeyringItem(key)
             if not item.is_valid(jid):
-                log.warning('Invalid key found')
+                log.warning("Invalid key found")
                 log.warning(key)
                 self.delete_key(item.fingerprint)
                 return
@@ -206,7 +207,7 @@ class GPGME:
         return item
 
     def delete_key(self, fingerprint):
-        log.info('Delete Key: %s', fingerprint)
+        log.info("Delete Key: %s", fingerprint)
         key = self.get_key(fingerprint)
         with gpg.Context(**self._context_args) as context:
             context.op_delete(key, True)

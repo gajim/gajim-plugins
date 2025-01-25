@@ -16,18 +16,17 @@
 
 from pathlib import Path
 
-from gi.repository import Gtk
 from gi.repository import GLib
+from gi.repository import Gtk
 
 from gajim.common import app
-from gajim.plugins.plugins_i18n import _
 from gajim.plugins.helpers import get_builder
+from gajim.plugins.plugins_i18n import _
 
 
 class KeyDialog(Gtk.Dialog):
     def __init__(self, plugin, account, jid, transient):
-        super().__init__(title=_('Assign key for %s') % jid,
-                         destroy_with_parent=True)
+        super().__init__(title=_("Assign key for %s") % jid, destroy_with_parent=True)
 
         self.set_transient_for(transient)
         self.set_resizable(True)
@@ -39,11 +38,11 @@ class KeyDialog(Gtk.Dialog):
 
         self._label = Gtk.Label()
 
-        self._assign_button = Gtk.Button(label=_('Assign Key'))
-        self._assign_button.get_style_context().add_class('suggested-action')
+        self._assign_button = Gtk.Button(label=_("Assign Key"))
+        self._assign_button.get_style_context().add_class("suggested-action")
         self._assign_button.set_halign(Gtk.Align.CENTER)
         self._assign_button.set_margin_top(18)
-        self._assign_button.connect('clicked', self._choose_key)
+        self._assign_button.connect("clicked", self._choose_key)
 
         box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         box.set_border_width(18)
@@ -57,13 +56,12 @@ class KeyDialog(Gtk.Dialog):
         self.show_all()
 
     def _choose_key(self, *args):
-        backend = self._client.get_module('PGPLegacy').pgp_backend
+        backend = self._client.get_module("PGPLegacy").pgp_backend
         dialog = ChooseGPGKeyDialog(backend.get_keys(), self)
-        dialog.connect('response', self._on_response)
+        dialog.connect("response", self._on_response)
 
     def _load_key(self):
-        key_data = self._client.get_module('PGPLegacy').get_contact_key_data(
-            self._jid)
+        key_data = self._client.get_module("PGPLegacy").get_contact_key_data(self._jid)
         if key_data is None:
             self._set_key(None)
         else:
@@ -74,42 +72,43 @@ class KeyDialog(Gtk.Dialog):
             return
 
         if dialog.selected_key is None:
-            self._client.get_module('PGPLegacy').set_contact_key_data(
-                self._jid, None)
+            self._client.get_module("PGPLegacy").set_contact_key_data(self._jid, None)
             self._set_key(None)
         else:
-            self._client.get_module('PGPLegacy').set_contact_key_data(
-                self._jid, dialog.selected_key)
+            self._client.get_module("PGPLegacy").set_contact_key_data(
+                self._jid, dialog.selected_key
+            )
             self._set_key(dialog.selected_key)
 
     def _set_key(self, key_data):
         if key_data is None:
-            self._label.set_text(_('No key assigned'))
+            self._label.set_text(_("No key assigned"))
         else:
             key_id, key_user = key_data
-            self._label.set_markup('<b><tt>%s</tt> %s</b>' % \
-                (key_id, GLib.markup_escape_text(key_user)))
+            self._label.set_markup(
+                "<b><tt>%s</tt> %s</b>" % (key_id, GLib.markup_escape_text(key_user))
+            )
 
 
 class ChooseGPGKeyDialog(Gtk.Dialog):
     def __init__(self, secret_keys, transient_for):
-        Gtk.Dialog.__init__(self,
-                            title=_('Assign PGP Key'),
-                            transient_for=transient_for)
+        Gtk.Dialog.__init__(
+            self, title=_("Assign PGP Key"), transient_for=transient_for
+        )
 
-        secret_keys[_('None')] = _('None')
+        secret_keys[_("None")] = _("None")
 
         self.set_position(Gtk.WindowPosition.CENTER_ON_PARENT)
         self.set_resizable(True)
         self.set_default_size(500, 300)
 
-        self.add_button(_('Cancel'), Gtk.ResponseType.CANCEL)
-        self.add_button(_('OK'), Gtk.ResponseType.OK)
+        self.add_button(_("Cancel"), Gtk.ResponseType.CANCEL)
+        self.add_button(_("OK"), Gtk.ResponseType.OK)
 
         self._selected_key = None
 
         ui_path = Path(__file__).parent
-        self._ui = get_builder(ui_path.resolve() / 'choose_key.ui')
+        self._ui = get_builder(ui_path.resolve() / "choose_key.ui")
 
         self._ui.keys_treeview = self._ui.keys_treeview
 
@@ -124,7 +123,7 @@ class ChooseGPGKeyDialog(Gtk.Dialog):
 
         self._ui.connect_signals(self)
 
-        self.connect_after('response', self._on_response)
+        self.connect_after("response", self._on_response)
 
         self.show_all()
 
@@ -136,9 +135,9 @@ class ChooseGPGKeyDialog(Gtk.Dialog):
     def _sort(model, iter1, iter2, _data):
         value1 = model[iter1][1]
         value2 = model[iter2][1]
-        if value1 == _('None'):
+        if value1 == _("None"):
             return -1
-        if value2 == _('None'):
+        if value2 == _("None"):
             return 1
         if value1 < value2:
             return -1
@@ -154,7 +153,7 @@ class ChooseGPGKeyDialog(Gtk.Dialog):
             self._selected_key = None
         else:
             key_id, key_user = model[iter_][0], model[iter_][1]
-            if key_id == _('None'):
+            if key_id == _("None"):
                 self._selected_key = None
             else:
                 self._selected_key = key_id, key_user

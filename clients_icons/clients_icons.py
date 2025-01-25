@@ -18,42 +18,39 @@ from __future__ import annotations
 from typing import cast
 
 import logging
-from pathlib import Path
 from functools import partial
+from pathlib import Path
 
 from gi.repository import Gtk
-
 from nbxmpp.structs import DiscoInfo
 
 from gajim.common import app
 from gajim.common.modules.contacts import GroupchatParticipant
 from gajim.common.modules.contacts import ResourceContact
-
+from gajim.gtk.util import load_icon_surface
 from gajim.plugins import GajimPlugin
 from gajim.plugins.plugins_i18n import _
-
-from gajim.gtk.util import load_icon_surface
 
 from clients_icons import clients
 from clients_icons.config_dialog import ClientsIconsConfigDialog
 
-log = logging.getLogger('gajim.p.client_icons')
+log = logging.getLogger("gajim.p.client_icons")
 
 
 class ClientsIconsPlugin(GajimPlugin):
     def init(self) -> None:
-        self.description = _('Shows client icons in your contact list'
-                             ' in a tooltip.')
+        self.description = _("Shows client icons in your contact list" " in a tooltip.")
         self.config_dialog = partial(ClientsIconsConfigDialog, self)
 
         self.gui_extension_points = {
-            'roster_tooltip_resource_populate': (
+            "roster_tooltip_resource_populate": (
                 self._roster_tooltip_resource_populate,
-                None),
+                None,
+            ),
         }
 
         self.config_default_values = {
-            'show_unknown_icon': (True, ''),
+            "show_unknown_icon": (True, ""),
         }
 
         _icon_theme = Gtk.IconTheme.get_default()
@@ -63,15 +60,13 @@ class ClientsIconsPlugin(GajimPlugin):
     @staticmethod
     def _get_client_identity_name(disco_info: DiscoInfo) -> str | None:
         for identity in disco_info.identities:
-            if identity.category == 'client':
+            if identity.category == "client":
                 return identity.name
         return None
 
-    def _get_image_and_client_name(self,
-                                   contact:
-                                    GroupchatParticipant | ResourceContact,
-                                   _widget: Gtk.Widget
-                                   ) -> tuple[Gtk.Image, str] | None:
+    def _get_image_and_client_name(
+        self, contact: GroupchatParticipant | ResourceContact, _widget: Gtk.Widget
+    ) -> tuple[Gtk.Image, str] | None:
 
         disco_info = app.storage.cache.get_last_disco_info(contact.jid)
         if disco_info is None:
@@ -80,18 +75,17 @@ class ClientsIconsPlugin(GajimPlugin):
         if disco_info.node is None:
             return None
 
-        node = disco_info.node.split('#')[0]
+        node = disco_info.node.split("#")[0]
         client_name = self._get_client_identity_name(disco_info)
 
-        log.info('Lookup client: %s %s', client_name, node)
+        log.info("Lookup client: %s %s", client_name, node)
         client_name, icon_name = clients.get_data(client_name, node)
         surface = load_icon_surface(icon_name)
         return Gtk.Image.new_from_surface(surface), client_name
 
-    def _roster_tooltip_resource_populate(self,
-                                          resource_box: Gtk.Box,
-                                          resource: ResourceContact
-                                          ) -> None:
+    def _roster_tooltip_resource_populate(
+        self, resource_box: Gtk.Box, resource: ResourceContact
+    ) -> None:
 
         result = self._get_image_and_client_name(resource, resource_box)
         if result is None:
@@ -100,8 +94,9 @@ class ClientsIconsPlugin(GajimPlugin):
         image, client_name = result
         label = Gtk.Label(label=client_name)
 
-        client_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL,
-                             halign=Gtk.Align.START)
+        client_box = Gtk.Box(
+            orientation=Gtk.Orientation.HORIZONTAL, halign=Gtk.Align.START
+        )
         client_box.add(image)
         client_box.add(label)
 

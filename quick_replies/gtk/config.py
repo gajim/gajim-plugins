@@ -21,28 +21,24 @@ from typing import TYPE_CHECKING
 
 from pathlib import Path
 
-from gi.repository import Gtk
 from gi.repository import Gdk
+from gi.repository import Gtk
 
 from gajim.common import app
-
-from gajim.plugins.plugins_i18n import _
 from gajim.plugins.helpers import get_builder
+from gajim.plugins.plugins_i18n import _
 
 if TYPE_CHECKING:
     from ..plugin import QuickRepliesPlugin
 
 
 class ConfigDialog(Gtk.ApplicationWindow):
-    def __init__(self,
-                 plugin: QuickRepliesPlugin,
-                 transient: Gtk.Window
-                 ) -> None:
+    def __init__(self, plugin: QuickRepliesPlugin, transient: Gtk.Window) -> None:
 
         Gtk.ApplicationWindow.__init__(self)
         self.set_application(app.app)
         self.set_show_menubar(False)
-        self.set_title(_('Quick Replies Configuration'))
+        self.set_title(_("Quick Replies Configuration"))
         self.set_transient_for(transient)
         self.set_default_size(400, 400)
         self.set_type_hint(Gdk.WindowTypeHint.DIALOG)
@@ -50,7 +46,7 @@ class ConfigDialog(Gtk.ApplicationWindow):
         self.set_destroy_with_parent(True)
 
         ui_path = Path(__file__).parent
-        self._ui = get_builder(str(ui_path.resolve() / 'config.ui'))
+        self._ui = get_builder(str(ui_path.resolve() / "config.ui"))
 
         self._plugin = plugin
 
@@ -60,26 +56,23 @@ class ConfigDialog(Gtk.ApplicationWindow):
         self.show_all()
 
         self._ui.connect_signals(self)
-        self.connect('destroy', self._on_destroy)
+        self.connect("destroy", self._on_destroy)
 
     def _fill_list(self) -> None:
         for reply in self._plugin.quick_replies:
             self._ui.replies_store.append([reply])
 
-    def _on_reply_edited(self,
-                         _renderer: Gtk.CellRendererText,
-                         path: str,
-                         new_text: str
-                         ) -> None:
+    def _on_reply_edited(
+        self, _renderer: Gtk.CellRendererText, path: str, new_text: str
+    ) -> None:
 
         iter_ = self._ui.replies_store.get_iter(path)
         self._ui.replies_store.set_value(iter_, 0, new_text)
 
     def _on_add_clicked(self, _button: Gtk.Button) -> None:
-        self._ui.replies_store.append([_('New Quick Reply')])
+        self._ui.replies_store.append([_("New Quick Reply")])
         row = self._ui.replies_store[-1]
-        self._ui.replies_treeview.scroll_to_cell(
-            row.path, None, False, 0, 0)
+        self._ui.replies_treeview.scroll_to_cell(row.path, None, False, 0, 0)
         self._ui.selection.unselect_all()
         self._ui.selection.select_path(row.path)
 
@@ -96,7 +89,7 @@ class ConfigDialog(Gtk.ApplicationWindow):
     def _on_destroy(self, *args: Any) -> None:
         replies: list[str] = []
         for row in self._ui.replies_store:
-            if row[0] == '':
+            if row[0] == "":
                 continue
             replies.append(row[0])
         self._plugin.set_quick_replies(replies)

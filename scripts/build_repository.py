@@ -1,40 +1,38 @@
-
 # Keep this file python 3.7 compatible because it is executed on the server
 
 from typing import Any
 from typing import Iterator
 
-import sys
 import json
 import logging
+import sys
 from collections import defaultdict
 from pathlib import Path
 from zipfile import ZipFile
 
-
-FORMAT = '%(asctime)s %(message)s'
+FORMAT = "%(asctime)s %(message)s"
 logging.basicConfig(format=FORMAT, level=logging.DEBUG)
 log = logging.getLogger()
 
 
 REQUIRED_KEYS: set[str] = {
-    'authors',
-    'description',
-    'homepage',
-    'config_dialog',
-    'name',
-    'platforms',
-    'requirements',
-    'short_name',
-    'version'
+    "authors",
+    "description",
+    "homepage",
+    "config_dialog",
+    "name",
+    "platforms",
+    "requirements",
+    "short_name",
+    "version",
 }
 
 PACKAGE_INDEX: dict[str, Any] = {
-    'metadata': {
-        'repository_name': 'master',
-        'image_path': 'images.zip',
+    "metadata": {
+        "repository_name": "master",
+        "image_path": "images.zip",
     },
-    'plugins': defaultdict(dict)
+    "plugins": defaultdict(dict),
 }
 
 
@@ -44,53 +42,53 @@ def is_manifest_valid(manifest: dict[str, Any]) -> bool:
 
 
 def iter_releases(release_folder: Path) -> Iterator[dict[str, Any]]:
-    for path in release_folder.rglob('*.zip'):
+    for path in release_folder.rglob("*.zip"):
         with ZipFile(path) as release_zip:
-            if path.name == 'images.zip':
+            if path.name == "images.zip":
                 continue
-            log.info('Check path: %s', path)
+            log.info("Check path: %s", path)
             try:
-                with release_zip.open('plugin-manifest.json') as file:
+                with release_zip.open("plugin-manifest.json") as file:
                     manifest = json.load(file)
                     yield manifest
             except Exception:
-                log.error('Error loading manifest')
-                log.exception('')
+                log.error("Error loading manifest")
+                log.exception("")
 
 
 def build_package_index(release_folder: Path) -> None:
-    log.info('Build package index')
+    log.info("Build package index")
     for manifest in iter_releases(release_folder):
         if not is_manifest_valid(manifest):
-            log.warning('Invalid manifest')
+            log.warning("Invalid manifest")
             log.warning(manifest)
             continue
 
-        short_name = manifest.pop('short_name')
-        version = manifest.pop('version')
-        PACKAGE_INDEX['plugins'][short_name][version] = manifest
-        log.info('Found manifest: %s - %s', short_name, version)
+        short_name = manifest.pop("short_name")
+        version = manifest.pop("version")
+        PACKAGE_INDEX["plugins"][short_name][version] = manifest
+        log.info("Found manifest: %s - %s", short_name, version)
 
-    path = release_folder / 'package_index.json'
-    with path.open('w') as f:
+    path = release_folder / "package_index.json"
+    with path.open("w") as f:
         json.dump(PACKAGE_INDEX, f)
 
 
 def build_image_zip(release_folder: Path) -> None:
-    log.info('Build images.zip')
-    with ZipFile(release_folder / 'images.zip', mode='w') as image_zip:
+    log.info("Build images.zip")
+    with ZipFile(release_folder / "images.zip", mode="w") as image_zip:
         for path in release_folder.iterdir():
             if not path.is_dir():
                 continue
 
-            image = path / f'{path.name}.png'
+            image = path / f"{path.name}.png"
             if not image.exists():
                 continue
             image_zip.write(image, arcname=image.name)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     path = Path(sys.argv[1])
     build_package_index(path)
     build_image_zip(path)
-    log.info('Finished')
+    log.info("Finished")

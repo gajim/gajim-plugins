@@ -20,8 +20,8 @@
 # You should have received a copy of the GNU General Public License
 # along with PGP Gajim Plugin. If not, see <http://www.gnu.org/licenses/>.
 
-import os
 import logging
+import os
 from functools import lru_cache
 
 import gnupg
@@ -30,56 +30,51 @@ from gajim.common.util.classes import Singleton
 
 from pgp.exceptions import SignError
 
-
-logger = logging.getLogger('gajim.p.pgplegacy')
+logger = logging.getLogger("gajim.p.pgplegacy")
 if logger.getEffectiveLevel() == logging.DEBUG:
-    logger = logging.getLogger('gnupg')
+    logger = logging.getLogger("gnupg")
     logger.addHandler(logging.StreamHandler())
     logger.setLevel(logging.DEBUG)
 
 
 class PGP(gnupg.GPG, metaclass=Singleton):
     def __init__(self, binary, encoding=None):
-        super().__init__(gpgbinary=binary,
-                         use_agent=True)
+        super().__init__(gpgbinary=binary, use_agent=True)
 
         if encoding is not None:
             self.encoding = encoding
-        self.decode_errors = 'replace'
+        self.decode_errors = "replace"
 
     def encrypt(self, payload, recipients, always_trust=False):
         if not always_trust:
             # check that we'll be able to encrypt
             result = self.get_key(recipients[0])
             for key in result:
-                if key['trust'] not in ('f', 'u'):
-                    return '', 'NOT_TRUSTED ' + key['keyid'][-8:]
+                if key["trust"] not in ("f", "u"):
+                    return "", "NOT_TRUSTED " + key["keyid"][-8:]
 
         result = super().encrypt(
-            payload.encode('utf8'),
-            recipients,
-            always_trust=always_trust)
+            payload.encode("utf8"), recipients, always_trust=always_trust
+        )
 
         if result.ok:
-            error = ''
+            error = ""
         else:
             error = result.status
 
         return self._strip_header_footer(str(result)), error
 
     def decrypt(self, payload):
-        data = self._add_header_footer(payload, 'MESSAGE')
-        result = super().decrypt(data.encode('utf8'))
+        data = self._add_header_footer(payload, "MESSAGE")
+        result = super().decrypt(data.encode("utf8"))
 
-        return result.data.decode('utf8')
+        return result.data.decode("utf8")
 
     @lru_cache(maxsize=8)
     def sign(self, payload, key_id):
         if payload is None:
-            payload = ''
-        result = super().sign(payload.encode('utf8'),
-                              keyid=key_id,
-                              detach=True)
+            payload = ""
+        result = super().sign(payload.encode("utf8"), keyid=key_id, detach=True)
 
         if result.fingerprint:
             return self._strip_header_footer(str(result))
@@ -91,19 +86,20 @@ class PGP(gnupg.GPG, metaclass=Singleton):
         # Text name for hash algorithms from RFC 4880 - section 9.4
 
         if payload is None:
-            payload = ''
+            payload = ""
 
-        hash_algorithms = ['SHA512', 'SHA384', 'SHA256',
-                           'SHA224', 'SHA1', 'RIPEMD160']
+        hash_algorithms = ["SHA512", "SHA384", "SHA256", "SHA224", "SHA1", "RIPEMD160"]
         for algo in hash_algorithms:
             data = os.linesep.join(
-                ['-----BEGIN PGP SIGNED MESSAGE-----',
-                 'Hash: ' + algo,
-                 '',
-                 payload,
-                 self._add_header_footer(signed, 'SIGNATURE')]
-                )
-            result = super().verify(data.encode('utf8'))
+                [
+                    "-----BEGIN PGP SIGNED MESSAGE-----",
+                    "Hash: " + algo,
+                    "",
+                    payload,
+                    self._add_header_footer(signed, "SIGNATURE"),
+                ]
+            )
+            result = super().verify(data.encode("utf8"))
             if result.valid:
                 return result.fingerprint
 
@@ -116,7 +112,7 @@ class PGP(gnupg.GPG, metaclass=Singleton):
 
         for key in result:
             # Take first not empty uid
-            keys[key['fingerprint']] = next(uid for uid in key['uids'] if uid)
+            keys[key["fingerprint"]] = next(uid for uid in key["uids"] if uid)
         return keys
 
     @staticmethod
@@ -125,19 +121,19 @@ class PGP(gnupg.GPG, metaclass=Singleton):
         Remove header and footer from data
         """
         if not data:
-            return ''
+            return ""
         lines = data.splitlines()
-        while lines[0] != '':
+        while lines[0] != "":
             lines.remove(lines[0])
-        while lines[0] == '':
+        while lines[0] == "":
             lines.remove(lines[0])
         i = 0
         for line in lines:
             if line:
-                if line[0] == '-':
+                if line[0] == "-":
                     break
-            i = i+1
-        line = '\n'.join(lines[0:i])
+            i = i + 1
+        line = "\n".join(lines[0:i])
         return line
 
     @staticmethod

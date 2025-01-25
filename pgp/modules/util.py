@@ -21,8 +21,8 @@ from nbxmpp.namespaces import Namespace
 
 
 def prepare_stanza(stanza, plaintext):
-    delete_nodes(stanza, 'encrypted', Namespace.ENCRYPTED)
-    delete_nodes(stanza, 'body')
+    delete_nodes(stanza, "encrypted", Namespace.ENCRYPTED)
+    delete_nodes(stanza, "body")
     stanza.setBody(plaintext)
 
 
@@ -34,16 +34,16 @@ def delete_nodes(stanza, name, namespace=None):
 
 def find_gpg():
     def _search(binary):
-        if os.name == 'nt':
-            gpg_cmd = binary + ' -h >nul 2>&1'
+        if os.name == "nt":
+            gpg_cmd = binary + " -h >nul 2>&1"
         else:
-            gpg_cmd = binary + ' -h >/dev/null 2>&1'
+            gpg_cmd = binary + " -h >/dev/null 2>&1"
         if subprocess.call(gpg_cmd, shell=True):
             return False
         return True
 
-    if _search('gpg2'):
-        return 'gpg2'
+    if _search("gpg2"):
+        return "gpg2"
 
-    if _search('gpg'):
-        return 'gpg'
+    if _search("gpg"):
+        return "gpg"

@@ -17,22 +17,21 @@
 import logging
 from pathlib import Path
 
-from gi.repository import Gtk
 from gi.repository import Gdk
-from nbxmpp.namespaces import Namespace
+from gi.repository import Gtk
 from nbxmpp import JID
+from nbxmpp.namespaces import Namespace
 
 from gajim.common import app
-from gajim.common import ged
 from gajim.common import configpaths
+from gajim.common import ged
 from gajim.common.const import CSSPriority
-
 from gajim.gtk.dialogs import SimpleDialog
-
 from gajim.plugins import GajimPlugin
 from gajim.plugins.plugins_i18n import _
 
 from openpgp.modules.util import ENCRYPTION_NAME
+
 try:
     from openpgp.modules import openpgp
 except (ImportError, OSError) as e:
@@ -40,7 +39,7 @@ except (ImportError, OSError) as e:
 else:
     ERROR_MSG = None
 
-log = logging.getLogger('gajim.p.openpgp')
+log = logging.getLogger("gajim.p.openpgp")
 
 
 class OpenPGPPlugin(GajimPlugin):
@@ -52,23 +51,21 @@ class OpenPGPPlugin(GajimPlugin):
             return
 
         self.events_handlers = {
-            'signed-in': (ged.PRECORE, self.signed_in),
-            }
+            "signed-in": (ged.PRECORE, self.signed_in),
+        }
 
         self.modules = [openpgp]
 
         self.encryption_name = ENCRYPTION_NAME
         self.config_dialog = None
         self.gui_extension_points = {
-            'encrypt' + self.encryption_name: (self._encrypt_message, None),
-            'send_message' + self.encryption_name: (
-                self._before_sendmessage, None),
-            'encryption_dialog' + self.encryption_name: (
-                self.on_encryption_button_clicked, None),
-            'encryption_state' + self.encryption_name: (
-                self.encryption_state, None),
-            'update_caps': (self._update_caps, None),
-            }
+            "encrypt" + self.encryption_name: (self._encrypt_message, None),
+            "send_message" + self.encryption_name: (self._before_sendmessage, None),
+            "encryption_dialog"
+            + self.encryption_name: (self.on_encryption_button_clicked, None),
+            "encryption_state" + self.encryption_name: (self.encryption_state, None),
+            "update_caps": (self._update_caps, None),
+        }
 
         self.connections = {}
 
@@ -80,74 +77,78 @@ class OpenPGPPlugin(GajimPlugin):
         self._load_css()
 
     def _load_css(self):
-        path = Path(__file__).parent / 'gtk' / 'style.css'
+        path = Path(__file__).parent / "gtk" / "style.css"
         try:
-            with path.open('r') as f:
+            with path.open("r") as f:
                 css = f.read()
         except Exception as exc:
-            log.error('Error loading css: %s', exc)
+            log.error("Error loading css: %s", exc)
             return
 
         try:
             provider = Gtk.CssProvider()
-            provider.load_from_data(bytes(css.encode('utf-8')))
-            Gtk.StyleContext.add_provider_for_screen(Gdk.Screen.get_default(),
-                                                     provider,
-                                                     CSSPriority.DEFAULT_THEME)
+            provider.load_from_data(bytes(css.encode("utf-8")))
+            Gtk.StyleContext.add_provider_for_screen(
+                Gdk.Screen.get_default(), provider, CSSPriority.DEFAULT_THEME
+            )
         except Exception:
-            log.exception('Error loading application css')
+            log.exception("Error loading application css")
 
     @staticmethod
     def _create_paths():
-        keyring_path = Path(configpaths.get('MY_DATA')) / 'openpgp'
+        keyring_path = Path(configpaths.get("MY_DATA")) / "openpgp"
         if not keyring_path.exists():
             keyring_path.mkdir()
 
     def signed_in(self, event):
         client = app.get_client(event.account)
-        if client.get_module('OpenPGP').secret_key_available:
-            log.info('%s => Publish keylist and public key after sign in',
-                     event.account)
-            client.get_module('OpenPGP').request_keylist()
-            client.get_module('OpenPGP').set_public_key()
+        if client.get_module("OpenPGP").secret_key_available:
+            log.info(
+                "%s => Publish keylist and public key after sign in", event.account
+            )
+            client.get_module("OpenPGP").request_keylist()
+            client.get_module("OpenPGP").set_public_key()
 
     def activate(self):
         for account in app.settings.get_active_accounts():
             client = app.get_client(account)
-            client.get_module('Caps').update_caps()
+            client.get_module("Caps").update_caps()
             if app.account_is_connected(account):
-                if client.get_module('OpenPGP').secret_key_available:
-                    log.info('%s => Publish keylist and public key '
-                             'after plugin activation', account)
-                    client.get_module('OpenPGP').request_keylist()
-                    client.get_module('OpenPGP').set_public_key()
+                if client.get_module("OpenPGP").secret_key_available:
+                    log.info(
+                        "%s => Publish keylist and public key "
+                        "after plugin activation",
+                        account,
+                    )
+                    client.get_module("OpenPGP").request_keylist()
+                    client.get_module("OpenPGP").set_public_key()
 
     def deactivate(self):
         pass
 
     @staticmethod
     def _update_caps(_account, features):
-        features.append('%s+notify' % Namespace.OPENPGP_PK)
+        features.append("%s+notify" % Namespace.OPENPGP_PK)
 
     def activate_encryption(self, chat_control):
         account = chat_control.account
         jid = chat_control.contact.jid
         client = app.get_client(account)
-        if client.get_module('OpenPGP').secret_key_available:
-            keys = client.get_module('OpenPGP').get_keys(
-                jid, only_trusted=False)
+        if client.get_module("OpenPGP").secret_key_available:
+            keys = client.get_module("OpenPGP").get_keys(jid, only_trusted=False)
             if not keys:
-                client.get_module('OpenPGP').request_keylist(JID.from_string(jid))
+                client.get_module("OpenPGP").request_keylist(JID.from_string(jid))
             return True
 
         from openpgp.gtk.wizard import KeyWizard
+
         KeyWizard(self, account, chat_control)
         return False
 
     @staticmethod
     def encryption_state(_chat_control, state):
-        state['authenticated'] = True
-        state['visible'] = True
+        state["authenticated"] = True
+        state["visible"] = True
 
     @staticmethod
     def on_encryption_button_clicked(chat_control):
@@ -155,6 +156,7 @@ class OpenPGPPlugin(GajimPlugin):
         jid = chat_control.contact.jid
 
         from openpgp.gtk.key import KeyDialog
+
         KeyDialog(account, jid, app.window)
 
     def _before_sendmessage(self, chat_control):
@@ -162,20 +164,21 @@ class OpenPGPPlugin(GajimPlugin):
         jid = chat_control.contact.jid
         client = app.get_client(account)
 
-        if not client.get_module('OpenPGP').secret_key_available:
+        if not client.get_module("OpenPGP").secret_key_available:
             from openpgp.gtk.wizard import KeyWizard
+
             KeyWizard(self, account, chat_control)
             return
 
-        keys = client.get_module('OpenPGP').get_keys(jid)
+        keys = client.get_module("OpenPGP").get_keys(jid)
         if not keys:
             SimpleDialog(
-                _('Not Trusted'),
-                _('There was no trusted and active key found'))
+                _("Not Trusted"), _("There was no trusted and active key found")
+            )
             chat_control.sendmessage = False
 
     @staticmethod
     def _encrypt_message(client, obj, callback):
-        if not client.get_module('OpenPGP').secret_key_available:
+        if not client.get_module("OpenPGP").secret_key_available:
             return
-        client.get_module('OpenPGP').encrypt_message(obj, callback)
+        client.get_module("OpenPGP").encrypt_message(obj, callback)

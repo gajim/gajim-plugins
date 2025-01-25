@@ -14,11 +14,14 @@
 # You should have received a copy of the GNU General Public License
 # along with PGP Gajim Plugin. If not, see <http://www.gnu.org/licenses/>.
 
+
 class SignError(Exception):
     pass
 
+
 class KeyMismatch(Exception):
     pass
+
 
 class NoKeyIdFound(Exception):
     pass

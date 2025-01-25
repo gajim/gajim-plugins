@@ -19,8 +19,8 @@ from __future__ import annotations
 
 import json
 import logging
-from pathlib import Path
 from functools import partial
+from pathlib import Path
 
 from gi.repository import GLib
 from gi.repository import GObject
@@ -29,28 +29,27 @@ from gi.repository import Gtk
 from gajim.common import configpaths
 from gajim.common import types
 from gajim.common.modules.contacts import GroupchatContact
-
 from gajim.gtk.message_input import MessageInputTextView
-
 from gajim.plugins import GajimPlugin
 from gajim.plugins.plugins_i18n import _
 
 from acronyms_expander.acronyms import DEFAULT_DATA
 from acronyms_expander.gtk.config import ConfigDialog
 
-log = logging.getLogger('gajim.p.acronyms')
+log = logging.getLogger("gajim.p.acronyms")
 
 
 class AcronymsExpanderPlugin(GajimPlugin):
     def init(self) -> None:
-        self.description = _('Replaces acronyms (or other strings) '
-                             'with given expansions/substitutes.')
+        self.description = _(
+            "Replaces acronyms (or other strings) " "with given expansions/substitutes."
+        )
         self.config_dialog = partial(ConfigDialog, self)
         self.gui_extension_points = {
-            'message_input': (self._connect, None),
-            'switch_contact': (self._on_switch_contact, None)
+            "message_input": (self._connect, None),
+            "switch_contact": (self._on_switch_contact, None),
         }
-        self._invoker = ' '
+        self._invoker = " "
         self._replace_in_progress = False
 
         self._signal_id = None
@@ -62,42 +61,40 @@ class AcronymsExpanderPlugin(GajimPlugin):
     @staticmethod
     def _load_acronyms() -> dict[str, str]:
         try:
-            data_path = Path(configpaths.get('PLUGINS_DATA'))
+            data_path = Path(configpaths.get("PLUGINS_DATA"))
         except KeyError:
             # PLUGINS_DATA was added in 1.0.99.1
             return DEFAULT_DATA
 
-        path = data_path / 'acronyms' / 'acronyms'
+        path = data_path / "acronyms" / "acronyms"
         if not path.exists():
             return DEFAULT_DATA
 
-        with path.open('r') as file:
+        with path.open("r") as file:
             acronyms = json.load(file)
         return acronyms
 
     @staticmethod
     def _save_acronyms(acronyms: dict[str, str]) -> None:
         try:
-            data_path = Path(configpaths.get('PLUGINS_DATA'))
+            data_path = Path(configpaths.get("PLUGINS_DATA"))
         except KeyError:
             # PLUGINS_DATA was added in 1.0.99.1
             return
 
-        path = data_path / 'acronyms'
+        path = data_path / "acronyms"
         if not path.exists():
             path.mkdir(parents=True)
 
-        filepath = path / 'acronyms'
-        with filepath.open('w') as file:
+        filepath = path / "acronyms"
+        with filepath.open("w") as file:
             json.dump(acronyms, file)
 
     def set_acronyms(self, acronyms: dict[str, str]) -> None:
         self.acronyms = acronyms
         self._save_acronyms(acronyms)
 
-    def _on_buffer_changed(self,
-                           message_input: MessageInputTextView
-                           ) -> None:
+    def _on_buffer_changed(self, message_input: MessageInputTextView) -> None:
 
         if self._contact is None:
             # If no chat has been activated yet
@@ -126,9 +123,8 @@ class AcronymsExpanderPlugin(GajimPlugin):
         # Get to the start of the last word
         # word_start_iter = insert_iter.copy()
         result = insert_iter.backward_search(
-            self._invoker,
-            Gtk.TextSearchFlags.VISIBLE_ONLY,
-            None)
+            self._invoker, Gtk.TextSearchFlags.VISIBLE_ONLY, None
+        )
 
         if result is None:
             word_start_iter = buffer_.get_start_iter()
@@ -140,31 +136,30 @@ class AcronymsExpanderPlugin(GajimPlugin):
 
         if isinstance(self._contact, GroupchatContact):
             if last_word in self._contact.get_user_nicknames():
-                log.info('Groupchat participant has same nick as acronym')
+                log.info("Groupchat participant has same nick as acronym")
                 return
 
         if self._contact.is_pm_contact:
             if last_word == self._contact.name:
-                log.info('Contact name equals acronym')
+                log.info("Contact name equals acronym")
                 return
 
         substitute = self.acronyms.get(last_word)
         if substitute is None:
-            log.debug('%s not an acronym', last_word)
+            log.debug("%s not an acronym", last_word)
             return
 
-        GLib.idle_add(self._replace_text,
-                      buffer_,
-                      word_start_iter,
-                      insert_iter,
-                      substitute)
+        GLib.idle_add(
+            self._replace_text, buffer_, word_start_iter, insert_iter, substitute
+        )
 
-    def _replace_text(self,
-                      buffer_: Gtk.TextBuffer,
-                      start: Gtk.TextIter,
-                      end: Gtk.TextIter,
-                      substitute: str
-                      ) -> None:
+    def _replace_text(
+        self,
+        buffer_: Gtk.TextBuffer,
+        start: Gtk.TextIter,
+        end: Gtk.TextIter,
+        substitute: str,
+    ) -> None:
 
         self._replace_in_progress = True
         buffer_.delete(start, end)
@@ -176,11 +171,12 @@ class AcronymsExpanderPlugin(GajimPlugin):
 
     def _connect(self, message_input: MessageInputTextView) -> None:
         self._message_input = message_input
-        self._signal_id = message_input.connect('buffer-changed', self._on_buffer_changed)
+        self._signal_id = message_input.connect(
+            "buffer-changed", self._on_buffer_changed
+        )
 
     def deactivate(self) -> None:
         assert self._message_input is not None
         assert self._signal_id is not None
-        if GObject.signal_handler_is_connected(
-                self._message_input, self._signal_id):
+        if GObject.signal_handler_is_connected(self._message_input, self._signal_id):
             self._message_input.disconnect(self._signal_id)

@@ -16,12 +16,11 @@
 
 from pathlib import Path
 
-from gi.repository import Gtk
 from gi.repository import Gdk
 from gi.repository import GLib
+from gi.repository import Gtk
 
 from gajim.common import app
-
 from gajim.plugins.helpers import get_builder
 from gajim.plugins.plugins_i18n import _
 
@@ -33,14 +32,14 @@ class PGPConfigDialog(Gtk.ApplicationWindow):
         Gtk.ApplicationWindow.__init__(self)
         self.set_application(app.app)
         self.set_show_menubar(False)
-        self.set_title(_('PGP Configuration'))
+        self.set_title(_("PGP Configuration"))
         self.set_transient_for(parent)
         self.set_resizable(True)
         self.set_type_hint(Gdk.WindowTypeHint.DIALOG)
         self.set_destroy_with_parent(True)
 
         ui_path = Path(__file__).parent
-        self._ui = get_builder(ui_path.resolve() / 'config.ui')
+        self._ui = get_builder(ui_path.resolve() / "config.ui")
 
         self.add(self._ui.config_box)
 
@@ -50,9 +49,7 @@ class PGPConfigDialog(Gtk.ApplicationWindow):
 
         for account in app.settings.get_active_accounts():
             page = Page(plugin, account)
-            self._ui.stack.add_titled(page,
-                                      account,
-                                      app.get_account_label(account))
+            self._ui.stack.add_titled(page, account, app.get_account_label(account))
 
         self.show_all()
 
@@ -64,11 +61,11 @@ class Page(Gtk.Box):
         self._client = app.get_client(account)
         self._plugin = plugin
         self._label = Gtk.Label()
-        self._button = Gtk.Button(label=_('Assign Key'))
-        self._button.get_style_context().add_class('suggested-action')
+        self._button = Gtk.Button(label=_("Assign Key"))
+        self._button.get_style_context().add_class("suggested-action")
         self._button.set_halign(Gtk.Align.CENTER)
         self._button.set_margin_top(18)
-        self._button.connect('clicked', self._on_assign)
+        self._button.connect("clicked", self._on_assign)
 
         self._load_key()
         self.add(self._label)
@@ -76,34 +73,34 @@ class Page(Gtk.Box):
         self.show_all()
 
     def _on_assign(self, _button):
-        backend = self._client.get_module('PGPLegacy').pgp_backend
+        backend = self._client.get_module("PGPLegacy").pgp_backend
         secret_keys = backend.get_keys(secret=True)
         dialog = ChooseGPGKeyDialog(secret_keys, self.get_toplevel())
-        dialog.connect('response', self._on_response)
+        dialog.connect("response", self._on_response)
 
     def _load_key(self):
-        key_data = self._client.get_module('PGPLegacy').get_own_key_data()
+        key_data = self._client.get_module("PGPLegacy").get_own_key_data()
         if key_data is None:
             self._set_key(None)
         else:
-            self._set_key((key_data['key_id'], key_data['key_user']))
+            self._set_key((key_data["key_id"], key_data["key_user"]))
 
     def _on_response(self, dialog, response):
         if response != Gtk.ResponseType.OK:
             return
 
         if dialog.selected_key is None:
-            self._client.get_module('PGPLegacy').set_own_key_data(None)
+            self._client.get_module("PGPLegacy").set_own_key_data(None)
             self._set_key(None)
         else:
-            self._client.get_module('PGPLegacy').set_own_key_data(
-                dialog.selected_key)
+            self._client.get_module("PGPLegacy").set_own_key_data(dialog.selected_key)
             self._set_key(dialog.selected_key)
 
     def _set_key(self, key_data):
         if key_data is None:
-            self._label.set_text(_('No key assigned'))
+            self._label.set_text(_("No key assigned"))
         else:
             key_id, key_user = key_data
-            self._label.set_markup('<b><tt>%s</tt> %s</b>' % \
-                (key_id, GLib.markup_escape_text(key_user)))
+            self._label.set_markup(
+                "<b><tt>%s</tt> %s</b>" % (key_id, GLib.markup_escape_text(key_user))
+            )

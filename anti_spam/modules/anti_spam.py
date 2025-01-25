@@ -32,7 +32,7 @@ from gajim.common.events import MessageSent
 from gajim.common.modules.base import BaseModule
 
 # Module name
-name = 'AntiSpam'
+name = "AntiSpam"
 zeroconf = False
 
 
@@ -41,21 +41,23 @@ class AntiSpam(BaseModule):
         BaseModule.__init__(self, client, plugin=True)
 
         self.handlers = [
-            StanzaHandler(name='message',
-                          callback=self._message_received,
-                          priority=48),
-            StanzaHandler(name='presence',
-                          callback=self._subscribe_received,
-                          typ='subscribe',
-                          priority=48),
+            StanzaHandler(name="message", callback=self._message_received, priority=48),
+            StanzaHandler(
+                name="presence",
+                callback=self._subscribe_received,
+                typ="subscribe",
+                priority=48,
+            ),
         ]
 
-        self.register_events([
-            ('message-sent', ged.GUI2, self._on_message_sent),
-        ])
+        self.register_events(
+            [
+                ("message-sent", ged.GUI2, self._on_message_sent),
+            ]
+        )
 
         for plugin in app.plugin_manager.plugins:
-            if plugin.manifest.short_name == 'anti_spam':
+            if plugin.manifest.short_name == "anti_spam":
                 self._config = plugin.config
 
         self._contacted_jids: set[JID] = set()
@@ -66,11 +68,9 @@ class AntiSpam(BaseModule):
         # This set contains JIDs of all outgoing chats.
         self._contacted_jids.add(event.jid)
 
-    def _message_received(self,
-                          _con: Client,
-                          _stanza: Message,
-                          properties: MessageProperties
-                          ) -> None:
+    def _message_received(
+        self, _con: Client, _stanza: Message, properties: MessageProperties
+    ) -> None:
 
         if properties.is_sent_carbon:
             # Another device already sent a message
@@ -86,33 +86,35 @@ class AntiSpam(BaseModule):
             raise NodeProcessed
 
         msg_from = properties.jid
-        limit = cast(int, self._config['msgtxt_limit'])
+        limit = cast(int, self._config["msgtxt_limit"])
         if limit > 0 and len(msg_body) > limit:
-            self._log.info('Discarded message from %s: message '
-                           'length exceeded' % msg_from)
+            self._log.info(
+                "Discarded message from %s: message " "length exceeded" % msg_from
+            )
             raise NodeProcessed
 
-        if self._config['disable_xhtml_muc'] and properties.type.is_groupchat:
+        if self._config["disable_xhtml_muc"] and properties.type.is_groupchat:
             properties.xhtml = None
-            self._log.info('Stripped message from %s: message '
-                           'contained XHTML' % msg_from)
+            self._log.info(
+                "Stripped message from %s: message " "contained XHTML" % msg_from
+            )
 
-        if self._config['disable_xhtml_pm'] and properties.is_muc_pm:
+        if self._config["disable_xhtml_pm"] and properties.is_muc_pm:
             properties.xhtml = None
-            self._log.info('Stripped message from %s: message '
-                           'contained XHTML' % msg_from)
+            self._log.info(
+                "Stripped message from %s: message " "contained XHTML" % msg_from
+            )
 
     def _ask_question(self, properties: MessageProperties) -> bool:
-        answer = cast(str, self._config['msgtxt_answer'])
+        answer = cast(str, self._config["msgtxt_answer"])
         if len(answer) == 0:
             return False
 
         is_muc_pm = properties.is_muc_pm
-        if is_muc_pm and not self._config['antispam_for_conference']:
+        if is_muc_pm and not self._config["antispam_for_conference"]:
             return False
 
-        if (properties.type.value not in ('chat', 'normal') or
-                properties.is_mam_message):
+        if properties.type.value not in ("chat", "normal") or properties.is_mam_message:
             return False
 
         assert properties.jid
@@ -126,15 +128,15 @@ class AntiSpam(BaseModule):
 
         # If we receive a PM or a message from an unknown user, our anti spam
         # question will silently be sent in the background
-        whitelist = cast(list[str], self._config['whitelist'])
+        whitelist = cast(list[str], self._config["whitelist"])
         if str(msg_from) in whitelist:
             return False
 
-        roster_item = self._client.get_module('Roster').get_item(msg_from)
+        roster_item = self._client.get_module("Roster").get_item(msg_from)
 
         if is_muc_pm or roster_item is None:
             assert properties.body
-            if answer in properties.body.split('\n'):
+            if answer in properties.body.split("\n"):
                 if str(msg_from) not in whitelist:
                     whitelist.append(str(msg_from))
                     # We need to explicitly save, because 'append' does not
@@ -146,26 +148,24 @@ class AntiSpam(BaseModule):
         return False
 
     def _send_question(self, properties: MessageProperties, jid: JID) -> None:
-        message = 'Anti Spam Question: %s' % self._config['msgtxt_question']
+        message = "Anti Spam Question: %s" % self._config["msgtxt_question"]
         stanza = Message(to=jid, body=message, typ=properties.type.value)
         self._client.connection.send_stanza(stanza)
-        self._log.info('Anti spam question sent to %s', jid)
+        self._log.info("Anti spam question sent to %s", jid)
 
-    def _subscribe_received(self,
-                            _con: Client,
-                            _stanza: Presence,
-                            properties: PresenceProperties
-                            ) -> None:
+    def _subscribe_received(
+        self, _con: Client, _stanza: Presence, properties: PresenceProperties
+    ) -> None:
 
         msg_from = properties.jid
-        block_sub = self._config['block_subscription_requests']
-        roster_item = self._client.get_module('Roster').get_item(msg_from)
+        block_sub = self._config["block_subscription_requests"]
+        roster_item = self._client.get_module("Roster").get_item(msg_from)
 
         if block_sub and roster_item is None:
-            self._client.get_module('Presence').unsubscribed(msg_from)
-            self._log.info('Denied subscription request from %s' % msg_from)
+            self._client.get_module("Presence").unsubscribed(msg_from)
+            self._log.info("Denied subscription request from %s" % msg_from)
             raise NodeProcessed
 
 
 def get_instance(*args: Any, **kwargs: Any) -> tuple[AntiSpam, str]:
-    return AntiSpam(*args, **kwargs), 'AntiSpam'
+    return AntiSpam(*args, **kwargs), "AntiSpam"
