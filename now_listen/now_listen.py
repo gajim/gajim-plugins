@@ -22,7 +22,7 @@ import sys
 from functools import partial
 
 from gi.repository import Gdk
-from gi.repository import GObject
+from gi.repository import Gtk
 from nbxmpp.structs import TuneData
 
 from gajim.common.dbus.music_track import MusicTrackListener
@@ -37,7 +37,6 @@ log = logging.getLogger("gajim.p.now_listen")
 
 class NowListenPlugin(GajimPlugin):
     def init(self) -> None:
-        # pylint: disable=attribute-defined-outside-init
         self.description = _(
             "Copy tune info of playing music to conversation "
             "input box at cursor position (Alt + N)"
@@ -55,19 +54,17 @@ class NowListenPlugin(GajimPlugin):
             self.available_text = _("Plugin only available for Linux")
             self.activatable = False
 
-        self._signal_id = None
-        self._message_input = None
+        self._controller = Gtk.EventControllerKey()
+        self._controller.connect("key-pressed", self._on_key_pressed)
+
+        self._message_input = cast(MessageInputTextView, None)
 
     def deactivate(self) -> None:
-        assert self._message_input is not None
-        assert self._signal_id is not None
-        if GObject.signal_handler_is_connected(self._message_input, self._signal_id):
-            self._message_input.disconnect(self._signal_id)
+        self._message_input.remove_controller(self._controller)
 
     def _on_message_input_created(self, message_input: MessageInputTextView) -> None:
-
+        message_input.add_controller(self._controller)
         self._message_input = message_input
-        self._signal_id = message_input.connect("key-press-event", self._on_key_press)
 
     def _get_tune_string(self, info: TuneData) -> str:
         format_string = cast(str, self.config["format_string"])
@@ -76,23 +73,26 @@ class NowListenPlugin(GajimPlugin):
         )
         return tune_string
 
-    def _on_key_press(
-        self, textview: MessageInputTextView, event: Gdk.EventKey
+    def _on_key_pressed(
+        self,
+        _event_controller_key: Gtk.EventControllerKey,
+        keyval: int,
+        _keycode: int,
+        state: Gdk.ModifierType,
     ) -> bool:
 
-        # Insert text to message input box, at cursor position
-        if event.keyval != Gdk.KEY_n:
-            return False
-        if not event.state & Gdk.ModifierType.MOD1_MASK:  # ALT+N
-            return False
+        if keyval != Gdk.KEY_n:
+            return Gdk.EVENT_PROPAGATE
+
+        if not state & Gdk.ModifierType.ALT_MASK:
+            return Gdk.EVENT_PROPAGATE
 
         info = MusicTrackListener.get().current_tune
         if info is None:
             log.info("No current tune available")
-            return False
+            return Gdk.EVENT_PROPAGATE
 
         tune_string = self._get_tune_string(info)
 
-        textview.get_buffer().insert_at_cursor(tune_string)
-        textview.grab_focus()
-        return True
+        self._message_input.get_buffer().insert_at_cursor(tune_string)
+        return Gdk.EVENT_STOP
