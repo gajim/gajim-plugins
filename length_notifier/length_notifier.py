@@ -87,15 +87,16 @@ class LengthNotifierPlugin(GajimPlugin):
 
     def deactivate(self) -> None:
         assert self._counter is not None
+        assert self._actions_box_widget is not None
         self._counter.reset()
-        self._counter.destroy()
+        self._actions_box_widget.remove(self._counter)
         del self._counter
 
     def _create_counter(self) -> None:
         assert self._message_action_box is not None
         assert self._actions_box_widget is not None
         self._counter = Counter(self._message_action_box.msg_textview, self.config)
-        self._actions_box_widget.pack_end(self._counter, False, False, 0)
+        self._actions_box_widget.append(self._counter)
 
     def _message_actions_box_created(
         self, message_actions_box: MessageActionsBox, gtk_box: Gtk.Box
@@ -123,7 +124,7 @@ class Counter(Gtk.Label):
 
         Gtk.Label.__init__(self)
         self.set_tooltip_text(_("Number of typed characters"))
-        self.get_style_context().add_class("dim-label")
+        self.add_css_class("dim-label")
 
         self._config = config
 
@@ -133,20 +134,26 @@ class Counter(Gtk.Label):
         self._color = None
         self._inverted_color = None
 
+        self._provider = Gtk.CssProvider()
         self._textview = message_input
+
+        context = self._textview.get_style_context()
+        context.add_provider(self._provider, Gtk.STYLE_PROVIDER_PRIORITY_USER)
+
         self._signal_id = self._textview.connect("buffer-changed", self._update)
-        self._provider = None
 
         self._parse_config()
         self._set_css()
 
-        self.connect("destroy", self._on_destroy)
-
-    def _on_destroy(self, _widget: Counter) -> None:
-        self._context.remove_class("length-warning")
-        assert self._signal_id is not None
+    def do_unroot(self) -> None:
         if GObject.signal_handler_is_connected(self._textview, self._signal_id):
             self._textview.disconnect(self._signal_id)
+
+        self._textview.get_style_context().remove_provider(self._provider)
+
+        del self._config
+        del self._provider
+        del self._textview
         app.check_finalize(self)
 
     def _parse_config(self) -> None:
@@ -161,11 +168,9 @@ class Counter(Gtk.Label):
         self._inverted_color = f"rgb({red}, {green}, {blue})"
 
     def _set_css(self) -> None:
-        self._context = self._textview.get_style_context()
-        if self._provider is not None:
-            self._context.remove_provider(self._provider)
+
         css = """
-        .length-warning > * {
+        .length-warning {
             color: %s;
             background-color: %s;
         }
@@ -173,9 +178,8 @@ class Counter(Gtk.Label):
             self._inverted_color,
             self._color,
         )
-        self._provider = Gtk.CssProvider()
-        self._provider.load_from_data(bytes(css.encode()))
-        self._context.add_provider(self._provider, Gtk.STYLE_PROVIDER_PRIORITY_USER)
+
+        self._provider.load_from_string(css)
 
     def _set_count(self, count: int) -> None:
         self.set_label(str(count))
@@ -196,22 +200,20 @@ class Counter(Gtk.Label):
             len_text = len(text)
             self._set_count(len_text)
             if len_text > self._max_length:
-                self._context.add_class("length-warning")
+                self._textview.add_css_class("length-warning")
             else:
-                self._context.remove_class("length-warning")
+                self._textview.remove_css_class("length-warning")
         else:
             self._set_count(0)
-            self._context.remove_class("length-warning")
+            self._textview.remove_css_class("length-warning")
+
         return False
 
     def _jid_allowed(self, current_jid: JID) -> bool:
-        jids = self._config["JIDS"]
-        if isinstance(jids, list):
-            # Gajim 1.0 stored this as list[str]
-            jids = ",".join(jids)
-
+        jids = cast(str, self._config["JIDS"])
         assert isinstance(jids, str)
-        if not len(jids):
+
+        if not jids:
             # Not restricted to any JIDs
             return True
 
@@ -241,6 +243,6 @@ class Counter(Gtk.Label):
         self._update()
 
     def reset(self) -> None:
-        self._context.remove_class("length-warning")
+        self._textview.remove_css_class("length-warning")
         self._parse_config()
         self._set_css()
