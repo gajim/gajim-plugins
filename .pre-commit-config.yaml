@@ -1,20 +1,21 @@
 repos:
   - repo: https://github.com/charliermarsh/ruff-pre-commit
-    rev: v0.3.2
+    rev: v0.6.8
     hooks:
       - id: ruff
+        stages: [manual]
+        exclude: ".githooks/"
 
   - repo: https://github.com/codespell-project/codespell
-    rev: v2.2.6
+    rev: v2.4.0
     hooks:
     - id: codespell
       pass_filenames: false
-      args: ["--skip=*.svg,*.po,./acronyms_expander/acronyms.py", "-L=fpr,"]
       additional_dependencies:
         - tomli
 
   - repo: https://github.com/RobertCraigie/pyright-python
-    rev: v1.1.361
+    rev: v1.1.382
     hooks:
     - id: pyright
       pass_filenames: false
@@ -27,3 +28,16 @@ repos:
     rev: 5.13.2
     hooks:
       - id: isort
+
+  - repo: https://github.com/psf/black
+    # The `refs/tags/<tag>:refs/tags/<tag>` is needed for black's required-version to work:
+    # https://github.com/psf/black/issues/2493#issuecomment-1081987650
+    rev: 'refs/tags/24.10.0:refs/tags/24.10.0'
+    hooks:
+      - id: black
+
+  - repo: https://github.com/fsfe/reuse-tool
+    rev: v5.0.2
+    hooks:
+      - id: reuse
+        stages: [manual]
