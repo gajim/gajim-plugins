@@ -1,9 +1,21 @@
 image: plugins-master:latest
 
 stages:
+  - test
   - deploy
 
 deploy-plugins:
   stage: deploy
   script:
     - python3 .ci/deploy.py
+
+test-isort:
+  image: gajim-test
+  stage: test
+  rules:
+    - changes:
+      - "**/*.py"
+  script:
+    - isort --version
+    - isort --check .
+  interruptible: true
