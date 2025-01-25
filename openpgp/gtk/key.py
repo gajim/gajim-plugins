@@ -122,14 +122,13 @@ class KeyRow(Gtk.ListBoxRow):
             self.destroy()
 
         ConfirmationDialog(
-            _('Delete'),
-            _('Delete Public Key'),
+            _('Delete Public Key?'),
             _('This will permanently delete this public key'),
             [DialogButton.make('Cancel'),
              DialogButton.make('Remove',
                                text=_('Delete'),
                                callback=_remove)],
-            transient_for=self.get_toplevel()).show()
+        ).show()
 
     def set_trust(self, trust):
         icon_name, tooltip, css_class = TRUST_DATA[trust]
