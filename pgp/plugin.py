@@ -25,7 +25,7 @@ from gajim.common import ged
 from gajim.plugins import GajimPlugin
 from gajim.plugins.plugins_i18n import _
 
-from gajim.gtk.dialogs import ErrorDialog
+from gajim.gtk.dialogs import SimpleDialog
 from gajim.gtk.dialogs import DialogButton
 from gajim.gtk.dialogs import ConfirmationCheckDialog
 
@@ -138,7 +138,6 @@ class PGPPlugin(GajimPlugin):
     def _on_not_trusted(event):
         ConfirmationCheckDialog(
             _('Untrusted PGP key'),
-            _('Untrusted PGP key'),
             _('The PGP key used to encrypt this chat is not '
               'trusted. Do you really want to encrypt this '
               'message?'),
@@ -159,7 +158,7 @@ class PGPPlugin(GajimPlugin):
         try:
             valid = client.get_module('PGPLegacy').has_valid_key_assigned(jid)
         except KeyMismatch as announced_key_id:
-            ErrorDialog(
+            SimpleDialog(
                 _('PGP Key mismatch'),
                 _('The contact\'s key (%s) <b>does not match</b> the key '
                   'assigned in Gajim.') % announced_key_id)
@@ -167,12 +166,12 @@ class PGPPlugin(GajimPlugin):
             return
 
         if not valid:
-            ErrorDialog(
+            SimpleDialog(
                 _('No OpenPGP key assigned'),
                 _('No OpenPGP key is assigned to this contact.'))
             chat_control.sendmessage = False
         elif client.get_module('PGPLegacy').get_own_key_data() is None:
-            ErrorDialog(
+            SimpleDialog(
                 _('No OpenPGP key assigned'),
                 _('No OpenPGP key is assigned to your account.'))
             chat_control.sendmessage = False
@@ -186,4 +185,4 @@ class PGPPlugin(GajimPlugin):
 
     @staticmethod
     def _on_file_encryption_error(event):
-        ErrorDialog(_('Error'), event.error)
+        SimpleDialog(_('Error'), event.error)
