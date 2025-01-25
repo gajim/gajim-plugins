@@ -27,7 +27,7 @@ from nbxmpp.structs import DiscoInfo
 from gajim.common import app
 from gajim.common.modules.contacts import GroupchatParticipant
 from gajim.common.modules.contacts import ResourceContact
-from gajim.gtk.util import load_icon_surface
+from gajim.gtk.util import get_icon_theme
 from gajim.plugins import GajimPlugin
 from gajim.plugins.plugins_i18n import _
 
@@ -39,12 +39,12 @@ log = logging.getLogger("gajim.p.client_icons")
 
 class ClientsIconsPlugin(GajimPlugin):
     def init(self) -> None:
-        self.description = _("Shows client icons in your contact list" " in a tooltip.")
+        self.description = _("Show client icons in the contact tooltip.")
         self.config_dialog = partial(ClientsIconsConfigDialog, self)
 
         self.gui_extension_points = {
-            "roster_tooltip_resource_populate": (
-                self._roster_tooltip_resource_populate,
+            "contact_tooltip_resource_populate": (
+                self._contact_tooltip_resource_populate,
                 None,
             ),
         }
@@ -53,9 +53,8 @@ class ClientsIconsPlugin(GajimPlugin):
             "show_unknown_icon": (True, ""),
         }
 
-        _icon_theme = Gtk.IconTheme.get_default()
-        if _icon_theme is not None:
-            _icon_theme.append_search_path(str(Path(__file__).parent))
+        icon_theme = get_icon_theme()
+        icon_theme.add_search_path(str(Path(__file__).parent))
 
     @staticmethod
     def _get_client_identity_name(disco_info: DiscoInfo) -> str | None:
@@ -80,10 +79,11 @@ class ClientsIconsPlugin(GajimPlugin):
 
         log.info("Lookup client: %s %s", client_name, node)
         client_name, icon_name = clients.get_data(client_name, node)
-        surface = load_icon_surface(icon_name)
-        return Gtk.Image.new_from_surface(surface), client_name
+        image = Gtk.Image.new_from_icon_name(icon_name)
+        image.set_pixel_size(16)
+        return image, client_name
 
-    def _roster_tooltip_resource_populate(
+    def _contact_tooltip_resource_populate(
         self, resource_box: Gtk.Box, resource: ResourceContact
     ) -> None:
 
@@ -95,11 +95,12 @@ class ClientsIconsPlugin(GajimPlugin):
         label = Gtk.Label(label=client_name)
 
         client_box = Gtk.Box(
-            orientation=Gtk.Orientation.HORIZONTAL, halign=Gtk.Align.START
+            orientation=Gtk.Orientation.HORIZONTAL,
+            halign=Gtk.Align.START,
+            spacing=6,
         )
-        client_box.add(image)
-        client_box.add(label)
+        client_box.append(image)
+        client_box.append(label)
 
-        children = resource_box.get_children()
-        box = cast(Gtk.Box, children[0])
-        box.add(client_box)
+        box = cast(Gtk.Box, resource_box.get_first_child())
+        box.append(client_box)
