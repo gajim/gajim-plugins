@@ -9,4 +9,4 @@ def parse_uid(uid: str, compat=False) -> str:
     if compat and "<xmpp:" in uid and uid.endswith(">"):
         return uid[:-1].split("<xmpp:", maxsplit=1)[1]
 
-    raise ValueError("Uknown UID format: %s" % uid)
+    raise ValueError("Unknown UID format: %s" % uid)

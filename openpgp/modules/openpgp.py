@@ -254,7 +254,7 @@ class OpenPGP(BaseModule):
 
         keys = self._contacts.get_keys(remote_jid)
         if not keys:
-            log.error("Droping stanza to %s, because we have no key", remote_jid)
+            log.error("Dropping stanza to %s, because we have no key", remote_jid)
             return
 
         keys += self._contacts.get_keys(self.own_jid)
