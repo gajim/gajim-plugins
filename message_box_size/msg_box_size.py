@@ -29,7 +29,6 @@ from message_box_size.config_dialog import MessageBoxSizeConfigDialog
 
 class MsgBoxSizePlugin(GajimPlugin):
     def init(self) -> None:
-        # pylint: disable=attribute-defined-outside-init
         self.description = _("Allows you to adjust the height of the message input.")
         self.config_dialog = partial(MessageBoxSizeConfigDialog, self)
         self.gui_extension_points = {
@@ -41,7 +40,6 @@ class MsgBoxSizePlugin(GajimPlugin):
         self._message_input = None
 
     def _on_message_input_created(self, message_input: MessageInputTextView) -> None:
-
         self._message_input = message_input
         self.set_input_height(cast(int, self.config["HEIGHT"]))
 
