@@ -1,1 +1,1 @@
-from .clients_icons import ClientsIconsPlugin  # pyright: ignore
+from .clients_icons import ClientsIconsPlugin  # pyright: ignore # noqa: F401
