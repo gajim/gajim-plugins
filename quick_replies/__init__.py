@@ -1,1 +1,1 @@
-from .plugin import QuickRepliesPlugin  # type: ignore  # noqa: F401
+from .plugin import QuickRepliesPlugin  # pyright: ignore

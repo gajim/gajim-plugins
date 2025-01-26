@@ -1,1 +1,1 @@
-from .length_notifier import LengthNotifierPlugin  # type: ignore  # noqa: F401
+from .length_notifier import LengthNotifierPlugin  # pyright: ignore

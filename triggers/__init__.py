@@ -1,1 +1,1 @@
-from .triggers import Triggers  # type: ignore  # noqa: F401
+from .triggers import Triggers  # pyright: ignore

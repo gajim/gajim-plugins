@@ -1,3 +1,1 @@
-from .plugins_translations import (  # type: ignore  # noqa: F401
-    PluginsTranslationsPlugin,
-)
+from .plugins_translations import PluginsTranslationsPlugin  # pyright: ignore

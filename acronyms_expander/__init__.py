@@ -1,1 +1,1 @@
-from .acronyms_expander import AcronymsExpanderPlugin  # type: ignore  # noqa: F401
+from .acronyms_expander import AcronymsExpanderPlugin  # pyright: ignore

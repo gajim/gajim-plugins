@@ -1,1 +1,1 @@
-from .pgpplugin import OpenPGPPlugin  # type: ignore # noqa: F401
+from .pgpplugin import OpenPGPPlugin  # pyright: ignore

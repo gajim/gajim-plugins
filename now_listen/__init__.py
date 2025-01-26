@@ -1,1 +1,1 @@
-from .now_listen import NowListenPlugin  # type: ignore  # noqa: F401
+from .now_listen import NowListenPlugin  # pyright: ignore

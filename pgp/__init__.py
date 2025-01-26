@@ -1,1 +1,1 @@
-from .plugin import PGPPlugin  # type: ignore # noqa: F401
+from .plugin import PGPPlugin  # pyright: ignore
