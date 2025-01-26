@@ -222,14 +222,14 @@ class Counter(Gtk.Label):
             try:
                 address = JID.from_string(allowed_jid.strip())
             except Exception as error:
-                log.error("Error parsing JID: %s (%s)" % (error, allowed_jid))
+                log.error("Error parsing JID: %s (%s)", error, allowed_jid)
                 continue
             if address.is_domain:
                 if current_jid.domain == address:
-                    log.debug("Show counter for Domain %s" % address)
+                    log.debug("Show counter for Domain %s", address)
                     return True
             if current_jid == address:
-                log.debug("Show counter for JID %s" % address)
+                log.debug("Show counter for JID %s", address)
                 return True
         return False
 
