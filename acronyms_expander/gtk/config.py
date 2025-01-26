@@ -16,6 +16,7 @@
 
 from __future__ import annotations
 
+from typing import cast
 from typing import TYPE_CHECKING
 
 from pathlib import Path
@@ -28,6 +29,17 @@ from gajim.plugins.plugins_i18n import _
 
 if TYPE_CHECKING:
     from ..acronyms_expander import AcronymsExpanderPlugin
+
+
+class ConfigBuilder(Gtk.Builder):
+    acronyms_store: Gtk.ListStore
+    box: Gtk.Box
+    acronyms_treeview: Gtk.TreeView
+    selection: Gtk.TreeSelection
+    acronym_renderer: Gtk.CellRendererText
+    sub_renderer: Gtk.CellRendererText
+    add_button: Gtk.Button
+    remove_button: Gtk.Button
 
 
 class ConfigDialog(GajimAppWindow):
@@ -44,7 +56,9 @@ class ConfigDialog(GajimAppWindow):
         )
 
         ui_path = Path(__file__).parent
-        self._ui = get_builder(str(ui_path.resolve() / "config.ui"))
+        self._ui = cast(
+            ConfigBuilder, get_builder(str(ui_path.resolve() / "config.ui"))
+        )
 
         self._plugin = plugin
 
@@ -89,17 +103,25 @@ class ConfigDialog(GajimAppWindow):
         self._ui.selection.select_path(row.path)
 
     def _on_remove_clicked(self, _button: Gtk.Button) -> None:
-        model, paths = self._ui.selection.get_selected_rows()
+        res = self._ui.selection.get_selected_rows()
+        if res is None:
+            return
+
+        model, paths = res
         references: list[Gtk.TreeRowReference] = []
         for path in paths:
-            references.append(Gtk.TreeRowReference.new(model, path))
+            ref = Gtk.TreeRowReference.new(model, path)
+            assert ref is not None
+            references.append(ref)
 
         for ref in references:
-            iter_ = model.get_iter(ref.get_path())
+            path = ref.get_path()
+            assert path is not None
+            iter_ = model.get_iter(path)
             self._ui.acronyms_store.remove(iter_)
 
     def _on_close_request(self, win: Gtk.ApplicationWindow) -> None:
-        acronyms = {}
+        acronyms: dict[str, str] = {}
         for row in self._ui.acronyms_store:
             acronym, substitute = row
             if not acronym or not substitute:
