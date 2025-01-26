@@ -15,8 +15,6 @@
 
 from __future__ import annotations
 
-from typing import cast
-
 import json
 from functools import partial
 from pathlib import Path
@@ -28,7 +26,6 @@ from gi.repository import Gtk
 from gajim.common import app
 from gajim.common import configpaths
 from gajim.gtk.message_actions_box import MessageActionsBox
-from gajim.gtk.message_input import MessageInputTextView
 from gajim.plugins import GajimPlugin
 from gajim.plugins.plugins_i18n import _
 
@@ -43,21 +40,55 @@ class QuickRepliesPlugin(GajimPlugin):
         self.gui_extension_points = {
             "message_actions_box": (self._message_actions_box_created, None),
         }
-        self._button = None
-        self.quick_replies = self._load_quick_replies()
+
+        self._quick_replies = self._load_quick_replies()
+
+        self._actions: list[Gio.SimpleAction] = []
+        self._button = self._create_menu_button()
+
+        self._create_actions()
+
+    def _create_menu_button(self) -> Gtk.MenuButton:
+        plugin_path = Path(__file__).parent
+        img_path = plugin_path.resolve() / "quick_replies.png"
+        img = Gtk.Image.new_from_file(str(img_path))
+
+        button = Gtk.MenuButton(
+            tooltip_text=_("Quick Replies"),
+            menu_model=self._create_menu(),
+            child=img,
+        )
+
+        return button
+
+    def _create_actions(self) -> None:
+        actions = [
+            ("quick-reply", "s"),
+            ("quick-reply-config", None),
+        ]
+
+        for action, variant_type in actions:
+            if variant_type is not None:
+                variant_type = GLib.VariantType(variant_type)
+            act = Gio.SimpleAction.new(action, variant_type)
+            act.connect("activate", self._on_action)
+            self._actions.append(act)
 
     def deactivate(self) -> None:
-        assert self._button is not None
-        self._button.destroy()
-        del self._button
+        self._action_box.remove(self._button)
+        for action in self._actions:
+            app.window.remove_action(action.get_name())
 
     def _message_actions_box_created(
         self, message_actions_box: MessageActionsBox, gtk_box: Gtk.Box
     ) -> None:
 
-        self._button = QuickRepliesButton(self, message_actions_box.msg_textview)
-        gtk_box.pack_start(self._button, False, False, 0)
-        self._button.show()
+        for action in self._actions:
+            app.window.add_action(action)
+
+        self._message_input = message_actions_box.msg_textview
+        self._action_box = gtk_box
+        self._action_box.append(self._button)
 
     @staticmethod
     def _load_quick_replies() -> list[str]:
@@ -92,77 +123,33 @@ class QuickRepliesPlugin(GajimPlugin):
             json.dump(quick_replies, file)
 
     def set_quick_replies(self, quick_replies: list[str]) -> None:
-        self.quick_replies = quick_replies
+        self._quick_replies = quick_replies
         self._save_quick_replies(quick_replies)
-        assert self._button is not None
-        self._button.update_menu()
+        self._button.set_menu_model(self._create_menu())
 
+    def get_quick_replies(self) -> list[str]:
+        return self._quick_replies
 
-class QuickRepliesButton(Gtk.MenuButton):
-    def __init__(
-        self, plugin: QuickRepliesPlugin, message_input: MessageInputTextView
-    ) -> None:
+    def _create_menu(self) -> Gio.Menu:
+        menu = Gio.Menu()
+        menu.append_item(
+            Gio.MenuItem.new(_("Manage Replies…"), "win.quick-reply-config")
+        )
 
-        Gtk.MenuButton.__init__(self)
-        self.get_style_context().add_class("chatcontrol-actionbar-button")
-        self.set_property("relief", Gtk.ReliefStyle.NONE)
-        self.set_can_focus(False)
-        plugin_path = Path(__file__).parent
-        img_path = plugin_path.resolve() / "quick_replies.png"
-        img = Gtk.Image.new_from_file(str(img_path))
-        self.set_image(img)
-        self.set_tooltip_text(_("Quick Replies"))
+        for reply in self._quick_replies:
+            menu.append_item(Gio.MenuItem.new(reply[:15], f"win.quick-reply::{reply}"))
 
-        self._plugin = plugin
-        self._message_input = message_input
+        return menu
 
-        self._menu = Gio.Menu()
-        self._popover = Gtk.Popover()
-        self._popover.bind_model(self._menu)
-        self.set_popover(self._popover)
+    def _on_action(
+        self, action: Gio.SimpleAction, param: GLib.Variant | None
+    ) -> int | None:
+        name = action.get_name()
+        if name == "quick-reply-config":
+            self.config_dialog(app.window)
 
-        self.update_menu()
-
-    def update_menu(self) -> None:
-        self._menu.remove_all()
-
-        # Add config item
-        action_data = GLib.Variant("s", "plugin-configuration")
-        menu_item = Gio.MenuItem()
-        menu_item.set_label(_("Manage Replies…"))
-        menu_item.set_attribute_value("action-data", action_data)
-        self._menu.append_item(menu_item)
-
-        # Add quick replies
-        for reply in self._plugin.quick_replies:
-            assert isinstance(reply, str)
-            action_data = GLib.Variant("s", reply)
-            menu_item = Gio.MenuItem()
-            menu_item.set_label(reply)
-            menu_item.set_attribute_value("action-data", action_data)
-            self._menu.append_item(menu_item)
-
-        menu_buttons = self._get_menu_buttons()
-        for button in menu_buttons:
-            button.connect(
-                "clicked", self._on_button_clicked, menu_buttons.index(button)
-            )
-
-    def _on_button_clicked(self, _button: Gtk.MenuButton, index: int) -> None:
-        variant = self._menu.get_item_attribute_value(index, "action-data")
-        if variant.get_string() == "plugin-configuration":
-            self._popover.popdown()
-            self._plugin.config_dialog(app.window)
-            return
-
-        message_buffer = self._message_input.get_buffer()
-        message_buffer.insert_at_cursor(variant.get_string().rstrip() + " ")
-        self._popover.popdown()
-        self._message_input.grab_focus()
-
-    def _get_menu_buttons(self) -> list[Gtk.ModelButton]:
-        stack = cast(Gtk.Stack, self._popover.get_children()[0])
-        menu_section_box = cast(Gtk.Box, stack.get_children()[0])
-        box = cast(Gtk.Box, menu_section_box.get_children()[0])
-        items = cast(list[Gtk.ModelButton], box.get_children())
-        return items
+        elif name == "quick-reply":
+            assert param is not None
+            message_buffer = self._message_input.get_buffer()
+            message_buffer.insert_at_cursor(param.get_string().rstrip() + " ")
+            self._message_input.grab_focus()

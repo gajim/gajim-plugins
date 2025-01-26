@@ -16,15 +16,13 @@
 
 from __future__ import annotations
 
-from typing import Any
 from typing import TYPE_CHECKING
 
 from pathlib import Path
 
-from gi.repository import Gdk
 from gi.repository import Gtk
 
-from gajim.common import app
+from gajim.gtk.widgets import GajimAppWindow
 from gajim.plugins.helpers import get_builder
 from gajim.plugins.plugins_i18n import _
 
@@ -32,34 +30,48 @@ if TYPE_CHECKING:
     from ..plugin import QuickRepliesPlugin
 
 
-class ConfigDialog(Gtk.ApplicationWindow):
+class ConfigDialog(GajimAppWindow):
     def __init__(self, plugin: QuickRepliesPlugin, transient: Gtk.Window) -> None:
 
-        Gtk.ApplicationWindow.__init__(self)
-        self.set_application(app.app)
-        self.set_show_menubar(False)
-        self.set_title(_("Quick Replies Configuration"))
-        self.set_transient_for(transient)
-        self.set_default_size(400, 400)
-        self.set_type_hint(Gdk.WindowTypeHint.DIALOG)
-        self.set_modal(True)
-        self.set_destroy_with_parent(True)
+        GajimAppWindow.__init__(
+            self,
+            name="QuickRepliesConfigDialog",
+            title=_("Quick Replies Configuration"),
+            default_width=400,
+            default_height=400,
+            transient_for=transient,
+            modal=True,
+        )
 
         ui_path = Path(__file__).parent
         self._ui = get_builder(str(ui_path.resolve() / "config.ui"))
 
         self._plugin = plugin
 
-        self.add(self._ui.box)
+        self.set_child(self._ui.box)
 
-        self._fill_list()
-        self.show_all()
+        self._load_replies()
 
-        self._ui.connect_signals(self)
-        self.connect("destroy", self._on_destroy)
+        self._connect(self._ui.add_button, "clicked", self._on_add_clicked)
+        self._connect(self._ui.remove_button, "clicked", self._on_remove_clicked)
+        self._connect(self._ui.cellrenderer, "edited", self._on_reply_edited)
+        self._connect(self.window, "close-request", self._on_close_request)
 
-    def _fill_list(self) -> None:
-        for reply in self._plugin.quick_replies:
+        self.show()
+
+    def _cleanup(self) -> None:
+        del self._plugin
+
+    def _on_close_request(self, win: Gtk.ApplicationWindow) -> None:
+        replies: list[str] = []
+        for row in self._ui.replies_store:
+            if row[0] == "":
+                continue
+            replies.append(row[0])
+        self._plugin.set_quick_replies(replies)
+
+    def _load_replies(self) -> None:
+        for reply in self._plugin.get_quick_replies():
             self._ui.replies_store.append([reply])
 
     def _on_reply_edited(
@@ -85,11 +97,3 @@ class ConfigDialog(Gtk.ApplicationWindow):
         for ref in references:
             iter_ = model.get_iter(ref.get_path())
             self._ui.replies_store.remove(iter_)
-
-    def _on_destroy(self, *args: Any) -> None:
-        replies: list[str] = []
-        for row in self._ui.replies_store:
-            if row[0] == "":
-                continue
-            replies.append(row[0])
-        self._plugin.set_quick_replies(replies)
