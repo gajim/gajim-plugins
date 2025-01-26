@@ -29,7 +29,7 @@ class ClientData:
     variations: dict[str, str] | None = None
 
 
-def get_variations(client_name: str) -> list[str]:
+def get_variations(client_name: str | None) -> list[str]:
     # get_variations('Conversation Legacy 1.2.3')
     #
     # Returns List:
