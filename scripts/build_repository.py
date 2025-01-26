@@ -1,12 +1,12 @@
 # Keep this file python 3.7 compatible because it is executed on the server
 
 from typing import Any
-from typing import Iterator
 
 import json
 import logging
 import sys
 from collections import defaultdict
+from collections.abc import Iterator
 from pathlib import Path
 from zipfile import ZipFile
 

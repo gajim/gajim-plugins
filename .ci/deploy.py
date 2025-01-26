@@ -1,9 +1,10 @@
 from typing import Any
-from typing import Iterator
 
 import functools
 import json
 import os
+import sys
+from collections.abc import Iterator
 from ftplib import FTP_TLS
 from pathlib import Path
 from shutil import make_archive
@@ -44,12 +45,11 @@ console = Console()
 def ftp_connection(func: Any) -> Any:
     @functools.wraps(func)
     def func_wrapper(*args: Any) -> None:
-        ftp = FTP_TLS(FTP_URL, FTP_USER, FTP_PASS)
+        ftp = FTP_TLS(FTP_URL, FTP_USER, FTP_PASS)  # noqa: S321
         console.print("Successfully connected to", FTP_URL)
         func(ftp, *args)
         ftp.quit()
         console.print("Quit")
-        return
 
     return func_wrapper
 
@@ -61,7 +61,7 @@ def is_manifest_valid(manifest: ManifestT) -> bool:
 
 def download_package_index() -> ManifestT:
     console.print("Download package index")
-    r = requests.get(PACKAGE_INDEX_URL)
+    r = requests.get(PACKAGE_INDEX_URL, timeout=30)
     if r.status_code == 404:
         return {}
 
@@ -81,7 +81,7 @@ def find_plugins_to_publish(index: PackageIndexT) -> list[PackageT]:
     packages_to_publish: list[PackageT] = []
     for manifest, path in iter_manifests():
         if not is_manifest_valid(manifest):
-            exit("Invalid manifest found")
+            sys.exit("Invalid manifest found")
 
         short_name = manifest["short_name"]
         version = manifest["version"]
