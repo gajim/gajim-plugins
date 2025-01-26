@@ -158,6 +158,7 @@ class AntiSpam(BaseModule):
     ) -> None:
 
         msg_from = properties.jid
+        assert msg_from is not None
         block_sub = self._config["block_subscription_requests"]
         roster_item = self._client.get_module("Roster").get_item(msg_from)
 
