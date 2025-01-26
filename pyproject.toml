@@ -16,6 +16,15 @@ reportUnnecessaryTypeIgnoreComment = "error"
 reportPropertyTypeMismatch = "error"
 reportMissingModuleSource = "none"
 
+exclude = [
+  "**/__pycache__",
+  ".git",
+  ".venv",
+  "openpgp/*",
+  "pgp/*",
+  "triggers/*",
+]
+
 [tool.ruff]
 line-length = 88
 target-version = "py310"
