@@ -16,6 +16,7 @@
 
 from __future__ import annotations
 
+from typing import cast
 from typing import TYPE_CHECKING
 
 from pathlib import Path
@@ -28,6 +29,16 @@ from gajim.plugins.plugins_i18n import _
 
 if TYPE_CHECKING:
     from ..plugin import QuickRepliesPlugin
+
+
+class ConfigBuilder(Gtk.Builder):
+    replies_store: Gtk.ListStore
+    box: Gtk.Box
+    replies_treeview: Gtk.TreeView
+    selection: Gtk.TreeSelection
+    cellrenderer: Gtk.CellRendererText
+    add_button: Gtk.Button
+    remove_button: Gtk.Button
 
 
 class ConfigDialog(GajimAppWindow):
@@ -44,7 +55,9 @@ class ConfigDialog(GajimAppWindow):
         )
 
         ui_path = Path(__file__).parent
-        self._ui = get_builder(str(ui_path.resolve() / "config.ui"))
+        self._ui = cast(
+            ConfigBuilder, get_builder(str(ui_path.resolve() / "config.ui"))
+        )
 
         self._plugin = plugin
 
@@ -89,11 +102,19 @@ class ConfigDialog(GajimAppWindow):
         self._ui.selection.select_path(row.path)
 
     def _on_remove_clicked(self, _button: Gtk.Button) -> None:
-        model, paths = self._ui.selection.get_selected_rows()
+        res = self._ui.selection.get_selected_rows()
+        if res is None:
+            return
+
+        model, paths = res
         references: list[Gtk.TreeRowReference] = []
         for path in paths:
-            references.append(Gtk.TreeRowReference.new(model, path))
+            ref = Gtk.TreeRowReference.new(model, path)
+            assert ref is not None
+            references.append(ref)
 
         for ref in references:
-            iter_ = model.get_iter(ref.get_path())
+            path = ref.get_path()
+            assert path is not None
+            iter_ = model.get_iter(path)
             self._ui.replies_store.remove(iter_)
