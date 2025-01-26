@@ -22,7 +22,6 @@ exclude = [
   ".venv",
   "openpgp/*",
   "pgp/*",
-  "triggers/*",
 ]
 
 [tool.ruff]

@@ -15,10 +15,10 @@
 from __future__ import annotations
 
 from typing import Any
-from typing import Callable
 from typing import TYPE_CHECKING
 
 import logging
+from collections.abc import Callable
 from dataclasses import dataclass
 
 if TYPE_CHECKING:
@@ -31,7 +31,7 @@ log = logging.getLogger("gajim.p.triggers")
 def log_result(func: Callable[..., Any]) -> Callable[..., bool]:
     def wrapper(self: Any, event: ProcessableEventsT, rule: RuleT):
         res = func(self, event, rule)
-        log.info(f"{event.name} -> {func.__name__} -> {res}")
+        log.info("%s -> %s -> %s", event.name, func.__name__, res)
         return res
 
     return wrapper

@@ -18,12 +18,11 @@
 from __future__ import annotations
 
 from typing import Any
-from typing import Callable
 from typing import cast
-from typing import Union
 
 import logging
 import subprocess
+from collections.abc import Callable
 from functools import partial
 
 from nbxmpp.protocol import JID
@@ -36,6 +35,7 @@ from gajim.common.events import MessageReceived
 from gajim.common.events import Notification
 from gajim.common.events import PresenceReceived
 from gajim.common.helpers import play_sound_file
+from gajim.common.modules.contacts import BareContact
 from gajim.plugins import GajimPlugin
 from gajim.plugins.plugins_i18n import _
 
@@ -45,7 +45,7 @@ from triggers.util import RuleResult
 
 log = logging.getLogger("gajim.p.triggers")
 
-ProcessableEventsT = Union[MessageReceived, Notification, PresenceReceived]
+ProcessableEventsT = MessageReceived | Notification | PresenceReceived
 RuleT = dict[str, Any]
 
 
@@ -106,14 +106,14 @@ class Triggers(GajimPlugin):
 
         result = RuleResult()
 
-        rules_num = [int(item) for item in self.config.keys()]
+        rules_num = [int(item) for item in self.config]
         rules_num.sort()
         to_remove: list[int] = []
         for num in rules_num:
             rule = cast(RuleT, self.config[str(num)])
             if check_func(event, rule):
                 apply_func(result, rule)
-                if "one_shot" in rule and rule["one_shot"]:
+                if rule.get("one_shot"):
                     to_remove.append(num)
 
         decal = 0
@@ -136,31 +136,26 @@ class Triggers(GajimPlugin):
     def _check_rule_apply_msg_received(
         self, event: MessageReceived, rule: RuleT
     ) -> bool:
-
         return self._check_rule_all("message_received", event, rule)
 
     @log_result
     def _check_rule_apply_connected(self, event: PresenceReceived, rule: RuleT) -> bool:
-
         return self._check_rule_all("contact_connected", event, rule)
 
     @log_result
     def _check_rule_apply_disconnected(
         self, event: PresenceReceived, rule: RuleT
     ) -> bool:
-
         return self._check_rule_all("contact_disconnected", event, rule)
 
     @log_result
     def _check_rule_apply_status_changed(
         self, event: PresenceReceived, rule: RuleT
     ) -> bool:
-
         return self._check_rule_all("contact_status_change", event, rule)
 
     @log_result
     def _check_rule_apply_notification(self, event: Notification, rule: RuleT) -> bool:
-
         # Check notification type
         notif_type = ""
         if event.type == "incoming-message":
@@ -181,7 +176,6 @@ class Triggers(GajimPlugin):
     def _check_rule_all(
         self, notif_type: str, event: ProcessableEventsT, rule: RuleT
     ) -> bool:
-
         # Check notification type
         if rule["event"] != notif_type:
             return False
@@ -207,7 +201,7 @@ class Triggers(GajimPlugin):
 
     @log_result
     def _check_rule_recipients(self, event: ProcessableEventsT, rule: RuleT) -> bool:
-
+        assert event.jid is not None
         rule_recipients = [t.strip() for t in rule["recipients"].split(",")]
         if rule["recipient_type"] == "groupchat":
             if event.jid in rule_recipients:
@@ -218,7 +212,11 @@ class Triggers(GajimPlugin):
         client = app.get_client(event.account)
         contact = client.get_module("Contacts").get_contact(event.jid)
 
-        if contact.is_groupchat or not contact.is_in_roster:
+        if contact.is_groupchat:
+            return False
+
+        assert isinstance(contact, BareContact)
+        if not contact.is_in_roster:
             return False
 
         group_found = False
@@ -233,7 +231,6 @@ class Triggers(GajimPlugin):
 
     @log_result
     def _check_rule_status(self, event: ProcessableEventsT, rule: RuleT) -> bool:
-
         rule_statuses = rule["status"].split()
         client = app.get_client(event.account)
         if rule["status"] != "all" and client.status not in rule_statuses:
@@ -243,7 +240,6 @@ class Triggers(GajimPlugin):
 
     @log_result
     def _check_rule_tab_opened(self, event: ProcessableEventsT, rule: RuleT) -> bool:
-
         if rule["tab_opened"] == "both":
             return True
         tab_opened = False
@@ -259,7 +255,6 @@ class Triggers(GajimPlugin):
 
     @log_result
     def _check_rule_has_focus(self, event: ProcessableEventsT, rule: RuleT) -> bool:
-
         if rule["has_focus"] == "both":
             return True
         if rule["tab_opened"] == "no":
@@ -311,7 +306,7 @@ class Triggers(GajimPlugin):
 
         if result.command is not None:
             try:
-                subprocess.Popen(f"{result.command} &", shell=True).wait()
+                subprocess.Popen(f"{result.command} &", shell=True).wait()  # noqa: S602
             except Exception:
                 pass
 
