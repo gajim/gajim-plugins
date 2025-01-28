@@ -20,6 +20,8 @@
 # You should have received a copy of the GNU General Public License
 # along with PGP Gajim Plugin. If not, see <http://www.gnu.org/licenses/>.
 
+from typing import Any
+
 import logging
 import os
 from functools import lru_cache
@@ -37,15 +39,14 @@ if logger.getEffectiveLevel() == logging.DEBUG:
     logger.setLevel(logging.DEBUG)
 
 
-class PGP(gnupg.GPG, metaclass=Singleton):
-    def __init__(self, binary, encoding=None):
-        super().__init__(gpgbinary=binary, use_agent=True)
+class PGP(metaclass=Singleton):
+    def __init__(self) -> None:
+        self._pgp = gnupg.GPG(use_agent=True)
+        self._pgp.decode_errors = "replace"
 
-        if encoding is not None:
-            self.encoding = encoding
-        self.decode_errors = "replace"
-
-    def encrypt(self, payload, recipients, always_trust=False):
+    def encrypt(
+        self, data: str, recipients: list[str], always_trust: bool = False
+    ) -> tuple[str, str]:
         if not always_trust:
             # check that we'll be able to encrypt
             result = self.get_key(recipients[0])
@@ -53,8 +54,8 @@ class PGP(gnupg.GPG, metaclass=Singleton):
                 if key["trust"] not in ("f", "u"):
                     return "", "NOT_TRUSTED " + key["keyid"][-8:]
 
-        result = super().encrypt(
-            payload.encode("utf8"), recipients, always_trust=always_trust
+        result = self._pgp.encrypt(
+            data.encode("utf8"), recipients, always_trust=always_trust
         )
 
         if result.ok:
@@ -64,23 +65,25 @@ class PGP(gnupg.GPG, metaclass=Singleton):
 
         return self._strip_header_footer(str(result)), error
 
-    def decrypt(self, payload):
-        data = self._add_header_footer(payload, "MESSAGE")
-        result = super().decrypt(data.encode("utf8"))
+    def encrypt_file(self, file: Any, recipients: list[str]) -> gnupg.Crypt:
+        return self._pgp.encrypt_file(file, recipients)
 
-        return result.data.decode("utf8")
+    def decrypt(self, payload: str) -> str:
+        data = self._add_header_footer(payload, "MESSAGE")
+        result = self._pgp.decrypt(data.encode("utf8"))
+        return str(result)
 
     @lru_cache(maxsize=8)
-    def sign(self, payload, key_id):
+    def sign(self, payload: str | None, key_id: str) -> str:
         if payload is None:
             payload = ""
-        result = super().sign(payload.encode("utf8"), keyid=key_id, detach=True)
+        result = self._pgp.sign(payload.encode("utf8"), keyid=key_id, detach=True)
 
-        if result.fingerprint:
+        if result:
             return self._strip_header_footer(str(result))
         raise SignError(result.status)
 
-    def verify(self, payload, signed):
+    def verify(self, payload: str | None, signed: str) -> str | None:
         # Hash algorithm is not transferred in the signed
         # presence stanza so try all algorithms.
         # Text name for hash algorithms from RFC 4880 - section 9.4
@@ -99,24 +102,30 @@ class PGP(gnupg.GPG, metaclass=Singleton):
                     self._add_header_footer(signed, "SIGNATURE"),
                 ]
             )
-            result = super().verify(data.encode("utf8"))
-            if result.valid:
+            result = self._pgp.verify(data.encode("utf8"))
+            if result:
                 return result.fingerprint
 
-    def get_key(self, key_id):
-        return super().list_keys(keys=[key_id])
+    def get_key(self, key_id: str) -> gnupg.ListKeys:
+        return self._pgp.list_keys(keys=[key_id])
 
-    def get_keys(self, secret=False):
-        keys = {}
-        result = super().list_keys(secret=secret)
+    def get_keys(self, secret: bool = False) -> dict[str, str]:
+        keys: dict[str, str] = {}
+        result = self._pgp.list_keys(secret=secret)
 
         for key in result:
             # Take first not empty uid
             keys[key["fingerprint"]] = next(uid for uid in key["uids"] if uid)
         return keys
 
+    def list_keys(
+        self, secret: bool = False, keys: list[str] | None = None, sigs: bool = False
+    ) -> list[str]:
+        res = self._pgp.list_keys(secret, keys, sigs)
+        return res.fingerprints
+
     @staticmethod
-    def _strip_header_footer(data):
+    def _strip_header_footer(data: str) -> str:
         """
         Remove header and footer from data
         """
@@ -137,7 +146,7 @@ class PGP(gnupg.GPG, metaclass=Singleton):
         return line
 
     @staticmethod
-    def _add_header_footer(data, type_):
+    def _add_header_footer(data: str, type_: str) -> str:
         """
         Add header and footer from data
         """

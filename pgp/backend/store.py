@@ -14,8 +14,16 @@
 # You should have received a copy of the GNU General Public License
 # along with PGP Gajim Plugin. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import annotations
+
+from typing import Any
+
 import json
+import logging
+from collections.abc import Callable
 from pathlib import Path
+
+from nbxmpp import JID
 
 from gajim.common import app
 from gajim.common import configpaths
@@ -28,7 +36,13 @@ class KeyResolveError(Exception):
 
 
 class KeyStore:
-    def __init__(self, account, own_jid, log, list_keys_func):
+    def __init__(
+        self,
+        account: str,
+        own_jid: JID,
+        log: logging.LoggerAdapter[Any],
+        list_keys_func: Callable[..., list[str]],
+    ) -> None:
         self._list_keys_func = list_keys_func
         self._log = log
         self._account = account
@@ -66,15 +80,15 @@ class KeyStore:
             self._save_store()
 
     @staticmethod
-    def _empty_store():
+    def _empty_store() -> dict[str, Any]:
         return {
             "_version": CURRENT_STORE_VERSION,
             "own_key_data": None,
             "contact_key_data": {},
         }
 
-    def _migrate_v1_store(self):
-        keys = {}
+    def _migrate_v1_store(self) -> None:
+        keys: dict[str, str] = {}
         attached_keys = app.settings.get_account_setting(
             self._account, "attached_gpg_keys"
         )
@@ -98,7 +112,7 @@ class KeyStore:
         )
         self._log.info("Migration from store v1 was successful")
 
-    def _migrate_v2_store(self):
+    def _migrate_v2_store(self) -> None:
         own_key_data = self.get_own_key_data()
         if own_key_data is not None:
             own_key_id, own_key_user = (
@@ -111,7 +125,7 @@ class KeyStore:
             except KeyResolveError:
                 self._set_own_key_data_nosync(None)
 
-        prune_list = []
+        prune_list: list[str] = []
 
         for dict_key, key_data in self._store["contact_key_data"].items():
             try:
@@ -125,20 +139,18 @@ class KeyStore:
         self._store["_version"] = CURRENT_STORE_VERSION
         self._log.info("Migration from store v2 was successful")
 
-    def _save_store(self):
+    def _save_store(self) -> None:
         with self._store_path.open("w") as file:
             json.dump(self._store, file)
 
-    def _get_dict_key(self, jid):
+    def _get_dict_key(self, jid: str) -> str:
         return "%s-%s" % (self._account, jid)
 
-    def _resolve_short_id(self, short_id, has_secret=False):
-        candidates = self._list_keys_func(
-            secret=has_secret, keys=(short_id,)
-        ).fingerprints
-        if len(candidates) == 1:
-            return candidates[0]
-        elif len(candidates) > 1:
+    def _resolve_short_id(self, short_id: str, has_secret: bool = False) -> str:
+        fingerprints = self._list_keys_func(secret=has_secret, keys=[short_id])
+        if len(fingerprints) == 1:
+            return fingerprints[0]
+        elif len(fingerprints) > 1:
             self._log.critical(
                 "Key collision during migration. Key ID is %s. Removing binding...",
                 repr(short_id),
@@ -150,11 +162,11 @@ class KeyStore:
             )
         raise KeyResolveError
 
-    def set_own_key_data(self, key_data):
+    def set_own_key_data(self, key_data: tuple[str, str] | None) -> None:
         self._set_own_key_data_nosync(key_data)
         self._save_store()
 
-    def _set_own_key_data_nosync(self, key_data):
+    def _set_own_key_data_nosync(self, key_data: tuple[str, str] | None) -> None:
         if key_data is None:
             self._store["own_key_data"] = None
         else:
@@ -163,19 +175,21 @@ class KeyStore:
                 "key_user": key_data[1],
             }
 
-    def get_own_key_data(self):
+    def get_own_key_data(self) -> dict[str, str] | None:
         return self._store["own_key_data"]
 
-    def get_contact_key_data(self, jid):
+    def get_contact_key_data(self, jid: str) -> dict[str, str] | None:
         key_ids = self._store["contact_key_data"]
         dict_key = self._get_dict_key(jid)
         return key_ids.get(dict_key)
 
-    def set_contact_key_data(self, jid, key_data):
+    def set_contact_key_data(self, jid: str, key_data: tuple[str, str] | None) -> None:
         self._set_contact_key_data_nosync(jid, key_data)
         self._save_store()
 
-    def _set_contact_key_data_nosync(self, jid, key_data):
+    def _set_contact_key_data_nosync(
+        self, jid: str, key_data: tuple[str, str] | None
+    ) -> None:
         key_ids = self._store["contact_key_data"]
         dict_key = self._get_dict_key(jid)
         if key_data is None:

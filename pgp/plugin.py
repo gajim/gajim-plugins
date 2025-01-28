@@ -14,15 +14,25 @@
 # You should have received a copy of the GNU General Public License
 # along with PGP Gajim Plugin. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import annotations
+
+from typing import Any
+from typing import TYPE_CHECKING
+
 import logging
 import os
-import sys
+from collections.abc import Callable
 from functools import partial
 
+import nbxmpp
 from packaging.version import Version as V
 
 from gajim.common import app
 from gajim.common import ged
+from gajim.common.client import Client
+from gajim.common.modules.httpupload import HTTPFileTransfer
+from gajim.common.structs import OutgoingMessage
+from gajim.gtk.control import ChatControl
 from gajim.gtk.dialogs import ConfirmationCheckDialog
 from gajim.gtk.dialogs import DialogButton
 from gajim.gtk.dialogs import SimpleDialog
@@ -32,17 +42,23 @@ from gajim.plugins.plugins_i18n import _
 from pgp.exceptions import KeyMismatch
 from pgp.gtk.config import PGPConfigDialog
 from pgp.gtk.key import KeyDialog
+from pgp.modules.events import PGPFileEncryptionError
+from pgp.modules.events import PGPNotTrusted
 from pgp.modules.util import find_gpg
+
+if TYPE_CHECKING:
+    from pgp.modules.pgp_legacy import PGPLegacy
+
 
 ENCRYPTION_NAME = "PGP"
 
 log = logging.getLogger("gajim.p.pgplegacy")
 
-ERROR = False
+error = False
 try:
     import gnupg
 except ImportError:
-    ERROR = True
+    error = True
 else:
     # We need https://pypi.python.org/pypi/python-gnupg
     # but https://pypi.python.org/pypi/gnupg shares the same package name.
@@ -53,31 +69,27 @@ else:
     v_gnupg = gnupg.__version__
     if V(v_gnupg) < V("0.3.8") or V(v_gnupg) > V("1.0.0"):
         log.error("We need python-gnupg >= 0.3.8")
-        ERROR = True
+        error = True
 
-ERROR_MSG = None
+error_msg = None
 BINARY = find_gpg()
 log.info("Found GPG executable: %s", BINARY)
 
-if BINARY is None or ERROR:
+if BINARY is None or error:
     if os.name == "nt":
-        ERROR_MSG = _("Please install GnuPG / Gpg4win")
+        error_msg = _("Please install GnuPG / Gpg4win")
     else:
-        ERROR_MSG = _("Please install python-gnupg and gnupg")
-else:
-    from pgp.backend.python_gnupg import PGP
-    from pgp.modules import pgp_legacy
+        error_msg = _("Please install python-gnupg and gnupg")
 
 
 class PGPPlugin(GajimPlugin):
 
     def init(self):
-        # pylint: disable=attribute-defined-outside-init
         self.description = _("PGP encryption as per XEP-0027")
-        if ERROR_MSG:
+        if error_msg:
             self.activatable = False
             self.config_dialog = None
-            self.available_text = ERROR_MSG
+            self.available_text = error_msg
             return
 
         self.config_dialog = partial(PGPConfigDialog, self)
@@ -91,6 +103,8 @@ class PGPPlugin(GajimPlugin):
             "send-presence": (self._on_send_presence, None),
         }
 
+        from pgp.modules import pgp_legacy
+
         self.modules = [pgp_legacy]
 
         self.events_handlers = {
@@ -98,40 +112,36 @@ class PGPPlugin(GajimPlugin):
             "pgp-file-encryption-error": (ged.PRECORE, self._on_file_encryption_error),
         }
 
-        encoding = "utf8" if sys.platform == "linux" else None
-        self._pgp = PGP(BINARY, encoding=encoding)
-
     @staticmethod
-    def get_pgp_module(account):
-        return app.get_client(account).get_module("PGPLegacy")
+    def get_pgp_module(account: str) -> PGPLegacy:
+        return app.get_client(account).get_module("PGPLegacy")  # pyright: ignore
 
-    def activate(self):
+    def activate(self) -> None:
         pass
 
-    def deactivate(self):
+    def deactivate(self) -> None:
         pass
 
-    @staticmethod
-    def activate_encryption(_chat_control):
+    def activate_encryption(self, chat_control: ChatControl) -> bool:
         return True
 
     @staticmethod
-    def _encryption_state(_chat_control, state):
+    def _encryption_state(_chat_control: ChatControl, state: dict[str, Any]) -> None:
         state["visible"] = True
         state["authenticated"] = True
 
-    def _on_encryption_dialog(self, chat_control):
+    def _on_encryption_dialog(self, chat_control: ChatControl):
         account = chat_control.account
         jid = chat_control.contact.jid
         transient = app.window
         KeyDialog(self, account, jid, transient)
 
-    def _on_send_presence(self, account, presence):
+    def _on_send_presence(self, account: str, presence: nbxmpp.Presence) -> None:
         status = presence.getStatus()
         self.get_pgp_module(account).sign_presence(presence, status)
 
     @staticmethod
-    def _on_not_trusted(event):
+    def _on_not_trusted(event: PGPNotTrusted) -> None:
         ConfirmationCheckDialog(
             _("Untrusted PGP key"),
             _(
@@ -148,14 +158,14 @@ class PGPPlugin(GajimPlugin):
             ],
         ).show()
 
-    @staticmethod
-    def _before_sendmessage(chat_control):
+    def _before_sendmessage(self, chat_control: ChatControl) -> None:
         account = chat_control.account
-        jid = chat_control.contact.jid
+        jid = str(chat_control.contact.jid)
 
-        client = app.get_client(account)
+        pgp = self.get_pgp_module(account)
+
         try:
-            valid = client.get_module("PGPLegacy").has_valid_key_assigned(jid)
+            valid = pgp.has_valid_key_assigned(jid)
         except KeyMismatch as announced_key_id:
             SimpleDialog(
                 _("PGP Key mismatch"),
@@ -174,20 +184,29 @@ class PGPPlugin(GajimPlugin):
                 _("No OpenPGP key is assigned to this contact."),
             )
             chat_control.sendmessage = False
-        elif client.get_module("PGPLegacy").get_own_key_data() is None:
+        elif pgp.get_own_key_data() is None:
             SimpleDialog(
                 _("No OpenPGP key assigned"),
                 _("No OpenPGP key is assigned to your account."),
             )
             chat_control.sendmessage = False
 
-    def _encrypt_message(self, conn, event, callback):
-        account = conn.name
-        self.get_pgp_module(account).encrypt_message(conn, event, callback)
+    def _encrypt_message(
+        self,
+        client: Client,
+        event: OutgoingMessage,
+        callback: Callable[[OutgoingMessage], None],
+    ):
+        self.get_pgp_module(client.name).encrypt_message(client, event, callback)
 
-    def encrypt_file(self, file, account, callback):
-        self.get_pgp_module(account).encrypt_file(file, callback)
+    def encrypt_file(
+        self,
+        transfer: HTTPFileTransfer,
+        account: str,
+        callback: Callable[[HTTPFileTransfer], None],
+    ):
+        self.get_pgp_module(account).encrypt_file(transfer, callback)
 
     @staticmethod
-    def _on_file_encryption_error(event):
+    def _on_file_encryption_error(event: PGPFileEncryptionError) -> None:
         SimpleDialog(_("Error"), event.error)

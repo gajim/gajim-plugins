@@ -17,23 +17,24 @@
 import os
 import subprocess
 
+from nbxmpp import Message
 from nbxmpp.namespaces import Namespace
 
 
-def prepare_stanza(stanza, plaintext):
+def prepare_stanza(stanza: Message, plaintext: str) -> None:
     delete_nodes(stanza, "encrypted", Namespace.ENCRYPTED)
     delete_nodes(stanza, "body")
     stanza.setBody(plaintext)
 
 
-def delete_nodes(stanza, name, namespace=None):
+def delete_nodes(stanza: Message, name: str, namespace: str | None = None) -> None:
     nodes = stanza.getTags(name, namespace=namespace)
     for node in nodes:
         stanza.delChild(node)
 
 
 def find_gpg():
-    def _search(binary):
+    def _search(binary: str) -> bool:
         if os.name == "nt":
             gpg_cmd = binary + " -h >nul 2>&1"
         else:
