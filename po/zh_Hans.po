@@ -2,13 +2,15 @@
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the Gajim Plugins package.
 # Tommy He <lovenemesis@gmail.com>, 2022, 2023.
+# Footboard3754 <Footboard3754@users.noreply.translate.gajim.org>, 2023, 2024, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Gajim Plugins\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-15 14:16+0000\n"
-"PO-Revision-Date: 2023-05-29 08:56+0000\n"
-"Last-Translator: Tommy He <lovenemesis@gmail.com>\n"
+"POT-Creation-Date: 2025-02-08 22:46+0100\n"
+"PO-Revision-Date: 2025-01-26 02:12+0000\n"
+"Last-Translator: Footboard3754 <Footboard3754@users.noreply.translate.gajim."
+"org>\n"
 "Language-Team: Chinese (Simplified) <https://translate.gajim.org/projects/"
 "gajim-plugins/master/zh_Hans/>\n"
 "Language: zh_Hans\n"
@@ -16,9 +18,8 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 4.11.2\n"
+"X-Generator: Weblate 5.0\n"
 
-#. #' Means number
 msgid "#"
 msgstr "#"
 
@@ -33,19 +34,16 @@ msgid "Acronyms Configuration"
 msgstr "缩略词配置"
 
 msgid "Actions"
-msgstr "动作"
+msgstr "操作"
 
 msgid "Add"
 msgstr "添加"
 
 msgid "Adds a menu with customizable quick replies"
-msgstr "添加一个包含自定义快捷回复的菜单"
+msgstr "添加可自定义快捷回复的菜单"
 
 msgid "Advanced"
 msgstr "高级"
-
-msgid "All Files"
-msgstr "所有文件"
 
 msgid "All statuses"
 msgstr "所有状态"
@@ -56,19 +54,19 @@ msgstr "允许您调整消息输入的高度。"
 msgid ""
 "Allows you to block various kinds of incoming messages (Spam, XHTML "
 "formatting, etc.)"
-msgstr "允许您阻止各种类型的传入消息（垃圾、XHTML 格式等。）"
+msgstr "允许您阻止各种传入消息（垃圾消息、XHTML 格式等）"
 
 msgid "Anti Spam Answer"
-msgstr "反垃圾消息应答"
+msgstr "反垃圾消息答案"
 
 msgid "Anti Spam Configuration"
 msgstr "反垃圾消息配置"
 
 msgid "Anti Spam Question"
-msgstr "反垃圾问题"
+msgstr "反垃圾消息问题"
 
 msgid "Anti Spam Question in Group Chats"
-msgstr "在群聊中的反垃圾问题"
+msgstr "群聊中的反垃圾消息问题"
 
 msgid "Assign Key"
 msgstr "指定密钥"
@@ -88,9 +86,6 @@ msgstr "盲目信任"
 
 msgid "Busy"
 msgstr "忙碌"
-
-msgid "Cancel"
-msgstr "取消"
 
 msgid "Category"
 msgstr "类别"
@@ -117,7 +112,7 @@ msgid "Conditions"
 msgstr "条件"
 
 msgid "Configure Gajim’s behaviour with triggers for each contact"
-msgstr "配置 Gajim 用于每一个联系人的触发行为"
+msgstr "为每位联系人配置 Gajim 的触发行为"
 
 msgid "Contact"
 msgstr "联系人"
@@ -128,17 +123,17 @@ msgstr "联系人名称"
 msgid ""
 "Copy tune info of playing music to conversation input box at cursor position "
 "(Alt + N)"
-msgstr "复制正在播放音乐的音频信息到对话框输入栏的光标位置(Alt + N)"
+msgstr "复制正在播放音乐的音频信息到对话框输入栏的光标位置 (Alt + N)"
 
 msgid ""
 "Correct answer to your Anti Spam Question (leave empty to disable question)"
-msgstr "针对您的反垃圾问题的正确答案（留空来禁用问题）"
+msgstr "反垃圾消息问题的正确答案（留空可禁用问题）"
 
 msgid "Delete"
 msgstr "删除"
 
-msgid "Delete Public Key"
-msgstr "删除公钥"
+msgid "Delete Public Key?"
+msgstr "删除公钥？"
 
 msgid "Delete rule"
 msgstr "删除规则"
@@ -150,10 +145,10 @@ msgid "Deny Subscription Requests"
 msgstr "拒绝订阅请求"
 
 msgid "Disable XHTML for Group Chats"
-msgstr "为群聊禁用 XHTML"
+msgstr "禁用群聊的 XHTML"
 
 msgid "Disable XHTML for PMs"
-msgstr "为私聊禁用 XHTML"
+msgstr "禁用私信的 XHTML"
 
 msgid "Does not have focus"
 msgstr "不会获得焦点"
@@ -162,14 +157,14 @@ msgid "Down"
 msgstr "向下"
 
 msgid "Enable the plugin for selected XMPP addresses only (comma separated)"
-msgstr "仅为选定的 XMPP 地址启用插件（以逗号分割）"
+msgstr "仅为所选 XMPP 地址启用插件（英文逗号分隔）"
 
 msgid "Enables anti spam question for private messages in group chats"
 msgstr "为群聊中的私信启用反垃圾问题"
 
 #, python-format
 msgid "Encryption error: %s"
-msgstr "加密错误: %s"
+msgstr "加密错误：%s"
 
 msgid "Error"
 msgstr "错误"
@@ -228,7 +223,7 @@ msgid "Limit Message Length"
 msgstr "限制消息长度"
 
 msgid "Limits maximum message length (leave empty to disable)"
-msgstr "限制最大消息长度（留空以禁用）"
+msgstr "限制最大消息长度（留空可禁用）"
 
 msgid "List"
 msgstr "列表"
@@ -261,7 +256,7 @@ msgid "No OpenPGP key is assigned to this contact."
 msgstr "未给该联系人指定 OpenPGP 密钥。"
 
 msgid "No OpenPGP key is assigned to your account."
-msgstr "没有 OpenPGP 密钥指派给您的账户。"
+msgstr "没有 OpenPGP 密钥指派给您的账号。"
 
 msgid "No key assigned"
 msgstr "未指定密钥"
@@ -282,7 +277,7 @@ msgid "Not opened"
 msgstr "未打开"
 
 msgid "Not_ify me with a popup"
-msgstr "用弹出框提醒我(_I)"
+msgstr "用弹窗通知我(_I)"
 
 msgid "Notifications"
 msgstr "提醒"
@@ -291,13 +286,10 @@ msgid "Now Listen Configuration"
 msgstr "当前聆听配置"
 
 msgid "Now listening to: \"%title\" by %artist"
-msgstr "当前正在听： %artist 的 \"%title\""
+msgstr "正在听：%artist 的“%title”"
 
 msgid "Number of typed characters"
 msgstr "输入的字符数"
-
-msgid "OK"
-msgstr "好的"
 
 msgid "Online"
 msgstr "在线"
@@ -343,7 +335,7 @@ msgid "Quick Reply"
 msgstr "快捷回复"
 
 msgid "Receive a Message"
-msgstr "接收到一则消息"
+msgstr "收到一条消息"
 
 msgid "Remove"
 msgstr "移除"
@@ -355,16 +347,13 @@ msgid "Removes XHTML formatting from private messages in group chats"
 msgstr "从群聊的私信中移除 XHTML 格式"
 
 msgid "Replaces acronyms (or other strings) with given expansions/substitutes."
-msgstr "用指定扩展/替代替换缩略语(或者其他字符串)。"
+msgstr "用给定的扩展词/替代词替换首字母缩写词（或其他字符串）。"
 
 msgid "Request OpenPGP Key"
 msgstr "请求 OpenPGP 密钥"
 
-msgid "Select Sound"
-msgstr "选择声音"
-
 msgid "Selected Addresses"
-msgstr "已选定的地址"
+msgstr "所选地址"
 
 msgid "Setup OpenPGP"
 msgstr "设置 OpenPGP"
@@ -378,13 +367,8 @@ msgstr "设置成功"
 msgid "Show Icon for Unknown Clients"
 msgstr "为未知客户端显示图标"
 
-msgid "Show Icons in Tooltip"
-msgstr "在悬浮提示中显示图标"
-
-msgid ""
-"Shows client icons in your contact list and in the groupchat participants "
-"list."
-msgstr "在您的联系人列表和群聊参与者列表显示客户端图标。"
+msgid "Show client icons in the contact tooltip."
+msgstr "在联系人工具提示中显示客户端图标。"
 
 msgid "Size of message input in pixels"
 msgstr "以像素为单位的消息输入尺寸"
@@ -401,22 +385,22 @@ msgstr "替代"
 msgid ""
 "The PGP key used to encrypt this chat is not trusted. Do you really want to "
 "encrypt this message?"
-msgstr "用来加密此聊天的 PGP 密钥尚未信任。您真的想要加密此消息吗？"
+msgstr "用于加密此聊天的 PGP 密钥未受信任。是否确定要加密此消息？"
 
 #, python-format
 msgid "The contact's key (%s) <b>does not match</b> the key assigned in Gajim."
 msgstr "该联系人的公钥 (%s) <b>并不匹配</b> 在 Gajim 中的指定的公钥。"
 
 msgid "There was no trusted and active key found"
-msgstr "没有发现已信任且活跃的公钥"
+msgstr "未找到受信任的活动密钥"
 
 msgid ""
 "This plugin contains translations for other Gajim plugins. Please restart "
 "Gajim after enabling this plugin."
-msgstr "该插件包含用于其他 Gajim 插件的翻译。请在启用该插件后重新启动 Gajim。"
+msgstr "此插件包含其他 Gajim 插件的翻译。请在启用此插件后重启 Gajim。"
 
 msgid "This will permanently delete this public key"
-msgstr "这将永久性的删除该公钥"
+msgstr "这将永久删除此公钥"
 
 msgid "Triggers Configuration"
 msgstr "触发器配置"
@@ -433,14 +417,11 @@ msgstr "向上"
 msgid "Verified"
 msgstr "已验证"
 
-msgid "Wav Sounds"
-msgstr "Wav 声音"
-
 msgid "Welcome"
 msgstr "欢迎"
 
 msgid "[This message is *encrypted* (See :XEP:`27`)]"
-msgstr "[该消息 *已加密* (查看 :XEP:`27`]"
+msgstr "[此消息 *已加密*（查看：XEP:`27`）]"
 
 msgid "_Disable existing notification"
 msgstr "禁用已存在的提示(_D)"
@@ -449,10 +430,10 @@ msgid "_Disable existing sound for this event"
 msgstr "禁用当前事件的已存在声音(_D)"
 
 msgid "_Do not ask me again"
-msgstr "不要再询问(_D)"
+msgstr "不再询问(_D)"
 
 msgid "_Encrypt Anyway"
-msgstr "仍然加密(_E)"
+msgstr "仍要加密(_E)"
 
 msgid "_No"
 msgstr "不(_N)"
@@ -461,4 +442,22 @@ msgid "and I am "
 msgstr "且我是 "
 
 msgid "comma separated list"
-msgstr "逗号分割列表"
+msgstr "英文逗号分隔列表"
+
+#~ msgid "All Files"
+#~ msgstr "所有文件"
+
+#~ msgid "Cancel"
+#~ msgstr "取消"
+
+#~ msgid "OK"
+#~ msgstr "好的"
+
+#~ msgid "Select Sound"
+#~ msgstr "选择声音"
+
+#~ msgid "Show Icons in Tooltip"
+#~ msgstr "在悬浮提示中显示图标"
+
+#~ msgid "Wav Sounds"
+#~ msgstr "Wav 声音"

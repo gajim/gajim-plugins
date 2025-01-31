@@ -2,13 +2,14 @@
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the Gajim Plugins package.
 # pjammo <adrianoghr@hotmail.it>, 2022.
+# Giuseppe Checchia <eldoleo@pm.me>, 2024.
 msgid ""
 msgstr ""
 "Project-Id-Version: Gajim Plugins\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-15 14:16+0000\n"
-"PO-Revision-Date: 2022-12-29 21:55+0000\n"
-"Last-Translator: pjammo <adrianoghr@hotmail.it>\n"
+"POT-Creation-Date: 2025-02-08 22:46+0100\n"
+"PO-Revision-Date: 2024-06-07 17:17+0000\n"
+"Last-Translator: Giuseppe Checchia <eldoleo@pm.me>\n"
 "Language-Team: Italian <https://translate.gajim.org/projects/gajim-plugins/"
 "master/it/>\n"
 "Language: it\n"
@@ -16,9 +17,8 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 4.11.2\n"
+"X-Generator: Weblate 5.0\n"
 
-#. #' Means number
 msgid "#"
 msgstr "#"
 
@@ -44,9 +44,6 @@ msgstr "Aggiunge un menu con risposte rapide personalizzabili"
 msgid "Advanced"
 msgstr "Avanzate"
 
-msgid "All Files"
-msgstr "Tutti i file"
-
 msgid "All statuses"
 msgstr "Tutti gli stati"
 
@@ -65,7 +62,7 @@ msgid "Anti Spam Answer"
 msgstr ""
 
 msgid "Anti Spam Configuration"
-msgstr ""
+msgstr "Configurazione Anti Spam"
 
 msgid "Anti Spam Question"
 msgstr ""
@@ -87,16 +84,13 @@ msgid "Away"
 msgstr ""
 
 msgid "Blind Trust"
-msgstr ""
+msgstr "Fiducia Cieca"
 
 msgid "Busy"
-msgstr ""
-
-msgid "Cancel"
-msgstr ""
+msgstr "Occupato"
 
 msgid "Category"
-msgstr ""
+msgstr "Categoria"
 
 msgid "Certain status"
 msgstr ""
@@ -108,7 +102,7 @@ msgid "Clients Icons Configuration"
 msgstr ""
 
 msgid "Color"
-msgstr ""
+msgstr "Colore"
 
 msgid "Command..."
 msgstr ""
@@ -120,13 +114,13 @@ msgid "Conditions"
 msgstr ""
 
 msgid "Configure Gajim’s behaviour with triggers for each contact"
-msgstr ""
+msgstr "Configura il comportamento di Gajim con i trigger per ogni contatto"
 
 msgid "Contact"
 msgstr ""
 
 msgid "Contact Name"
-msgstr ""
+msgstr "Nome Contatto"
 
 msgid ""
 "Copy tune info of playing music to conversation input box at cursor position "
@@ -140,7 +134,7 @@ msgstr ""
 msgid "Delete"
 msgstr ""
 
-msgid "Delete Public Key"
+msgid "Delete Public Key?"
 msgstr ""
 
 msgid "Delete rule"
@@ -248,8 +242,9 @@ msgstr ""
 msgid "Message length at which the highlight is shown"
 msgstr ""
 
+#, fuzzy
 msgid "My status"
-msgstr ""
+msgstr "Tutti gli stati"
 
 msgid "New Quick Reply"
 msgstr ""
@@ -287,8 +282,9 @@ msgstr ""
 msgid "Not_ify me with a popup"
 msgstr ""
 
+#, fuzzy
 msgid "Notifications"
-msgstr ""
+msgstr "Azioni"
 
 msgid "Now Listen Configuration"
 msgstr ""
@@ -297,9 +293,6 @@ msgid "Now listening to: \"%title\" by %artist"
 msgstr ""
 
 msgid "Number of typed characters"
-msgstr ""
-
-msgid "OK"
 msgstr ""
 
 msgid "Online"
@@ -363,9 +356,6 @@ msgstr ""
 msgid "Request OpenPGP Key"
 msgstr ""
 
-msgid "Select Sound"
-msgstr ""
-
 msgid "Selected Addresses"
 msgstr ""
 
@@ -381,12 +371,7 @@ msgstr ""
 msgid "Show Icon for Unknown Clients"
 msgstr ""
 
-msgid "Show Icons in Tooltip"
-msgstr ""
-
-msgid ""
-"Shows client icons in your contact list and in the groupchat participants "
-"list."
+msgid "Show client icons in the contact tooltip."
 msgstr ""
 
 msgid "Size of message input in pixels"
@@ -436,9 +421,6 @@ msgstr ""
 msgid "Verified"
 msgstr ""
 
-msgid "Wav Sounds"
-msgstr ""
-
 msgid "Welcome"
 msgstr ""
 
@@ -465,3 +447,9 @@ msgstr ""
 
 msgid "comma separated list"
 msgstr ""
+
+#~ msgid "All Files"
+#~ msgstr "Tutti i file"
+
+#~ msgid "Cancel"
+#~ msgstr "Annulla"

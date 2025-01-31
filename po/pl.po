@@ -1,13 +1,13 @@
 # SOME DESCRIPTIVE TITLE.
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the Gajim Plugins package.
-# Grzegorz Szymaszek <gszymaszek@short.pl>, 2022, 2023.
+# Grzegorz Szymaszek <gszymaszek@short.pl>, 2022, 2023, 2024, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Gajim Plugins\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-15 14:16+0000\n"
-"PO-Revision-Date: 2023-05-29 08:56+0000\n"
+"POT-Creation-Date: 2025-02-08 22:46+0100\n"
+"PO-Revision-Date: 2025-01-27 08:12+0000\n"
 "Last-Translator: Grzegorz Szymaszek <gszymaszek@short.pl>\n"
 "Language-Team: Polish <https://translate.gajim.org/projects/gajim-plugins/"
 "master/pl/>\n"
@@ -17,9 +17,8 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 "
 "|| n%100>=20) ? 1 : 2;\n"
-"X-Generator: Weblate 4.11.2\n"
+"X-Generator: Weblate 5.0\n"
 
-#. #' Means number
 msgid "#"
 msgstr "Nr"
 
@@ -44,9 +43,6 @@ msgstr "Dodaje menu z własnymi szybkimi odpowiedziami"
 
 msgid "Advanced"
 msgstr "Zaawansowane"
-
-msgid "All Files"
-msgstr "Wszystkie pliki"
 
 msgid "All statuses"
 msgstr "Wszystkie statusy"
@@ -91,9 +87,6 @@ msgstr "Ślepe zaufanie"
 
 msgid "Busy"
 msgstr "Zajęty"
-
-msgid "Cancel"
-msgstr "Anuluj"
 
 msgid "Category"
 msgstr "Kategoria"
@@ -144,8 +137,8 @@ msgstr ""
 msgid "Delete"
 msgstr "Usuń"
 
-msgid "Delete Public Key"
-msgstr "Usuń klucz publiczny"
+msgid "Delete Public Key?"
+msgstr "Usunąć klucz publiczny?"
 
 msgid "Delete rule"
 msgstr "Usuń regułę"
@@ -308,9 +301,6 @@ msgstr "Teraz słucham: „%title” od %artist"
 msgid "Number of typed characters"
 msgstr "Liczba wpisanych znaków"
 
-msgid "OK"
-msgstr "OK"
-
 msgid "Online"
 msgstr "Dostępny"
 
@@ -375,9 +365,6 @@ msgstr ""
 msgid "Request OpenPGP Key"
 msgstr "Zażądaj klucza OpenPGP"
 
-msgid "Select Sound"
-msgstr "Wybierz dźwięk"
-
 msgid "Selected Addresses"
 msgstr "Wybrane adresy"
 
@@ -393,15 +380,8 @@ msgstr "Konfiguracja powiodła się"
 msgid "Show Icon for Unknown Clients"
 msgstr "Pokazuj ikony dla nieznanych klientów"
 
-msgid "Show Icons in Tooltip"
-msgstr "Pokazuj ikony w podpowiedziach"
-
-msgid ""
-"Shows client icons in your contact list and in the groupchat participants "
-"list."
-msgstr ""
-"Pokazuje ikony klientów na Twojej liście kontaktów i na liście uczestników "
-"rozmowy grupowej."
+msgid "Show client icons in the contact tooltip."
+msgstr "Pokazuj ikony klientów w dymku kontaktu."
 
 msgid "Size of message input in pixels"
 msgstr "Rozmiar pola wiadomości w pikselach"
@@ -455,9 +435,6 @@ msgstr "W górę"
 msgid "Verified"
 msgstr "Zweryfikowany"
 
-msgid "Wav Sounds"
-msgstr "Dźwięki Wav"
-
 msgid "Welcome"
 msgstr "Witamy"
 
@@ -484,3 +461,21 @@ msgstr "i jestem "
 
 msgid "comma separated list"
 msgstr "lista oddzielona przecinkami"
+
+#~ msgid "All Files"
+#~ msgstr "Wszystkie pliki"
+
+#~ msgid "Cancel"
+#~ msgstr "Anuluj"
+
+#~ msgid "OK"
+#~ msgstr "OK"
+
+#~ msgid "Select Sound"
+#~ msgstr "Wybierz dźwięk"
+
+#~ msgid "Show Icons in Tooltip"
+#~ msgstr "Pokazuj ikony w podpowiedziach"
+
+#~ msgid "Wav Sounds"
+#~ msgstr "Dźwięki Wav"

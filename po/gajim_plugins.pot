@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Gajim Plugins\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-15 14:16+0000\n"
+"POT-Creation-Date: 2025-02-08 22:46+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,7 +17,6 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#. #' Means number
 msgid "#"
 msgstr ""
 
@@ -41,9 +40,6 @@ msgid "Adds a menu with customizable quick replies"
 msgstr ""
 
 msgid "Advanced"
-msgstr ""
-
-msgid "All Files"
 msgstr ""
 
 msgid "All statuses"
@@ -86,9 +82,6 @@ msgid "Blind Trust"
 msgstr ""
 
 msgid "Busy"
-msgstr ""
-
-msgid "Cancel"
 msgstr ""
 
 msgid "Category"
@@ -136,7 +129,7 @@ msgstr ""
 msgid "Delete"
 msgstr ""
 
-msgid "Delete Public Key"
+msgid "Delete Public Key?"
 msgstr ""
 
 msgid "Delete rule"
@@ -295,9 +288,6 @@ msgstr ""
 msgid "Number of typed characters"
 msgstr ""
 
-msgid "OK"
-msgstr ""
-
 msgid "Online"
 msgstr ""
 
@@ -359,9 +349,6 @@ msgstr ""
 msgid "Request OpenPGP Key"
 msgstr ""
 
-msgid "Select Sound"
-msgstr ""
-
 msgid "Selected Addresses"
 msgstr ""
 
@@ -377,12 +364,7 @@ msgstr ""
 msgid "Show Icon for Unknown Clients"
 msgstr ""
 
-msgid "Show Icons in Tooltip"
-msgstr ""
-
-msgid ""
-"Shows client icons in your contact list and in the groupchat participants "
-"list."
+msgid "Show client icons in the contact tooltip."
 msgstr ""
 
 msgid "Size of message input in pixels"
@@ -430,9 +412,6 @@ msgid "Up"
 msgstr ""
 
 msgid "Verified"
-msgstr ""
-
-msgid "Wav Sounds"
 msgstr ""
 
 msgid "Welcome"

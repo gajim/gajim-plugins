@@ -2,13 +2,13 @@
 # This file is distributed under the same license as the Gajim Plugins package.
 #
 # lovetox <philipp@hoerist.com>, 2022.
-# Daniel Brötzmann <mailtrash@posteo.de>, 2022, 2023.
+# Daniel Brötzmann <mailtrash@posteo.de>, 2022, 2023, 2024, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Gajim Plugins\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-15 14:16+0000\n"
-"PO-Revision-Date: 2023-05-29 08:55+0000\n"
+"POT-Creation-Date: 2025-02-08 22:46+0100\n"
+"PO-Revision-Date: 2025-01-26 16:12+0000\n"
 "Last-Translator: Daniel Brötzmann <mailtrash@posteo.de>\n"
 "Language-Team: German <https://translate.gajim.org/projects/gajim-plugins/"
 "master/de/>\n"
@@ -17,9 +17,8 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 4.11.2\n"
+"X-Generator: Weblate 5.0\n"
 
-#. #' Means number
 msgid "#"
 msgstr "Nr."
 
@@ -44,9 +43,6 @@ msgstr "Fügt ein Menü mit anpassbaren Schnellantworten hinzu"
 
 msgid "Advanced"
 msgstr "Erweitert"
-
-msgid "All Files"
-msgstr "Alle Dateien"
 
 msgid "All statuses"
 msgstr "Alle status"
@@ -92,9 +88,6 @@ msgstr "Blind vertraut"
 
 msgid "Busy"
 msgstr "Beschäftigt"
-
-msgid "Cancel"
-msgstr "Abbrechen"
 
 msgid "Category"
 msgstr "Kategorie"
@@ -145,8 +138,8 @@ msgstr ""
 msgid "Delete"
 msgstr "Entfernen"
 
-msgid "Delete Public Key"
-msgstr "Öffentlichen Schlüssel löschen"
+msgid "Delete Public Key?"
+msgstr "Öffentlichen Schlüssel löschen?"
 
 msgid "Delete rule"
 msgstr "Regel löschen"
@@ -309,9 +302,6 @@ msgstr "Gerade läuft: \"%title\" von %artist"
 msgid "Number of typed characters"
 msgstr "Anzahl der eingegebenen Zeichen"
 
-msgid "OK"
-msgstr "OK"
-
 msgid "Online"
 msgstr "Verfügbar"
 
@@ -375,9 +365,6 @@ msgstr ""
 msgid "Request OpenPGP Key"
 msgstr "OpenPGP-Schlüssel anfordern"
 
-msgid "Select Sound"
-msgstr "Klang auswählen"
-
 msgid "Selected Addresses"
 msgstr "Ausgewählte Adressen"
 
@@ -393,13 +380,8 @@ msgstr "Einrichtung erfolgreich"
 msgid "Show Icon for Unknown Clients"
 msgstr "Icons für unbekannte Clients anzeigen"
 
-msgid "Show Icons in Tooltip"
-msgstr "Icons in Tooltips anzeigen"
-
-msgid ""
-"Shows client icons in your contact list and in the groupchat participants "
-"list."
-msgstr "Zeigt Client-Icons in der Kontaktliste und in Gruppenchats."
+msgid "Show client icons in the contact tooltip."
+msgstr "Client-Icons im Tooltip von Kontakten anzeigen."
 
 msgid "Size of message input in pixels"
 msgstr "Höhe des Texteingabefelds in Pixel"
@@ -454,9 +436,6 @@ msgstr "Hoch"
 msgid "Verified"
 msgstr "Überprüft"
 
-msgid "Wav Sounds"
-msgstr "Wav-Dateien"
-
 msgid "Welcome"
 msgstr "Wilkommen"
 
@@ -483,3 +462,21 @@ msgstr "und ich bin: "
 
 msgid "comma separated list"
 msgstr "kommagetrennte Liste"
+
+#~ msgid "All Files"
+#~ msgstr "Alle Dateien"
+
+#~ msgid "Cancel"
+#~ msgstr "Abbrechen"
+
+#~ msgid "OK"
+#~ msgstr "OK"
+
+#~ msgid "Select Sound"
+#~ msgstr "Klang auswählen"
+
+#~ msgid "Show Icons in Tooltip"
+#~ msgstr "Icons in Tooltips anzeigen"
+
+#~ msgid "Wav Sounds"
+#~ msgstr "Wav-Dateien"

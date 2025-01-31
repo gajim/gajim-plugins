@@ -2,13 +2,14 @@
 # This file is distributed under the same license as the Gajim Plugins package.
 #
 # pitchum <pitchum@gramaton.org>, 2022.
+# Codimp <contact@lithio.fr>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Gajim Plugins\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-15 14:16+0000\n"
-"PO-Revision-Date: 2022-04-20 14:28+0000\n"
-"Last-Translator: pitchum <pitchum@gramaton.org>\n"
+"POT-Creation-Date: 2025-02-08 22:46+0100\n"
+"PO-Revision-Date: 2025-01-31 19:12+0000\n"
+"Last-Translator: Codimp <contact@lithio.fr>\n"
 "Language-Team: French <https://translate.gajim.org/projects/gajim-plugins/"
 "master/fr/>\n"
 "Language: fr\n"
@@ -16,9 +17,8 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n > 1;\n"
-"X-Generator: Weblate 4.11.2\n"
+"X-Generator: Weblate 5.0\n"
 
-#. #' Means number
 msgid "#"
 msgstr "#"
 
@@ -41,12 +41,8 @@ msgstr "Ajouter"
 msgid "Adds a menu with customizable quick replies"
 msgstr "Ajoute un menu avec des réponses rapides personnalisables"
 
-#, fuzzy
 msgid "Advanced"
 msgstr "Avancé"
-
-msgid "All Files"
-msgstr "Tous les fichiers"
 
 msgid "All statuses"
 msgstr "Tous les états"
@@ -92,14 +88,11 @@ msgstr "Confiance aveugle"
 msgid "Busy"
 msgstr "Occupé"
 
-msgid "Cancel"
-msgstr "Annuler"
-
 msgid "Category"
 msgstr "Catégorie"
 
 msgid "Certain status"
-msgstr ""
+msgstr "Some status"
 
 msgid "Chat Window"
 msgstr "Fenêtre de discussion"
@@ -111,14 +104,13 @@ msgid "Color"
 msgstr "Couleur"
 
 msgid "Command..."
-msgstr ""
+msgstr "Commande …"
 
 msgid "Condition"
 msgstr "Condition"
 
-#, fuzzy
 msgid "Conditions"
-msgstr "Condition"
+msgstr "Conditions"
 
 msgid "Configure Gajim’s behaviour with triggers for each contact"
 msgstr ""
@@ -147,12 +139,11 @@ msgstr ""
 msgid "Delete"
 msgstr "Supprimer"
 
-msgid "Delete Public Key"
-msgstr "Supprimer la clé publique"
+msgid "Delete Public Key?"
+msgstr "Supprimer la clé publique ?"
 
-#, fuzzy
 msgid "Delete rule"
-msgstr "Supprimer la clé publique"
+msgstr "Supprimer la règle"
 
 msgid "Delete this rule once applied"
 msgstr "Effacer cette règle une fois appliquée"
@@ -167,10 +158,10 @@ msgid "Disable XHTML for PMs"
 msgstr "Désactive XHTML pour les messages privés"
 
 msgid "Does not have focus"
-msgstr ""
+msgstr "N'a pas le focus"
 
 msgid "Down"
-msgstr ""
+msgstr "Bas"
 
 msgid "Enable the plugin for selected XMPP addresses only (comma separated)"
 msgstr ""
@@ -194,7 +185,7 @@ msgid "Everybody"
 msgstr "Tout le monde"
 
 msgid "Focus"
-msgstr ""
+msgstr "Focus"
 
 msgid "Format string"
 msgstr "Chaîne de formatage"
@@ -206,14 +197,13 @@ msgid "Generating new Key"
 msgstr "Génération d'une nouvelle clé"
 
 msgid "Group"
-msgstr ""
+msgstr "Groupe"
 
-#, fuzzy
 msgid "Groupchat participant"
-msgstr "Participant de salon"
+msgstr "Participant·e du groupe"
 
 msgid "Has focus"
-msgstr ""
+msgstr "A le focus"
 
 msgid "Height in pixels"
 msgstr "Hauteur en pixels"
@@ -232,10 +222,10 @@ msgid "Inactive"
 msgstr "Inactif"
 
 msgid "Key ID"
-msgstr ""
+msgstr "Identifiant de clé"
 
 msgid "Launch command"
-msgstr ""
+msgstr "Lancer la commande"
 
 msgid "Length Notifier Configuration"
 msgstr "Configuration de Length Notifier"
@@ -247,10 +237,10 @@ msgid "Limits maximum message length (leave empty to disable)"
 msgstr "Limite la taille maximale des messages (laisser vide pour désactiver)"
 
 msgid "List"
-msgstr ""
+msgstr "Liste"
 
 msgid "Manage Replies…"
-msgstr ""
+msgstr "Gérer les réponses …"
 
 msgid "Message Box Size Configuration"
 msgstr "Configuration de Message Box Size"
@@ -262,13 +252,13 @@ msgid "Message length at which the highlight is shown"
 msgstr "Longueur de message à partir de laquelle il sera mis en surbrillance"
 
 msgid "My status"
-msgstr ""
+msgstr "Mon status"
 
 msgid "New Quick Reply"
 msgstr "Nouvelle réponse rapide"
 
 msgid "New rule"
-msgstr ""
+msgstr "Nouvelle règle"
 
 msgid "No OpenPGP key assigned"
 msgstr "Pas de clé OpenPGP assignée"
@@ -285,9 +275,8 @@ msgstr "Aucune clé assignée"
 msgid "None"
 msgstr "Aucune"
 
-#, fuzzy
 msgid "Not Available"
-msgstr "Disponible"
+msgstr "Indisponible"
 
 msgid "Not Decided"
 msgstr "Non décidé"
@@ -295,9 +284,8 @@ msgstr "Non décidé"
 msgid "Not Trusted"
 msgstr "Non approuvé"
 
-#, fuzzy
 msgid "Not opened"
-msgstr "Non décidé"
+msgstr "Non ouvert"
 
 msgid "Not_ify me with a popup"
 msgstr "Me not_ifier avec une popup"
@@ -314,15 +302,11 @@ msgstr "En train d'écouter : \"%title\" par %artist"
 msgid "Number of typed characters"
 msgstr "Nombre de caractères tapés"
 
-msgid "OK"
-msgstr "OK"
-
 msgid "Online"
 msgstr "Connecté"
 
-#, fuzzy
 msgid "Opened"
-msgstr "Ouvrir"
+msgstr "Ouvert"
 
 msgid "PGP Configuration"
 msgstr "Configuration de PGP"
@@ -333,9 +317,8 @@ msgstr "Problème de correspondance de clef PGP"
 msgid "PGP encryption as per XEP-0027"
 msgstr "Chiffrement PGP par la XEP-0027"
 
-#, fuzzy
 msgid "Play sound"
-msgstr "Sons Wav"
+msgstr "Jouer le son"
 
 msgid "Please install GnuPG / Gpg4win"
 msgstr "Veuillez installer GnuPG / Gpg4win"
@@ -359,15 +342,14 @@ msgstr "Réponses rapides"
 msgid "Quick Replies Configuration"
 msgstr "Configuration de Quick Replies"
 
-#, fuzzy
 msgid "Quick Reply"
-msgstr "Nouvelle réponse rapide"
+msgstr "Réponse rapide"
 
 msgid "Receive a Message"
-msgstr ""
+msgstr "Recevoir un message"
 
 msgid "Remove"
-msgstr ""
+msgstr "Retirer"
 
 msgid "Removes XHTML formatting from group chat messages"
 msgstr "Retire le formatage XHTML des messages de salon"
@@ -382,9 +364,6 @@ msgstr ""
 
 msgid "Request OpenPGP Key"
 msgstr "Récupérer la clé OpenPGP"
-
-msgid "Select Sound"
-msgstr ""
 
 msgid "Selected Addresses"
 msgstr "Adresses sélectionnées"
@@ -401,29 +380,20 @@ msgstr "Paramétrage terminé avec succès"
 msgid "Show Icon for Unknown Clients"
 msgstr "Montrer une icône pour les clients inconnus"
 
-msgid "Show Icons in Tooltip"
-msgstr "Afficher les icônes dans les info-bulles"
-
-#, fuzzy
-msgid ""
-"Shows client icons in your contact list and in the groupchat participants "
-"list."
-msgstr ""
-"Montrer l'icône du client dans la liste de contact et dans les salons de "
-"discussion."
+msgid "Show client icons in the contact tooltip."
+msgstr "Montrer l'icône du client dans une infobulle dans la liste de contact."
 
 msgid "Size of message input in pixels"
 msgstr "Taille de la boite de saisie en pixels"
 
-#, fuzzy
 msgid "Sounds"
-msgstr "Sons Wav"
+msgstr "Sons"
 
 msgid "Status"
-msgstr ""
+msgstr "Status"
 
 msgid "Substitute"
-msgstr ""
+msgstr "Substitut"
 
 msgid ""
 "The PGP key used to encrypt this chat is not trusted. Do you really want to "
@@ -460,26 +430,22 @@ msgid "Untrusted PGP key"
 msgstr "Clé PGP non approuvée"
 
 msgid "Up"
-msgstr ""
+msgstr "Haut"
 
 msgid "Verified"
 msgstr "Vérifiée"
 
-msgid "Wav Sounds"
-msgstr "Sons Wav"
-
 msgid "Welcome"
 msgstr "Bienvenue"
 
-#, fuzzy
 msgid "[This message is *encrypted* (See :XEP:`27`)]"
-msgstr "[Ce message est *chiffré* (Voir :XEP:`27`]"
+msgstr "[Ce message est *chiffré* (Voir : XEP : `27`)]"
 
 msgid "_Disable existing notification"
-msgstr ""
+msgstr "_Désactiver les notifications existantes"
 
 msgid "_Disable existing sound for this event"
-msgstr ""
+msgstr "_Désactiver les sons existants pour cet événement"
 
 msgid "_Do not ask me again"
 msgstr "_Ne plus poser la question"
@@ -495,3 +461,21 @@ msgstr "et je suis "
 
 msgid "comma separated list"
 msgstr "liste d'éléments séparés par des virgules"
+
+#~ msgid "All Files"
+#~ msgstr "Tous les fichiers"
+
+#~ msgid "Cancel"
+#~ msgstr "Annuler"
+
+#~ msgid "OK"
+#~ msgstr "OK"
+
+#~ msgid "Select Sound"
+#~ msgstr "Sélectionner le son"
+
+#~ msgid "Show Icons in Tooltip"
+#~ msgstr "Afficher les icônes dans les info-bulles"
+
+#~ msgid "Wav Sounds"
+#~ msgstr "Sons Wav"

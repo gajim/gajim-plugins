@@ -1,13 +1,13 @@
 # SOME DESCRIPTIVE TITLE.
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the Gajim Plugins package.
-# Baurzhan Muftakhidinov <baurthefirst@gmail.com>, 2023.
+# Baurzhan Muftakhidinov <baurthefirst@gmail.com>, 2023, 2024.
 msgid ""
 msgstr ""
 "Project-Id-Version: Gajim Plugins\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-15 14:16+0000\n"
-"PO-Revision-Date: 2023-01-13 16:53+0000\n"
+"POT-Creation-Date: 2025-02-08 22:46+0100\n"
+"PO-Revision-Date: 2024-06-16 18:17+0000\n"
 "Last-Translator: Baurzhan Muftakhidinov <baurthefirst@gmail.com>\n"
 "Language-Team: Kazakh <https://translate.gajim.org/projects/gajim-plugins/"
 "master/kk/>\n"
@@ -16,9 +16,8 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 4.11.2\n"
+"X-Generator: Weblate 5.0\n"
 
-#. #' Means number
 msgid "#"
 msgstr "#"
 
@@ -43,9 +42,6 @@ msgstr "Бапталатын жылдам жауаптары бар мәзірд
 
 msgid "Advanced"
 msgstr "Кеңейтілген"
-
-msgid "All Files"
-msgstr "Барлық файлдар"
 
 msgid "All statuses"
 msgstr "Барлық қалып-күйлер"
@@ -90,9 +86,6 @@ msgstr "Cоқыр сенім"
 
 msgid "Busy"
 msgstr "Бос емес"
-
-msgid "Cancel"
-msgstr "Бас тарту"
 
 msgid "Category"
 msgstr "Санаты"
@@ -141,7 +134,8 @@ msgstr "Спамға қарсы сұраққа дұрыс жауап (сұрақ
 msgid "Delete"
 msgstr "Өшіру"
 
-msgid "Delete Public Key"
+#, fuzzy
+msgid "Delete Public Key?"
 msgstr "Жария кілтті өшіру"
 
 msgid "Delete rule"
@@ -304,9 +298,6 @@ msgstr "Қазір тыңдап отырған: \"%title\", %artist"
 msgid "Number of typed characters"
 msgstr "Терілген таңбалар саны"
 
-msgid "OK"
-msgstr "ОК"
-
 msgid "Online"
 msgstr "Желіде"
 
@@ -370,9 +361,6 @@ msgstr ""
 msgid "Request OpenPGP Key"
 msgstr "OpenPGP кілтін сұрау"
 
-msgid "Select Sound"
-msgstr "Дыбысты таңдау"
-
 msgid "Selected Addresses"
 msgstr "Таңдалған адрестер"
 
@@ -388,15 +376,9 @@ msgstr "Баптау сәтті аяқталды"
 msgid "Show Icon for Unknown Clients"
 msgstr "Белгісіз клиенттер таңбашасын көрсету"
 
-msgid "Show Icons in Tooltip"
-msgstr "Таңбашаларды қалқымалы терезеде көрсету"
-
-msgid ""
-"Shows client icons in your contact list and in the groupchat participants "
-"list."
-msgstr ""
-"Контакттар тізімінде және топтық чатқа қатысушылар тізімінде клиент "
-"таңбашаларын көрсету."
+#, fuzzy
+msgid "Show client icons in the contact tooltip."
+msgstr "Контакттар тізімінде клиент таңбашаларын көрсету."
 
 msgid "Size of message input in pixels"
 msgstr "Хабарламаны енгізудің пиксельдегі өлшемі"
@@ -451,13 +433,9 @@ msgstr "Жоғары"
 msgid "Verified"
 msgstr "Расталған"
 
-msgid "Wav Sounds"
-msgstr "Wav дыбыстары"
-
 msgid "Welcome"
 msgstr "Қош келдіңіз"
 
-#, fuzzy
 msgid "[This message is *encrypted* (See :XEP:`27`)]"
 msgstr "[Бұл хабарлама *шифрленген* (Қараңыз :XEP:`27`]"
 
@@ -481,3 +459,21 @@ msgstr "және мен "
 
 msgid "comma separated list"
 msgstr "үтірмен ажыратылған тізім"
+
+#~ msgid "All Files"
+#~ msgstr "Барлық файлдар"
+
+#~ msgid "Cancel"
+#~ msgstr "Бас тарту"
+
+#~ msgid "OK"
+#~ msgstr "ОК"
+
+#~ msgid "Select Sound"
+#~ msgstr "Дыбысты таңдау"
+
+#~ msgid "Show Icons in Tooltip"
+#~ msgstr "Таңбашаларды қалқымалы терезеде көрсету"
+
+#~ msgid "Wav Sounds"
+#~ msgstr "Wav дыбыстары"

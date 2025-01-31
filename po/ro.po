@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Gajim Plugins\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-15 14:16+0000\n"
+"POT-Creation-Date: 2025-02-08 22:46+0100\n"
 "PO-Revision-Date: 2022-11-29 18:39+0000\n"
 "Last-Translator: Simona Iacob <s@zp1.net>\n"
 "Language-Team: Romanian <https://translate.gajim.org/projects/gajim-plugins/"
@@ -20,7 +20,6 @@ msgstr ""
 "20)) ? 1 : 2;\n"
 "X-Generator: Weblate 4.11.2\n"
 
-#. #' Means number
 msgid "#"
 msgstr "#"
 
@@ -45,9 +44,6 @@ msgstr "Adaugă un meniu cu răspunsuri rapide personalizabile"
 
 msgid "Advanced"
 msgstr "Avansat"
-
-msgid "All Files"
-msgstr "Toate fișierele"
 
 msgid "All statuses"
 msgstr "Toate stările"
@@ -92,9 +88,6 @@ msgstr "Încredere oarbă"
 
 msgid "Busy"
 msgstr "Ocupat"
-
-msgid "Cancel"
-msgstr "Anulează"
 
 msgid "Category"
 msgstr "Categorie"
@@ -146,7 +139,8 @@ msgstr ""
 msgid "Delete"
 msgstr "Ștergeți"
 
-msgid "Delete Public Key"
+#, fuzzy
+msgid "Delete Public Key?"
 msgstr "Ștergeți cheia publică"
 
 msgid "Delete rule"
@@ -310,9 +304,6 @@ msgstr "Acum ascultăm: \"%title\" de %artist"
 msgid "Number of typed characters"
 msgstr "Numărul de caractere tastate"
 
-msgid "OK"
-msgstr "OK"
-
 msgid "Online"
 msgstr "Online"
 
@@ -377,9 +368,6 @@ msgstr ""
 msgid "Request OpenPGP Key"
 msgstr "Cerere cheie OpenPGP"
 
-msgid "Select Sound"
-msgstr "Selectați Sunet"
-
 msgid "Selected Addresses"
 msgstr "Adrese selectate"
 
@@ -395,12 +383,8 @@ msgstr "Configurare reușită"
 msgid "Show Icon for Unknown Clients"
 msgstr "Afișați pictograma pentru clienții necunoscuți"
 
-msgid "Show Icons in Tooltip"
-msgstr "Afișați pictogramele în Tooltip"
-
-msgid ""
-"Shows client icons in your contact list and in the groupchat participants "
-"list."
+#, fuzzy
+msgid "Show client icons in the contact tooltip."
 msgstr ""
 "Afișează pictogramele clienților în lista de contacte și în lista "
 "participanților la groupchat."
@@ -457,9 +441,6 @@ msgstr "Sus"
 msgid "Verified"
 msgstr "Verificat"
 
-msgid "Wav Sounds"
-msgstr "Sunete Wav"
-
 msgid "Welcome"
 msgstr "Bine ați venit"
 
@@ -487,3 +468,21 @@ msgstr "și eu sunt "
 
 msgid "comma separated list"
 msgstr "listă separată prin virgule"
+
+#~ msgid "All Files"
+#~ msgstr "Toate fișierele"
+
+#~ msgid "Cancel"
+#~ msgstr "Anulează"
+
+#~ msgid "OK"
+#~ msgstr "OK"
+
+#~ msgid "Select Sound"
+#~ msgstr "Selectați Sunet"
+
+#~ msgid "Show Icons in Tooltip"
+#~ msgstr "Afișați pictogramele în Tooltip"
+
+#~ msgid "Wav Sounds"
+#~ msgstr "Sunete Wav"
