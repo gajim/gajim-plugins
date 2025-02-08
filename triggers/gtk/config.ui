@@ -70,7 +70,7 @@
                             <child>
                               <object class="GtkTreeViewColumn">
                                 <property name="resizable">1</property>
-                                <property name="title" translatable="1">#</property>
+                                <property name="title" translatable="yes">#</property>
                                 <property name="clickable">1</property>
                                 <property name="sort_indicator">1</property>
                                 <property name="sort_column_id">0</property>
@@ -87,7 +87,7 @@
                             <child>
                               <object class="GtkTreeViewColumn">
                                 <property name="resizable">1</property>
-                                <property name="title" translatable="1">Condition</property>
+                                <property name="title" translatable="yes">Condition</property>
                                 <property name="clickable">1</property>
                                 <property name="sort_indicator">1</property>
                                 <property name="sort_column_id">1</property>
@@ -114,8 +114,8 @@
                         <child>
                           <object class="GtkButton" id="up_button">
                             <property name="sensitive">0</property>
-                            <property name="tooltip-text" translatable="1">Up</property>
-                            <property name="label" translatable="1">Up</property>
+                            <property name="tooltip-text" translatable="yes">Up</property>
+                            <property name="label" translatable="yes">Up</property>
                             <property name="use-underline">1</property>
                             <property name="icon-name">go-up-symbolic</property>
                           </object>
@@ -123,24 +123,24 @@
                         <child>
                           <object class="GtkButton" id="down_button">
                             <property name="sensitive">0</property>
-                            <property name="tooltip-text" translatable="1">Down</property>
-                            <property name="label" translatable="1">Down</property>
+                            <property name="tooltip-text" translatable="yes">Down</property>
+                            <property name="label" translatable="yes">Down</property>
                             <property name="use-underline">1</property>
                             <property name="icon-name">go-down-symbolic</property>
                           </object>
                         </child>
                         <child>
                           <object class="GtkButton" id="new_button">
-                            <property name="tooltip-text" translatable="1">New rule</property>
-                            <property name="label" translatable="1">New rule</property>
+                            <property name="tooltip-text" translatable="yes">New rule</property>
+                            <property name="label" translatable="yes">New rule</property>
                             <property name="use-underline">1</property>
                             <property name="icon-name">list-add-symbolic</property>
                           </object>
                         </child>
                         <child>
                           <object class="GtkButton" id="delete_button">
-                            <property name="tooltip-text" translatable="1">Delete rule</property>
-                            <property name="label" translatable="1">Delete rule</property>
+                            <property name="tooltip-text" translatable="yes">Delete rule</property>
+                            <property name="label" translatable="yes">Delete rule</property>
                             <property name="use-underline">1</property>
                             <property name="icon-name">list-remove-symbolic</property>
                           </object>
@@ -163,7 +163,7 @@
                           <object class="GtkLabel">
                             <property name="valign">center</property>
                             <property name="margin-top">6</property>
-                            <property name="label" translatable="1">Conditions</property>
+                            <property name="label" translatable="yes">Conditions</property>
                             <property name="use-markup">1</property>
                             <style>
                               <class name="large-header"/>
@@ -179,7 +179,7 @@
                             <child>
                               <object class="GtkLabel">
                                 <property name="halign">end</property>
-                                <property name="label" translatable="1">Event</property>
+                                <property name="label" translatable="yes">Event</property>
                                 <property name="use-markup">1</property>
                                 <style>
                                   <class name="dim-label"/>
@@ -209,7 +209,7 @@
                             <child>
                               <object class="GtkLabel">
                                 <property name="halign">end</property>
-                                <property name="label" translatable="1">Category</property>
+                                <property name="label" translatable="yes">Category</property>
                                 <property name="use-markup">1</property>
                                 <style>
                                   <class name="dim-label"/>
@@ -240,7 +240,7 @@
                                 <property name="width-request">300</property>
                                 <property name="sensitive">0</property>
                                 <property name="focusable">1</property>
-                                <property name="tooltip-text" translatable="1">comma separated list</property>
+                                <property name="tooltip-text" translatable="yes">comma separated list</property>
                                 <layout>
                                   <property name="column">1</property>
                                   <property name="row">2</property>
@@ -250,7 +250,7 @@
                             <child>
                               <object class="GtkLabel">
                                 <property name="halign">end</property>
-                                <property name="label" translatable="1">List</property>
+                                <property name="label" translatable="yes">List</property>
                                 <style>
                                   <class name="dim-label"/>
                                 </style>
@@ -270,7 +270,7 @@
                             <child>
                               <object class="GtkLabel">
                                 <property name="valign">start</property>
-                                <property name="label" translatable="1">My status</property>
+                                <property name="label" translatable="yes">My status</property>
                                 <property name="use-markup">1</property>
                                 <style>
                                   <class name="dim-label"/>
@@ -279,7 +279,7 @@
                             </child>
                             <child>
                               <object class="GtkCheckButton" id="all_status_rb">
-                                <property name="label" translatable="1">All statuses</property>
+                                <property name="label" translatable="yes">All statuses</property>
                                 <property name="focusable">1</property>
                                 <property name="valign">start</property>
                                 <property name="use-underline">1</property>
@@ -287,7 +287,7 @@
                             </child>
                             <child>
                               <object class="GtkCheckButton" id="special_status_rb">
-                                <property name="label" translatable="1">Certain status</property>
+                                <property name="label" translatable="yes">Certain status</property>
                                 <property name="focusable">1</property>
                                 <property name="valign">start</property>
                                 <property name="use-underline">1</property>
@@ -306,7 +306,7 @@
                                     <property name="spacing">6</property>
                                     <child>
                                       <object class="GtkCheckButton" id="online_cb">
-                                        <property name="label" translatable="1">Online</property>
+                                        <property name="label" translatable="yes">Online</property>
                                         <property name="sensitive">0</property>
                                         <property name="focusable">1</property>
                                         <property name="halign">start</property>
@@ -315,7 +315,7 @@
                                     </child>
                                     <child>
                                       <object class="GtkCheckButton" id="away_cb">
-                                        <property name="label" translatable="1">Away</property>
+                                        <property name="label" translatable="yes">Away</property>
                                         <property name="sensitive">0</property>
                                         <property name="focusable">1</property>
                                         <property name="halign">start</property>
@@ -324,7 +324,7 @@
                                     </child>
                                     <child>
                                       <object class="GtkCheckButton" id="xa_cb">
-                                        <property name="label" translatable="1">Not Available</property>
+                                        <property name="label" translatable="yes">Not Available</property>
                                         <property name="sensitive">0</property>
                                         <property name="focusable">1</property>
                                         <property name="halign">start</property>
@@ -333,7 +333,7 @@
                                     </child>
                                     <child>
                                       <object class="GtkCheckButton" id="dnd_cb">
-                                        <property name="label" translatable="1">Busy</property>
+                                        <property name="label" translatable="yes">Busy</property>
                                         <property name="sensitive">0</property>
                                         <property name="focusable">1</property>
                                         <property name="halign">start</property>
@@ -344,7 +344,7 @@
                                 </child>
                                 <child type="label">
                                   <object class="GtkLabel">
-                                    <property name="label" translatable="1">Status</property>
+                                    <property name="label" translatable="yes">Status</property>
                                   </object>
                                 </child>
                               </object>
@@ -358,7 +358,7 @@
                             <child>
                               <object class="GtkLabel">
                                 <property name="halign">end</property>
-                                <property name="label" translatable="1">Chat Window</property>
+                                <property name="label" translatable="yes">Chat Window</property>
                                 <style>
                                   <class name="dim-label"/>
                                 </style>
@@ -371,7 +371,7 @@
                             <child>
                               <object class="GtkLabel">
                                 <property name="halign">end</property>
-                                <property name="label" translatable="1">Focus</property>
+                                <property name="label" translatable="yes">Focus</property>
                                 <style>
                                   <class name="dim-label"/>
                                 </style>
@@ -383,7 +383,7 @@
                             </child>
                             <child>
                               <object class="GtkCheckButton" id="tab_opened_cb">
-                                <property name="label" translatable="1">Opened</property>
+                                <property name="label" translatable="yes">Opened</property>
                                 <property name="focusable">1</property>
                                 <property name="halign">start</property>
                                 <property name="use-underline">1</property>
@@ -395,7 +395,7 @@
                             </child>
                             <child>
                               <object class="GtkCheckButton" id="has_focus_cb">
-                                <property name="label" translatable="1">Has focus</property>
+                                <property name="label" translatable="yes">Has focus</property>
                                 <property name="focusable">1</property>
                                 <property name="halign">start</property>
                                 <layout>
@@ -406,7 +406,7 @@
                             </child>
                             <child>
                               <object class="GtkCheckButton" id="not_tab_opened_cb">
-                                <property name="label" translatable="1">Not opened</property>
+                                <property name="label" translatable="yes">Not opened</property>
                                 <property name="focusable">1</property>
                                 <property name="halign">start</property>
                                 <property name="use-underline">1</property>
@@ -418,7 +418,7 @@
                             </child>
                             <child>
                               <object class="GtkCheckButton" id="not_has_focus_cb">
-                                <property name="label" translatable="1">Does not have focus</property>
+                                <property name="label" translatable="yes">Does not have focus</property>
                                 <property name="focusable">1</property>
                                 <property name="halign">start</property>
                                 <layout>
@@ -440,7 +440,7 @@
                           <object class="GtkLabel">
                             <property name="valign">center</property>
                             <property name="margin-top">6</property>
-                            <property name="label" translatable="1">Actions</property>
+                            <property name="label" translatable="yes">Actions</property>
                             <property name="use-markup">1</property>
                             <style>
                               <class name="large-header"/>
@@ -455,7 +455,7 @@
                             <child>
                               <object class="GtkLabel">
                                 <property name="halign">start</property>
-                                <property name="label" translatable="1">Notifications</property>
+                                <property name="label" translatable="yes">Notifications</property>
                                 <style>
                                   <class name="bold"/>
                                   <class name="dim-label"/>
@@ -464,7 +464,7 @@
                             </child>
                             <child>
                               <object class="GtkCheckButton" id="use_popup_cb">
-                                <property name="label" translatable="1">Not_ify me with a popup</property>
+                                <property name="label" translatable="yes">Not_ify me with a popup</property>
                                 <property name="focusable">1</property>
                                 <property name="halign">start</property>
                                 <property name="use-underline">1</property>
@@ -472,7 +472,7 @@
                             </child>
                             <child>
                               <object class="GtkCheckButton" id="disable_popup_cb">
-                                <property name="label" translatable="1">_Disable existing notification</property>
+                                <property name="label" translatable="yes">_Disable existing notification</property>
                                 <property name="focusable">1</property>
                                 <property name="halign">start</property>
                                 <property name="use-underline">1</property>
@@ -487,7 +487,7 @@
                             <child>
                               <object class="GtkLabel">
                                 <property name="halign">start</property>
-                                <property name="label" translatable="1">Sounds</property>
+                                <property name="label" translatable="yes">Sounds</property>
                                 <property name="use-markup">1</property>
                                 <style>
                                   <class name="bold"/>
@@ -502,7 +502,7 @@
                                 <property name="spacing">12</property>
                                 <child>
                                   <object class="GtkCheckButton" id="use_sound_cb">
-                                    <property name="label" translatable="1">Play sound</property>
+                                    <property name="label" translatable="yes">Play sound</property>
                                     <property name="focusable">1</property>
                                     <property name="halign">start</property>
                                     <property name="use-underline">1</property>
@@ -513,7 +513,7 @@
                                     <property name="spacing">12</property>
 <!--                                     <child>
                                       <object class="GtkFileChooserButton" id="filechooser">
-                                        <property name="title" translatable="1">Select Sound</property>
+                                        <property name="title" translatable="yes">Select Sound</property>
                                         <signal name="file-set" handler="_on_sound_file_set" swapped="no"/>
                                       </object>
                                     </child> -->
@@ -533,7 +533,7 @@
                             </child>
                             <child>
                               <object class="GtkCheckButton" id="disable_sound_cb">
-                                <property name="label" translatable="1">_Disable existing sound for this event</property>
+                                <property name="label" translatable="yes">_Disable existing sound for this event</property>
                                 <property name="focusable">1</property>
                                 <property name="halign">start</property>
                                 <property name="use-underline">1</property>
@@ -544,7 +544,7 @@
                         <child>
                           <object class="GtkLabel">
                             <property name="halign">start</property>
-                            <property name="label" translatable="1">Advanced</property>
+                            <property name="label" translatable="yes">Advanced</property>
                             <style>
                               <class name="bold"/>
                               <class name="dim-label"/>
@@ -557,7 +557,7 @@
                             <property name="spacing">6</property>
                             <child>
                               <object class="GtkCheckButton" id="run_command_cb">
-                                <property name="label" translatable="1">Launch command</property>
+                                <property name="label" translatable="yes">Launch command</property>
                                 <property name="focusable">1</property>
                                 <property name="use-underline">1</property>
                               </object>
@@ -566,14 +566,14 @@
                               <object class="GtkEntry" id="command_entry">
                                 <property name="width-request">200</property>
                                 <property name="focusable">1</property>
-                                <property name="placeholder-text" translatable="1">Command...</property>
+                                <property name="placeholder-text" translatable="yes">Command...</property>
                               </object>
                             </child>
                           </object>
                         </child>
                         <child>
                           <object class="GtkCheckButton" id="one_shot_cb">
-                            <property name="label" translatable="1">Delete this rule once applied</property>
+                            <property name="label" translatable="yes">Delete this rule once applied</property>
                             <property name="focusable">1</property>
                             <property name="halign">start</property>
                           </object>

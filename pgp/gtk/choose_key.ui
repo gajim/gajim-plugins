@@ -25,7 +25,7 @@
             </child>
             <child>
               <object class="GtkTreeViewColumn">
-                <property name="title" translatable="1">Key ID</property>
+                <property name="title" translatable="yes">Key ID</property>
                 <property name="sort_order">descending</property>
                 <child>
                   <object class="GtkCellRendererText"/>
@@ -37,7 +37,7 @@
             </child>
             <child>
               <object class="GtkTreeViewColumn">
-                <property name="title" translatable="1">Contact Name</property>
+                <property name="title" translatable="yes">Contact Name</property>
                 <property name="sort_column_id">1</property>
                 <child>
                   <object class="GtkCellRendererText"/>

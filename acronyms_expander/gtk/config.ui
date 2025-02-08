@@ -27,7 +27,7 @@
             <child>
               <object class="GtkTreeViewColumn">
                 <property name="resizable">1</property>
-                <property name="title" translatable="1">Acronym</property>
+                <property name="title" translatable="yes">Acronym</property>
                 <property name="clickable">1</property>
                 <property name="sort_indicator">1</property>
                 <property name="sort_column_id">0</property>
@@ -44,7 +44,7 @@
             <child>
               <object class="GtkTreeViewColumn">
                 <property name="resizable">1</property>
-                <property name="title" translatable="1">Substitute</property>
+                <property name="title" translatable="yes">Substitute</property>
                 <property name="clickable">1</property>
                 <property name="sort_indicator">1</property>
                 <property name="sort_column_id">0</property>
@@ -70,13 +70,13 @@
         </style>
         <child>
           <object class="GtkButton" id="add_button">
-            <property name="tooltip_text" translatable="1">Add</property>
+            <property name="tooltip_text" translatable="yes">Add</property>
             <property name="icon_name">list-add-symbolic</property>
           </object>
         </child>
         <child>
           <object class="GtkButton" id="remove_button">
-            <property name="tooltip_text" translatable="1">Remove</property>
+            <property name="tooltip_text" translatable="yes">Remove</property>
             <property name="icon_name">list-remove-symbolic</property>
           </object>
         </child>
