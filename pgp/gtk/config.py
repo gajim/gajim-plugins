@@ -25,7 +25,7 @@ from gi.repository import GLib
 from gi.repository import Gtk
 
 from gajim.common import app
-from gajim.gtk.util import SignalManager
+from gajim.gtk.util.classes import SignalManager
 from gajim.gtk.widgets import GajimAppWindow
 from gajim.plugins.helpers import get_builder
 from gajim.plugins.plugins_i18n import _
