@@ -13,6 +13,19 @@ TRANSLATABLE_FILES = [
     "*.py",
     "*.ui",
 ]
+PLUGIN_DIRS = [
+    "acronyms_expander",
+    "anti_spam",
+    "clients_icons",
+    "length_notifier",
+    "message_box_size",
+    "now_listen",
+    "openpgp",
+    "pgp",
+    "plugins_translations",
+    "quick_replies",
+    "triggers",
+]
 
 
 def template_is_equal(old_template_path: Path, new_template: str) -> bool:
@@ -30,7 +43,9 @@ def template_is_equal(old_template_path: Path, new_template: str) -> bool:
 def update_translation_template() -> bool:
     paths: list[Path] = []
     for file_path in TRANSLATABLE_FILES:
-        paths += list(REPO_DIR.rglob(file_path))
+        for plugin_dir in PLUGIN_DIRS:
+            plugin_path = REPO_DIR / plugin_dir
+            paths += list(plugin_path.rglob(file_path))
 
     cmd = [
         "xgettext",
