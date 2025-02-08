@@ -1,16 +1,14 @@
-.openpgp-inactive-color { color: @unfocused_borders; }
-
+.openpgp-inactive-color button > box > image { color: @unfocused_borders; }
+.openpgp-error-color button > box > image { color: @error_color; }
+.openpgp-warning-color button > box > image { color: @warning_color; }
+.openpgp-encrypted-color button > box > image { color: rgb(75, 181, 67); }
 .openpgp-mono { font-size: 12px; font-family: monospace; }
-
 .openpgp-key-dialog > box { margin: 12px; }
-
 .openpgp-key-dialog scrolledwindow row {
     border-bottom: 1px solid;
     border-color: @unfocused_borders;
     padding: 10px 20px 10px 10px;
 }
-.openpgp-key-dialog scrolledwindow row:last-child { border-bottom: 0px}
-
+.openpgp-key-dialog scrolledwindow row:last-child { border-bottom: 0px; }
 .openpgp-key-dialog scrolledwindow { border: 1px solid; border-color:@unfocused_borders; }
-
 .openpgp-trust-popover row { padding: 10px 15px 10px 10px; }

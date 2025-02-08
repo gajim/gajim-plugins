@@ -14,6 +14,8 @@
 # You should have received a copy of the GNU General Public License
 # along with OpenPGP Gajim Plugin. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import annotations
+
 import logging
 import time
 
@@ -22,8 +24,11 @@ from gi.repository import Gtk
 from gajim.common import app
 from gajim.gtk.dialogs import ConfirmationDialog
 from gajim.gtk.dialogs import DialogButton
+from gajim.gtk.util.misc import container_remove_all
+from gajim.gtk.widgets import GajimAppWindow
 from gajim.plugins.plugins_i18n import _
 
+from openpgp.modules.key_store import KeyData
 from openpgp.modules.util import Trust
 
 log = logging.getLogger("gajim.p.openpgp.keydialog")
@@ -36,48 +41,60 @@ TRUST_DATA = {
 }
 
 
-class KeyDialog(Gtk.Dialog):
-    def __init__(self, account, jid, transient):
-        super().__init__(title=_("Public Keys for %s") % jid, destroy_with_parent=True)
+class KeyDialog(GajimAppWindow):
+    def __init__(self, account: str, jid: str, transient: Gtk.Window) -> None:
 
-        self.set_transient_for(transient)
-        self.set_resizable(True)
-        self.set_default_size(500, 300)
+        GajimAppWindow.__init__(
+            self,
+            name="PGPKeyDialog",
+            title=_("Public Keys for %s") % jid,
+            default_width=450,
+            default_height=400,
+            transient_for=transient,
+            modal=True,
+        )
 
-        self.get_style_context().add_class("openpgp-key-dialog")
+        self.window.add_css_class("openpgp-key-dialog")
 
         self._client = app.get_client(account)
 
         self._listbox = Gtk.ListBox()
         self._listbox.set_selection_mode(Gtk.SelectionMode.NONE)
 
-        self._scrolled = Gtk.ScrolledWindow()
+        self._scrolled = Gtk.ScrolledWindow(hexpand=True)
         self._scrolled.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
-        self._scrolled.add(self._listbox)
+        self._scrolled.set_child(self._listbox)
 
-        box = self.get_content_area()
-        box.pack_start(self._scrolled, True, True, 0)
+        self.set_child(self._scrolled)
 
         keys = self._client.get_module("OpenPGP").get_keys(jid, only_trusted=False)
         for key in keys:
             log.info("Load: %s", key.fingerprint)
-            self._listbox.add(KeyRow(key))
-        self.show_all()
+            self._listbox.append(KeyRow(key, self))
+
+        self.show()
+
+    def _cleanup(self) -> None:
+        del self._client
+        del self._listbox
+        del self._scrolled
 
 
 class KeyRow(Gtk.ListBoxRow):
-    def __init__(self, key):
+    def __init__(self, key: KeyData, dialog: GajimAppWindow):
         Gtk.ListBoxRow.__init__(self)
         self.set_activatable(False)
 
-        self._dialog = self.get_toplevel()
+        self._dialog = dialog
         self.key = key
 
         box = Gtk.Box()
         box.set_spacing(12)
 
-        self._trust_button = TrustButton(self)
-        box.add(self._trust_button)
+        self._trust_button = Gtk.MenuButton()
+        self._trust_button.set_popover(TrustPopver(self))
+        self._update_button_state()
+        box.append(self._trust_button)
 
         label_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         fingerprint = Gtk.Label(label=self._format_fingerprint(key.fingerprint))
@@ -88,25 +105,37 @@ class KeyRow(Gtk.ListBoxRow):
         fingerprint.set_halign(Gtk.Align.START)
         fingerprint.set_valign(Gtk.Align.START)
         fingerprint.set_hexpand(True)
-        label_box.add(fingerprint)
+        label_box.append(fingerprint)
 
         date = Gtk.Label(label=self._format_timestamp(key.timestamp))
         date.set_halign(Gtk.Align.START)
         date.get_style_context().add_class("openpgp-mono")
         if not key.active:
             date.get_style_context().add_class("openpgp-inactive-color")
-        label_box.add(date)
+        label_box.append(date)
 
-        box.add(label_box)
+        box.append(label_box)
+        self.set_child(box)
 
-        self.add(box)
-        self.show_all()
+    def _update_button_state(self) -> None:
+        icon_name, tooltip, css_class = TRUST_DATA[self.key.trust]
+        self._trust_button.set_icon_name(icon_name)
 
-    def delete_fingerprint(self, *args):
+        for css_cls in self._trust_button.get_css_classes():
+            if css_cls.startswith("openpgp"):
+                self._trust_button.remove_css_class(css_cls)
+
+        if not self.key.active:
+            css_class = "inactive-color"
+            tooltip = "%s - %s" % (_("Inactive"), tooltip)
+
+        self._trust_button.add_css_class(f"openpgp-{css_class}")
+        self._trust_button.set_tooltip_text(tooltip)
+
+    def delete_fingerprint(self):
         def _remove():
             self.get_parent().remove(self)
             self.key.delete()
-            self.destroy()
 
         ConfirmationDialog(
             _("Delete Public Key?"),
@@ -117,98 +146,76 @@ class KeyRow(Gtk.ListBoxRow):
             ],
         ).show()
 
-    def set_trust(self, trust):
-        icon_name, tooltip, css_class = TRUST_DATA[trust]
-        image = self._trust_button.get_child()
-        image.set_from_icon_name(icon_name, Gtk.IconSize.MENU)
-        image.get_style_context().add_class(css_class)
+    def set_trust(self, trust: Trust) -> None:
+        self.key.trust = trust
+        self._update_button_state()
 
     @staticmethod
-    def _format_fingerprint(fingerprint):
+    def _format_fingerprint(fingerprint: str) -> str:
         fplen = len(fingerprint)
         wordsize = fplen // 8
         buf = ""
         for w in range(0, fplen, wordsize):
-            buf += "{0} ".format(fingerprint[w : w + wordsize])
+            buf += f"{fingerprint[w : w + wordsize]} "
         return buf.rstrip()
 
     @staticmethod
-    def _format_timestamp(timestamp):
+    def _format_timestamp(timestamp: float) -> str:
         return time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(timestamp))
 
 
-class TrustButton(Gtk.MenuButton):
-    def __init__(self, row):
-        Gtk.MenuButton.__init__(self)
-        self._row = row
-        self._css_class = ""
-        self.set_popover(TrustPopver(row))
-        self.update()
-
-    def update(self):
-        icon_name, tooltip, css_class = TRUST_DATA[self._row.key.trust]
-        image = self.get_child()
-        image.set_from_icon_name(icon_name, Gtk.IconSize.MENU)
-        # remove old color from icon
-        image.get_style_context().remove_class(self._css_class)
-
-        if not self._row.key.active:
-            css_class = "openpgp-inactive-color"
-            tooltip = "%s - %s" % (_("Inactive"), tooltip)
-
-        image.get_style_context().add_class(css_class)
-        self._css_class = css_class
-        self.set_tooltip_text(tooltip)
-
-
 class TrustPopver(Gtk.Popover):
-    def __init__(self, row):
+    def __init__(self, row: KeyRow):
         Gtk.Popover.__init__(self)
         self._row = row
         self._listbox = Gtk.ListBox()
         self._listbox.set_selection_mode(Gtk.SelectionMode.NONE)
         if row.key.trust != Trust.VERIFIED:
-            self._listbox.add(VerifiedOption())
+            self._listbox.append(VerifiedOption())
         if row.key.trust != Trust.NOT_TRUSTED:
-            self._listbox.add(NotTrustedOption())
-        self._listbox.add(DeleteOption())
-        self.add(self._listbox)
-        self._listbox.show_all()
+            self._listbox.append(NotTrustedOption())
+        self._listbox.append(DeleteOption())
+        self.set_child(self._listbox)
         self._listbox.connect("row-activated", self._activated)
-        self.get_style_context().add_class("openpgp-trust-popover")
+        self.add_css_class("openpgp-trust-popover")
 
-    def _activated(self, listbox, row):
+    def _activated(self, listbox: Gtk.ListBox, row: MenuOption) -> None:
         self.popdown()
         if row.type_ is None:
             self._row.delete_fingerprint()
         else:
-            self._row.key.trust = row.type_
-            self.get_relative_to().update()
+            self._row.set_trust(row.type_)
             self.update()
 
     def update(self):
-        self._listbox.foreach(lambda row: self._listbox.remove(row))
+        container_remove_all(self._listbox)
         if self._row.key.trust != Trust.VERIFIED:
-            self._listbox.add(VerifiedOption())
+            self._listbox.append(VerifiedOption())
         if self._row.key.trust != Trust.NOT_TRUSTED:
-            self._listbox.add(NotTrustedOption())
-        self._listbox.add(DeleteOption())
+            self._listbox.append(NotTrustedOption())
+        self._listbox.append(DeleteOption())
 
 
 class MenuOption(Gtk.ListBoxRow):
+
+    type_: Trust | None
+    icon: str
+    label: str
+    color: str
+
     def __init__(self):
         Gtk.ListBoxRow.__init__(self)
         box = Gtk.Box()
         box.set_spacing(6)
 
-        image = Gtk.Image.new_from_icon_name(self.icon, Gtk.IconSize.MENU)
-        label = Gtk.Label(label=self.label)
-        image.get_style_context().add_class(self.color)
+        image = Gtk.Image.new_from_icon_name(self.icon)
+        if self.color:
+            image.add_css_class(self.color)
 
-        box.add(image)
-        box.add(label)
-        self.add(box)
-        self.show_all()
+        label = Gtk.Label(label=self.label)
+        box.append(image)
+        box.append(label)
+        self.set_child(box)
 
 
 class VerifiedOption(MenuOption):

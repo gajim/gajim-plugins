@@ -15,12 +15,16 @@
 # along with OpenPGP Gajim Plugin. If not, see <http://www.gnu.org/licenses/>.
 
 import logging
+from collections.abc import Sequence
 from pathlib import Path
 
 import gnupg
 from nbxmpp.protocol import JID
 
+from openpgp.backend.base import BaseKeyringItem
+from openpgp.backend.base import BasePGPBackend
 from openpgp.backend.util import parse_uid
+from openpgp.modules.key_store import KeyData
 from openpgp.modules.util import DecryptionFailed
 
 log = logging.getLogger("gajim.p.openpgp.pygnupg")
@@ -30,22 +34,7 @@ if log.getEffectiveLevel() == logging.DEBUG:
     log.setLevel(logging.DEBUG)
 
 
-class KeyringItem:
-    def __init__(self, key):
-        self._key = key
-        self._uid = self._get_uid()
-
-    @property
-    def is_xmpp_key(self) -> bool:
-        try:
-            return self.jid is not None
-        except Exception:
-            return False
-
-    def is_valid(self, jid: JID) -> bool:
-        if not self.is_xmpp_key:
-            return False
-        return jid == self.jid
+class KeyringItem(BaseKeyringItem):
 
     @property
     def keyid(self) -> str:
@@ -59,32 +48,18 @@ class KeyringItem:
                 pass
 
     @property
-    def fingerprint(self):
+    def fingerprint(self) -> str:
         return self._key["fingerprint"]
 
-    @property
-    def uid(self):
-        if self._uid is not None:
-            return self._uid
 
-    @property
-    def jid(self):
-        if self._uid is not None:
-            return JID.from_string(self._uid)
-
-    def __hash__(self):
-        return hash(self.fingerprint)
-
-
-class PythonGnuPG(gnupg.GPG):
+class PythonGnuPG(BasePGPBackend):
     def __init__(self, jid: str, gnupghome: Path) -> None:
-        gnupg.GPG.__init__(self, gpgbinary="gpg", gnupghome=str(gnupghome))
-
+        self._gnupg = gnupg.GPG(gpgbinary="gpg", gnupghome=str(gnupghome))
         self._jid = jid
         self._own_fingerprint = None
 
     @staticmethod
-    def _get_key_params(jid):
+    def _get_key_params(jid: str) -> str:
         """
         Generate --gen-key input
         """
@@ -102,17 +77,19 @@ class PythonGnuPG(gnupg.GPG):
         out += "%commit\n"
         return out
 
-    def generate_key(self):
-        super().gen_key(self._get_key_params(self._jid))
+    def generate_key(self) -> None:
+        self._gnupg.gen_key(self._get_key_params(self._jid))
 
-    def encrypt(self, payload, keys):
+    def encrypt(
+        self, payload: bytes, keys: list[KeyData]
+    ) -> tuple[bytes | None, str | None]:
         recipients = [key.fingerprint for key in keys]
         log.info("encrypt to:")
         for fingerprint in recipients:
             log.info(fingerprint)
 
-        result = super().encrypt(
-            str(payload).encode("utf8"),
+        result = self._gnupg.encrypt(
+            payload,
             recipients,
             armor=False,
             sign=self._own_fingerprint,
@@ -126,19 +103,20 @@ class PythonGnuPG(gnupg.GPG):
 
         return result.data, error
 
-    def decrypt(self, payload):
-        result = super().decrypt(payload, always_trust=True)
+    def decrypt(self, payload: bytes) -> tuple[str, str]:
+        result = self._gnupg.decrypt(payload, always_trust=True)
         if not result.ok:
             raise DecryptionFailed(result.status)
 
+        assert result.fingerprint is not None
         return result.data.decode("utf8"), result.fingerprint
 
-    def get_key(self, fingerprint):
-        return super().list_keys(keys=[fingerprint])
+    def _get_key(self, fingerprint: str) -> gnupg.ListKeys:
+        return self._gnupg.list_keys(keys=[fingerprint])
 
-    def get_keys(self, secret=False):
-        result = super().list_keys(secret=secret)
-        keys = []
+    def get_keys(self) -> Sequence[KeyringItem]:
+        result = self._gnupg.list_keys(secret=False)
+        keys: list[KeyringItem] = []
         for key in result:
             item = KeyringItem(key)
             if not item.is_xmpp_key:
@@ -149,15 +127,18 @@ class PythonGnuPG(gnupg.GPG):
             keys.append(item)
         return keys
 
-    def import_key(self, data, jid):
+    def import_key(self, data: bytes, jid: JID) -> KeyringItem | None:
         log.info("Import key from %s", jid)
-        result = super().import_keys(data)
+        result = self._gnupg.import_keys(data)
         if not result:
             log.error("Could not import key")
             log.error(result)
             return
 
-        key = self.get_key(result.results[0]["fingerprint"])
+        fpr = result.results[0]["fingerprint"]
+        assert fpr is not None
+
+        key = self._get_key(fpr)
         item = KeyringItem(key[0])
         if not item.is_valid(jid):
             log.warning("Invalid key found, deleting key")
@@ -167,8 +148,8 @@ class PythonGnuPG(gnupg.GPG):
 
         return item
 
-    def get_own_key_details(self):
-        result = super().list_keys(secret=True)
+    def get_own_key_details(self) -> tuple[str | None, int | None]:
+        result = self._gnupg.list_keys(secret=True)
         if not result:
             return None, None
 
@@ -179,10 +160,13 @@ class PythonGnuPG(gnupg.GPG):
         self._own_fingerprint = result[0]["fingerprint"]
         return self._own_fingerprint, int(result[0]["date"])
 
-    def export_key(self, fingerprint):
-        key = super().export_keys(fingerprint, secret=False, armor=False, minimal=True)
+    def export_key(self, fingerprint: str) -> bytes | None:
+        key = self._gnupg.export_keys(
+            fingerprint, secret=False, armor=False, minimal=True
+        )
+        assert isinstance(key, bytes | None)
         return key
 
-    def delete_key(self, fingerprint):
+    def delete_key(self, fingerprint: str) -> None:
         log.info("Delete Key: %s", fingerprint)
-        super().delete_keys(fingerprint)
+        self._gnupg.delete_keys(fingerprint)

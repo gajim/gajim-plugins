@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 
-def parse_uid(uid: str, compat=False) -> str:
+def parse_uid(uid: str, compat: bool = False) -> str:
     if uid.startswith("xmpp:"):
         return uid[5:]
 

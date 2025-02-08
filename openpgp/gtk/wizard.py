@@ -14,6 +14,8 @@
 # You should have received a copy of the GNU General Public License
 # along with OpenPGP Gajim Plugin. If not, see <http://www.gnu.org/licenses/>.
 
+from typing import cast
+
 import logging
 import threading
 from enum import IntEnum
@@ -22,7 +24,11 @@ from gi.repository import GLib
 from gi.repository import Gtk
 
 from gajim.common import app
+from gajim.common.client import Client
+from gajim.gtk.control import ChatControl
 from gajim.plugins.plugins_i18n import _
+
+from ..pgpplugin import OpenPGPPlugin
 
 log = logging.getLogger("gajim.p.openpgp.wizard")
 
@@ -35,7 +41,9 @@ class Page(IntEnum):
 
 
 class KeyWizard(Gtk.Assistant):
-    def __init__(self, plugin, account, chat_control):
+    def __init__(
+        self, plugin: OpenPGPPlugin, account: str, chat_control: ChatControl
+    ) -> None:
         Gtk.Assistant.__init__(self)
 
         self._client = app.get_client(account)
@@ -48,7 +56,6 @@ class KeyWizard(Gtk.Assistant):
         self.set_application(app.app)
         self.set_transient_for(app.window)
         self.set_resizable(True)
-        self.set_position(Gtk.WindowPosition.CENTER)
 
         self.set_default_size(600, 400)
         self.get_style_context().add_class("dialog-margin")
@@ -65,9 +72,9 @@ class KeyWizard(Gtk.Assistant):
         self.connect("close", self._on_cancel)
 
         self._remove_sidebar()
-        self.show_all()
+        self.show()
 
-    def _add_page(self, page):
+    def _add_page(self, page: Gtk.Box) -> None:
         self.append_page(page)
         self.set_page_type(page, page.type_)
         self.set_page_title(page, page.title)
@@ -82,7 +89,7 @@ class KeyWizard(Gtk.Assistant):
         action = app.window.lookup_action("set-encryption")
         action.activate(GLib.Variant("s", self._plugin.encryption_name))
 
-    def _on_page_change(self, assistant, page):
+    def _on_page_change(self, assistant: Gtk.Assistant, page: Page) -> None:
         if self.get_current_page() == Page.NEWKEY:
             if self._client.get_module("OpenPGP").secret_key_available:
                 self.set_current_page(Page.SUCCESS)
@@ -91,8 +98,8 @@ class KeyWizard(Gtk.Assistant):
         elif self.get_current_page() == Page.SUCCESS:
             self._activate_encryption()
 
-    def _on_cancel(self, widget):
-        self.destroy()
+    def _on_cancel(self, widget: Gtk.Assistant):
+        self.close()
 
 
 class WelcomePage(Gtk.Box):
@@ -106,8 +113,8 @@ class WelcomePage(Gtk.Box):
         self.set_spacing(18)
         title_label = Gtk.Label(label=_("Setup OpenPGP"))
         text_label = Gtk.Label(label=_("Gajim will now try to setup OpenPGP for you"))
-        self.add(title_label)
-        self.add(text_label)
+        self.append(title_label)
+        self.append(text_label)
 
 
 class RequestPage(Gtk.Box):
@@ -120,7 +127,7 @@ class RequestPage(Gtk.Box):
         super().__init__(orientation=Gtk.Orientation.VERTICAL)
         self.set_spacing(18)
         spinner = Gtk.Spinner()
-        self.pack_start(spinner, True, True, 0)
+        self.append(spinner)
         spinner.start()
 
 
@@ -148,7 +155,7 @@ class NewKeyPage(RequestPage):
     title = _("Generating new Key")
     complete = False
 
-    def __init__(self, assistant, client):
+    def __init__(self, assistant: Gtk.Assistant, client: Client) -> None:
         super().__init__()
         self._assistant = assistant
         self._client = client
@@ -167,14 +174,14 @@ class NewKeyPage(RequestPage):
 
         GLib.idle_add(self.finished, text)
 
-    def finished(self, error):
+    def finished(self, error: str | None) -> None:
         if error is None:
             self._client.get_module("OpenPGP").get_own_key_details()
             self._client.get_module("OpenPGP").set_public_key()
             self._client.get_module("OpenPGP").request_keylist()
             self._assistant.set_current_page(Page.SUCCESS)
         else:
-            error_page = self._assistant.get_nth_page(Page.ERROR)
+            error_page = cast(ErrorPage, self._assistant.get_nth_page(Page.ERROR))
             error_page.set_text(error)
             self._assistant.set_current_page(Page.ERROR)
 
@@ -206,17 +213,15 @@ class SuccessfulPage(Gtk.Box):
         self.set_spacing(12)
         self.set_homogeneous(True)
 
-        icon = Gtk.Image.new_from_icon_name(
-            "object-select-symbolic", Gtk.IconSize.DIALOG
-        )
-        icon.get_style_context().add_class("success-color")
+        icon = Gtk.Image.new_from_icon_name("object-select-symbolic")
+        icon.add_css_class("success-color")
         icon.set_valign(Gtk.Align.END)
         label = Gtk.Label(label=_("Setup successful"))
-        label.get_style_context().add_class("bold16")
+        label.add_css_class("bold16")
         label.set_valign(Gtk.Align.START)
 
-        self.add(icon)
-        self.add(label)
+        self.append(icon)
+        self.append(label)
 
 
 class ErrorPage(Gtk.Box):
@@ -230,17 +235,15 @@ class ErrorPage(Gtk.Box):
         self.set_spacing(12)
         self.set_homogeneous(True)
 
-        icon = Gtk.Image.new_from_icon_name(
-            "dialog-error-symbolic", Gtk.IconSize.DIALOG
-        )
+        icon = Gtk.Image.new_from_icon_name("dialog-error-symbolic")
         icon.get_style_context().add_class("error-color")
         icon.set_valign(Gtk.Align.END)
         self._label = Gtk.Label()
         self._label.get_style_context().add_class("bold16")
         self._label.set_valign(Gtk.Align.START)
 
-        self.add(icon)
-        self.add(self._label)
+        self.append(icon)
+        self.append(self._label)
 
-    def set_text(self, text):
+    def set_text(self, text: str) -> None:
         self._label.set_text(text)

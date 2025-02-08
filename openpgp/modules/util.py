@@ -14,9 +14,9 @@
 # You should have received a copy of the GNU General Public License
 # along with OpenPGP Gajim Plugin. If not, see <http://www.gnu.org/licenses/>.
 
-from collections import namedtuple
 from enum import IntEnum
 
+from nbxmpp import Node
 from nbxmpp.namespaces import Namespace
 
 ENCRYPTION_NAME = "OpenPGP"
@@ -27,10 +27,8 @@ NOT_ENCRYPTED_TAGS = [
     ("no-copy", Namespace.HINTS),
     ("no-permanent-store", Namespace.HINTS),
     ("origin-id", Namespace.SID),
-    ("thread", None),
+    ("thread", ""),
 ]
-
-Key = namedtuple("Key", "fingerprint date")
 
 
 class Trust(IntEnum):
@@ -40,19 +38,23 @@ class Trust(IntEnum):
     VERIFIED = 3
 
 
-def prepare_stanza(stanza, payload):
+def prepare_stanza(stanza: Node, payload: list[Node | str]) -> None:
     delete_nodes(stanza, "openpgp", Namespace.OPENPGP)
     delete_nodes(stanza, "body")
 
-    nodes = [(node.getName(), node.getNamespace()) for node in payload]
-    for name, namespace in nodes:
-        delete_nodes(stanza, name, namespace)
-
+    nodes: list[Node] = []
     for node in payload:
+        if isinstance(node, str):
+            continue
+        name, namespace = node.getName(), node.getNamespace()
+        delete_nodes(stanza, name, namespace)
+        nodes.append(node)
+
+    for node in nodes:
         stanza.addChild(node=node)
 
 
-def delete_nodes(stanza, name, namespace=None):
+def delete_nodes(stanza: Node, name: str, namespace: str | None = None) -> None:
     attrs = None
     if namespace is not None:
         attrs = {"xmlns": Namespace.OPENPGP}
