@@ -27,7 +27,7 @@ from nbxmpp.structs import DiscoInfo
 from gajim.common import app
 from gajim.common.modules.contacts import GroupchatParticipant
 from gajim.common.modules.contacts import ResourceContact
-from gajim.gtk.util import get_icon_theme
+from gajim.gtk.util.icons import get_icon_theme
 from gajim.plugins import GajimPlugin
 from gajim.plugins.plugins_i18n import _
 
