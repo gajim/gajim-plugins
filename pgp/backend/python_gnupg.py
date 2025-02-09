@@ -73,7 +73,7 @@ class PGP(metaclass=Singleton):
         result = self._pgp.decrypt(data.encode("utf8"))
         return str(result)
 
-    @lru_cache(maxsize=8)
+    @lru_cache(maxsize=8)  # noqa: B019
     def sign(self, payload: str | None, key_id: str) -> str:
         if payload is None:
             payload = ""
