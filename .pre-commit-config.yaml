@@ -3,7 +3,6 @@ repos:
     rev: v0.6.8
     hooks:
       - id: ruff
-        stages: [manual]
         exclude: ".githooks/"
 
   - repo: https://github.com/codespell-project/codespell

@@ -20,6 +20,17 @@ test-isort:
     - isort --check .
   interruptible: true
 
+test-ruff:
+  image: gajim-test
+  stage: test
+  rules:
+    - changes:
+      - "**/*.py"
+  script:
+    - ruff --version
+    - ruff check .
+  interruptible: true
+
 test-black:
   image: gajim-test
   stage: test
