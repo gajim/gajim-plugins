@@ -18,31 +18,28 @@ modules:
       prefix: ${FLATPAK_DEST}
     sources:
       - type: archive
-        url: https://downloads.sourceforge.net/swig/swig-4.2.1.tar.gz
-        sha256: fa045354e2d048b2cddc69579e4256245d4676894858fcf0bab2290ecf59b7d8
+        url: https://downloads.sourceforge.net/swig/swig-4.3.0.tar.gz
+        sha256: f7203ef796f61af986c70c05816236cbd0d31b7aa9631e5ab53020ab7804aa9e
 
   - name: gpgme
     cleanup:
       - /bin
       - /include
-      - /lib
       - /share
     build-options:
       config-opts:
         - --enable-languages=python
       env:
-        SWIG_LIB: "/app/plugins/openpgp/share/swig/4.2.1"
+        SWIG_LIB: "/app/plugins/openpgp/share/swig/4.3.0"
       prepend-path: "/app/plugins/openpgp/bin:"
       prefix: ${FLATPAK_DEST}
     post-install:
       - mkdir -p ${FLATPAK_DEST}/site-packages
       - mv ${FLATPAK_DEST}/lib/python3.12/site-packages/*.egg/gpg ${FLATPAK_DEST}/site-packages/
     sources:
-      # used version should match runtime version of gpgme
-      # so we don't have to ship libs
       - type: archive
-        url: https://www.gnupg.org/ftp/gcrypt/gpgme/gpgme-1.23.2.tar.bz2
-        sha256: 9499e8b1f33cccb6815527a1bc16049d35a6198a6c5fae0185f2bd561bce5224
+        url: https://www.gnupg.org/ftp/gcrypt/gpgme/gpgme-1.24.2.tar.bz2
+        sha256: e11b1a0e361777e9e55f48a03d89096e2abf08c63d84b7017cfe1dce06639581
 
   - name: gajim-openpgp
     buildsystem: simple
