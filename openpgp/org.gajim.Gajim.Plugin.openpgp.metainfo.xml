@@ -6,7 +6,7 @@
   <summary>Experimental OpenPGP XEP-0373 Implementation</summary>
   <url type="homepage">https://gajim.org/</url>
   <metadata_license>CC-BY-SA-3.0</metadata_license>
-  <project_license>GPL-3.0</project_license>
+  <project_license>GPL-3.0-only</project_license>
   <update_contact>gajim-devel_AT_gajim.org</update_contact>
 </component>
 
