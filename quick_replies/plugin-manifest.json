@@ -13,8 +13,8 @@
         "win32"
     ],
     "requirements": [
-        "gajim>=1.5.0"
+        "gajim>=2.0.0"
     ],
     "short_name": "quick_replies",
-    "version": "1.4.5"
+    "version": "1.5.0"
 }

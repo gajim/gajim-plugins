@@ -13,8 +13,8 @@
         "win32"
     ],
     "requirements": [
-        "gajim>=1.4.0"
+        "gajim>=2.0.0"
     ],
     "short_name": "plugins_translations",
-    "version": "1.4.6"
+    "version": "1.5.0"
 }

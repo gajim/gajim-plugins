@@ -13,8 +13,8 @@
         "win32"
     ],
     "requirements": [
-        "gajim>=1.9.0"
+        "gajim>=2.0.0"
     ],
     "short_name": "openpgp",
-    "version": "1.6.2"
+    "version": "1.7.0"
 }

@@ -13,8 +13,8 @@
         "win32"
     ],
     "requirements": [
-        "gajim>=1.9.4"
+        "gajim>=2.0.0"
     ],
     "short_name": "triggers",
-    "version": "1.5.2"
+    "version": "1.6.0"
 }

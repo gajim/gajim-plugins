@@ -15,8 +15,8 @@
         "win32"
     ],
     "requirements": [
-        "gajim>=1.4.0"
+        "gajim>=2.0.0"
     ],
     "short_name": "anti_spam",
-    "version": "1.6.8"
+    "version": "1.7.0"
 }

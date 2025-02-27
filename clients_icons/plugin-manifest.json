@@ -15,8 +15,8 @@
         "win32"
     ],
     "requirements": [
-        "gajim>=1.4.0"
+        "gajim>=2.0.0"
     ],
     "short_name": "clients_icons",
-    "version": "7.11.0"
+    "version": "7.12.0"
 }
