@@ -16,7 +16,6 @@
 
 from __future__ import annotations
 
-from typing import Any
 from typing import TYPE_CHECKING
 
 from collections.abc import Sequence
@@ -29,8 +28,7 @@ if TYPE_CHECKING:
 
 
 class BaseKeyringItem:
-    def __init__(self, key: Any) -> None:
-        self._key = key
+    def __init__(self) -> None:
         self._uid = self._get_uid()
 
     @property

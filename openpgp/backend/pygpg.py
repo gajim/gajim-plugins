@@ -14,6 +14,8 @@
 # You should have received a copy of the GNU General Public License
 # along with OpenPGP Gajim Plugin. If not, see <http://www.gnu.org/licenses/>.
 
+from typing import Any
+
 import logging
 from collections.abc import Sequence
 from pathlib import Path
@@ -35,6 +37,9 @@ if log.getEffectiveLevel() == logging.DEBUG:
 
 
 class KeyringItem(BaseKeyringItem):
+    def __init__(self, key: dict[Any, Any]) -> None:
+        self._key = key
+        BaseKeyringItem.__init__(self)
 
     @property
     def keyid(self) -> str:

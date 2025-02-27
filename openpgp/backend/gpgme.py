@@ -18,6 +18,7 @@ from typing import Any
 from typing import cast
 
 import logging
+from collections.abc import Iterator
 from collections.abc import Sequence
 from pathlib import Path
 
@@ -37,6 +38,9 @@ log = logging.getLogger("gajim.p.openpgp.gpgme")
 
 
 class KeyringItem(BaseKeyringItem):
+    def __init__(self, key: Key) -> None:
+        self._key = key
+        BaseKeyringItem.__init__(self)
 
     def _get_uid(self) -> str | None:
         for uid in self._key.uids:
@@ -98,7 +102,7 @@ class GPGMe(BasePGPBackend):
     def get_keys(self) -> Sequence[KeyringItem]:
         keys: list[KeyringItem] = []
         with self._get_context() as context:
-            for key in context.keylist(secret=False):
+            for key in cast(Iterator[Key], context.keylist(secret=False)):
                 keyring_item = KeyringItem(key)
                 if not keyring_item.is_xmpp_key:
                     log.warning("Key not suited for xmpp: %s", key.fpr)
@@ -133,7 +137,7 @@ class GPGMe(BasePGPBackend):
         recipients: list[Any] = []
         with self._get_context() as context:
             for key in keys:
-                key = context.get_key(key.fingerprint)
+                key = cast(Key | None, context.get_key(key.fingerprint))
                 if key is not None:
                     recipients.append(key)
 
@@ -155,16 +159,18 @@ class GPGMe(BasePGPBackend):
             except Exception as error:
                 raise DecryptionFailed("Decryption failed: %s" % error)
 
-        plaintext, result, verify_result = result
-        plaintext = plaintext.decode()
+            plaintext, result, verify_result = result
+            plaintext = plaintext.decode()
 
-        fingerprints = [sig.fpr for sig in verify_result.signatures]
-        if not fingerprints or len(fingerprints) > 1:
-            log.error(result)
-            log.error(verify_result)
-            raise DecryptionFailed("Verification failed")
+            fingerprints = [sig.fpr for sig in verify_result.signatures]
+            if not fingerprints or len(fingerprints) > 1:
+                log.error(result)
+                log.error(verify_result)
+                raise DecryptionFailed("Verification failed")
 
-        return plaintext, fingerprints[0]
+            return plaintext, fingerprints[0]
+
+        raise RuntimeError
 
     def import_key(self, data: bytes, jid: JID) -> KeyringItem | None:
         log.info("Import key from %s", jid)

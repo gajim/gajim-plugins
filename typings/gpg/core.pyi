@@ -2,8 +2,11 @@ from typing import Any
 
 from collections.abc import Iterator
 
+from gpg.results import DecryptResult
 from gpg.results import EncryptResult
+from gpg.results import Key
 from gpg.results import SignResult
+from gpg.results import VerifyResult
 
 class GpgmeWrapper(object): ...
 
@@ -24,7 +27,7 @@ class Context(GpgmeWrapper):
     def encrypt(
         self,
         plaintext: bytes,
-        recipients: list[str] = [],
+        recipients: list[Any] = [],
         sign: bool = ...,
         sink: Any | None = ...,
         passphrase: str | None = ...,
@@ -41,7 +44,7 @@ class Context(GpgmeWrapper):
         passphrase: str | None = ...,
         verify: bool = ...,
         filter_signatures: bool = ...,
-    ) -> tuple[bytes, str, str]: ...
+    ) -> tuple[bytes, DecryptResult, VerifyResult]: ...
     def key_import(self, data: bytes) -> str: ...
     def key_export_minimal(self, pattern: Any | None = ...) -> bytes | None: ...
     def keylist(

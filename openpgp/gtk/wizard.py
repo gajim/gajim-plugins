@@ -71,7 +71,7 @@ class KeyWizard(Gtk.Assistant):
         self.connect("cancel", self._on_cancel)
         self.connect("close", self._on_cancel)
 
-        self._remove_sidebar()
+        # self._remove_sidebar()
         self.show()
 
     def _add_page(self, page: Gtk.Box) -> None:

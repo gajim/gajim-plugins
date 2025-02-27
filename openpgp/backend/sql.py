@@ -105,7 +105,7 @@ class Storage:
     ) -> None:
         sql = """REPLACE INTO
                  contacts(jid, fingerprint, active, trust, timestamp)
-                 VALUES(?, ?, ?, ?, ?, ?)"""
+                 VALUES(?, ?, ?, ?, ?)"""
         for values in db_values:
             log.info("Store key: %s", values)
             self._con.execute(sql, values)
