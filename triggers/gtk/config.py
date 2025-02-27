@@ -26,6 +26,7 @@ from gi.repository import Gtk
 
 from gajim.common.helpers import play_sound_file
 from gajim.common.util.status import get_uf_show
+from gajim.gtk.filechoosers import FileChooserButton
 from gajim.gtk.widgets import GajimAppWindow
 from gajim.plugins.helpers import get_builder
 from gajim.plugins.plugins_i18n import _
@@ -156,6 +157,9 @@ class ConfigDialog(GajimAppWindow):
         self._connect(self._ui.one_shot_cb, "toggled", self._on_one_shot_cb_toggled)
         self._connect(self.window, "close-request", self._on_close_request)
 
+        file_chooser_button = FileChooserButton()
+        self._connect(file_chooser_button, "path-picked", self._on_sound_file_set)
+        self._ui.sound_file_box.append(file_chooser_button)
         self.show()
 
     def _cleanup(self) -> None:
@@ -428,7 +432,7 @@ class ConfigDialog(GajimAppWindow):
         model[iter_][0] = self._active_num - 1
         # get previous iter
         path = model.get_path(iter_)
-        iter_ = model.get_iter((path[0] - 1,))
+        iter_ = model.get_iter((path[0] - 1,))  # type: ignore
         model[iter_][0] = self._active_num
         self._on_conditions_treeview_cursor_changed(self._ui.conditions_treeview)
 
@@ -604,11 +608,11 @@ class ConfigDialog(GajimAppWindow):
         else:
             self._ui.sound_file_box.set_sensitive(False)
 
-    def _on_sound_file_set(self, widget: Gtk.FileChooserButton) -> None:
-        self._config[self._active_num]["sound_file"] = widget.get_filename()
+    def _on_sound_file_set(self, widget: FileChooserButton, paths: list[Path]) -> None:
+        self._config[self._active_num]["sound_file"] = paths[0]
 
     def _on_play_button_clicked(self, _button: Gtk.Button) -> None:
-        play_sound_file(self._ui.filechooser.get_filename())
+        play_sound_file(self._config[self._active_num]["sound_file"])
 
     def _on_disable_sound_cb_toggled(self, widget: Gtk.CheckButton) -> None:
         self._on_disable_it_toggled(widget, self._ui.use_sound_cb, "sound")
