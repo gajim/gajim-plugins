@@ -71,7 +71,7 @@ class KeyWizard(Gtk.Assistant):
         self.connect("cancel", self._on_cancel)
         self.connect("close", self._on_cancel)
 
-        # self._remove_sidebar()
+        self._remove_sidebar()
         self.show()
 
     def _add_page(self, page: Gtk.Box) -> None:
@@ -81,8 +81,8 @@ class KeyWizard(Gtk.Assistant):
         self.set_page_complete(page, page.complete)
 
     def _remove_sidebar(self):
-        main_box = self.get_children()[0]
-        sidebar = main_box.get_children()[0]
+        main_box = self.get_child()
+        sidebar = main_box.get_first_child()
         main_box.remove(sidebar)
 
     def _activate_encryption(self):
@@ -99,7 +99,7 @@ class KeyWizard(Gtk.Assistant):
             self._activate_encryption()
 
     def _on_cancel(self, widget: Gtk.Assistant):
-        self.close()
+        self.destroy()
 
 
 class WelcomePage(Gtk.Box):
