@@ -16,10 +16,14 @@
 
 from __future__ import annotations
 
+from typing import cast
+from typing import TYPE_CHECKING
+
 import logging
 import time
 
 from gi.repository import Gtk
+from nbxmpp import JID
 
 from gajim.common import app
 from gajim.gtk.dialogs import ConfirmationDialog
@@ -30,6 +34,9 @@ from gajim.plugins.plugins_i18n import _
 
 from openpgp.modules.key_store import KeyData
 from openpgp.modules.util import Trust
+
+if TYPE_CHECKING:
+    from openpgp.modules.openpgp import OpenPGP
 
 log = logging.getLogger("gajim.p.openpgp.keydialog")
 
@@ -42,7 +49,7 @@ TRUST_DATA = {
 
 
 class KeyDialog(GajimAppWindow):
-    def __init__(self, account: str, jid: str, transient: Gtk.Window) -> None:
+    def __init__(self, account: str, jid: JID, transient: Gtk.Window) -> None:
 
         GajimAppWindow.__init__(
             self,
@@ -67,7 +74,8 @@ class KeyDialog(GajimAppWindow):
 
         self.set_child(self._scrolled)
 
-        keys = self._client.get_module("OpenPGP").get_keys(jid, only_trusted=False)
+        open_pgp_module = cast(OpenPGP, self._client.get_module("OpenPGP"))  # type: ignore
+        keys = open_pgp_module.get_keys(jid, only_trusted=False)
         for key in keys:
             log.info("Load: %s", key.fingerprint)
             self._listbox.append(KeyRow(key, self))
@@ -134,7 +142,8 @@ class KeyRow(Gtk.ListBoxRow):
 
     def delete_fingerprint(self):
         def _remove():
-            self.get_parent().remove(self)
+            listbox = cast(Gtk.ListBox, self.get_parent())
+            listbox.remove(self)
             self.key.delete()
 
         ConfirmationDialog(

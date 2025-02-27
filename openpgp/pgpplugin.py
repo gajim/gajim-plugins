@@ -68,7 +68,7 @@ class OpenPGPPlugin(GajimPlugin):
             "signed-in": (ged.PRECORE, self.signed_in),
         }
 
-        self.modules = [openpgp]
+        self.modules = [openpgp]  # type: ignore
 
         self.encryption_name = ENCRYPTION_NAME
         self.config_dialog = None
