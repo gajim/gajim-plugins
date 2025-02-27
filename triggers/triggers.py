@@ -193,7 +193,7 @@ class Triggers(GajimPlugin):
             return False
 
         # tab_opened is ok. Now check opened chat window
-        if not self._check_rule_has_focus(event, rule):
+        if not self._check_rule_has_focus(event, rule):  # noqa: SIM103
             return False
 
         # All is ok
@@ -204,9 +204,8 @@ class Triggers(GajimPlugin):
         assert event.jid is not None
         rule_recipients = [t.strip() for t in rule["recipients"].split(",")]
         if rule["recipient_type"] == "groupchat":
-            if event.jid in rule_recipients:
-                return True
-            return False
+            return event.jid in rule_recipients
+
         if rule["recipient_type"] == "contact" and event.jid not in rule_recipients:
             return False
         client = app.get_client(event.account)
@@ -224,7 +223,7 @@ class Triggers(GajimPlugin):
             if group in rule_recipients:
                 group_found = True
                 break
-        if rule["recipient_type"] == "group" and not group_found:
+        if rule["recipient_type"] == "group" and not group_found:  # noqa: SIM103
             return False
 
         return True
@@ -233,7 +232,9 @@ class Triggers(GajimPlugin):
     def _check_rule_status(self, event: ProcessableEventsT, rule: RuleT) -> bool:
         rule_statuses = rule["status"].split()
         client = app.get_client(event.account)
-        if rule["status"] != "all" and client.status not in rule_statuses:
+        if (  # noqa: SIM103
+            rule["status"] != "all" and client.status not in rule_statuses
+        ):
             return False
 
         return True

@@ -39,7 +39,7 @@ def find_gpg():
             gpg_cmd = binary + " -h >nul 2>&1"
         else:
             gpg_cmd = binary + " -h >/dev/null 2>&1"
-        if subprocess.call(gpg_cmd, shell=True):  # noqa: S602
+        if subprocess.call(gpg_cmd, shell=True):  # noqa: S602, SIM103
             return False
         return True
 

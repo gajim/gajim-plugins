@@ -158,8 +158,8 @@ class ChooseGPGKeyDialog(GajimAppWindow):
         model = cast(Gtk.ListStore, self._ui.keys_treeview.get_model())
         model.set_sort_func(1, self._sort)
 
-        for key_id in secret_keys:
-            model.append((key_id, secret_keys[key_id]))
+        for key_id, key_label in secret_keys.items():
+            model.append((key_id, key_label))
 
         self.set_child(self._ui.box)
         self.show()
