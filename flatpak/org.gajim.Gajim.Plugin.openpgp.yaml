@@ -53,7 +53,7 @@ modules:
       - type: archive
         strip-components: 0
         url: https://ftp.gajim.org/plugins/master/openpgp/openpgp_1.7.0.zip
-        sha256: 18ef8f19794284118af4f1c31ace0d59356ea81fe98ff1cbb30e4cd0c487703e
+        sha256: a9c6972a79acb19aabbf19684f51a29e65b19dc67eaa563495ec4883225612f9
       - type: shell
         commands:
           - sed -i "s+org.gajim.Gajim+org.gajim.Gajim.Devel+" org.gajim.Gajim.Plugin.*.metainfo.xml

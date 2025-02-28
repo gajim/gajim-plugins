@@ -32,7 +32,7 @@ modules:
       - type: archive
         strip-components: 0
         url: https://ftp.gajim.org/plugins/master/pgp/pgp_1.7.0.zip
-        sha256: 6e4cac4d34b9159bd5fb03ace3b8da56d4cf6e48593d2c569190d2e6ffacfa99
+        sha256: 8e5af1472a10f01c92593be4b1942d069aba0eba0bfa198389b9d56d3abc2209
       - type: shell
         commands:
           - sed -i "s+org.gajim.Gajim+org.gajim.Gajim.Devel+" org.gajim.Gajim.Plugin.*.metainfo.xml
