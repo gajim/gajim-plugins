@@ -17,7 +17,6 @@
 from __future__ import annotations
 
 from typing import cast
-from typing import TYPE_CHECKING
 
 import logging
 import time
@@ -33,10 +32,8 @@ from gajim.gtk.widgets import GajimAppWindow
 from gajim.plugins.plugins_i18n import _
 
 from openpgp.modules.key_store import KeyData
+from openpgp.modules.openpgp import OpenPGP
 from openpgp.modules.util import Trust
-
-if TYPE_CHECKING:
-    from openpgp.modules.openpgp import OpenPGP
 
 log = logging.getLogger("gajim.p.openpgp.keydialog")
 
