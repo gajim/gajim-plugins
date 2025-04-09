@@ -1,6 +1,6 @@
 id: org.gajim.Gajim.Devel.Plugin.pgp
 runtime: org.gajim.Gajim.Devel
-sdk: org.gnome.Sdk//47
+sdk: org.gnome.Sdk//48
 build-extension: true
 separate-locales: false
 appstream-compose: false
@@ -14,11 +14,11 @@ modules:
   - name: python3-python-gnupg
     buildsystem: simple
     build-commands:
-      - pip3 install python_gnupg-0.5.2-py2.py3-none-any.whl
+      - pip3 install --no-build-isolation .
     sources:
-      - type: file
-        url: https://files.pythonhosted.org/packages/py2.py3/p/python_gnupg/python_gnupg-0.5.2-py2.py3-none-any.whl
-        sha256: 72ce142af6da7f07e433fef148b445fb3e07854acd2f88739008838745c0e9f5
+      - type: archive
+        url: https://github.com/vsajip/python-gnupg/archive/refs/tags/0.5.4.tar.gz
+        sha512: 4b316ea925ef8892a743e81c907ff0c7f9b639ec2f92e614337765c0ddade80ad6b484ff75e7315bf1b6a71e3bb8e5e384f2b20bec4d27edb246c392ef4e7b94
 
   - name: gajim-pgp
     buildsystem: simple
