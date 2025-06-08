@@ -32,10 +32,12 @@ from gajim.common import ged
 from gajim.common.client import Client
 from gajim.common.modules.httpupload import HTTPFileTransfer
 from gajim.common.structs import OutgoingMessage
+from gajim.gtk.alert import AlertDialog
+from gajim.gtk.alert import CancelDialogResponse
+from gajim.gtk.alert import DialogCheckButton
+from gajim.gtk.alert import DialogResponse
+from gajim.gtk.alert import InformationAlertDialog
 from gajim.gtk.control import ChatControl
-from gajim.gtk.dialogs import ConfirmationCheckDialog
-from gajim.gtk.dialogs import DialogButton
-from gajim.gtk.dialogs import SimpleDialog
 from gajim.plugins import GajimPlugin
 from gajim.plugins.plugins_i18n import _
 
@@ -142,21 +144,27 @@ class PGPPlugin(GajimPlugin):
 
     @staticmethod
     def _on_not_trusted(event: PGPNotTrusted) -> None:
-        ConfirmationCheckDialog(
+
+        def _on_response(response_id: str, do_not_ask_again: bool) -> None:
+            if response_id == "accept":
+                event.on_yes(do_not_ask_again)
+            else:
+                event.on_no()
+
+        AlertDialog(
             _("Untrusted PGP key"),
             _(
                 "The PGP key used to encrypt this chat is not "
                 "trusted. Do you really want to encrypt this "
                 "message?"
             ),
-            _("_Do not ask me again"),
-            [
-                DialogButton.make("Cancel", text=_("_No"), callback=event.on_no),
-                DialogButton.make(
-                    "OK", text=_("_Encrypt Anyway"), callback=event.on_yes
-                ),
+            responses=[
+                CancelDialogResponse(),
+                DialogResponse("accept", _("_Encrypt Anyway")),
             ],
-        ).show()
+            extra_widget=DialogCheckButton(label=_("_Do not ask me again")),
+            callback=_on_response,
+        )
 
     def _before_sendmessage(self, chat_control: ChatControl) -> None:
         account = chat_control.account
@@ -167,7 +175,7 @@ class PGPPlugin(GajimPlugin):
         try:
             valid = pgp.has_valid_key_assigned(jid)
         except KeyMismatch as announced_key_id:
-            SimpleDialog(
+            InformationAlertDialog(
                 _("PGP Key mismatch"),
                 _(
                     "The contact's key (%s) <b>does not match</b> the key "
@@ -179,13 +187,13 @@ class PGPPlugin(GajimPlugin):
             return
 
         if not valid:
-            SimpleDialog(
+            InformationAlertDialog(
                 _("No OpenPGP key assigned"),
                 _("No OpenPGP key is assigned to this contact."),
             )
             chat_control.sendmessage = False
         elif pgp.get_own_key_data() is None:
-            SimpleDialog(
+            InformationAlertDialog(
                 _("No OpenPGP key assigned"),
                 _("No OpenPGP key is assigned to your account."),
             )
@@ -209,4 +217,4 @@ class PGPPlugin(GajimPlugin):
 
     @staticmethod
     def _on_file_encryption_error(event: PGPFileEncryptionError) -> None:
-        SimpleDialog(_("Error"), event.error)
+        InformationAlertDialog(_("Error"), event.error)
