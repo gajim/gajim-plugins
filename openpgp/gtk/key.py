@@ -25,8 +25,7 @@ from gi.repository import Gtk
 from nbxmpp import JID
 
 from gajim.common import app
-from gajim.gtk.dialogs import ConfirmationDialog
-from gajim.gtk.dialogs import DialogButton
+from gajim.gtk.alert import ConfirmationAlertDialog
 from gajim.gtk.util.misc import container_remove_all
 from gajim.gtk.widgets import GajimAppWindow
 from gajim.plugins.plugins_i18n import _
@@ -143,14 +142,13 @@ class KeyRow(Gtk.ListBoxRow):
             listbox.remove(self)
             self.key.delete()
 
-        ConfirmationDialog(
+        ConfirmationAlertDialog(
             _("Delete Public Key?"),
             _("This will permanently delete this public key"),
-            [
-                DialogButton.make("Cancel"),
-                DialogButton.make("Remove", text=_("Delete"), callback=_remove),
-            ],
-        ).show()
+            confirm_label=_("_Delete"),
+            appearance="destructive",
+            callback=_remove,
+        )
 
     def set_trust(self, trust: Trust) -> None:
         self.key.trust = trust

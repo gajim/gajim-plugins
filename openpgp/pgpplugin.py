@@ -36,8 +36,8 @@ from gajim.common.client import Client
 from gajim.common.const import CSSPriority
 from gajim.common.events import SignedIn
 from gajim.common.structs import OutgoingMessage
+from gajim.gtk.alert import InformationAlertDialog
 from gajim.gtk.control import ChatControl
-from gajim.gtk.dialogs import SimpleDialog
 from gajim.plugins import GajimPlugin
 from gajim.plugins.plugins_i18n import _
 
@@ -194,7 +194,7 @@ class OpenPGPPlugin(GajimPlugin):
 
         keys = openpgp.get_keys(jid)
         if not keys:
-            SimpleDialog(
+            InformationAlertDialog(
                 _("Not Trusted"), _("There was no trusted and active key found")
             )
             chat_control.sendmessage = False
