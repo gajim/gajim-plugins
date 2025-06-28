@@ -1,4 +1,7 @@
 DEFAULT_DATA = {
+    ":)": "🙂",
+    ":D": "😄",
+    ";)": "😉",
     "afaik": "as far as I know",
     "afair": "as far as I can remember",
     "afaict": "as far as I can tell",
