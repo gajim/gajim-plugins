@@ -18,8 +18,8 @@ modules:
       prefix: ${FLATPAK_DEST}
     sources:
       - type: archive
-        url: https://downloads.sourceforge.net/swig/swig-4.3.0.tar.gz
-        sha256: f7203ef796f61af986c70c05816236cbd0d31b7aa9631e5ab53020ab7804aa9e
+        url: https://downloads.sourceforge.net/swig/swig-4.3.1.tar.gz
+        sha256: 44fc829f70f1e17d635a2b4d69acab38896699ecc24aa023e516e0eabbec61b8
 
   - name: gpgme
     cleanup:
@@ -38,8 +38,8 @@ modules:
       - mv ${FLATPAK_DEST}/lib/python3.12/site-packages/*.egg/gpg ${FLATPAK_DEST}/site-packages/
     sources:
       - type: archive
-        url: https://www.gnupg.org/ftp/gcrypt/gpgme/gpgme-1.24.2.tar.bz2
-        sha256: e11b1a0e361777e9e55f48a03d89096e2abf08c63d84b7017cfe1dce06639581
+        url: https://www.gnupg.org/ftp/gcrypt/gpgme/gpgme-1.24.3.tar.bz2
+        sha256: bfc17f5bd1b178c8649fdd918956d277080f33df006a2dc40acdecdce68c50dd
 
   - name: gajim-openpgp
     buildsystem: simple
@@ -52,8 +52,8 @@ modules:
     sources:
       - type: archive
         strip-components: 0
-        url: https://ftp.gajim.org/plugins/master/openpgp/openpgp_1.7.1.zip
-        sha256: 771d775067b0ee1f98fd56da99178208d326184738b05c086bd2199dcbe3b716
+        url: https://ftp.gajim.org/plugins/master/openpgp/openpgp_1.8.0.zip
+        sha256: e644f532f8e09f432bebffeec56b81bf7bb11738b46a08a9d8a83e217cd20632
       - type: shell
         commands:
           - sed -i "s+org.gajim.Gajim+org.gajim.Gajim.Devel+" org.gajim.Gajim.Plugin.*.metainfo.xml
