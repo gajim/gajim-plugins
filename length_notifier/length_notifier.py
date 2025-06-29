@@ -210,14 +210,18 @@ class Counter(Gtk.Label):
         return False
 
     def _jid_allowed(self, current_jid: JID) -> bool:
-        jids = cast(str, self._config["JIDS"])
-        assert isinstance(jids, str)
+        jids: list[str] | str = self._config["JIDS"]  # type: ignore
 
         if not jids:
             # Not restricted to any JIDs
             return True
 
-        allowed_jids = jids.split(",")
+        # Check for both current and legacy settings format
+        if isinstance(jids, list):
+            allowed_jids = jids
+        else:
+            allowed_jids = jids.split(",")
+
         for allowed_jid in allowed_jids:
             try:
                 address = JID.from_string(allowed_jid.strip())

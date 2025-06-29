@@ -16,5 +16,5 @@
         "gajim>=2.0.0"
     ],
     "short_name": "length_notifier",
-    "version": "1.6.1"
+    "version": "1.6.2"
 }
