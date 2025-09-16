@@ -1,6 +1,6 @@
 id: org.gajim.Gajim.Devel.Plugin.openpgp
 runtime: org.gajim.Gajim.Devel
-sdk: org.gnome.Sdk//48
+sdk: org.gnome.Sdk//49
 build-extension: true
 separate-locales: false
 appstream-compose: false
@@ -21,25 +21,23 @@ modules:
         url: https://downloads.sourceforge.net/swig/swig-4.3.1.tar.gz
         sha256: 44fc829f70f1e17d635a2b4d69acab38896699ecc24aa023e516e0eabbec61b8
 
-  - name: gpgme
-    cleanup:
-      - /bin
-      - /include
-      - /share
+  - name: python3-gpgme
+    buildsystem: simple
     build-options:
-      config-opts:
-        - --enable-languages=python
       env:
-        SWIG_LIB: "/app/plugins/openpgp/share/swig/4.3.0"
+        SWIG_LIB: "/app/plugins/openpgp/share/swig/4.3.1"
       prepend-path: "/app/plugins/openpgp/bin:"
-      prefix: ${FLATPAK_DEST}
-    post-install:
-      - mkdir -p ${FLATPAK_DEST}/site-packages
-      - mv ${FLATPAK_DEST}/lib/python3.12/site-packages/*.egg/gpg ${FLATPAK_DEST}/site-packages/
+    build-commands:
+      - sed -e 's|, \"swig\"||' -i pyproject.toml
+      - autoreconf -fiv
+      - ./configure  # Required to set the version number
+      - mv src gpg
+      - pip3 install --no-build-isolation .
     sources:
-      - type: archive
-        url: https://www.gnupg.org/ftp/gcrypt/gpgme/gpgme-1.24.3.tar.bz2
-        sha256: bfc17f5bd1b178c8649fdd918956d277080f33df006a2dc40acdecdce68c50dd
+      - type: git
+        url: https://dev.gnupg.org/source/gpgmepy.git
+        tag: gpgmepy-2.0.0
+        commit: 22e1cd5fdea1f62690fba55cf616bde97c1ac5d3
 
   - name: gajim-openpgp
     buildsystem: simple
