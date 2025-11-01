@@ -28,9 +28,3 @@ class PGPNotTrusted(ApplicationEvent):
     name: str = field(init=False, default="pgp-not-trusted")
     on_yes: Callable[..., Any]
     on_no: Callable[..., Any]
-
-
-@dataclass
-class PGPFileEncryptionError(ApplicationEvent):
-    name: str = field(init=False, default="pgp-file-encryption-error")
-    error: str

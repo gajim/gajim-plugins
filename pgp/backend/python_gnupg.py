@@ -20,8 +20,6 @@
 # You should have received a copy of the GNU General Public License
 # along with PGP Gajim Plugin. If not, see <http://www.gnu.org/licenses/>.
 
-from typing import Any
-
 import logging
 import os
 from functools import lru_cache
@@ -64,9 +62,6 @@ class PGP(metaclass=Singleton):
             error = result.status
 
         return self._strip_header_footer(str(result)), error
-
-    def encrypt_file(self, file: Any, recipients: list[str]) -> gnupg.Crypt:
-        return self._pgp.encrypt_file(file, recipients)
 
     def decrypt(self, payload: str) -> str:
         data = self._add_header_footer(payload, "MESSAGE")

@@ -17,12 +17,10 @@
 from typing import Any
 
 import os
-import threading
 import time
 from collections.abc import Callable
 
 import nbxmpp
-from gi.repository import GLib
 from nbxmpp.client import Client as nbxmppClient
 from nbxmpp.namespaces import Namespace
 from nbxmpp.protocol import Message
@@ -37,7 +35,6 @@ from gajim.common.client import Client
 from gajim.common.const import Trust
 from gajim.common.events import MessageNotSent
 from gajim.common.modules.base import BaseModule
-from gajim.common.modules.httpupload import HTTPFileTransfer
 from gajim.common.structs import OutgoingMessage
 from gajim.plugins.plugins_i18n import _
 
@@ -46,7 +43,6 @@ from pgp.backend.store import KeyStore
 from pgp.exceptions import KeyMismatch
 from pgp.exceptions import NoKeyIdFound
 from pgp.exceptions import SignError
-from pgp.modules.events import PGPFileEncryptionError
 from pgp.modules.events import PGPNotTrusted
 from pgp.modules.util import prepare_stanza
 
@@ -341,41 +337,6 @@ class PGPLegacy(BaseModule):
             if node:
                 stanza.addChild(node=node)
         message.set_stanza(stanza)
-
-    def encrypt_file(
-        self, transfer: HTTPFileTransfer, callback: Callable[[HTTPFileTransfer], None]
-    ) -> None:
-        thread = threading.Thread(
-            target=self._encrypt_file_thread, args=(transfer, callback)
-        )
-        thread.daemon = True
-        thread.start()
-
-    def _encrypt_file_thread(
-        self, transfer: HTTPFileTransfer, callback: Callable[[HTTPFileTransfer], None]
-    ) -> None:
-        try:
-            key_id, own_key_id = self._get_key_ids(str(transfer.contact.jid))
-        except NoKeyIdFound as error:
-            self._log.warning(error)
-            return
-
-        stream = open(transfer.path, "rb")
-        encrypted = self._pgp.encrypt_file(stream, [key_id, own_key_id])
-        stream.close()
-
-        if not encrypted:
-            GLib.idle_add(self._on_file_encryption_error, encrypted.status)
-            return
-
-        transfer.size = len(encrypted.data)
-        transfer.set_uri_transform_func(lambda uri: "%s.pgp" % uri)
-        transfer.set_encrypted_data(encrypted.data)
-        GLib.idle_add(callback, transfer)
-
-    @staticmethod
-    def _on_file_encryption_error(error: str) -> None:
-        app.ged.raise_event(PGPFileEncryptionError(error=error))
 
 
 def get_instance(*args: Any, **kwargs: Any) -> tuple[PGPLegacy, str]:

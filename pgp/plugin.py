@@ -30,7 +30,6 @@ from packaging.version import Version as V
 from gajim.common import app
 from gajim.common import ged
 from gajim.common.client import Client
-from gajim.common.modules.httpupload import HTTPFileTransfer
 from gajim.common.structs import OutgoingMessage
 from gajim.gtk.alert import AlertDialog
 from gajim.gtk.alert import CancelDialogResponse
@@ -44,7 +43,6 @@ from gajim.plugins.plugins_i18n import _
 from pgp.exceptions import KeyMismatch
 from pgp.gtk.config import PGPConfigDialog
 from pgp.gtk.key import KeyDialog
-from pgp.modules.events import PGPFileEncryptionError
 from pgp.modules.events import PGPNotTrusted
 from pgp.modules.util import find_gpg
 
@@ -111,7 +109,6 @@ class PGPPlugin(GajimPlugin):
 
         self.events_handlers = {
             "pgp-not-trusted": (ged.PRECORE, self._on_not_trusted),
-            "pgp-file-encryption-error": (ged.PRECORE, self._on_file_encryption_error),
         }
 
     @staticmethod
@@ -206,15 +203,3 @@ class PGPPlugin(GajimPlugin):
         callback: Callable[[OutgoingMessage], None],
     ):
         self.get_pgp_module(client.name).encrypt_message(client, event, callback)
-
-    def encrypt_file(
-        self,
-        transfer: HTTPFileTransfer,
-        account: str,
-        callback: Callable[[HTTPFileTransfer], None],
-    ):
-        self.get_pgp_module(account).encrypt_file(transfer, callback)
-
-    @staticmethod
-    def _on_file_encryption_error(event: PGPFileEncryptionError) -> None:
-        InformationAlertDialog(_("Error"), event.error)
