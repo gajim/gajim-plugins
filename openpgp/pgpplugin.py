@@ -65,7 +65,7 @@ class OpenPGPPlugin(GajimPlugin):
             return
 
         self.events_handlers = {
-            "signed-in": (ged.PRECORE, self.signed_in),
+            "signed-in": (ged.PRECORE, self._on_signed_in),
         }
 
         self.modules = [openpgp]  # type: ignore
@@ -76,17 +76,12 @@ class OpenPGPPlugin(GajimPlugin):
             "encrypt" + self.encryption_name: (self._encrypt_message, None),
             "send_message" + self.encryption_name: (self._before_sendmessage, None),
             "encryption_dialog"
-            + self.encryption_name: (self.on_encryption_button_clicked, None),
-            "encryption_state" + self.encryption_name: (self.encryption_state, None),
+            + self.encryption_name: (self._on_encryption_button_clicked, None),
+            "encryption_state"
+            + self.encryption_name: (self._get_encryption_state, None),
             "update_caps": (self._update_caps, None),
         }
 
-        self.connections = {}
-
-        self.plugin = self
-        self.announced = []
-        self.own_key = None
-        self.pgp_instances = {}
         self._create_paths()
         self._load_css()
 
@@ -121,7 +116,7 @@ class OpenPGPPlugin(GajimPlugin):
         if not keyring_path.exists():
             keyring_path.mkdir()
 
-    def signed_in(self, event: SignedIn) -> None:
+    def _on_signed_in(self, event: SignedIn) -> None:
         openpgp = self.get_openpgp_module(event.account)
         if openpgp.secret_key_available:
             log.info(
@@ -148,10 +143,6 @@ class OpenPGPPlugin(GajimPlugin):
     def deactivate(self) -> None:
         pass
 
-    @staticmethod
-    def _update_caps(_account: str, features: list[str]) -> None:
-        features.append("%s+notify" % Namespace.OPENPGP_PK)
-
     def activate_encryption(self, chat_control: ChatControl) -> bool:
         account = chat_control.account
         jid = chat_control.contact.jid
@@ -168,12 +159,18 @@ class OpenPGPPlugin(GajimPlugin):
         return False
 
     @staticmethod
-    def encryption_state(_chat_control: ChatControl, state: dict[str, Any]) -> None:
+    def _update_caps(_account: str, features: list[str]) -> None:
+        features.append("%s+notify" % Namespace.OPENPGP_PK)
+
+    @staticmethod
+    def _get_encryption_state(
+        _chat_control: ChatControl, state: dict[str, Any]
+    ) -> None:
         state["authenticated"] = True
         state["visible"] = True
 
     @staticmethod
-    def on_encryption_button_clicked(chat_control: ChatControl) -> None:
+    def _on_encryption_button_clicked(chat_control: ChatControl) -> None:
         account = chat_control.account
         jid = chat_control.contact.jid
 
