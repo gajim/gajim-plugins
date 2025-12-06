@@ -33,7 +33,6 @@ from gajim.common.modules.base import BaseModule
 
 # Module name
 name = "AntiSpam"
-zeroconf = False
 
 
 class AntiSpam(BaseModule):

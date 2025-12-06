@@ -70,7 +70,6 @@ log = logging.getLogger("gajim.p.openpgp")
 
 # Module name
 name = ENCRYPTION_NAME
-zeroconf = False
 
 
 class OpenPGP(BaseModule):

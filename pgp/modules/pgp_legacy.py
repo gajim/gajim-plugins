@@ -48,7 +48,6 @@ from pgp.modules.util import prepare_stanza
 
 # Module name
 name = "PGPLegacy"
-zeroconf = True
 ENCRYPTION_NAME = "PGP"
 
 ALLOWED_TAGS = [

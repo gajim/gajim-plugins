@@ -94,7 +94,6 @@ class PGPPlugin(GajimPlugin):
 
         self.config_dialog = partial(PGPConfigDialog, self)
         self.encryption_name = ENCRYPTION_NAME
-        self.allow_zeroconf = True
         self.gui_extension_points = {
             "encrypt" + ENCRYPTION_NAME: (self._encrypt_message, None),
             "send_message" + ENCRYPTION_NAME: (self._before_sendmessage, None),
