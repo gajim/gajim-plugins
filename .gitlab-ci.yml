@@ -9,6 +9,21 @@ deploy-plugins:
   script:
     - python3 .ci/deploy.py
 
+test-pyright:
+  image: gajim-test
+  stage: test
+  allow_failure: true
+  rules:
+    - changes:
+      - "**/*.py"
+  script:
+    - pip install git+https://dev.gajim.org/gajim/python-nbxmpp.git
+    - pip install git+https://dev.gajim.org/gajim/gajim.git
+    - pip install pygobject-stubs==2.16.0
+    - pyright --version
+    - pyright
+  interruptible: true
+
 test-isort:
   image: gajim-test
   stage: test
