@@ -20,7 +20,7 @@ test-isort:
     - isort --check .
   interruptible: true
 
-test-ruff:
+test-ruff-lint:
   image: gajim-test
   stage: test
   rules:
@@ -28,17 +28,19 @@ test-ruff:
       - "**/*.py"
   script:
     - ruff --version
-    - ruff check .
+    - ruff check --output-format=gitlab --output-file=code-quality-report.json
+  artifacts:
+    reports:
+      codequality: $CI_PROJECT_DIR/code-quality-report.json
   interruptible: true
 
-test-black:
+test-ruff-format:
   image: gajim-test
   stage: test
   rules:
     - changes:
       - "**/*.py"
   script:
-    - pip install black==24.10.0
-    - black --version
-    - black . --check
+    - ruff --version
+    - ruff format --diff
   interruptible: true
