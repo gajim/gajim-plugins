@@ -147,7 +147,7 @@ class AntiSpam(BaseModule):
 
     def _send_question(self, properties: MessageProperties, jid: JID) -> None:
         message = "Anti Spam Question: %s" % self._config["msgtxt_question"]
-        stanza = Message(to=jid, body=message, typ=properties.type.value)
+        stanza = Message(to=str(jid), body=message, typ=properties.type.value)
         self._client.connection.send_stanza(stanza)
         self._log.info("Anti spam question sent to %s", jid)
 
