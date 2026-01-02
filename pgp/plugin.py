@@ -129,6 +129,7 @@ class PGPPlugin(GajimPlugin):
 
     def _on_encryption_dialog(self, chat_control: ChatControl):
         account = chat_control.account
+        assert chat_control.contact is not None
         jid = chat_control.contact.jid
         transient = app.window
         KeyDialog(self, account, jid, transient)
@@ -162,6 +163,7 @@ class PGPPlugin(GajimPlugin):
 
     def _before_sendmessage(self, chat_control: ChatControl) -> None:
         account = chat_control.account
+        assert chat_control.contact is not None
         jid = str(chat_control.contact.jid)
 
         pgp = self.get_pgp_module(account)

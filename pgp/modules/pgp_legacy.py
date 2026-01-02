@@ -324,11 +324,16 @@ class PGPLegacy(BaseModule):
     def _cleanup_stanza(message: OutgoingMessage) -> None:
         """We make sure only allowed tags are in the stanza"""
         original_stanza = message.get_stanza()
-        stanza = nbxmpp.Message(
-            to=original_stanza.getTo(), typ=original_stanza.getType()
-        )
-        stanza.setID(original_stanza.getID())
-        stanza.setThread(original_stanza.getThread())
+        m_type = original_stanza.getType()
+        assert m_type in ("chat", "groupchat", "normal")
+        stanza = nbxmpp.Message(to=original_stanza.getTo(), typ=m_type)
+
+        if message_id := original_stanza.getID():
+            stanza.setID(message_id)
+
+        if thread := original_stanza.getThread():
+            stanza.setThread(thread)
+
         for tag, ns in ALLOWED_TAGS:
             node = original_stanza.getTag(tag, namespace=ns)
             if node:
