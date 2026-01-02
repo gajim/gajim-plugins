@@ -95,7 +95,9 @@ class LengthNotifierPlugin(GajimPlugin):
     def _create_counter(self) -> None:
         assert self._message_action_box is not None
         assert self._actions_box_widget is not None
-        self._counter = Counter(self._message_action_box.msg_textview, self.config)
+        self._counter = Counter(
+            self._message_action_box.get_message_input(), self.config
+        )
         self._actions_box_widget.append(self._counter)
 
     def _message_actions_box_created(
