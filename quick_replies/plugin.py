@@ -85,7 +85,7 @@ class QuickRepliesPlugin(GajimPlugin):
         for action in self._actions:
             app.window.add_action(action)
 
-        self._message_input = message_actions_box.msg_textview
+        self._message_input = message_actions_box.get_message_input()
         self._action_box = gtk_box
         self._action_box.append(self._button)
 
@@ -149,6 +149,6 @@ class QuickRepliesPlugin(GajimPlugin):
 
         elif name == "quick-reply":
             assert param is not None
-            message_buffer = self._message_input.get_buffer()
-            message_buffer.insert_at_cursor(param.get_string().rstrip() + " ")
+            text = param.get_string().rstrip() + " "
+            self._message_input.insert_text(text)
             self._message_input.grab_focus()
