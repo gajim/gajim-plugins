@@ -59,7 +59,7 @@ class PGP(metaclass=Singleton):
         if result.ok:
             error = ""
         else:
-            error = result.status
+            error = result.status or "Unknown"
 
         return self._strip_header_footer(str(result)), error
 
