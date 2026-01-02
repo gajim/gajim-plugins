@@ -50,13 +50,31 @@ class VerifyResult(Result):
     is_mime: int
     signatures: list[Signature]
 
-class ImportStatus(Result): ...
+class ImportStatus(Result):
+    fpr: str
+    result: int
+    status: int
 
 class ImportResult(Result):
-    imports: ImportStatus
+    imported: int
+    imported_rsa: int
+    imports: list[ImportStatus]
+    new_revocations: int
+    new_signatures: int
+    new_sub_keys: int
+    new_user_ids: int
+    no_user_id: int
+    not_imported: int
+    secret_imported: int
+    secret_read: int
+    secret_unchanged: int
+    skipped_new_keys: int
+    skipped_v3_keys: int
+    unchanged: int
 
 class GenkeyResult(Result):
     _type = dict(primary=bool, sub=bool)
+    fpr: str
 
 class KeylistResult(Result):
     _type = dict(truncated=bool)

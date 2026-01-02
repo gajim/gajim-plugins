@@ -4,7 +4,6 @@ from collections.abc import Iterator
 
 from gpg.results import DecryptResult
 from gpg.results import EncryptResult
-from gpg.results import Key
 from gpg.results import SignResult
 from gpg.results import VerifyResult
 

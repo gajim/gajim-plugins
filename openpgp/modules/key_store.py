@@ -80,8 +80,7 @@ class ContactData:
 
     @property
     def userid(self):
-        if self.jid is None:
-            raise ValueError("JID not set")
+        assert self.jid is not None, "JID not set"
         return "xmpp:%s" % self.jid
 
     @property

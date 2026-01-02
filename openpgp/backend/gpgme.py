@@ -24,6 +24,7 @@ from pathlib import Path
 
 import gpg
 from gpg.errors import KeyNotFound
+from gpg.results import GenkeyResult
 from gpg.results import ImportResult
 from nbxmpp.protocol import JID
 
@@ -64,12 +65,15 @@ class GPGMe(BasePGPBackend):
 
     def generate_key(self) -> None:
         with self._get_context() as context:
-            result = context.create_key(
-                f"xmpp:{self._jid}",
-                algorithm="default",
-                expires=False,
-                passphrase=None,
-                force=False,
+            result = cast(
+                GenkeyResult,
+                context.create_key(
+                    f"xmpp:{self._jid}",
+                    algorithm="default",
+                    expires=False,
+                    passphrase=None,
+                    force=False,
+                ),
             )
 
             log.info("Generated new key: %s", result.fpr)
@@ -174,6 +178,7 @@ class GPGMe(BasePGPBackend):
 
     def import_key(self, data: bytes, jid: JID) -> KeyringItem | None:
         log.info("Import key from %s", jid)
+        item = None
         with self._get_context() as context:
             result = context.key_import(data)
             if not isinstance(result, ImportResult) or result.imported != 1:
@@ -183,6 +188,7 @@ class GPGMe(BasePGPBackend):
 
             fingerprint = result.imports[0].fpr
             key = self._get_key(fingerprint)
+            assert key is not None
             item = KeyringItem(key)
             if not item.is_valid(jid):
                 log.warning("Invalid key found")
@@ -197,4 +203,4 @@ class GPGMe(BasePGPBackend):
         key = self._get_key(fingerprint)
         assert key is not None
         with self._get_context() as context:
-            context.op_delete(key, True)
+            context.op_delete(key, True)  # pyright: ignore
