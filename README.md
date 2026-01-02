@@ -41,7 +41,7 @@ First, thanks for that! Here is how to start:
 - Register an account on our Gitlab [here](https://dev.gajim.org/users/sign_in)
 - Tell us about your plans at [gajim@conference.gajim.org](xmpp:gajim@conference.gajim.org?join)
 - Fork the Gajim-Plugins [repository](https://dev.gajim.org/gajim/gajim-plugins)
-- Check `./scripts/dev_env.sh` to get a environment with dependencies installed
+- To get a dev environment run `uv sync`
 - When you are finished, do a merge request against the main plugins repository. You can read about how to use git [here](https://dev.gajim.org/gajim/gajim/wikis/howtogit).
 - Additionally, there is a list of [plugin events](https://dev.gajim.org/gajim/gajim/wikis/development/pluginsevents) which might be helpful
 

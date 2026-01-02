@@ -12,3 +12,4 @@ __pycache__/
 *.sublime-project
 build/
 .venv
+uv.lock

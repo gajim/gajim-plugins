@@ -1,3 +1,22 @@
+[project]
+name = "gajim-plugins"
+requires-python = ">=3.11"
+license = {text = "GPL-3.0-or-later"}
+version = "0.0.1"
+
+[dependency-groups]
+dev = [
+    "codespell==2.4.1",
+    "gajim@git+https://dev.gajim.org/gajim/gajim.git",
+    "isort==7.0.0",
+    "nbxmpp@git+https://dev.gajim.org/gajim/python-nbxmpp.git",
+    "pre-commit",
+    "pygobject-stubs@git+https://github.com/pygobject/pygobject-stubs.git",
+    "python-gnupg>=0.5.6",
+    "rich>=14.2.0",
+    "ruff==0.14.8",
+]
+
 [tool.black]
 line-length = 88
 target-version = ["py310", "py311", "py312"]
