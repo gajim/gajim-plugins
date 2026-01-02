@@ -23,7 +23,7 @@ from pathlib import Path
 
 from gi.repository import Gtk
 
-from gajim.gtk.widgets import GajimAppWindow
+from gajim.gtk.window import GajimAppWindow
 from gajim.plugins.helpers import get_builder
 from gajim.plugins.plugins_i18n import _
 
@@ -52,6 +52,8 @@ class ConfigDialog(GajimAppWindow):
             default_height=400,
             transient_for=transient,
             modal=True,
+            add_window_padding=True,
+            header_bar=True,
         )
 
         ui_path = Path(__file__).parent
@@ -69,9 +71,7 @@ class ConfigDialog(GajimAppWindow):
         self._connect(self._ui.sub_renderer, "edited", self._on_substitute_edited)
         self._connect(self._ui.add_button, "clicked", self._on_add_clicked)
         self._connect(self._ui.remove_button, "clicked", self._on_remove_clicked)
-        self._connect(self.window, "close-request", self._on_close_request)
-
-        self.show()
+        self._connect(self, "close-request", self._on_close_request)
 
     def _cleanup(self) -> None:
         del self._plugin

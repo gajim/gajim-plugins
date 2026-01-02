@@ -28,7 +28,7 @@ from gi.repository import Gtk
 from nbxmpp import JID
 
 from gajim.common import app
-from gajim.gtk.widgets import GajimAppWindow
+from gajim.gtk.window import GajimAppWindow
 from gajim.plugins.helpers import get_builder
 from gajim.plugins.plugins_i18n import _
 
@@ -57,9 +57,11 @@ class KeyDialog(GajimAppWindow):
             default_width=450,
             transient_for=transient,
             modal=True,
+            add_window_padding=True,
+            header_bar=True,
         )
 
-        self.window.set_resizable(True)
+        self.set_resizable(True)
 
         self._plugin = plugin
         self._jid = str(jid)
@@ -90,9 +92,7 @@ class KeyDialog(GajimAppWindow):
         del self._module
 
     def _choose_key(self, _button: Gtk.Button) -> None:
-        ChooseGPGKeyDialog(
-            self._module.pgp_backend.get_keys(), self.window, self._on_response
-        )
+        ChooseGPGKeyDialog(self._module.pgp_backend.get_keys(), self, self._on_response)
 
     def _load_key(self) -> None:
         key_data = self._module.get_contact_key_data(self._jid)
@@ -135,11 +135,13 @@ class ChooseGPGKeyDialog(GajimAppWindow):
             default_height=400,
             transient_for=transient,
             modal=True,
+            add_window_padding=True,
+            header_bar=True,
         )
 
         secret_keys[_("None")] = _("None")
 
-        self.window.set_resizable(True)
+        self.set_resizable(True)
 
         self._callback = callback
         self._selected_key = None

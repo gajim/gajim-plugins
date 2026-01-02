@@ -27,7 +27,7 @@ from nbxmpp import JID
 from gajim.common import app
 from gajim.gtk.alert import ConfirmationAlertDialog
 from gajim.gtk.util.misc import container_remove_all
-from gajim.gtk.widgets import GajimAppWindow
+from gajim.gtk.window import GajimAppWindow
 from gajim.plugins.plugins_i18n import _
 
 from openpgp.modules.key_store import KeyData
@@ -54,9 +54,11 @@ class KeyDialog(GajimAppWindow):
             default_height=400,
             transient_for=transient,
             modal=True,
+            add_window_padding=True,
+            header_bar=True,
         )
 
-        self.window.add_css_class("openpgp-key-dialog")
+        self.add_css_class("openpgp-key-dialog")
 
         self._client = app.get_client(account)
 
@@ -74,8 +76,6 @@ class KeyDialog(GajimAppWindow):
         for key in keys:
             log.info("Load: %s", key.fingerprint)
             self._listbox.append(KeyRow(key, self))
-
-        self.show()
 
     def _cleanup(self) -> None:
         del self._client

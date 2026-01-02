@@ -26,7 +26,7 @@ from gi.repository import Gtk
 
 from gajim.common import app
 from gajim.gtk.util.classes import SignalManager
-from gajim.gtk.widgets import GajimAppWindow
+from gajim.gtk.window import GajimAppWindow
 from gajim.plugins.helpers import get_builder
 from gajim.plugins.plugins_i18n import _
 
@@ -53,6 +53,8 @@ class PGPConfigDialog(GajimAppWindow):
             default_height=500,
             transient_for=transient,
             modal=True,
+            add_window_padding=True,
+            header_bar=True,
         )
 
         ui_path = Path(__file__).parent

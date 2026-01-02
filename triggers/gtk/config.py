@@ -27,7 +27,7 @@ from gi.repository import Gtk
 from gajim.common.helpers import play_sound_file
 from gajim.common.util.status import get_uf_show
 from gajim.gtk.filechoosers import FileChooserButton
-from gajim.gtk.widgets import GajimAppWindow
+from gajim.gtk.window import GajimAppWindow
 from gajim.plugins.helpers import get_builder
 from gajim.plugins.plugins_i18n import _
 
@@ -87,6 +87,8 @@ class ConfigDialog(GajimAppWindow):
             default_height=800,
             transient_for=transient,
             modal=True,
+            add_window_padding=True,
+            header_bar=True,
         )
 
         ui_path = Path(__file__).parent
@@ -154,7 +156,7 @@ class ConfigDialog(GajimAppWindow):
         )
         self._connect(self._ui.command_entry, "changed", self._on_command_entry_changed)
         self._connect(self._ui.one_shot_cb, "toggled", self._on_one_shot_cb_toggled)
-        self._connect(self.window, "close-request", self._on_close_request)
+        self._connect(self, "close-request", self._on_close_request)
 
         file_chooser_button = FileChooserButton()
         self._connect(file_chooser_button, "path-picked", self._on_sound_file_set)
