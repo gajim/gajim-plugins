@@ -148,6 +148,7 @@ class OpenPGPPlugin(GajimPlugin):
 
     def activate_encryption(self, chat_control: ChatControl) -> bool:
         account = chat_control.account
+        assert chat_control.contact is not None
         jid = chat_control.contact.jid
         openpgp = self.get_openpgp_module(account)
         if openpgp.secret_key_available:
@@ -175,6 +176,7 @@ class OpenPGPPlugin(GajimPlugin):
     @staticmethod
     def _on_encryption_button_clicked(chat_control: ChatControl) -> None:
         account = chat_control.account
+        assert chat_control.contact is not None
         jid = chat_control.contact.jid
 
         from openpgp.gtk.key import KeyDialog
@@ -183,6 +185,7 @@ class OpenPGPPlugin(GajimPlugin):
 
     def _before_sendmessage(self, chat_control: ChatControl) -> None:
         account = chat_control.account
+        assert chat_control.contact is not None
         jid = chat_control.contact.jid
         openpgp = self.get_openpgp_module(account)
 

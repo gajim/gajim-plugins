@@ -14,6 +14,8 @@
 # You should have received a copy of the GNU General Public License
 # along with OpenPGP Gajim Plugin. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import annotations
+
 from typing import cast
 
 import logging
@@ -74,24 +76,27 @@ class KeyWizard(Gtk.Assistant):
         self._remove_sidebar()
         self.show()
 
-    def _add_page(self, page: Gtk.Box) -> None:
+    def _add_page(self, page: PagesT) -> None:
         self.append_page(page)
         self.set_page_type(page, page.type_)
         self.set_page_title(page, page.title)
         self.set_page_complete(page, page.complete)
 
-    def _remove_sidebar(self):
-        main_box = self.get_child()
+    def _remove_sidebar(self) -> None:
+        main_box = cast(Gtk.Box, self.get_child())
         sidebar = main_box.get_first_child()
+        assert sidebar is not None
         main_box.remove(sidebar)
 
     def _activate_encryption(self):
         action = app.window.lookup_action("set-encryption")
+        assert action is not None
         action.activate(GLib.Variant("s", self._plugin.encryption_name))
 
-    def _on_page_change(self, assistant: Gtk.Assistant, page: Page) -> None:
+    def _on_page_change(self, assistant: Gtk.Assistant, page: PagesT) -> None:
         if self.get_current_page() == Page.NEWKEY:
-            if self._client.get_module("OpenPGP").secret_key_available:
+            page = cast(NewKeyPage, page)
+            if self._client.get_module("OpenPGP").secret_key_available:  # pyright: ignore
                 self.set_current_page(Page.SUCCESS)
             else:
                 page.generate()
@@ -165,7 +170,7 @@ class NewKeyPage(RequestPage):
     def worker(self):
         text = None
         try:
-            self._client.get_module("OpenPGP").generate_key()
+            self._client.get_module("OpenPGP").generate_key()  # pyright: ignore
         except Exception as error:
             text = str(error)
 
@@ -173,9 +178,9 @@ class NewKeyPage(RequestPage):
 
     def finished(self, error: str | None) -> None:
         if error is None:
-            self._client.get_module("OpenPGP").get_own_key_details()
-            self._client.get_module("OpenPGP").set_public_key()
-            self._client.get_module("OpenPGP").request_keylist()
+            self._client.get_module("OpenPGP").get_own_key_details()  # pyright: ignore
+            self._client.get_module("OpenPGP").set_public_key()  # pyright: ignore
+            self._client.get_module("OpenPGP").request_keylist()  # pyright: ignore
             self._assistant.set_current_page(Page.SUCCESS)
         else:
             error_page = cast(ErrorPage, self._assistant.get_nth_page(Page.ERROR))
@@ -242,3 +247,6 @@ class ErrorPage(Gtk.Box):
 
     def set_text(self, text: str) -> None:
         self._label.set_text(text)
+
+
+PagesT = WelcomePage | RequestPage | NewKeyPage | SuccessfulPage | ErrorPage
