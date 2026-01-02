@@ -95,7 +95,6 @@ class AcronymsExpanderPlugin(GajimPlugin):
         self._save_acronyms(acronyms)
 
     def _on_buffer_changed(self, message_input: MessageInputTextView) -> None:
-
         if self._contact is None:
             # If no chat has been activated yet
             return
@@ -160,7 +159,6 @@ class AcronymsExpanderPlugin(GajimPlugin):
         end: Gtk.TextIter,
         substitute: str,
     ) -> None:
-
         self._replace_in_progress = True
         buffer_.delete(start, end)
         buffer_.insert(start, substitute)

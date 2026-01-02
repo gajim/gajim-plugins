@@ -32,7 +32,6 @@ if TYPE_CHECKING:
 
 class ClientsIconsConfigDialog(SettingsDialog):
     def __init__(self, plugin: ClientsIconsPlugin, parent: Gtk.Window) -> None:
-
         self.plugin = plugin
         settings = [
             Setting(

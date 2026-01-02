@@ -32,7 +32,6 @@ if TYPE_CHECKING:
 
 class LengthNotifierConfigDialog(SettingsDialog):
     def __init__(self, plugin: LengthNotifierPlugin, parent: Gtk.Window) -> None:
-
         self.plugin = plugin
         jids = self.plugin.config["JIDS"] or ""
         if isinstance(jids, list):

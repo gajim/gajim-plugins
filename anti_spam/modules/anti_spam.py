@@ -70,7 +70,6 @@ class AntiSpam(BaseModule):
     def _message_received(
         self, _con: Client, _stanza: Message, properties: MessageProperties
     ) -> None:
-
         if properties.is_sent_carbon:
             # Another device already sent a message
             assert properties.jid
@@ -155,7 +154,6 @@ class AntiSpam(BaseModule):
     def _subscribe_received(
         self, _con: Client, _stanza: Presence, properties: PresenceProperties
     ) -> None:
-
         msg_from = properties.jid
         assert msg_from is not None
         block_sub = self._config["block_subscription_requests"]

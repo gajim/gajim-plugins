@@ -82,9 +82,7 @@ class Storage:
             %s
             PRAGMA user_version=1;
             END TRANSACTION;
-            """ % (
-            query
-        )
+            """ % (query)
         self._con.executescript(transaction)
 
     def _migrate_database(self) -> None:

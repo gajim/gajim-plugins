@@ -50,7 +50,6 @@ class KeyDialog(GajimAppWindow):
     def __init__(
         self, plugin: PGPPlugin, account: str, jid: JID, transient: Gtk.Window
     ) -> None:
-
         GajimAppWindow.__init__(
             self,
             name="PGPKeyDialog",
@@ -128,7 +127,6 @@ class ChooseGPGKeyDialog(GajimAppWindow):
         transient: Gtk.Window,
         callback: Callable[[tuple[str, str] | None], None],
     ) -> None:
-
         GajimAppWindow.__init__(
             self,
             name="PGPChooseKeyDialog",

@@ -32,7 +32,6 @@ if TYPE_CHECKING:
 
 class NowListenConfigDialog(SettingsDialog):
     def __init__(self, plugin: NowListenPlugin, parent: Gtk.Window) -> None:
-
         self.plugin = plugin
         settings = [
             Setting(

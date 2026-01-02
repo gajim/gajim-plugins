@@ -43,11 +43,11 @@ def parse(path: Path) -> tuple[str, str]:
             continue
         klass = node.attrib["class"]
         if klass.startswith("GtkSource"):
-            klass = f'GtkSource.{klass.removeprefix("GtkSource")}'
+            klass = f"GtkSource.{klass.removeprefix('GtkSource')}"
         elif klass.startswith("Atk"):
-            klass = f'Atk.{klass.removeprefix("Atk")}'
+            klass = f"Atk.{klass.removeprefix('Atk')}"
         else:
-            klass = f'Gtk.{klass.removeprefix("Gtk")}'
+            klass = f"Gtk.{klass.removeprefix('Gtk')}"
 
         lines.append(ATTR % (id_.replace("-", "_"), klass))
 

@@ -80,7 +80,6 @@ class NowListenPlugin(GajimPlugin):
         _keycode: int,
         state: Gdk.ModifierType,
     ) -> bool:
-
         if keyval != Gdk.KEY_n:
             return Gdk.EVENT_PROPAGATE
 

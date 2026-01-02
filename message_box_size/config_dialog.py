@@ -33,7 +33,6 @@ if TYPE_CHECKING:
 
 class MessageBoxSizeConfigDialog(SettingsDialog):
     def __init__(self, plugin: MsgBoxSizePlugin, parent: Gtk.Window) -> None:
-
         self.plugin = plugin
         settings = [
             Setting(

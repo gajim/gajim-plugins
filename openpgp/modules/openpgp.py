@@ -73,7 +73,6 @@ name = ENCRYPTION_NAME
 
 
 class OpenPGP(BaseModule):
-
     _nbxmpp_extends = "OpenPGP"
     _nbxmpp_methods = [
         "set_keylist",

@@ -106,7 +106,6 @@ def get_dir_list(ftp: FTP_TLS) -> set[str]:
 
 
 def upload_file(ftp: FTP_TLS, filepath: Path) -> None:
-
     name = filepath.name
     console.print("Upload file", name)
     with open(filepath, "rb") as f:
@@ -114,7 +113,6 @@ def upload_file(ftp: FTP_TLS, filepath: Path) -> None:
 
 
 def create_release_folder(ftp: FTP_TLS, packages_to_publish: list[PackageT]) -> None:
-
     folders = {manifest["short_name"] for manifest, _ in packages_to_publish}
     dir_list = get_dir_list(ftp)
     missing_folders = folders - dir_list

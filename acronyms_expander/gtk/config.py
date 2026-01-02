@@ -44,7 +44,6 @@ class ConfigBuilder(Gtk.Builder):
 
 class ConfigDialog(GajimAppWindow):
     def __init__(self, plugin: AcronymsExpanderPlugin, transient: Gtk.Window) -> None:
-
         GajimAppWindow.__init__(
             self,
             name="AcronymsConfigDialog",
@@ -84,14 +83,12 @@ class ConfigDialog(GajimAppWindow):
     def _on_acronym_edited(
         self, _renderer: Gtk.CellRendererText, path: str, new_text: str
     ) -> None:
-
         iter_ = self._ui.acronyms_store.get_iter(path)
         self._ui.acronyms_store.set_value(iter_, 0, new_text)
 
     def _on_substitute_edited(
         self, _renderer: Gtk.CellRendererText, path: str, new_text: str
     ) -> None:
-
         iter_ = self._ui.acronyms_store.get_iter(path)
         self._ui.acronyms_store.set_value(iter_, 1, new_text)
 

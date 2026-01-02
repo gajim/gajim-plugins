@@ -103,7 +103,6 @@ class KeyWizard(Gtk.Assistant):
 
 
 class WelcomePage(Gtk.Box):
-
     type_ = Gtk.AssistantPageType.INTRO
     title = _("Welcome")
     complete = True
@@ -118,7 +117,6 @@ class WelcomePage(Gtk.Box):
 
 
 class RequestPage(Gtk.Box):
-
     type_ = Gtk.AssistantPageType.INTRO
     title = _("Request OpenPGP Key")
     complete = False
@@ -150,7 +148,6 @@ class RequestPage(Gtk.Box):
 
 
 class NewKeyPage(RequestPage):
-
     type_ = Gtk.AssistantPageType.PROGRESS
     title = _("Generating new Key")
     complete = False
@@ -203,7 +200,6 @@ class NewKeyPage(RequestPage):
 
 
 class SuccessfulPage(Gtk.Box):
-
     type_ = Gtk.AssistantPageType.SUMMARY
     title = _("Setup successful")
     complete = True
@@ -225,7 +221,6 @@ class SuccessfulPage(Gtk.Box):
 
 
 class ErrorPage(Gtk.Box):
-
     type_ = Gtk.AssistantPageType.SUMMARY
     title = _("Setup failed")
     complete = True

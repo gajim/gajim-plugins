@@ -103,7 +103,6 @@ class Triggers(GajimPlugin):
         check_func: Callable[..., bool],
         apply_func: Callable[..., Any],
     ) -> RuleResult:
-
         result = RuleResult()
 
         rules_num = [int(item) for item in self.config]
@@ -290,7 +289,6 @@ class Triggers(GajimPlugin):
     def _excecute_notification_rules(
         self, result: RuleResult, event: Notification
     ) -> bool:
-
         if result.sound is False:
             event.sound = None
 

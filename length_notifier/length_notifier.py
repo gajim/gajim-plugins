@@ -20,6 +20,7 @@ Message length notifier plugin.
 :copyright: Copyright (2008) Mateusz Biliński <mateusz@bilinski.it>
 :license: GPL
 """
+
 from __future__ import annotations
 
 from typing import Any
@@ -71,8 +72,7 @@ class LengthNotifierPlugin(GajimPlugin):
             ),
             "JIDS": (
                 "",
-                "Enable the plugin for selected XMPP addresses "
-                "only (comma separated)",
+                "Enable the plugin for selected XMPP addresses only (comma separated)",
             ),
         }
 
@@ -101,7 +101,6 @@ class LengthNotifierPlugin(GajimPlugin):
     def _message_actions_box_created(
         self, message_actions_box: MessageActionsBox, gtk_box: Gtk.Box
     ) -> None:
-
         self._message_action_box = message_actions_box
         self._actions_box_widget = gtk_box
         self._create_counter()
@@ -121,7 +120,6 @@ class Counter(Gtk.Label):
     def __init__(
         self, message_input: MessageInputTextView, config: GajimPluginConfig
     ) -> None:
-
         Gtk.Label.__init__(self)
         self.set_tooltip_text(_("Number of typed characters"))
         self.add_css_class("dim-label")
@@ -168,7 +166,6 @@ class Counter(Gtk.Label):
         self._inverted_color = f"rgb({red}, {green}, {blue})"
 
     def _set_css(self) -> None:
-
         css = """
         .length-warning {
             color: %s;

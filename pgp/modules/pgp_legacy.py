@@ -213,7 +213,6 @@ class PGPLegacy(BaseModule):
         callback: Callable[[OutgoingMessage], None],
         always_trust: bool,
     ) -> None:
-
         text = message.get_text()
         assert text is not None
 
@@ -263,7 +262,6 @@ class PGPLegacy(BaseModule):
     def _raise_message_not_sent(
         client: Client, message: OutgoingMessage, error: str
     ) -> None:
-
         text = message.get_text()
         assert text is not None
 

@@ -46,7 +46,6 @@ TRUST_DATA = {
 
 class KeyDialog(GajimAppWindow):
     def __init__(self, account: str, jid: JID, transient: Gtk.Window) -> None:
-
         GajimAppWindow.__init__(
             self,
             name="PGPKeyDialog",
@@ -201,7 +200,6 @@ class TrustPopver(Gtk.Popover):
 
 
 class MenuOption(Gtk.ListBoxRow):
-
     type_: Trust | None
     icon: str
     label: str
@@ -223,7 +221,6 @@ class MenuOption(Gtk.ListBoxRow):
 
 
 class VerifiedOption(MenuOption):
-
     type_ = Trust.VERIFIED
     icon = "security-high-symbolic"
     label = _("Verified")
@@ -234,7 +231,6 @@ class VerifiedOption(MenuOption):
 
 
 class NotTrustedOption(MenuOption):
-
     type_ = Trust.NOT_TRUSTED
     icon = "dialog-error-symbolic"
     label = _("Not Trusted")
@@ -245,7 +241,6 @@ class NotTrustedOption(MenuOption):
 
 
 class DeleteOption(MenuOption):
-
     type_ = None
     icon = "user-trash-symbolic"
     label = _("Delete")

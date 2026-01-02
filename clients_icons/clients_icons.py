@@ -66,7 +66,6 @@ class ClientsIconsPlugin(GajimPlugin):
     def _get_image_and_client_name(
         self, contact: GroupchatParticipant | ResourceContact, _widget: Gtk.Widget
     ) -> tuple[Gtk.Image, str] | None:
-
         disco_info = app.storage.cache.get_last_disco_info(contact.jid)
         if disco_info is None:
             return None
@@ -86,7 +85,6 @@ class ClientsIconsPlugin(GajimPlugin):
     def _contact_tooltip_resource_populate(
         self, resource_box: Gtk.Box, resource: ResourceContact
     ) -> None:
-
         result = self._get_image_and_client_name(resource, resource_box)
         if result is None:
             return

@@ -75,10 +75,14 @@ class OpenPGPPlugin(GajimPlugin):
         self.gui_extension_points = {
             "encrypt" + self.encryption_name: (self._encrypt_message, None),
             "send_message" + self.encryption_name: (self._before_sendmessage, None),
-            "encryption_dialog"
-            + self.encryption_name: (self._on_encryption_button_clicked, None),
-            "encryption_state"
-            + self.encryption_name: (self._get_encryption_state, None),
+            "encryption_dialog" + self.encryption_name: (
+                self._on_encryption_button_clicked,
+                None,
+            ),
+            "encryption_state" + self.encryption_name: (
+                self._get_encryption_state,
+                None,
+            ),
             "update_caps": (self._update_caps, None),
         }
 
@@ -133,8 +137,7 @@ class OpenPGPPlugin(GajimPlugin):
                 openpgp = self.get_openpgp_module(account)
                 if openpgp.secret_key_available:
                     log.info(
-                        "%s => Publish keylist and public key "
-                        "after plugin activation",
+                        "%s => Publish keylist and public key after plugin activation",
                         account,
                     )
                     openpgp.request_keylist()

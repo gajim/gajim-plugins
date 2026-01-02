@@ -79,7 +79,6 @@ class ConfigBuilder(Gtk.Builder):
 
 class ConfigDialog(GajimAppWindow):
     def __init__(self, plugin: Triggers, transient: Gtk.Window) -> None:
-
         GajimAppWindow.__init__(
             self,
             name="TriggersConfigDialog",
@@ -467,7 +466,6 @@ class ConfigDialog(GajimAppWindow):
         self._set_treeview_string()
 
     def _on_recipient_type_combobox_changed(self, widget: Gtk.ComboBox) -> None:
-
         if self._active_num < 0:
             return
         recipient_type = RECIPIENT_TYPES[widget.get_active()]
@@ -578,7 +576,6 @@ class ConfigDialog(GajimAppWindow):
     def _on_use_it_toggled(
         self, widget: Gtk.CheckButton, opposite_widget: Gtk.CheckButton, option: str
     ) -> None:
-
         if widget.get_active():
             if opposite_widget.get_active():
                 opposite_widget.set_active(False)
@@ -591,7 +588,6 @@ class ConfigDialog(GajimAppWindow):
     def _on_disable_it_toggled(
         self, widget: Gtk.CheckButton, opposite_widget: Gtk.CheckButton, option: str
     ) -> None:
-
         if widget.get_active():
             if opposite_widget.get_active():
                 opposite_widget.set_active(False)

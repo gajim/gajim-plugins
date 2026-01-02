@@ -1,7 +1,6 @@
 from typing import Any
 
 class GpgError(Exception):
-
     error: Any | None
     context: str | None
     result: Any | None

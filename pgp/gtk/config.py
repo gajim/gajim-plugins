@@ -45,7 +45,6 @@ class ConfigBuilder(Gtk.Builder):
 
 class PGPConfigDialog(GajimAppWindow):
     def __init__(self, plugin: PGPPlugin, transient: Gtk.Window) -> None:
-
         GajimAppWindow.__init__(
             self,
             name="PGPConfigDialog",

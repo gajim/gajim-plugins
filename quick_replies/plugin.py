@@ -82,7 +82,6 @@ class QuickRepliesPlugin(GajimPlugin):
     def _message_actions_box_created(
         self, message_actions_box: MessageActionsBox, gtk_box: Gtk.Box
     ) -> None:
-
         for action in self._actions:
             app.window.add_action(action)
 

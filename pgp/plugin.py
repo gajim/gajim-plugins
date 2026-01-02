@@ -83,7 +83,6 @@ if BINARY is None or error:
 
 
 class PGPPlugin(GajimPlugin):
-
     def init(self):
         self.description = _("PGP encryption as per XEP-0027")
         if error_msg:
@@ -140,7 +139,6 @@ class PGPPlugin(GajimPlugin):
 
     @staticmethod
     def _on_not_trusted(event: PGPNotTrusted) -> None:
-
         def _on_response(response_id: str, do_not_ask_again: bool) -> None:
             if response_id == "accept":
                 event.on_yes(do_not_ask_again)
