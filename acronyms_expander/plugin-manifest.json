@@ -14,8 +14,8 @@
         "win32"
     ],
     "requirements": [
-        "gajim>=2.0.0"
+        "gajim>=2.4.2"
     ],
     "short_name": "acronyms_expander",
-    "version": "1.6.1"
+    "version": "1.6.2"
 }
