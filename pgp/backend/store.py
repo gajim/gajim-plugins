@@ -25,7 +25,6 @@ from pathlib import Path
 
 from nbxmpp import JID
 
-from gajim.common import app
 from gajim.common import configpaths
 
 CURRENT_STORE_VERSION = 3
@@ -61,22 +60,11 @@ class KeyStore:
                 except Exception:
                     log.exception("Could not load config")
                     self._store = self._empty_store()
+                    self._save_store()
 
-            ver = self._store.get("_version", 2)
-            if ver > CURRENT_STORE_VERSION:
-                raise Exception("Unknown store version! Please upgrade pgp plugin.")
-            elif ver == 2:
-                self._migrate_v2_store()
-                self._save_store()
-            elif ver != CURRENT_STORE_VERSION:
-                # garbled version
-                self._store = self._empty_store()
-                log.warning("Bad pgp key store version. Initializing new.")
         else:
             # having store v1 or fresh install
             self._store = self._empty_store()
-            self._migrate_v1_store()
-            self._migrate_v2_store()
             self._save_store()
 
     @staticmethod
@@ -86,58 +74,6 @@ class KeyStore:
             "own_key_data": None,
             "contact_key_data": {},
         }
-
-    def _migrate_v1_store(self) -> None:
-        keys: dict[str, str] = {}
-        attached_keys = app.settings.get_account_setting(
-            self._account, "attached_gpg_keys"
-        )
-        if not attached_keys:
-            return
-        attached_keys = attached_keys.split()
-
-        for i in range(len(attached_keys) // 2):
-            keys[attached_keys[2 * i]] = attached_keys[2 * i + 1]
-
-        for jid, key_id in keys.items():
-            self._set_contact_key_data_nosync(jid, (key_id, ""))
-
-        own_key_id = app.settings.get_account_setting(self._account, "keyid")
-        own_key_user = app.settings.get_account_setting(self._account, "keyname")
-        if own_key_id:
-            self._set_own_key_data_nosync((own_key_id, own_key_user))
-
-        attached_keys = app.settings.set_account_setting(
-            self._account, "attached_gpg_keys", ""
-        )
-        self._log.info("Migration from store v1 was successful")
-
-    def _migrate_v2_store(self) -> None:
-        own_key_data = self.get_own_key_data()
-        if own_key_data is not None:
-            own_key_id, own_key_user = (
-                own_key_data["key_id"],
-                own_key_data["key_user"],
-            )
-            try:
-                own_key_fp = self._resolve_short_id(own_key_id, has_secret=True)
-                self._set_own_key_data_nosync((own_key_fp, own_key_user))
-            except KeyResolveError:
-                self._set_own_key_data_nosync(None)
-
-        prune_list: list[str] = []
-
-        for dict_key, key_data in self._store["contact_key_data"].items():
-            try:
-                key_data["key_id"] = self._resolve_short_id(key_data["key_id"])
-            except KeyResolveError:
-                prune_list.append(dict_key)
-
-        for dict_key in prune_list:
-            del self._store["contact_key_data"][dict_key]
-
-        self._store["_version"] = CURRENT_STORE_VERSION
-        self._log.info("Migration from store v2 was successful")
 
     def _save_store(self) -> None:
         with self._store_path.open("w") as file:
