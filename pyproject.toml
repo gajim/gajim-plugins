@@ -1,6 +1,6 @@
 [project]
 name = "gajim-plugins"
-requires-python = ">=3.11"
+requires-python = ">=3.12"
 license = {text = "GPL-3.0-or-later"}
 version = "0.0.1"
 
@@ -8,7 +8,6 @@ version = "0.0.1"
 dev = [
     "codespell==2.4.1",
     "gajim@git+https://dev.gajim.org/gajim/gajim.git",
-    "isort==7.0.0",
     "nbxmpp@git+https://dev.gajim.org/gajim/python-nbxmpp.git",
     "pre-commit",
     "pygobject-stubs@git+https://github.com/pygobject/pygobject-stubs.git",
@@ -17,17 +16,12 @@ dev = [
     "ruff==0.14.8",
 ]
 
-[tool.black]
-line-length = 88
-target-version = ["py310", "py311", "py312"]
-required-version = "24.10.0"
-
 [tool.codespell]
 skip = "*__pycache__*,build,dist,test,./acronyms_expander/acronyms.py,.egg-info,.git,*.po,*.po~,*.pot,*.nsi,*.spec,*.svg"
 ignore-words-list = "THIRDPARTY,Toi,fpr"
 
 [tool.pyright]
-pythonVersion = "3.10"
+pythonVersion = "3.12"
 pythonPlatform = "All"
 typeCheckingMode = "strict"
 
@@ -43,10 +37,9 @@ exclude = [
 
 [tool.ruff]
 line-length = 88
-target-version = "py310"
+target-version = "py312"
 
 [tool.ruff.lint]
-
 select = [
     "A",     # flake8-builtins
     # "AIR",   # Airflow
@@ -72,7 +65,7 @@ select = [
     # "FIX",   # flake8-fixme
     # "FLY",   # flynt
     "G",     # flake8-logging-format
-    # "I",     # isort
+    "I",     # isort
     "ICN",   # flake8-import-conventions
     # "INP",   # flake8-no-pep420
     "INT",   # flake8-gettext
@@ -178,20 +171,20 @@ dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
 [tool.ruff.lint.mccabe]
 max-complexity = 15
 
-[tool.isort]
-profile = "black"
-force_alphabetical_sort_within_sections = true
-force_single_line = true
-group_by_package = true
-known_typing = ["typing"]
-known_gajim = ["gajim"]
-sections = [
-  "FUTURE",
-  "TYPING",
-  "STDLIB",
-  "THIRDPARTY",
-  "GAJIM",
-  "FIRSTPARTY",
-  "LOCALFOLDER"
+[tool.ruff.lint.isort]
+case-sensitive = false
+order-by-type = false
+force-single-line = true
+section-order = [
+  "future",
+  "typing",
+  "standard-library",
+  "third-party",
+  "gajim",
+  "first-party",
+  "local-folder"
 ]
-skip_gitignore = true
+
+[tool.ruff.lint.isort.sections]
+gajim = ["gajim"]
+typing = ["_typeshed", "typing", "typing_extensions"]

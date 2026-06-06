@@ -1,10 +1,12 @@
 repos:
   - repo: https://github.com/charliermarsh/ruff-pre-commit
-    rev: v0.14.8
+    rev: v0.15.7
     hooks:
       - id: ruff-check
         exclude: ".githooks/"
       - id: ruff-format
+      - id: ruff-check
+        args: [--select, I, --fix]
 
   - repo: https://github.com/codespell-project/codespell
     rev: v2.4.1

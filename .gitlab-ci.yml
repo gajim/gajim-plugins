@@ -24,17 +24,6 @@ test-pyright:
     - pyright
   interruptible: true
 
-test-isort:
-  image: gajim-test
-  stage: test
-  rules:
-    - changes:
-      - "**/*.py"
-  script:
-    - isort --version
-    - isort --check .
-  interruptible: true
-
 test-ruff-lint:
   image: gajim-test
   stage: test
