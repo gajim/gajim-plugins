@@ -20,7 +20,6 @@ PLUGIN_DIRS = [
     "length_notifier",
     "message_box_size",
     "now_listen",
-    "openpgp",
     "pgp",
     "plugins_translations",
     "quick_replies",
