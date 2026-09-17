@@ -3,7 +3,7 @@
         "Evgeniy Popov <evgeniypopov@gmail.com>"
     ],
     "description": "Adds a menu with customizable quick replies",
-    "homepage": "https://dev.gajim.org/gajim/gajim-plugins/wikis/QuickRepliesPlugin",
+    "homepage": "https://gitlab.com/gajim/gajim-plugins/wikis/QuickRepliesPlugin",
     "config_dialog": true,
     "name": "Quick replies",
     "platforms": [

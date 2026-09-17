@@ -4,7 +4,7 @@
         "Philipp Hörist <philipp@hoerist.com>"
     ],
     "description": "Allows you to adjust the height of the 'New message' input field.",
-    "homepage": "https://dev.gajim.org/gajim/gajim-plugins/wikis/MessageBoxSizePlugin",
+    "homepage": "https://gitlab.com/gajim/gajim-plugins/wikis/MessageBoxSizePlugin",
     "config_dialog": true,
     "name": "Message Box Size",
     "platforms": [

@@ -17,8 +17,8 @@ test-pyright:
     - changes:
       - "**/*.py"
   script:
-    - pip install git+https://dev.gajim.org/gajim/python-nbxmpp.git
-    - pip install git+https://dev.gajim.org/gajim/gajim.git
+    - pip install git+https://gitlab.com/gajim/python-nbxmpp.git
+    - pip install git+https://gitlab.com/gajim/gajim.git
     - pip install pygobject-stubs==2.16.0
     - pyright --version
     - pyright

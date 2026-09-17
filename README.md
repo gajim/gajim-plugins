@@ -5,7 +5,7 @@ In this place you will find all plugins that are written for [Gajim](https://gaj
 ## How to install plugins
 
 **Note:** Some plugins have external dependencies that need to be installed separately.
-Check the [plugin's wiki page](https://dev.gajim.org/gajim/gajim-plugins/-/wikis/home#plugins-list) for details.
+Check the [plugin's wiki page](https://gitlab.com/gajim/gajim-plugins/-/wikis/home#plugins-list) for details.
 
 There are several ways to install a plugin:
 
@@ -24,11 +24,11 @@ There are several ways to install a plugin:
 
 | Version | Plugins branch |
 | ------- | -------------- |
-|Gajim master|[master branch](https://dev.gajim.org/gajim/gajim-plugins/tree/master)|
-|Gajim 1.3|[1.3 branch](https://dev.gajim.org/gajim/gajim-plugins/tree/gajim_1.3)|
-|Gajim 1.2|[1.2 branch](https://dev.gajim.org/gajim/gajim-plugins/tree/gajim_1.2)|
-|Gajim 1.1|[1.1 branch](https://dev.gajim.org/gajim/gajim-plugins/tree/gajim_1.1)|
-|Gajim 1.0|[1.0 branch](https://dev.gajim.org/gajim/gajim-plugins/tree/gajim_1.0)|
+|Gajim master|[master branch](https://gitlab.com/gajim/gajim-plugins/tree/master)|
+|Gajim 1.3|[1.3 branch](https://gitlab.com/gajim/gajim-plugins/tree/gajim_1.3)|
+|Gajim 1.2|[1.2 branch](https://gitlab.com/gajim/gajim-plugins/tree/gajim_1.2)|
+|Gajim 1.1|[1.1 branch](https://gitlab.com/gajim/gajim-plugins/tree/gajim_1.1)|
+|Gajim 1.0|[1.0 branch](https://gitlab.com/gajim/gajim-plugins/tree/gajim_1.0)|
 
 *Note: Using master branch for plugins requires frequent updates of both Gajim and plugins!*
 
@@ -38,17 +38,17 @@ You have written a new plugin or want to improve an existing one?
 
 First, thanks for that! Here is how to start:
 
-- Register an account on our Gitlab [here](https://dev.gajim.org/users/sign_in)
+- Register an account on our Gitlab [here](https://gitlab.com/users/sign_in)
 - Tell us about your plans at [gajim@conference.gajim.org](xmpp:gajim@conference.gajim.org?join)
-- Fork the Gajim-Plugins [repository](https://dev.gajim.org/gajim/gajim-plugins)
+- Fork the Gajim-Plugins [repository](https://gitlab.com/gajim/gajim-plugins)
 - To get a dev environment run `uv sync`
-- When you are finished, do a merge request against the main plugins repository. You can read about how to use git [here](https://dev.gajim.org/gajim/gajim/wikis/howtogit).
-- Additionally, there is a list of [plugin events](https://dev.gajim.org/gajim/gajim/wikis/development/pluginsevents) which might be helpful
+- When you are finished, do a merge request against the main plugins repository. You can read about how to use git [here](https://gitlab.com/gajim/gajim/wikis/howtogit).
+- Additionally, there is a list of [plugin events](https://gitlab.com/gajim/gajim/wikis/development/pluginsevents) which might be helpful
 
 **Before you put in any work, please contact us on [gajim@conference.gajim.org](xmpp:gajim@conference.gajim.org?join)**
 
-**Please do not use dev.gajim.org for any projects that are not directly for the benefit of Gajim!**
+**Please do not use gitlab.com for any projects that are not directly for the benefit of Gajim!**
 
 ## Plugins list
 
-All available plugins are listed [here](https://dev.gajim.org/gajim/gajim-plugins/wikis/home).
+All available plugins are listed [here](https://gitlab.com/gajim/gajim-plugins/wikis/home).

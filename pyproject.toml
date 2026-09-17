@@ -7,8 +7,8 @@ version = "0.0.1"
 [dependency-groups]
 dev = [
     "codespell==2.4.1",
-    "gajim@git+https://dev.gajim.org/gajim/gajim.git",
-    "nbxmpp@git+https://dev.gajim.org/gajim/python-nbxmpp.git",
+    "gajim@git+https://gitlab.com/gajim/gajim.git",
+    "nbxmpp@git+https://gitlab.com/gajim/python-nbxmpp.git",
     "pre-commit",
     "pygobject-stubs@git+https://github.com/pygobject/pygobject-stubs.git",
     "python-gnupg>=0.5.6",

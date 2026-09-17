@@ -5,7 +5,7 @@
         "Thilo Molitor <thilo@eightysoft.de>"
     ],
     "description": "Shows client icons in your contact list in a tooltip.",
-    "homepage": "https://dev.gajim.org/gajim/gajim-plugins/wikis/ClientsIconsPlugin",
+    "homepage": "https://gitlab.com/gajim/gajim-plugins/wikis/ClientsIconsPlugin",
     "config_dialog": true,
     "name": "Clients icons",
     "platforms": [

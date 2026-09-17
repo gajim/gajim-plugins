@@ -3,7 +3,7 @@
         "Denis Fomin <fominde@gmail.com>"
     ],
     "description": "This plugin contains translation files for Gajim plugins.",
-    "homepage": "https://dev.gajim.org/gajim/gajim-plugins/wikis/PluginsTranslationsPlugin",
+    "homepage": "https://gitlab.com/gajim/gajim-plugins/wikis/PluginsTranslationsPlugin",
     "config_dialog": false,
     "name": "Plugins translations",
     "platforms": [

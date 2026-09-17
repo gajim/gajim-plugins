@@ -3,7 +3,7 @@
         "Mateusz Biliński <mateusz@bilinski.it>"
     ],
     "description": "Highlights the chat window’s message input if a specified message length is exceeded",
-    "homepage": "https://dev.gajim.org/gajim/gajim-plugins/wikis/LengthNotifierPlugin",
+    "homepage": "https://gitlab.com/gajim/gajim-plugins/wikis/LengthNotifierPlugin",
     "config_dialog": true,
     "name": "Message Length Notifier",
     "platforms": [

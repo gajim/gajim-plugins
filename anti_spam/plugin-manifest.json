@@ -5,7 +5,7 @@
         "Ilya Kanyukov <ilya.kanukov@gmail.com>"
     ],
     "description": "Block some incoming messages.",
-    "homepage": "https://dev.gajim.org/gajim/gajim-plugins/wikis/AntiSpamPlugin",
+    "homepage": "https://gitlab.com/gajim/gajim-plugins/wikis/AntiSpamPlugin",
     "config_dialog": true,
     "name": "Anti Spam",
     "platforms": [

@@ -10,7 +10,7 @@
 
 ## Git
 
-If you are not familiar with Git, please read the [HowTo](https://dev.gajim.org/gajim/gajim/wikis/howtogit)
+If you are not familiar with Git, please read the [HowTo](https://gitlab.com/gajim/gajim/wikis/howtogit)
 
 ### Git Commit Messages
 
