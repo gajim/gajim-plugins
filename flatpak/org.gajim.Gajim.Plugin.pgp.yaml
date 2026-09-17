@@ -1,6 +1,6 @@
 id: org.gajim.Gajim.Devel.Plugin.pgp
 runtime: org.gajim.Gajim.Devel
-sdk: org.gnome.Sdk//50
+sdk: org.gnome.Sdk//51
 build-extension: true
 separate-locales: false
 appstream-compose: false
