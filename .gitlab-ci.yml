@@ -1,16 +1,12 @@
 image: plugins-master:latest
 
 stages:
+  - manual
   - test
   - deploy
 
-deploy-plugins:
-  stage: deploy
-  script:
-    - python3 .ci/deploy.py
-
 test-pyright:
-  image: gajim-test
+  image: registry.gitlab.com/gajim/gajim/test:latest
   stage: test
   allow_failure: true
   rules:
@@ -25,21 +21,18 @@ test-pyright:
   interruptible: true
 
 test-ruff-lint:
-  image: gajim-test
+  image: registry.gitlab.com/gajim/gajim/test:latest
   stage: test
   rules:
     - changes:
       - "**/*.py"
   script:
     - ruff --version
-    - ruff check --output-format=gitlab --output-file=code-quality-report.json
-  artifacts:
-    reports:
-      codequality: $CI_PROJECT_DIR/code-quality-report.json
+    - ruff check
   interruptible: true
 
 test-ruff-format:
-  image: gajim-test
+  image: registry.gitlab.com/gajim/gajim/test:latest
   stage: test
   rules:
     - changes:
@@ -48,3 +41,25 @@ test-ruff-format:
     - ruff --version
     - ruff format --diff
   interruptible: true
+
+deploy-plugins:
+  image: registry.gitlab.com/gajim/gajim-plugins/deploy:latest
+  stage: deploy
+  script:
+    - python .ci/deploy.py
+
+build-docker-image:
+  image: docker:29.9.1-cli-alpine3.24
+  stage: manual
+  rules:
+    - if: '$DOCKER_IMAGE'
+  tags:
+    - docker
+  variables:
+    DOCKER_TLS_CERTDIR: "/certs"
+  services:
+    - docker:29.9.1-dind-alpine3.24
+  script:
+    - echo "$CI_REGISTRY_PASSWORD" | docker login $CI_REGISTRY -u $CI_REGISTRY_USER --password-stdin
+    - docker build -t $CI_REGISTRY/gajim/gajim-plugins/$DOCKER_IMAGE:latest docker/$DOCKER_IMAGE
+    - docker push $CI_REGISTRY/gajim/gajim-plugins/$DOCKER_IMAGE:latest
