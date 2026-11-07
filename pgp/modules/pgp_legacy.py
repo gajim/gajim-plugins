@@ -90,11 +90,9 @@ class PGPLegacy(BaseModule):
             ),
         ]
 
-        self.own_jid = self._client.get_own_jid()
-
         self._pgp = PGP()
         self._store = KeyStore(
-            self._account, self.own_jid, self._log, self._pgp.list_keys
+            self._account, self._client.jid, self._log, self._pgp.list_keys
         )
         self._always_trust: list[str] = []
         self._presence_fingerprint_store: dict[str, str] = {}
