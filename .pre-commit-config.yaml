@@ -26,11 +26,6 @@ repos:
         - PyGObject-stubs @ git+https://github.com/pygobject/pygobject-stubs.git
       stages: [manual]
 
-  - repo: https://github.com/pycqa/isort
-    rev: 7.0.0
-    hooks:
-      - id: isort
-
   - repo: https://github.com/fsfe/reuse-tool
     rev: v5.0.2
     hooks:
